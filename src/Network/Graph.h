@@ -110,7 +110,8 @@ private:
 
   Map_IO
   onnx_parameters_reader(
-    const google::protobuf::RepeatedPtrField<onnx::ValueInfoProto> &params, const std::unordered_set<std::string> & ignore_set)
+    const google::protobuf::RepeatedPtrField<onnx::ValueInfoProto> &params,
+    const std::unordered_set<std::string>                          &ignore_set)
   {
     Map_IO out;
     for (const auto &param : params)
@@ -146,7 +147,8 @@ private:
                 std::cout << std::endl;
               }
           }
-        else {
+        else
+          {
             std::cout << std::endl;
           }
       }
@@ -222,11 +224,11 @@ public:
         process_nodes(node.input(), input);
         process_nodes(node.output(), output);
 
-        if (input.size() != node.input_size())
+        if (input.size() == 0)
           {
             std::cout << "Error" << std::endl;
           }
-        if(output.size() != node.output_size()) {
+        if(output.size() == 0) {
             std::cout << "Error" << std::endl;
           }
 

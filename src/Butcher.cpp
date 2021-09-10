@@ -3,13 +3,15 @@
 //
 
 #include "Butcher.h"
+
 std::vector<std::vector<int>>
 Butcher::compute_two_slice_memory_brute_force(size_t memory_first_slice) const
 {
-  std::vector<std::vector<int>> res;
+  std::vector<std::vector<int>> candidate_solutions;
 
 
 
 
-  return res;
+
+  return candidate_solutions;
 }
