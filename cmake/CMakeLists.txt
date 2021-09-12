@@ -13,4 +13,6 @@ if( ${BUILD_PROTOBUF_SOURCE} )
     set(protobuf_BUILD_TESTS OFF)
     FetchContent_MakeAvailable(protobuf)
 
+    execute_process(COMMAND "ls -la _deps")
+
 endif()
