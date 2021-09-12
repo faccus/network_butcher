@@ -3,23 +3,27 @@ project(network_butcher)
 
 set(CMAKE_CXX_STANDARD 20)
 
+option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
+message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
+
+# Dependencies manager
+add_subdirectory(cmake)
+
 # Google tests
-add_subdirectory(google_tests)
+if(NOT ${BUILD_PROTOBUF_SOURCE} )
+    add_subdirectory(google_tests)
+endif()
 
 # Protobuf (dynamic library)
-include(FindProtobuf)
 find_package(Protobuf REQUIRED)
 message(STATUS "Protobuf version: ${Protobuf_VERSION}")
 
 # Download onnx file and create source files
 add_subdirectory(src/Onnx_model)
 
-
 # Turn tests on!
 enable_testing()
 
-#message( ${TESTS_SOURCE})
-# main.cpp
 
 set(TESTS_SOURCE google_tests/Helpers/Utilities.cpp google_tests/Tester.cpp google_tests/Helpers/Types/Dense_tensor.cpp)
 set(LIBRARIES_SOURCE ${PROTO_HDRS} google_tests/Butcher.cpp google_tests/Network/Graph.cpp)
