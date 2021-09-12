@@ -12,4 +12,5 @@ if( ${BUILD_PROTOBUF_SOURCE} )
     )
     set(protobuf_BUILD_TESTS OFF)
     FetchContent_MakeAvailable(protobuf)
+
 endif()
