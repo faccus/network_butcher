@@ -22,7 +22,8 @@ set(LIBRARIES_SOURCE ${PROTO_HDRS})
 
 add_executable(network_butcher_run ${TESTS_SOURCE} ${LIBRARIES_SOURCE} src/Onnx_model/onnx.pb.h src/Onnx_model/onnx.pb.cc src/Network/Layer.h src/Network/Graph.h src/Butcher.cpp src/Butcher.h src/Network/Node.h src/Helpers/Memory_info.h src/Helpers/Types/Type_info.cpp src/Helpers/Types/Type_info.h src/Helpers/Types/Dense_tensor.cpp src/Helpers/Types/Dense_tensor.h src/Helpers/Utilities.h src/Helpers/Utilities.cpp)
 
-target_link_libraries(network_butcher_run ${Protobuf_LIBRARIES})
+target_include_directories(network_butcher_run PUBLIC ${protobuf_SOURCE_DIR}/src/google/protobuf)
+target_link_libraries(network_butcher_run ${Protobuf_LIBRARIES} protobuf::libprotobuf)
 target_link_libraries(network_butcher_run gtest gtest_main)
 
 include(GoogleTest)
