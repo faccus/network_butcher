@@ -30,7 +30,7 @@ enable_testing()
 # main.cpp
 
 set(TESTS_SOURCE google_tests/Helpers/Utilities.cpp google_tests/Tester.cpp google_tests/Helpers/Types/Dense_tensor.cpp)
-set(LIBRARIES_SOURCE ${PROTO_HDRS} )
+set(LIBRARIES_SOURCE ${PROTO_HDRS} google_tests/Butcher.cpp google_tests/Network/Graph.cpp)
 
 add_executable(network_butcher_run ${TESTS_SOURCE} ${LIBRARIES_SOURCE}  ${onnx_model_file_dir}/onnx.pb.h ${onnx_model_file_dir}/onnx.pb.cc src/Network/Layer.h src/Network/Graph.h src/Butcher.cpp src/Butcher.h src/Network/Node.h src/Helpers/Memory_info.h src/Helpers/Types/Type_info.cpp src/Helpers/Types/Type_info.h src/Helpers/Types/Dense_tensor.cpp src/Helpers/Types/Dense_tensor.h src/Helpers/Utilities.h src/Helpers/Utilities.cpp)
 

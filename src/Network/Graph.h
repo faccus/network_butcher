@@ -82,7 +82,7 @@ public:
   compute_memory_usage() const {
     size_t result = 0;
     const std::vector<size_t> memory_usages = compute_nodes_memory_usage();
-    std::reduce(memory_usages.cbegin(), memory_usages.cend(), result);
+    result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
 
     return result;
   }
@@ -105,8 +105,6 @@ private:
   Map_IO inputs;
   Map_IO outputs;
   Map_IO value_infos;
-
-  std::unordered_map<std::string, int> appearances;
 
   Map_IO
   onnx_parameters_reader(
@@ -139,7 +137,7 @@ private:
                 auto &obj = type.tensor_type();
 
                 out[param.name()] = std::make_shared<Dense_tensor>(param);
-                appearances.insert(std::make_pair(param.name(), -1));
+                appearances.insert(std::make_pair(param.name(), std::vector<int>()));
               }
 
             if (type.has_sparse_tensor_type())
@@ -158,6 +156,8 @@ private:
 
 public:
   std::vector<Input_graph_type> nodes;
+  std::unordered_map<std::string, std::vector<int>> appearances;
+
 
   Graph() = default;
   Graph(const std::vector<Input_graph_type> &v)
@@ -209,10 +209,18 @@ public:
             if (valid)
               {
                 ing.push_back(p->second);
-                appearances[in]++;
               }
           }
       };
+
+    auto add_appearances = [&](const std::vector<Type_info_pointer> & in, int & index)
+    {
+      for(auto & i : in)
+        appearances[i->get_name()].push_back(index);
+    };
+
+    int current_level = 0;
+    int node_index = -1;
 
     for (int i = 0; i < in_graph_nodes.size(); ++i)
       {
@@ -224,22 +232,20 @@ public:
         process_nodes(node.input(), input);
         process_nodes(node.output(), output);
 
-        if (input.size() == 0)
-          {
-            std::cout << "Error" << std::endl;
-          }
-        if(output.size() == 0) {
-            std::cout << "Error" << std::endl;
-          }
 
-        nodes.emplace_back(i, input, output);
+        if( !(input.size() == 0 && ignore_parameters) ) {
+            auto current_index = ++node_index;
+
+            add_appearances(input, current_index);
+            add_appearances(output, current_index);
+
+            nodes.emplace_back(current_index, input, output);
+          }
       }
-
-    std::cout << appearances["relu0"] << std::endl;
   }
 
-  Graph(const std::string &path)
-    : Graph(utilities::parse_onnx_file(path))
+  Graph(const std::string &path, bool ignore_parameters = false)
+    : Graph(utilities::parse_onnx_file(path), ignore_parameters)
   {}
 
   std::vector<size_t>
@@ -267,7 +273,7 @@ public:
     std::transform(nodes.cbegin(),
                    nodes.cend(),
                    memory_usages.begin(),
-                   [](const T &in) { return in.compute_memory_usage_input(); });
+                   [](const Input_graph_type &in) { return in.compute_memory_usage_input(); });
 
     return memory_usages;
   }
@@ -282,7 +288,7 @@ public:
     std::transform(nodes.cbegin(),
                    nodes.cend(),
                    memory_usages.begin(),
-                   [](const T &in) { return in.compute_memory_usage_output(); });
+                   [](const Input_graph_type &in) { return in.compute_memory_usage_output(); });
 
     return memory_usages;
   }
@@ -291,7 +297,7 @@ public:
   compute_memory_usage() const {
     size_t result = 0;
     const std::vector<size_t> memory_usages = compute_nodes_memory_usage();
-    std::reduce(memory_usages.cbegin(), memory_usages.cend(), result);
+    result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
 
     return result;
   }

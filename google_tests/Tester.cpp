@@ -19,18 +19,14 @@ void PrintInputOutput(const onnx::ModelProto &);
 TEST(MasterTest, Test) {
   using Type_info_pointer = std::shared_ptr<Type_info>;
   using Layers = Node<Type_info_pointer>;
-
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-  onnx::ModelProto model_test;
-  std::string model_path = "resnet18-v2-7-inferred.onnx";
-  utilities::parse_onnx_file(model_test, model_path);
-
-  Graph<Layers> graph(model_test, true);
+  const std::string model_path = "arcfaceresnet100-8-inferred.onnx";
+  Graph<Layers> graph(model_path, true);
   Butcher butcher(std::move(graph));
 
 
-  butcher.compute_two_slice_memory_brute_force(100000);
+  auto res = butcher.compute_two_slice_brute_force();
 
   // https://github.com/microsoft/onnxruntime/blob/master/include/onnxruntime/core/session/onnxruntime_c_api.h
 

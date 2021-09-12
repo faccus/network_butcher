@@ -48,6 +48,19 @@ public:
   {
     return compute_memory_usage_input() + compute_memory_usage_output();
   };
+
+  const std::vector<T> &
+  get_input() const
+  {
+    return input;
+  }
+
+  const std::vector<T> &
+  get_output() const
+  {
+    return output;
+  }
+
 };
 
 #endif // NETWORK_BUTCHER_NODE_H

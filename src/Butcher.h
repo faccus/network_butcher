@@ -24,6 +24,9 @@ private:
 
   Network graph;
 
+  int
+  partial_two_slice_brute_force_helper(std::vector<std::vector<int>>&, int, int, int, std::vector<int> , std::vector<int> ) const;
+
 public:
   Butcher() = default;
   explicit Butcher(Network &&g)
@@ -32,9 +35,14 @@ public:
   explicit Butcher(const std::string & p)
     : graph(p) {};
 
-  std::vector<std::vector<int>>
+  std::vector<std::set<int>>
   compute_two_slice_memory_brute_force(size_t memory_first_slice) const; // second = 0 -> cloud with infinite space
 
+  std::vector<std::set<int>>
+  compute_partial_two_slice_memory_brute_force(size_t memory_first_slice) const;
+
+  std::vector<std::set<int>>
+  compute_two_slice_brute_force() const;
 };
 
 

@@ -56,7 +56,7 @@ public:
   compute_memory_usage() const {
     size_t result = 0;
     const std::vector<size_t> memory_usages = compute_nodes_memory_usage();
-    std::reduce(memory_usages.cbegin(), memory_usages.cend(), result);
+    result = std::reduce(memory_usages.cbegin(), memory_usages.cend(), result);
 
     return result;
   }
