@@ -7,18 +7,18 @@ if( ${BUILD_PROTOBUF_SOURCE} )
 
     FetchContent_Declare(
             protobuf
-            URL https://github.com/protocolbuffers/protobuf/releases/download/v3.17.3/protobuf-cpp-3.17.3.zip
+            URL https://github.com/protocolbuffers/protobuf/releases/download/v3.17.3/protobuf-csharp-3.17.3.zip
             SOURCE_SUBDIR  cmake
     )
     option(protobuf_BUILD_TESTS OFF)
+    option(protobuf_BUILD_PROTOC_BINARIES OFF)
     FetchContent_MakeAvailable(protobuf)
 
-    include_directories(${protobuf_SOURCE_DIR}/src/google)
+    set(PROTOBUF_LIBRARY_LOCATION protobuf::libprotobuf PARENT_SCOPE)
 else()
     find_package(Protobuf REQUIRED)
+    set(PROTOBUF_LIBRARY_LOCATION ${Protobuf_LIBRARIES} PARENT_SCOPE)
 endif()
-
-message(STATUS "Protobuf version ${Protobuf_VERSION}")
 
 FetchContent_Declare(
         googletest
