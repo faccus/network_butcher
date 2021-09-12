@@ -1,5 +1,5 @@
-include(FindProtobuf)
 include(FetchContent)
+set(FETCHCONTENT_QUIET ON)
 
 if( ${BUILD_PROTOBUF_SOURCE} )
     #set(protobuf_BUILD_TESTS OFF)
@@ -13,6 +13,13 @@ if( ${BUILD_PROTOBUF_SOURCE} )
     set(protobuf_BUILD_TESTS OFF)
     FetchContent_MakeAvailable(protobuf)
 
-    execute_process(COMMAND "ls -la _deps")
 
+
+else()
+    find_package(Protobuf CONFIG REQUIRED)
+endif()
+
+if( NOT ${GTEST_FOUND})
+    # Google tests
+    add_subdirectory(google_tests)
 endif()

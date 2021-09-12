@@ -7,6 +7,9 @@ set(onnx_model_schema_full_path ${onnx_model_directory}/onnx)
 
 file(DOWNLOAD ${onnx_model_file_url} ${onnx_model_schema_full_path})
 
+FILE(REMOVE ${onnx_model_schema_full_path}.pb.h)
+FILE(REMOVE ${onnx_model_schema_full_path}.pb.cc)
+
 FILE(TO_NATIVE_PATH ${onnx_model_directory} onnx_model_directory_native)
 FILE(TO_NATIVE_PATH ${onnx_model_schema_full_path} proto_native)
 
