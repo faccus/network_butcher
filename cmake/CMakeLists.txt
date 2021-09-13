@@ -3,7 +3,6 @@ set(FETCHCONTENT_QUIET ON)
 
 if( ${BUILD_PROTOBUF_SOURCE} )
     set ( Protobuf_USE_STATIC_LIBS ON )
-    #set(protobuf_BUILD_TESTS OFF)
 
     FetchContent_Declare(
             protobuf
@@ -20,6 +19,7 @@ else()
     set(PROTOBUF_LIBRARY_LOCATION ${Protobuf_LIBRARIES} PARENT_SCOPE)
 endif()
 
+# Add google test library from git
 FetchContent_Declare(
         googletest
         URL https://github.com/google/googletest/archive/e2239ee6043f73722e7aa812a459f54a28552929.zip
@@ -27,3 +27,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+
+# Add model for tests
+FILE(COPY ${CMAKE_SOURCE_DIR}/src/Models/resnet18-v2-7-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR})

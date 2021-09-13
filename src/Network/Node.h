@@ -7,19 +7,21 @@
 
 using size_t = std::size_t;
 
-// T is a pointer (either shared or unique)
+// T is a type that has compute_memory_usage as a method (shared)
 template <class T>
 class Node
 {
 private:
+  using io_type = std::vector<std::shared_ptr<T>>;
+
   int id;
-  std::vector<T>   input;
-  std::vector<T>   output;
+  io_type input;
+  io_type    output;
 
 public:
-  Node(int                   starting_id,
-       const std::vector<T> &initial_input,
-       const std::vector<T> &initial_output)
+  Node(int                                    starting_id,
+       const io_type &initial_input,
+       const io_type &initial_output)
     : id(starting_id)
     , input(initial_input)
     , output(initial_output)
@@ -49,13 +51,13 @@ public:
     return compute_memory_usage_input() + compute_memory_usage_output();
   };
 
-  const std::vector<T> &
+  const io_type &
   get_input() const
   {
     return input;
   }
 
-  const std::vector<T> &
+  const io_type &
   get_output() const
   {
     return output;

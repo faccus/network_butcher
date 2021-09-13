@@ -4,21 +4,21 @@
 
 #include "Butcher.h"
 
-std::vector<std::set<int>>
+std::vector<Slice_type>
 Butcher::compute_two_slice_brute_force() const
 {
-  std::vector<std::set<int>> res;
+  std::vector<Slice_type> res;
   res.reserve(graph.nodes.size());
 
   {
-    std::set<int> tmp; tmp.insert(0);
+    Slice_type tmp; tmp.insert(0);
     res.push_back(tmp);
   }
 
   for(int i = 1; i < graph.nodes.size(); ++i)
     {
-      std::set<int> partial_res; partial_res.insert(i);
-      std::set<int> input_nodes;
+      Slice_type partial_res; partial_res.insert(i);
+      Slice_type input_nodes;
       auto & node_inputs = graph.nodes[i].get_input();
       for (auto &in : node_inputs)
         {
@@ -40,7 +40,26 @@ Butcher::compute_two_slice_brute_force() const
   return res;
 }
 
+std::vector<Slice_type>
+Butcher::compute_partial_two_slice_memory_brute_force(
+  size_t memory_first_slice) const
+{
+  auto slices = compute_two_slice_brute_force();
+  std::vector<Slice_type> res;
+  auto nodes_memory_usage = graph.compute_nodes_memory_usage_input();
 
+  for(int i = 0; i < slices.size(); ++i)
+    {
+      size_t memory_usage = 0;
+      for(auto & j : slices[i])
+        memory_usage += nodes_memory_usage[j];
+
+      if(memory_usage < memory_first_slice)
+        res.push_back(std::move(slices[i]));
+    }
+
+  return res;
+}
 
 
 /*

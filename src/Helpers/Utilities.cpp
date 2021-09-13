@@ -72,6 +72,7 @@ void utilities::parse_onnx_file(onnx::ModelProto & m, std::string model_path)
 onnx::ModelProto
 utilities::parse_onnx_file(std::string model_path)
 {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
   onnx::ModelProto model;
   parse_onnx_file(model, model_path);
   return model;

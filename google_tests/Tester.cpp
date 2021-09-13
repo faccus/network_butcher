@@ -18,10 +18,10 @@ void PrintInputOutput(const onnx::ModelProto &);
 
 TEST(MasterTest, Test) {
   using Type_info_pointer = std::shared_ptr<Type_info>;
-  using Layers = Node<Type_info_pointer>;
+  using Layers = Node<Type_info>;
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-  const std::string model_path = "arcfaceresnet100-8-inferred.onnx";
+  const std::string model_path = "resnet18-v2-7-inferred.onnx";
   Graph<Layers> graph(model_path, true);
   Butcher butcher(std::move(graph));
 

@@ -20,7 +20,6 @@
 #include "Node.h"
 
 
-
 template <class T>
 class Graph
 {
@@ -73,26 +72,49 @@ public:
     std::transform(nodes.cbegin(),
                    nodes.cend(),
                    memory_usages.begin(),
-                   [](const T &in) { return in.compute_memory_usage_output(); });
+                   [](const T &in) {
+                     return in.compute_memory_usage_output();
+                   });
 
     return memory_usages;
   }
 
   size_t
-  compute_memory_usage() const {
-    size_t result = 0;
+  compute_memory_usage() const
+  {
+    size_t                    result        = 0;
     const std::vector<size_t> memory_usages = compute_nodes_memory_usage();
     result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
 
     return result;
   }
 
+  size_t
+  compute_memory_usage_input() const
+  {
+    size_t                    result = 0;
+    const std::vector<size_t> memory_usages =
+      compute_nodes_memory_usage_input();
+    result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
+
+    return result;
+  }
+
+  size_t
+  compute_memory_usage_output() const
+  {
+    size_t                    result = 0;
+    const std::vector<size_t> memory_usages =
+      compute_nodes_memory_usage_output();
+    result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
+
+    return result;
+  }
 };
 
 
 using Type_info_pointer = std::shared_ptr<Type_info>;
-using Node_type = Node<Type_info_pointer>;
-using Layer_type        = Graph<Node_type>;
+using Node_type = Node<Type_info>;
 
 using Map_IO = std::unordered_map<std::string, Type_info_pointer>;
 using Input_graph_type = Node_type;
@@ -297,6 +319,24 @@ public:
   compute_memory_usage() const {
     size_t result = 0;
     const std::vector<size_t> memory_usages = compute_nodes_memory_usage();
+    result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
+
+    return result;
+  }
+
+  size_t
+  compute_memory_usage_input() const {
+    size_t result = 0;
+    const std::vector<size_t> memory_usages = compute_nodes_memory_usage_input();
+    result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
+
+    return result;
+  }
+
+  size_t
+  compute_memory_usage_output() const {
+    size_t result = 0;
+    const std::vector<size_t> memory_usages = compute_nodes_memory_usage_output();
     result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
 
     return result;

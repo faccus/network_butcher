@@ -14,7 +14,6 @@ Dense_tensor::Dense_tensor(const onnx::ValueInfoProto & info)
   name = info.name();
   if(type.has_tensor_type()) {
       type_id = type.tensor_type().elem_type();
-      //const auto& name = info.name();
       const auto & in_shape  = type.tensor_type().shape();
 
       for(int i = 0; i < in_shape.dim_size(); ++i)

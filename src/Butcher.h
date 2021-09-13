@@ -13,9 +13,12 @@
 
 
 using Type_info_pointer = std::shared_ptr<Type_info>;
-using Node_type = Node<Type_info_pointer>;
+using Node_type = Node<Type_info>;
+
 using Layer_type        = Graph<Node_type>;
 using In_graph_type = Node_type;
+
+using Slice_type = std::set<int>;
 
 class Butcher
 {
@@ -24,24 +27,31 @@ private:
 
   Network graph;
 
+
   int
-  partial_two_slice_brute_force_helper(std::vector<std::vector<int>>&, int, int, int, std::vector<int> , std::vector<int> ) const;
+  partial_two_slice_brute_force_helper(std::vector<Slice_type> &,
+                                       int,
+                                       int,
+                                       int,
+                                       std::vector<int>,
+                                       std::vector<int>) const;
 
 public:
   Butcher() = default;
   explicit Butcher(Network &&g)
     : graph(std::move(g)){};
 
-  explicit Butcher(const std::string & p)
-    : graph(p) {};
+  explicit Butcher(const std::string &p)
+    : graph(p){};
 
-  std::vector<std::set<int>>
-  compute_two_slice_memory_brute_force(size_t memory_first_slice) const; // second = 0 -> cloud with infinite space
+  std::vector<Slice_type>
+  compute_two_slice_memory_brute_force(
+    size_t memory_first_slice) const; // second = 0 -> cloud with infinite space
 
-  std::vector<std::set<int>>
+  std::vector<Slice_type>
   compute_partial_two_slice_memory_brute_force(size_t memory_first_slice) const;
 
-  std::vector<std::set<int>>
+  std::vector<Slice_type>
   compute_two_slice_brute_force() const;
 };
 
