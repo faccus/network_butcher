@@ -15,7 +15,7 @@ add_subdirectory(src/Onnx_model)
 # Turn tests on!
 enable_testing()
 
-set(TESTS_SOURCE google_tests/Helpers/Types/Dense_tensor.cpp google_tests/Network/Graph.cpp google_tests/Helpers/Utilities.cpp google_tests/Butcher.cpp google_tests/Tester.cpp google_tests/Network/Node.cpp)
+set(TESTS_SOURCE google_tests/Helpers/Utilities.cpp google_tests/Helpers/Types/Dense_tensor.cpp google_tests/Network/Node.cpp google_tests/Network/Graph.cpp google_tests/Butcher.cpp google_tests/Tester.cpp)
 set(BASE_SOURCE src/Onnx_model/onnx.pb.h src/Onnx_model/onnx.pb.cc src/Network/Layer.h src/Network/Graph.h src/Butcher.cpp src/Butcher.h src/Network/Node.h src/Helpers/Memory_info.h src/Helpers/Types/Type_info.cpp src/Helpers/Types/Type_info.h src/Helpers/Types/Dense_tensor.cpp src/Helpers/Types/Dense_tensor.h src/Helpers/Utilities.h src/Helpers/Utilities.cpp)
 # ${LIBRARIES_SOURCE}
 
