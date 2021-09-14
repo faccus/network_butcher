@@ -19,18 +19,15 @@ void PrintInputOutput(const onnx::ModelProto &);
 TEST(MasterTest, Test) {
   using Type_info_pointer = std::shared_ptr<Type_info>;
   using Layers = Node<Type_info>;
+  using Slice_type = std::set<int>;
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   const std::string model_path = "resnet18-v2-7-inferred.onnx";
   Graph<Layers> graph(model_path, true);
   Butcher butcher(std::move(graph));
 
-
   auto res = butcher.compute_two_slice_brute_force();
 
-  // https://github.com/microsoft/onnxruntime/blob/master/include/onnxruntime/core/session/onnxruntime_c_api.h
-
-  // https://github.com/microsoft/onnxruntime/blob/cee79526fd68b6fb6b09d47dae0d48b47d2f7021/docs/OperatorKernels.md
 
   std::cout << std::endl;
 }

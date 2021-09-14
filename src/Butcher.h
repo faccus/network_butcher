@@ -27,32 +27,42 @@ private:
 
   Network graph;
 
-
+  // WIP
   int
-  partial_two_slice_brute_force_helper(std::vector<Slice_type> &,
-                                       int,
-                                       int,
-                                       int,
-                                       std::vector<int>,
-                                       std::vector<int>) const;
+  recursive_brute_forcer(std::set<Slice_type> &,
+                         const std::vector<Slice_type> &,
+                         Slice_type &,
+                         int,
+                         int mode = -1,
+                         int end  = 0);
+
+  // Compute the minimal connected graphs containing every node
+  std::vector<Slice_type>
+  compute_basic_routes() const;
 
 public:
   Butcher() = default;
   explicit Butcher(Network &&g)
     : graph(std::move(g)){};
 
-  explicit Butcher(const std::string &p)
-    : graph(p){};
+  Butcher(const std::string &p, bool ignore_parameters = true, bool dep = true)
+    : graph(p, ignore_parameters, dep){};
+
 
   std::vector<Slice_type>
-  compute_two_slice_memory_brute_force(
-    size_t memory_first_slice) const; // second = 0 -> cloud with infinite space
+  compute_two_slice_memory_brute_force(size_t memory_first_slice) const;
+
 
   std::vector<Slice_type>
   compute_partial_two_slice_memory_brute_force(size_t memory_first_slice) const;
 
+
   std::vector<Slice_type>
   compute_two_slice_brute_force() const;
+
+  // WIP
+  std::vector<Slice_type>
+  partial_compute_two_slice_brute_force() const;
 };
 
 
