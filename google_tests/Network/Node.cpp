@@ -17,14 +17,17 @@ TEST(NodeTests, ConctructorTest) {
     std::make_shared<Dense_tensor>(onnx::TensorProto_DataType_INT64,
                                    shape_input));
   std::vector<std::shared_ptr<Dense_tensor>> output;
-  input.push_back(
+  output.push_back(
     std::make_shared<Dense_tensor>(onnx::TensorProto_DataType_BOOL,
                                    shape_output));
 
   Node<Dense_tensor> node(1, input, output);
 
-  ASSERT_TRUE(node.compute_memory_usage_output() == 3 * sizeof(bool));
-  ASSERT_TRUE(node.compute_memory_usage_input() == 4 * sizeof(int64_t));
-  ASSERT_TRUE(node.compute_memory_usage() ==
-              ( 4 * sizeof(int64_t) + 3 * sizeof(bool) ) );
+  auto mem_out = node.compute_memory_usage_output();
+  auto mem_in  = node.compute_memory_usage_input();
+  auto mem_tot = node.compute_memory_usage();
+
+  ASSERT_TRUE(mem_out == 3 * sizeof(bool));
+  ASSERT_TRUE(mem_in == 4 * sizeof(int64_t));
+  ASSERT_TRUE(mem_tot == (4 * sizeof(int64_t) + 3 * sizeof(bool)));
 }
