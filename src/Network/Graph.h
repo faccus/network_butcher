@@ -167,17 +167,14 @@ private:
             const auto type = param.type();
             if (type.has_map_type())
               {
-                std::cout << std::endl;
               }
 
             if (type.has_optional_type())
               {
-                std::cout << std::endl;
               }
 
             if (type.has_sequence_type())
               {
-                std::cout << std::endl;
               }
 
             if (type.has_tensor_type())
@@ -189,12 +186,10 @@ private:
 
             if (type.has_sparse_tensor_type())
               {
-                std::cout << std::endl;
               }
           }
         else
           {
-            std::cout << std::endl;
           }
       }
 
