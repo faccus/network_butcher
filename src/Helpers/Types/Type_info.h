@@ -7,25 +7,28 @@
 
 #include <string>
 
-/// Generic type contained in a onnx model
+/// Generic type contained in a onnx model (only type info, no values are actually stored)
 class Type_info
 {
 protected:
+  /// Name of the type
   std::string name;
 public:
 
+  /// Get the name of the type
+  /// \return
   const std::string get_name() {
     return name;
   };
 
   Type_info() = default;
 
+  /// Virtual method to compute the total memory of the type
+  /// \return Memory usage of the associated type
   virtual std::size_t
-  compute_memory_usage() const {
-    return -1;
-  };
+  compute_memory_usage() const = 0;
 
-
+  /// Default deconstructor
   virtual ~Type_info() = default;
 };
 

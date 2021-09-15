@@ -54,17 +54,23 @@ void utilities::parse_onnx_file(onnx::ModelProto & m, std::string model_path)
 {
   std::ifstream in(model_path, std::ios::binary);
 
+  // File can be opened
   if(in.good())
     {
+      // Compute the total byte lenght of the file
       in.seekg(0, std::ios_base::end);
       std::size_t len = in.tellg();
 
+      // Prepare the array
       char *ret = new char[len];
 
       in.seekg(0, std::ios_base::beg);
+
+      // Read the file into the array
       in.read(ret, len);
       in.close();
 
+      // Let protobuf construct the model
       m.ParseFromArray(ret, len);
     }
 }

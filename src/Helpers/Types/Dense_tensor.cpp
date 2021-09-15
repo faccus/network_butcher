@@ -4,9 +4,11 @@
 
 #include "Dense_tensor.h"
 
-Dense_tensor::Dense_tensor(int in_type_id, const std::vector<int> &in_shape)
+#include <utility>
+
+Dense_tensor::Dense_tensor(int in_type_id, std::vector<int> in_shape)
   : type_id(in_type_id)
-  , shape(in_shape)
+  , shape(std::move(in_shape))
 {}
 Dense_tensor::Dense_tensor(const onnx::ValueInfoProto & info)
 {
