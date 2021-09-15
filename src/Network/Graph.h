@@ -35,7 +35,7 @@ public:
     : nodes(v)
   {}
 
-  /// Compute the memory usage of all the nodes in the graph (method required by the node: <size_t>(): compute_memory_usage() )
+  /// Compute the memory usage of all the nodes in the graph (method required by the node: size_t(): compute_memory_usage() )
   /// \return Vector containing the memory usage of every node
   std::vector<size_t>
   compute_nodes_memory_usage() const
@@ -52,7 +52,7 @@ public:
     return memory_usages;
   }
 
-  /// Compute the memory usage of all inputs of all the nodes in the graph (method required by the node: <size_t>(): compute_memory_usage_input() )
+  /// Compute the memory usage of all inputs of all the nodes in the graph (method required by the node: size_t(): compute_memory_usage_input() )
   /// \return Vector containing the total memory usage of the inputs of every node
   std::vector<size_t>
   compute_nodes_memory_usage_input() const
@@ -69,7 +69,7 @@ public:
     return memory_usages;
   }
 
-  /// Compute the memory usage of all outputs of all the nodes in the graph (method required by the node: <size_t>(): compute_memory_usage_input() )
+  /// Compute the memory usage of all outputs of all the nodes in the graph (method required by the node: size_t(): compute_memory_usage_input() )
   /// \return Vector containing the total memory usage of the outputs of every node
   std::vector<size_t>
   compute_nodes_memory_usage_output() const
@@ -364,7 +364,7 @@ public:
     : Graph(utilities::parse_onnx_file(path), ignore_parameters, dependencies)
   {}
 
-  /// Compute the memory usage of all the nodes in the graph (method required by the node: <size_t>(): compute_memory_usage() )
+  /// Compute the memory usage of all the nodes in the graph (method required by the node: size_t(): compute_memory_usage() )
   /// \return Vector containing the memory usage of every node
   std::vector<size_t>
   compute_nodes_memory_usage() const
@@ -381,7 +381,7 @@ public:
     return memory_usages;
   }
 
-  /// Compute the memory usage of all inputs of all the nodes in the graph (method required by the node: <size_t>(): compute_memory_usage_input() )
+  /// Compute the memory usage of all inputs of all the nodes in the graph (method required by the node: size_t(): compute_memory_usage_input() )
   /// \return Vector containing the total memory usage of the inputs of every node
   std::vector<size_t>
   compute_nodes_memory_usage_input() const
@@ -398,7 +398,7 @@ public:
     return memory_usages;
   }
 
-  /// Compute the memory usage of all outputs of all the nodes in the graph (method required by the node: <size_t>(): compute_memory_usage_input() )
+  /// Compute the memory usage of all outputs of all the nodes in the graph (method required by the node: size_t(): compute_memory_usage_input() )
   /// \return Vector containing the total memory usage of the outputs of every node
   std::vector<size_t>
   compute_nodes_memory_usage_output() const
