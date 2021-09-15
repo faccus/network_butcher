@@ -255,6 +255,7 @@ public:
   /// Map that associates the names of TypeInfos with the nodes that have as an output a Typeinfo
   std::unordered_map<std::string, std::vector<int>> appearances_output;
 
+  /// Vector that contains all the neighbours of every node (first input, then output)
   std::vector< std::pair<std::set<int>, std::set<int> > > dependencies;
 
 
@@ -403,7 +404,7 @@ public:
     std::transform(nodes.cbegin(),
                    nodes.cend(),
                    memory_usages.begin(),
-                   [](const T &in) { return in.compute_memory_usage_input(); });
+                   [](const Input_graph_type &in) { return in.compute_memory_usage_input(); });
 
     return memory_usages;
   }
@@ -420,7 +421,7 @@ public:
     std::transform(nodes.cbegin(),
                    nodes.cend(),
                    memory_usages.begin(),
-                   [](const T &in) {
+                   [](const Input_graph_type &in) {
                      return in.compute_memory_usage_output();
                    });
 
