@@ -387,7 +387,7 @@ public:
     std::transform(nodes.cbegin(),
                    nodes.cend(),
                    memory_usages.begin(),
-                   [](const T &in) { return in.compute_memory_usage(); });
+                   [](const Input_graph_type &in) { return in.compute_memory_usage(); });
 
     return memory_usages;
   }
