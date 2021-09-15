@@ -1,26 +1,28 @@
-find_package(Doxygen
-             REQUIRED dot
-             OPTIONAL_COMPONENTS mscgen dia)
+if( BUILD_DOC )
 
-if( DOXYGEN_FOUND )
+    if ( DOXYGEN_FOUND )
 
-    set(DOXYGEN_EXCLUDE_PATTERNS */Onnx_model/* */_deps/*)
+        set(DOXYGEN_EXCLUDE_PATTERNS */Onnx_model/* */_deps/*)
+        set(DOXYGEN_INHERIT_DOCS NO)
 
+        if( DOXYGEN_HAVE_DOT )
+            # Collaboration graphs
+            set(DOXYGEN_TEMPLATE_RELATIONS YES)
+            set(DOXYGEN_UML_LOOK YES)
+            set(DOXYGEN_HTML_FILE_EXTENSION .xhtml)
+            set(DOXYGEN_DOT_IMAGE_FORMAT svg)
+            set(DOXYGEN_INTERACTIVE_SVG YES)
 
-    # Collaboration graphs
-    set(DOXYGEN_INHERIT_DOCS NO)
-    set(DOXYGEN_TEMPLATE_RELATIONS YES)
-    set(DOXYGEN_UML_LOOK YES)
-    set(DOXYGEN_HTML_FILE_EXTENSION .xhtml)
-    set(DOXYGEN_DOT_IMAGE_FORMAT svg)
-    set(DOXYGEN_INTERACTIVE_SVG YES)
+        elseif()
+            message(STATUS "Missing dot: I will not be able to produce graphs!")
+        endif()
 
-    doxygen_add_docs(
-            doxygen
-            ${PROJECT_SOURCE_DIR}
-            COMMENT "Generate man pages"
-    )
-
-elseif( BUILD_DOC )
-    message("Doxygen need to be installed to generate the doxygen documentation")
+        doxygen_add_docs(
+                doxygen
+                ${PROJECT_SOURCE_DIR}
+                COMMENT "Generate man pages"
+        )
+    elseif ()
+        message(STATUS "Missing doxygen: I will not be able to produce documentation files!")
+    endif()
 endif()
