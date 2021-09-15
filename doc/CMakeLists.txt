@@ -1,20 +1,30 @@
 if( BUILD_DOC )
+    if( BUILD_DOC_GRAPH )
+        find_package(Doxygen
+                REQUIRED dot
+                OPTIONAL_COMPONENTS mscgen dia)
+    else()
+        find_package(Doxygen
+                OPTIONAL_COMPONENTS dot mscgen dia)
+    endif()
 
     if ( DOXYGEN_FOUND )
-
         set(DOXYGEN_EXCLUDE_PATTERNS */Onnx_model/* */_deps/*)
         set(DOXYGEN_INHERIT_DOCS NO)
+        set(DOXYGEN_EXTRACT_ALL YES)
+        set(DOXYGEN_EXTRACT_PRIVATE YES)
+        set(DOXYGEN_EXTRACT_PRIV_STATIC YES)
+        set(DOXYGEN_EXTRACT_STATIC YES)
+        set(DOXYGEN_EXTRACT_LOCAL_METHODS YES)
 
-        if( DOXYGEN_HAVE_DOT )
+        if( BUILD_DOC_GRAPH )
             # Collaboration graphs
             set(DOXYGEN_TEMPLATE_RELATIONS YES)
             set(DOXYGEN_UML_LOOK YES)
             set(DOXYGEN_HTML_FILE_EXTENSION .xhtml)
             set(DOXYGEN_DOT_IMAGE_FORMAT svg)
             set(DOXYGEN_INTERACTIVE_SVG YES)
-
-        elseif()
-            message(STATUS "Missing dot: I will not be able to produce graphs!")
+            set(DOXYGEN_UML_LIMIT_NUM_FIELDS 100)
         endif()
 
         doxygen_add_docs(
