@@ -9,8 +9,8 @@
 #include "../../src/Helpers/Types/Dense_tensor.h"
 
 TEST(NodeTests, ConctructorTest) {
-  std::vector<int> shape_input{1, 1, 2, 2};
-  std::vector<int> shape_output{3, 1, 1 ,1};
+  std::vector<long> shape_input{1, 1, 2, 2};
+  std::vector<long> shape_output{3, 1, 1 ,1};
 
   std::vector<std::shared_ptr<Dense_tensor>> input;
   input.push_back(
