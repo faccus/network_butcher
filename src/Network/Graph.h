@@ -227,6 +227,12 @@ private:
   /// An helper function used to compute the dependencies of every node of the graph
   void
   helper_compute_dependencies() {
+
+    {
+      std::vector<std::pair<std::set<int>, std::set<int>>> tmp;
+      dependencies = tmp;
+    }
+
     for(int i = 0; i < nodes.size(); ++i) {
 
         auto & node = nodes[i];
@@ -244,7 +250,9 @@ public:
   /// Collection of nodes
   std::vector<Input_graph_type> nodes;
 
+  /// Map that associates the names of TypeInfos with the nodes that have as an input a Typeinfo
   std::unordered_map<std::string, std::vector<int>> appearances_input;
+  /// Map that associates the names of TypeInfos with the nodes that have as an output a Typeinfo
   std::unordered_map<std::string, std::vector<int>> appearances_output;
 
   std::vector< std::pair<std::set<int>, std::set<int> > > dependencies;
@@ -258,6 +266,10 @@ public:
 
   Graph(Graph<Input_graph_type> &&) = default;
 
+  /// Construct a graph from a model
+  /// \param model Protobuf model
+  /// \param ignore_parameters Ignore the inputs/outputs already initialized
+  /// \param dependencies Compute the nodes dependencies
   Graph(const onnx::ModelProto &model,
         bool                    ignore_parameters = false,
         bool                    dependencies      = true)
@@ -352,13 +364,18 @@ public:
   }
 
 
+  /// Construct a graph from a Protobuf Model stored at the specified path
+  /// \param path The absolute/relative path of the .onnx model
+  /// \param ignore_parameters Ignore the inputs/outputs already initialized
+  /// \param dependencies Compute the nodes dependencies
   Graph(const std::string &path,
         bool               ignore_parameters = false,
-        bool               dep               = true)
-    : Graph(utilities::parse_onnx_file(path), ignore_parameters, dep)
+        bool               dependencies      = true)
+    : Graph(utilities::parse_onnx_file(path), ignore_parameters, dependencies)
   {}
 
-
+  /// Compute the memory usage of all the nodes in the graph (method required by the node: <size_t>(): compute_memory_usage() )
+  /// \return Vector containing the memory usage of every node
   std::vector<size_t>
   compute_nodes_memory_usage() const
   {
@@ -369,12 +386,13 @@ public:
     std::transform(nodes.cbegin(),
                    nodes.cend(),
                    memory_usages.begin(),
-                   [](const Input_graph_type &in) { return in.compute_memory_usage(); });
+                   [](const T &in) { return in.compute_memory_usage(); });
 
     return memory_usages;
   }
 
-
+  /// Compute the memory usage of all inputs of all the nodes in the graph (method required by the node: <size_t>(): compute_memory_usage_input() )
+  /// \return Vector containing the total memory usage of the inputs of every node
   std::vector<size_t>
   compute_nodes_memory_usage_input() const
   {
@@ -385,12 +403,13 @@ public:
     std::transform(nodes.cbegin(),
                    nodes.cend(),
                    memory_usages.begin(),
-                   [](const Input_graph_type &in) { return in.compute_memory_usage_input(); });
+                   [](const T &in) { return in.compute_memory_usage_input(); });
 
     return memory_usages;
   }
 
-
+  /// Compute the memory usage of all outputs of all the nodes in the graph (method required by the node: <size_t>(): compute_memory_usage_input() )
+  /// \return Vector containing the total memory usage of the outputs of every node
   std::vector<size_t>
   compute_nodes_memory_usage_output() const
   {
@@ -401,42 +420,54 @@ public:
     std::transform(nodes.cbegin(),
                    nodes.cend(),
                    memory_usages.begin(),
-                   [](const Input_graph_type &in) { return in.compute_memory_usage_output(); });
+                   [](const T &in) {
+                     return in.compute_memory_usage_output();
+                   });
 
     return memory_usages;
   }
 
-
+  /// Compute the total memory usage of the nodes of the graph
+  /// \return Total memory usage of all the nodes of the graph
   size_t
-  compute_memory_usage() const {
-    size_t result = 0;
+  compute_memory_usage() const
+  {
+    size_t                    result        = 0;
     const std::vector<size_t> memory_usages = compute_nodes_memory_usage();
     result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
 
     return result;
   }
 
-
+  /// Compute the total memory usage of all the inputs of all nodes of the graph
+  /// \return Total memory usage of all the inputs of all nodes of the graph
   size_t
-  compute_memory_usage_input() const {
-    size_t result = 0;
-    const std::vector<size_t> memory_usages = compute_nodes_memory_usage_input();
+  compute_memory_usage_input() const
+  {
+    size_t                    result = 0;
+    const std::vector<size_t> memory_usages =
+      compute_nodes_memory_usage_input();
     result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
 
     return result;
   }
 
-
+  /// Compute the total memory usage of all the outputs of all nodes of the graph
+  /// \return Total memory usage of all the outputs of all nodes of the graph
   size_t
-  compute_memory_usage_output() const {
-    size_t result = 0;
-    const std::vector<size_t> memory_usages = compute_nodes_memory_usage_output();
+  compute_memory_usage_output() const
+  {
+    size_t                    result = 0;
+    const std::vector<size_t> memory_usages =
+      compute_nodes_memory_usage_output();
     result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
 
     return result;
   }
 
-
+  /// Compute node dependencies, if they were not already computed
+  /// \param forced Force the computation of the dependencies, even if they were already computed.
+  /// \return Return true if the dependencies were computed, false otherwise
   bool
   compute_dependencies(bool forced = false) {
     if(!forced && dependencies_computed)
