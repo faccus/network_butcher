@@ -25,6 +25,8 @@ if( BUILD_DOC )
             set(DOXYGEN_DOT_IMAGE_FORMAT svg)
             set(DOXYGEN_INTERACTIVE_SVG YES)
             set(DOXYGEN_UML_LIMIT_NUM_FIELDS 100)
+        elseif()
+            message(STATUS "Missing dot: I will not be able to draw graphs in the documentation!")
         endif()
 
         doxygen_add_docs(
