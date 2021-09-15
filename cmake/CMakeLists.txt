@@ -33,11 +33,6 @@ if ( BUILD_TESTS )
     FILE(COPY ${CMAKE_SOURCE_DIR}/src/Models/resnet18-v2-7-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR})
 endif()
 
-if ( BUILD_DOC )
-    find_package(Doxygen
-            OPTIONAL_COMPONENTS dot mscgen dia)
-endif()
-
 
 
 set(TMP_LIBRARIES_LOCATION ${PROTOBUF_LIBRARY_LOCATION})
