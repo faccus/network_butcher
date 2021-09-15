@@ -1,7 +1,7 @@
 include(FetchContent)
 set(FETCHCONTENT_QUIET ON)
 
-if( ${BUILD_PROTOBUF_SOURCE} )
+if( BUILD_PROTOBUF_SOURCE )
     set ( Protobuf_USE_STATIC_LIBS ON )
 
     FetchContent_Declare(
@@ -13,10 +13,11 @@ if( ${BUILD_PROTOBUF_SOURCE} )
     option(protobuf_BUILD_PROTOC_BINARIES OFF)
     FetchContent_MakeAvailable(protobuf)
 
-    set(PROTOBUF_LIBRARY_LOCATION protobuf::libprotobuf PARENT_SCOPE)
+    set(PROTOBUF_LIBRARY_LOCATION protobuf::libprotobuf)
 else()
     find_package(Protobuf REQUIRED)
-    set(PROTOBUF_LIBRARY_LOCATION ${Protobuf_LIBRARIES} PARENT_SCOPE)
+    set(PROTOBUF_LIBRARY_LOCATION ${Protobuf_LIBRARIES})
+    message(STATUS "Found protobuf version ${Protobuf_VERSION}")
 endif()
 
 # Add google test library from git
@@ -30,3 +31,7 @@ include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
 # Add model for tests
 FILE(COPY ${CMAKE_SOURCE_DIR}/src/Models/resnet18-v2-7-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR})
+
+set(TMP_LIBRARIES_LOCATION ${PROTOBUF_LIBRARY_LOCATION})
+set(RUN_LIBRARIES_LOCATION ${TMP_LIBRARIES_LOCATION} PARENT_SCOPE)
+set(TEST_LIBRARIES_LOCATION ${TMP_LIBRARIES_LOCATION} gtest gtest_main PARENT_SCOPE)

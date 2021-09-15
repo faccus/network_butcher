@@ -20,6 +20,7 @@ using In_graph_type = Node_type;
 
 using Slice_type = std::set<int>;
 
+/// Butcher butchers a given graph into slices
 class Butcher
 {
 private:

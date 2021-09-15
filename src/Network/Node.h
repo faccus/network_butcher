@@ -8,6 +8,9 @@
 using size_t = std::size_t;
 
 // T is a type that has compute_memory_usage as a method (shared)
+
+/// A node of a graph
+/// \tparam T
 template <class T>
 class Node
 {
