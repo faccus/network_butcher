@@ -17,7 +17,7 @@ public:
 
   /// Get the name of the type
   /// \return
-  const std::string get_name() {
+  std::string get_name() {
     return name;
   };
 

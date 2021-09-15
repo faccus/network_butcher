@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(network_butcher)
+project("Network Butcher" DESCRIPTION "Just a normal butcher. A network butcher")
 
 set(CMAKE_CXX_STANDARD 20)
 

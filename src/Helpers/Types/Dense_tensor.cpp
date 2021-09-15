@@ -6,7 +6,7 @@
 
 #include <utility>
 
-Dense_tensor::Dense_tensor(int in_type_id, std::vector<int> in_shape)
+Dense_tensor::Dense_tensor(int in_type_id, std::vector<long> in_shape)
   : type_id(in_type_id)
   , shape(std::move(in_shape))
 {}

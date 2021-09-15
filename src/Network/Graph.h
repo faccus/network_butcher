@@ -16,7 +16,6 @@
 #include "../Helpers/Types/Dense_tensor.h"
 
 #include "../Onnx_model/onnx.pb.h"
-#include "Layer.h"
 #include "Node.h"
 
 /// Just another graph class...
@@ -32,7 +31,7 @@ public:
   Graph() = default;
 
   /// Construct the graph from the nodes
-  Graph(const std::vector<T> &v)
+  explicit Graph(const std::vector<T> &v)
     : nodes(v)
   {}
 
@@ -94,7 +93,7 @@ public:
   size_t
   compute_memory_usage() const
   {
-    size_t                    result        = 0;
+    size_t                    result;
     const std::vector<size_t> memory_usages = compute_nodes_memory_usage();
     result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
 
@@ -106,7 +105,7 @@ public:
   size_t
   compute_memory_usage_input() const
   {
-    size_t                    result = 0;
+    size_t                    result;
     const std::vector<size_t> memory_usages =
       compute_nodes_memory_usage_input();
     result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
@@ -119,7 +118,7 @@ public:
   size_t
   compute_memory_usage_output() const
   {
-    size_t                    result = 0;
+    size_t                    result;
     const std::vector<size_t> memory_usages =
       compute_nodes_memory_usage_output();
     result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
@@ -154,17 +153,17 @@ private:
   /// \param params Collection of ValueInfoProto
   /// \param ignore_set The names of the parameters to ignore
   /// \return The map that associated the name of the ValueInfoProto to the respective type
-  Map_IO
+  static Map_IO
   onnx_parameters_reader(
     const google::protobuf::RepeatedPtrField<onnx::ValueInfoProto> &params,
-    const std::unordered_set<std::string>                          &ignore_set) const
+    const std::unordered_set<std::string>                          &ignore_set)
   {
     Map_IO out;
     for (const auto &param : params)
       {
         if (param.IsInitialized() && !ignore_set.contains(param.name()))
           {
-            const auto type = param.type();
+            const auto & type = param.type();
             if (type.has_map_type())
               {
               }
@@ -201,10 +200,10 @@ private:
   /// \param types The collection of Type_info
   /// \param appearances The map that associated to the name of a Type_info a collection of nodes
   /// \return The set of all the nodes that have a Type_info in types and that appear in the map
-  std::set<int>
+  static std::set<int>
   find_nodes(
     const std::vector<Type_info_pointer>                    &types,
-    const std::unordered_map<std::string, std::vector<int>> &appearances) const
+    const std::unordered_map<std::string, std::vector<int>> &appearances)
   {
     std::set<int> res;
     for (auto &out : types)
@@ -228,15 +227,13 @@ private:
       dependencies = tmp;
     }
 
-    for(int i = 0; i < nodes.size(); ++i) {
-
-        auto & node = nodes[i];
+    for(auto & node : nodes) {
 
         // To get the input for a node, I have to look at the output of the others.
         auto in = find_nodes(node.get_input(), appearances_output);
         auto out = find_nodes(node.get_output(), appearances_input);
 
-        dependencies.push_back( {in, out} );
+        dependencies.emplace_back(in, out);
       }
   }
 
@@ -255,7 +252,7 @@ public:
 
 
   Graph() = default;
-  Graph(const std::vector<Input_graph_type> &v)
+  explicit Graph(const std::vector<Input_graph_type> &v)
     : nodes(v)
   {};
 
@@ -266,7 +263,7 @@ public:
   /// \param model Protobuf model
   /// \param ignore_parameters Ignore the inputs/outputs already initialized
   /// \param dependencies Compute the nodes dependencies
-  Graph(const onnx::ModelProto &model,
+  explicit Graph(const onnx::ModelProto &model,
         bool                    ignore_parameters = false,
         bool                    dependencies      = true)
   {
@@ -299,8 +296,8 @@ public:
         std::vector<Type_info_pointer> &ing) {
         for (auto &in : inp)
           {
-            Map_IO ::const_iterator p     = inputs.find(in);
-            bool                    valid = p != inputs.cend();
+            auto p     = inputs.find(in);
+            bool valid = p != inputs.cend();
 
             if (!valid)
               {
@@ -330,13 +327,10 @@ public:
           appearances[i->get_name()].push_back(index);
       };
 
-    int current_level = 0;
     int node_index    = -1;
 
-    for (int i = 0; i < in_graph_nodes.size(); ++i)
+    for (const auto & node : in_graph_nodes)
       {
-        const auto &node = in_graph_nodes[i];
-
         std::vector<Type_info_pointer> input;
         std::vector<Type_info_pointer> output;
 
@@ -344,7 +338,7 @@ public:
         process_nodes(node.output(), output);
 
 
-        if (! (input.size() == 0 && ignore_parameters) )
+        if (! (input.empty() && ignore_parameters) )
           {
             auto current_index = ++node_index;
 
@@ -364,7 +358,7 @@ public:
   /// \param path The absolute/relative path of the .onnx model
   /// \param ignore_parameters Ignore the inputs/outputs already initialized
   /// \param dependencies Compute the nodes dependencies
-  Graph(const std::string &path,
+  explicit Graph(const std::string &path,
         bool               ignore_parameters = false,
         bool               dependencies      = true)
     : Graph(utilities::parse_onnx_file(path), ignore_parameters, dependencies)
@@ -428,7 +422,7 @@ public:
   size_t
   compute_memory_usage() const
   {
-    size_t                    result        = 0;
+    size_t                    result;
     const std::vector<size_t> memory_usages = compute_nodes_memory_usage();
     result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
 
@@ -440,7 +434,7 @@ public:
   size_t
   compute_memory_usage_input() const
   {
-    size_t                    result = 0;
+    size_t                    result;
     const std::vector<size_t> memory_usages =
       compute_nodes_memory_usage_input();
     result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
@@ -453,7 +447,7 @@ public:
   size_t
   compute_memory_usage_output() const
   {
-    size_t                    result = 0;
+    size_t                    result;
     const std::vector<size_t> memory_usages =
       compute_nodes_memory_usage_output();
     result = std::reduce(memory_usages.cbegin(), memory_usages.cend());

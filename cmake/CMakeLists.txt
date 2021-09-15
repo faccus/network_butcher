@@ -1,5 +1,4 @@
 include(FetchContent)
-set(FETCHCONTENT_QUIET ON)
 
 if( BUILD_PROTOBUF_SOURCE )
     set ( Protobuf_USE_STATIC_LIBS ON )

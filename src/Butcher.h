@@ -6,7 +6,6 @@
 #define NETWORK_BUTCHER_BUTCHER_H
 
 #include "Network/Graph.h"
-#include "Network/Layer.h"
 #include "Network/Node.h"
 #include "Helpers/Types/Type_info.h"
 #include "Helpers/Utilities.h"
@@ -46,9 +45,9 @@ private:
   /// \param slices The vector of input slices
   /// \param tester The tester function
   /// \return The slices that satisfy the tester function
-  std::vector<Slice_type>
+  static std::vector<Slice_type>
   partition_checker(std::vector<Slice_type> & slices,
-                    std::function<bool(const Slice_type &)> tester) const;
+                    const std::function<bool(const Slice_type &)>& tester) ;
 
 
 public:

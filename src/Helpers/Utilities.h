@@ -22,13 +22,13 @@ namespace utilities
   /// \param m Reference to the model that will be constructed
   /// \param model_path Path to the .onnx file
   void
-  parse_onnx_file(onnx::ModelProto &m, std::string model_path);
+  parse_onnx_file(onnx::ModelProto &m, const std::string& model_path);
 
   /// Construct a ModelProto from an onnx file
   /// \param model_path Path to the .onnx file
   /// \return The constructed model
   onnx::ModelProto
-  parse_onnx_file(std::string model_path);
+  parse_onnx_file(const std::string& model_path);
 
   /// Check if a file exists
   /// \param name Path to the file

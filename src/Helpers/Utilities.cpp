@@ -50,7 +50,7 @@ utilities::compute_memory_usage_from_enum(int input) {
     return -1;
 }
 
-void utilities::parse_onnx_file(onnx::ModelProto & m, std::string model_path)
+void utilities::parse_onnx_file(onnx::ModelProto & m, const std::string& model_path)
 {
   std::ifstream in(model_path, std::ios::binary);
 
@@ -76,7 +76,7 @@ void utilities::parse_onnx_file(onnx::ModelProto & m, std::string model_path)
 }
 
 onnx::ModelProto
-utilities::parse_onnx_file(std::string model_path)
+utilities::parse_onnx_file(const std::string& model_path)
 {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
   onnx::ModelProto model;
