@@ -9,27 +9,19 @@ std::vector<Slice_type>
 Butcher::compute_partial_two_slice_memory_brute_force(
   size_t memory_first_slice) const
 {
-  auto                    slices = compute_basic_routes();
-  std::vector<Slice_type> res;
+  // Compute all the basic routes
+  auto slices             = compute_basic_routes();
   auto nodes_memory_usage = graph.compute_nodes_memory_usage_input();
 
-  for (int i = 0; i < slices.size(); ++i)
-    {
-      size_t memory_usage = 0;
-      for (auto &j : slices[i])
-        memory_usage += nodes_memory_usage[j];
+  auto tester = [&nodes_memory_usage,
+                 &memory_first_slice](const Slice_type &slice) {
+    size_t memory_usage = 0;
+    for (auto &j : slice)
+      memory_usage += nodes_memory_usage[j];
+    return memory_usage < memory_first_slice;
+  };
 
-      if (memory_usage < memory_first_slice)
-        res.push_back(std::move(slices[i]));
-      else
-        {
-          {
-            Slice_type tmp(std::move(slices[i]));
-          }
-        }
-    }
-
-  return res;
+  return partition_checker(slices, tester);
 }
 
 
@@ -103,27 +95,18 @@ Butcher::compute_two_slice_brute_force() const
 std::vector<Slice_type>
 Butcher::compute_two_slice_memory_brute_force(size_t memory_first_slice) const
 {
-  auto                    slices = compute_two_slice_brute_force();
-  std::vector<Slice_type> res;
+  auto slices             = compute_two_slice_brute_force();
   auto nodes_memory_usage = graph.compute_nodes_memory_usage_input();
 
-  for (int i = 0; i < slices.size(); ++i)
-    {
-      size_t memory_usage = 0;
-      for (auto &j : slices[i])
-        memory_usage += nodes_memory_usage[j];
+  auto tester = [&nodes_memory_usage,
+                 &memory_first_slice](const Slice_type &slice) {
+    size_t memory_usage = 0;
+    for (auto &j : slice)
+      memory_usage += nodes_memory_usage[j];
+    return memory_usage < memory_first_slice;
+  };
 
-      if (memory_usage < memory_first_slice)
-        res.push_back(std::move(slices[i]));
-      else
-        {
-          {
-            Slice_type tmp(std::move(slices[i]));
-          }
-        }
-    }
-
-  return res;
+  return partition_checker(slices, tester);
 }
 
 
@@ -263,4 +246,26 @@ Butcher::partial_compute_two_slice_brute_force() const
     }
 
   return basic_routes;
+}
+
+
+std::vector<Slice_type>
+Butcher::partition_checker(std::vector<Slice_type>                &slices,
+                           std::function<bool(const Slice_type &)> tester) const
+{
+  std::vector<Slice_type> res;
+
+  for (int i = 0; i < slices.size(); ++i)
+    {
+      if (tester(slices[i]))
+        res.push_back(std::move(slices[i]));
+      else
+        {
+          {
+            Slice_type tmp(std::move(slices[i]));
+          }
+        }
+    }
+
+  return res;
 }

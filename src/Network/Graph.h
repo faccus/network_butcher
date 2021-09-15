@@ -19,19 +19,25 @@
 #include "Layer.h"
 #include "Node.h"
 
-
+/// Just another graph class...
+/// \tparam T Type of the node in the graph
 template <class T>
 class Graph
 {
 private:
 public:
+  /// Vector of all the nodes
   std::vector<T> nodes;
 
   Graph() = default;
+
+  /// Construct the graph from the nodes
   Graph(const std::vector<T> &v)
     : nodes(v)
   {}
 
+  /// Compute the memory usage of all the nodes in the graph (method required by the node: <size_t>(): compute_memory_usage() )
+  /// \return Vector containing the memory usage of every node
   std::vector<size_t>
   compute_nodes_memory_usage() const
   {
@@ -47,6 +53,8 @@ public:
     return memory_usages;
   }
 
+  /// Compute the memory usage of all inputs of all the nodes in the graph (method required by the node: <size_t>(): compute_memory_usage_input() )
+  /// \return Vector containing the total memory usage of the inputs of every node
   std::vector<size_t>
   compute_nodes_memory_usage_input() const
   {
@@ -62,6 +70,8 @@ public:
     return memory_usages;
   }
 
+  /// Compute the memory usage of all outputs of all the nodes in the graph (method required by the node: <size_t>(): compute_memory_usage_input() )
+  /// \return Vector containing the total memory usage of the outputs of every node
   std::vector<size_t>
   compute_nodes_memory_usage_output() const
   {
@@ -79,6 +89,8 @@ public:
     return memory_usages;
   }
 
+  /// Compute the total memory usage of the nodes of the graph
+  /// \return Total memory usage of all the nodes of the graph
   size_t
   compute_memory_usage() const
   {
@@ -89,6 +101,8 @@ public:
     return result;
   }
 
+  /// Compute the total memory usage of all the inputs of all nodes of the graph
+  /// \return Total memory usage of all the inputs of all nodes of the graph
   size_t
   compute_memory_usage_input() const
   {
@@ -100,6 +114,8 @@ public:
     return result;
   }
 
+  /// Compute the total memory usage of all the outputs of all nodes of the graph
+  /// \return Total memory usage of all the outputs of all nodes of the graph
   size_t
   compute_memory_usage_output() const
   {
@@ -124,12 +140,20 @@ class Graph<Input_graph_type>
 {
 private:
 
+  /// Maps the name of an input of the model with the respective type
   Map_IO inputs;
+  /// Maps the name of an output of the model with the respective type
   Map_IO outputs;
+  /// Maps the name of an value infos of the model with the respective type
   Map_IO value_infos;
 
+  /// Have the dependencies of every node already computed?
   bool dependencies_computed = false;
 
+  /// From a ValueInfoProto (type of an input/output/value_info of the graph) collection of elements, it will construct a map that associated the name of the ValueInfoProto to the respective type
+  /// \param params Collection of ValueInfoProto
+  /// \param ignore_set The names of the parameters to ignore
+  /// \return The map that associated the name of the ValueInfoProto to the respective type
   Map_IO
   onnx_parameters_reader(
     const google::protobuf::RepeatedPtrField<onnx::ValueInfoProto> &params,
@@ -178,6 +202,10 @@ private:
   }
 
 
+  /// It will produce the set of all the nodes that have a Type_info in types and that appear in the map
+  /// \param types The collection of Type_info
+  /// \param appearances The map that associated to the name of a Type_info a collection of nodes
+  /// \return The set of all the nodes that have a Type_info in types and that appear in the map
   std::set<int>
   find_nodes(
     const std::vector<Type_info_pointer>                    &types,
@@ -196,6 +224,7 @@ private:
     return res;
   }
 
+  /// An helper function used to compute the dependencies of every node of the graph
   void
   helper_compute_dependencies() {
     for(int i = 0; i < nodes.size(); ++i) {
@@ -212,7 +241,7 @@ private:
 
 public:
 
-
+  /// Collection of nodes
   std::vector<Input_graph_type> nodes;
 
   std::unordered_map<std::string, std::vector<int>> appearances_input;
@@ -307,7 +336,7 @@ public:
         process_nodes(node.output(), output);
 
 
-        if (!(input.size() == 0 && ignore_parameters))
+        if (! (input.size() == 0 && ignore_parameters) )
           {
             auto current_index = ++node_index;
 
