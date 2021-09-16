@@ -9,7 +9,7 @@ if( BUILD_DOC )
     endif()
 
     if ( DOXYGEN_FOUND )
-        set(DOXYGEN_EXCLUDE_PATTERNS */Onnx_model/* */_deps/*)
+        set(DOXYGEN_EXCLUDE_PATTERNS */Onnx_model/* */_deps/* */google_tests/*)
         set(DOXYGEN_INHERIT_DOCS NO)
         set(DOXYGEN_EXTRACT_ALL YES)
         set(DOXYGEN_EXTRACT_PRIVATE YES)
