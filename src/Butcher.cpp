@@ -6,26 +6,6 @@
 
 
 std::vector<slice_type>
-Butcher::compute_partial_two_slice_memory_brute_force(
-  memory_type memory_first_slice) const
-{
-  // Compute all the basic routes
-  auto slices             = compute_basic_routes();
-  auto nodes_memory_usage = graph.compute_nodes_memory_usage_input();
-
-  auto tester = [&nodes_memory_usage,
-                 &memory_first_slice](const slice_type &slice) {
-    memory_type memory_usage = 0;
-    for (auto &j : slice)
-      memory_usage += nodes_memory_usage[j];
-    return memory_usage < memory_first_slice;
-  };
-
-  return partition_checker(slices, tester);
-}
-
-
-std::vector<slice_type>
 Butcher::compute_basic_routes() const
 {
   std::vector<slice_type> basic_routes;

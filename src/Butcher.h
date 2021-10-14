@@ -53,12 +53,6 @@ public:
   std::vector<slice_type>
   compute_two_slice_memory_brute_force(memory_type memory_first_slice) const;
 
-  /// It will compute the basic_routes partitions and it will select those whose total memory usage is less than the specified value
-  /// \param memory_first_slice Total memory usage allowed to the first slice
-  /// \return a collection of all the admissible partitions (and the nodes contained in the first partition)
-  std::vector<slice_type>
-  compute_partial_two_slice_memory_brute_force(memory_type memory_first_slice) const;
-
   /// It will try to compute every 2-slice partition of a graph
   /// \return A vector containing every possibile 2-slice partition of the graph (taking into account dependencies)
   std::vector<slice_type>
