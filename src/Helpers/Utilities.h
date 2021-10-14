@@ -8,15 +8,20 @@
 #include <filesystem>
 
 #include "../Onnx_model/onnx.pb.h"
+#include "Traits/Basic_traits.h"
+#include "Traits/Type_info_traits.h"
+
 #include "Types/Type_info.h"
 #include "Types/Dense_tensor.h"
+
+
 
 namespace utilities
 {
   /// From onnx::TensorProto_DataType_*, it will return the size of the respective type in bytes
   /// \return Size of the type in bytes
-  std::size_t
-  compute_memory_usage_from_enum(int);
+  memory_type
+  compute_memory_usage_from_enum(type_info_id_type);
 
   /// Construct a ModelProto from an onnx file
   /// \param m Reference to the model that will be constructed

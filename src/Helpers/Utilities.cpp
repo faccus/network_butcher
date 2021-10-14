@@ -4,8 +4,8 @@
 #include "Utilities.h"
 #include <fstream>
 
-std::size_t
-utilities::compute_memory_usage_from_enum(int input) {
+memory_type
+utilities::compute_memory_usage_from_enum(type_info_id_type input) {
   if (onnx::TensorProto_DataType_IsValid(input))
     {
       switch (input)

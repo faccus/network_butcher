@@ -6,6 +6,7 @@
 #define NETWORK_BUTCHER_TYPE_INFO_H
 
 #include <string>
+#import "../Traits/Basic_traits.h"
 
 /// Generic type contained in a onnx model (only type info, no values are actually stored)
 class Type_info
@@ -25,7 +26,7 @@ public:
 
   /// Virtual method to compute the total memory of the type
   /// \return Memory usage of the associated type
-  virtual std::size_t
+  virtual memory_type
   compute_memory_usage() const = 0;
 
   /// Default deconstructor

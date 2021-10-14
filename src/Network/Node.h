@@ -5,7 +5,7 @@
 #ifndef NETWORK_BUTCHER_NODE_H
 #define NETWORK_BUTCHER_NODE_H
 
-using size_t = std::size_t;
+#import "../Helpers/Traits/Basic_traits.h"
 
 // T is a type that has compute_memory_usage as a method (shared)
 
@@ -18,12 +18,12 @@ private:
   using io_type = std::vector<std::shared_ptr<T>>;
 
   /// Current node id
-  int id;
+  node_id_type id;
 
   /// Collection of the inputs of the vector
   io_type input;
   /// Collection of the outputs of the vector
-  io_type    output;
+  io_type output;
 
 public:
 
@@ -31,7 +31,7 @@ public:
   /// \param starting_id Initial node id
   /// \param initial_input Initial set of inputs
   /// \param initial_output Initial set of outputs
-  Node(int                                    starting_id,
+  Node(node_id_type   starting_id,
        const io_type &initial_input,
        const io_type &initial_output)
     : id(starting_id)
@@ -42,10 +42,10 @@ public:
 
   /// Compute the memory size of the inputs of the node
   /// \return Memory size of the inputs of the node
-  size_t
+  memory_type
   compute_memory_usage_input() const
   {
-    size_t res = 0;
+    memory_type res = 0;
     for(auto & a : input)
       res += a->compute_memory_usage();
     return res;
@@ -54,10 +54,10 @@ public:
 
   /// Compute the memory size of the outputs of the node
   /// \return Memory size of the outputs of the node
-  size_t
+  memory_type
   compute_memory_usage_output() const
   {
-    size_t res = 0;
+    memory_type res = 0;
     for(auto & a : output)
       res += a->compute_memory_usage();
     return res;
@@ -66,7 +66,7 @@ public:
 
   /// Compute the total memory size of the node
   /// \return Total memory size of the node
-  size_t
+  memory_type
   compute_memory_usage() const
   {
     return compute_memory_usage_input() + compute_memory_usage_output();

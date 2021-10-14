@@ -5,6 +5,7 @@
 #ifndef NETWORK_BUTCHER_GRAPH_H
 #define NETWORK_BUTCHER_GRAPH_H
 
+#include <utility>
 #include <vector>
 #include <algorithm>
 #include <numeric>
@@ -14,9 +15,9 @@
 
 #include "../Helpers/Types/Type_info.h"
 #include "../Helpers/Types/Dense_tensor.h"
-
 #include "../Onnx_model/onnx.pb.h"
 #include "Node.h"
+#include "../Helpers/Traits/Node_traits.h"
 
 /// Just another graph class...
 /// \tparam T Type of the node in the graph
@@ -35,12 +36,13 @@ public:
     : nodes(v)
   {}
 
-  /// Compute the memory usage of all the nodes in the graph (method required by the node: size_t(): compute_memory_usage() )
-  /// \return Vector containing the memory usage of every node
-  std::vector<size_t>
+  /// Compute the memory usage of all the nodes in the graph (method required by
+  /// the node: size_t(): compute_memory_usage() ) \return Vector containing the
+  /// memory usage of every node
+  std::vector<memory_type>
   compute_nodes_memory_usage() const
   {
-    std::vector<size_t> memory_usages;
+    std::vector<memory_type> memory_usages;
     memory_usages.resize(nodes.size());
 
 
@@ -52,12 +54,14 @@ public:
     return memory_usages;
   }
 
-  /// Compute the memory usage of all inputs of all the nodes in the graph (method required by the node: size_t(): compute_memory_usage_input() )
-  /// \return Vector containing the total memory usage of the inputs of every node
-  std::vector<size_t>
+  /// Compute the memory usage of all inputs of all the nodes in the graph
+  /// (method required by the node: size_t(): compute_memory_usage_input() )
+  /// \return Vector containing the total memory usage of the inputs of every
+  /// node
+  std::vector<memory_type>
   compute_nodes_memory_usage_input() const
   {
-    std::vector<size_t> memory_usages;
+    std::vector<memory_type> memory_usages;
     memory_usages.resize(nodes.size());
 
 
@@ -69,12 +73,14 @@ public:
     return memory_usages;
   }
 
-  /// Compute the memory usage of all outputs of all the nodes in the graph (method required by the node: size_t(): compute_memory_usage_input() )
-  /// \return Vector containing the total memory usage of the outputs of every node
-  std::vector<size_t>
+  /// Compute the memory usage of all outputs of all the nodes in the graph
+  /// (method required by the node: size_t(): compute_memory_usage_input() )
+  /// \return Vector containing the total memory usage of the outputs of every
+  /// node
+  std::vector<memory_type>
   compute_nodes_memory_usage_output() const
   {
-    std::vector<size_t> memory_usages;
+    std::vector<memory_type> memory_usages;
     memory_usages.resize(nodes.size());
 
 
@@ -90,11 +96,11 @@ public:
 
   /// Compute the total memory usage of the nodes of the graph
   /// \return Total memory usage of all the nodes of the graph
-  size_t
+  memory_type
   compute_memory_usage() const
   {
-    size_t                    result;
-    const std::vector<size_t> memory_usages = compute_nodes_memory_usage();
+    memory_type                    result;
+    const std::vector<memory_type> memory_usages = compute_nodes_memory_usage();
     result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
 
     return result;
@@ -102,24 +108,25 @@ public:
 
   /// Compute the total memory usage of all the inputs of all nodes of the graph
   /// \return Total memory usage of all the inputs of all nodes of the graph
-  size_t
+  memory_type
   compute_memory_usage_input() const
   {
-    size_t                    result;
-    const std::vector<size_t> memory_usages =
+    memory_type                    result;
+    const std::vector<memory_type> memory_usages =
       compute_nodes_memory_usage_input();
     result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
 
     return result;
   }
 
-  /// Compute the total memory usage of all the outputs of all nodes of the graph
-  /// \return Total memory usage of all the outputs of all nodes of the graph
-  size_t
+  /// Compute the total memory usage of all the outputs of all nodes of the
+  /// graph \return Total memory usage of all the outputs of all nodes of the
+  /// graph
+  memory_type
   compute_memory_usage_output() const
   {
-    size_t                    result;
-    const std::vector<size_t> memory_usages =
+    memory_type                    result;
+    const std::vector<memory_type> memory_usages =
       compute_nodes_memory_usage_output();
     result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
 
@@ -128,16 +135,11 @@ public:
 };
 
 
-using Type_info_pointer = std::shared_ptr<Type_info>;
-using Node_type = Node<Type_info>;
-
-using Map_IO = std::unordered_map<std::string, Type_info_pointer>;
-using Input_graph_type = Node_type;
-
 template<>
-class Graph<Input_graph_type>
+class Graph<graph_input_type>
 {
 private:
+  using Map_IO = std::unordered_map<std::string, type_info_pointer>;
 
   /// Maps the name of an input of the model with the respective type
   Map_IO inputs;
@@ -200,12 +202,12 @@ private:
   /// \param types The collection of Type_info
   /// \param appearances The map that associated to the name of a Type_info a collection of nodes
   /// \return The set of all the nodes that have a Type_info in types and that appear in the map
-  static std::set<int>
+  static std::set<node_id_type>
   find_nodes(
-    const std::vector<Type_info_pointer>                    &types,
+    const std::vector<type_info_pointer>                    &types,
     const std::unordered_map<std::string, std::vector<int>> &appearances)
   {
-    std::set<int> res;
+    std::set<node_id_type> res;
     for (auto &out : types)
       {
         auto p = appearances.find(out->get_name());
@@ -223,7 +225,7 @@ private:
   helper_compute_dependencies() {
 
     {
-      std::vector<std::pair<std::set<int>, std::set<int>>> tmp;
+      std::vector<std::pair<std::set<node_id_type>, std::set<node_id_type>>> tmp;
       dependencies = tmp;
     }
 
@@ -240,24 +242,24 @@ private:
 public:
 
   /// Collection of nodes
-  std::vector<Input_graph_type> nodes;
+  std::vector<graph_input_type> nodes;
 
   /// Map that associates the names of TypeInfos with the nodes that have as an input a Typeinfo
-  std::unordered_map<std::string, std::vector<int>> appearances_input;
+  std::unordered_map<std::string, std::vector<node_id_type>> appearances_input;
   /// Map that associates the names of TypeInfos with the nodes that have as an output a Typeinfo
-  std::unordered_map<std::string, std::vector<int>> appearances_output;
+  std::unordered_map<std::string, std::vector<node_id_type>> appearances_output;
 
   /// Vector that contains all the neighbours of every node (first input, then output)
-  std::vector< std::pair<std::set<int>, std::set<int> > > dependencies;
+  std::vector< std::pair<std::set<node_id_type>, std::set<node_id_type> > > dependencies;
 
 
   Graph() = default;
-  explicit Graph(const std::vector<Input_graph_type> &v)
-    : nodes(v)
+  explicit Graph(std::vector<graph_input_type> v)
+    : nodes(std::move(v))
   {};
 
 
-  Graph(Graph<Input_graph_type> &&) = default;
+  Graph(Graph<graph_input_type> &&) = default;
 
   /// Construct a graph from a model
   /// \param model Protobuf model
@@ -293,7 +295,7 @@ public:
     auto process_nodes =
       [&](
         const google::protobuf::RepeatedPtrField<std::basic_string<char>> &inp,
-        std::vector<Type_info_pointer> &ing) {
+        std::vector<type_info_pointer> &ing) {
         for (auto &in : inp)
           {
             auto p     = inputs.find(in);
@@ -320,19 +322,19 @@ public:
     // Based on the name of the input/output, it will link it with the
     // respective nodes
     auto add_appearances =
-      [&](const std::vector<Type_info_pointer>              &in,
+      [&](const std::vector<type_info_pointer>              &in,
           int                                               &index,
           std::unordered_map<std::string, std::vector<int>> &appearances) {
         for (auto &i : in)
           appearances[i->get_name()].push_back(index);
       };
 
-    int node_index    = -1;
+    node_id_type node_index    = -1;
 
     for (const auto & node : in_graph_nodes)
       {
-        std::vector<Type_info_pointer> input;
-        std::vector<Type_info_pointer> output;
+        std::vector<type_info_pointer> input;
+        std::vector<type_info_pointer> output;
 
         process_nodes(node.input(), input);
         process_nodes(node.output(), output);
@@ -366,51 +368,51 @@ public:
 
   /// Compute the memory usage of all the nodes in the graph (method required by the node: size_t(): compute_memory_usage() )
   /// \return Vector containing the memory usage of every node
-  std::vector<size_t>
+  std::vector<memory_type>
   compute_nodes_memory_usage() const
   {
-    std::vector<size_t> memory_usages;
+    std::vector<memory_type> memory_usages;
     memory_usages.resize(nodes.size());
 
 
     std::transform(nodes.cbegin(),
                    nodes.cend(),
                    memory_usages.begin(),
-                   [](const Input_graph_type &in) { return in.compute_memory_usage(); });
+                   [](const graph_input_type &in) { return in.compute_memory_usage(); });
 
     return memory_usages;
   }
 
   /// Compute the memory usage of all inputs of all the nodes in the graph (method required by the node: size_t(): compute_memory_usage_input() )
   /// \return Vector containing the total memory usage of the inputs of every node
-  std::vector<size_t>
+  std::vector<memory_type>
   compute_nodes_memory_usage_input() const
   {
-    std::vector<size_t> memory_usages;
+    std::vector<memory_type> memory_usages;
     memory_usages.resize(nodes.size());
 
 
     std::transform(nodes.cbegin(),
                    nodes.cend(),
                    memory_usages.begin(),
-                   [](const Input_graph_type &in) { return in.compute_memory_usage_input(); });
+                   [](const graph_input_type &in) { return in.compute_memory_usage_input(); });
 
     return memory_usages;
   }
 
   /// Compute the memory usage of all outputs of all the nodes in the graph (method required by the node: size_t(): compute_memory_usage_input() )
   /// \return Vector containing the total memory usage of the outputs of every node
-  std::vector<size_t>
+  std::vector<memory_type>
   compute_nodes_memory_usage_output() const
   {
-    std::vector<size_t> memory_usages;
+    std::vector<memory_type> memory_usages;
     memory_usages.resize(nodes.size());
 
 
     std::transform(nodes.cbegin(),
                    nodes.cend(),
                    memory_usages.begin(),
-                   [](const Input_graph_type &in) {
+                   [](const graph_input_type &in) {
                      return in.compute_memory_usage_output();
                    });
 
@@ -419,11 +421,11 @@ public:
 
   /// Compute the total memory usage of the nodes of the graph
   /// \return Total memory usage of all the nodes of the graph
-  size_t
+  memory_type
   compute_memory_usage() const
   {
-    size_t                    result;
-    const std::vector<size_t> memory_usages = compute_nodes_memory_usage();
+    memory_type                    result;
+    const std::vector<memory_type> memory_usages = compute_nodes_memory_usage();
     result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
 
     return result;
@@ -431,11 +433,11 @@ public:
 
   /// Compute the total memory usage of all the inputs of all nodes of the graph
   /// \return Total memory usage of all the inputs of all nodes of the graph
-  size_t
+  memory_type
   compute_memory_usage_input() const
   {
-    size_t                    result;
-    const std::vector<size_t> memory_usages =
+    memory_type                    result;
+    const std::vector<memory_type> memory_usages =
       compute_nodes_memory_usage_input();
     result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
 
@@ -444,11 +446,11 @@ public:
 
   /// Compute the total memory usage of all the outputs of all nodes of the graph
   /// \return Total memory usage of all the outputs of all nodes of the graph
-  size_t
+  memory_type
   compute_memory_usage_output() const
   {
-    size_t                    result;
-    const std::vector<size_t> memory_usages =
+    memory_type                    result;
+    const std::vector<memory_type> memory_usages =
       compute_nodes_memory_usage_output();
     result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
 
