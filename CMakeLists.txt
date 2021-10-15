@@ -15,17 +15,22 @@ message(STATUS "Build tests: ${BUILD_TESTS}")
 add_subdirectory(cmake)
 
 # Download onnx file and create source files
-add_subdirectory(src)
+add_subdirectory(src/Onnx_model)
 
 add_subdirectory(google_tests)
 
-add_executable(network_butcher_run main.cpp ${BASE_SOURCE})
-target_link_libraries(network_butcher_run  ${RUN_LIBRARIES_LOCATION})
+add_executable(network_butcher_run main.cpp
+        src/Onnx_model/onnx.pb.h src/Onnx_model/onnx.pb.cc
+        src/Network/Node.h src/Network/Graph.h src/Butcher.cpp src/Butcher.h src/Network/Computer.h  src/Network/Computer.cpp
+        src/Helpers/Types/Type_info.h src/Helpers/Types/Dense_tensor.cpp src/Helpers/Types/Dense_tensor.h
+        src/Helpers/Utilities.h src/Helpers/Utilities.cpp
+        src/Helpers/Traits/Graph_traits.h src/Helpers/Traits/Node_traits.h src/Helpers/Traits/Network_traits.h src/Helpers/Traits/Basic_traits.h src/Helpers/Traits/Type_info_traits.h)
 
+target_link_libraries(network_butcher_run  ${RUN_LIBRARIES_LOCATION})
 
 if( BUILD_TESTS )
     enable_testing()
-    add_executable(test_run ${TESTS_SOURCE} ${BASE_SOURCE})
+    add_executable(test_run ${TESTS_SOURCE} ${BASE_SOURCE} google_tests/TestClass.h)
     target_link_libraries(test_run ${TEST_LIBRARIES_LOCATION})
     include(GoogleTest)
     gtest_discover_tests(test_run)

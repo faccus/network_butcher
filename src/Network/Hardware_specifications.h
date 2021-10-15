@@ -1,0 +1,13 @@
+//
+// Created by faccus on 14/10/21.
+//
+
+#ifndef NETWORK_BUTCHER_HARDWARE_SPECIFICATIONS_H
+#define NETWORK_BUTCHER_HARDWARE_SPECIFICATIONS_H
+
+enum Hardware_specifications
+{
+  Basic
+};
+
+#endif // NETWORK_BUTCHER_HARDWARE_SPECIFICATIONS_H

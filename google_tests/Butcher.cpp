@@ -7,43 +7,25 @@
 #include "../src/Butcher.h"
 
 TEST(ButcherTest, compute_two_slice_brute_force_test) {
-  using Type_info_pointer = std::shared_ptr<Type_info>;
-  using Layers = Node<Type_info>;
+  using Input = graph_input_type;
 
   const std::string model_path = "resnet18-v2-7-inferred.onnx";
-  Butcher butcher(model_path);
+  Butcher<Input> butcher(model_path);
   auto res = butcher.compute_two_slice_brute_force();
-}
-
-TEST(ButcherTest, compute_partial_two_slice_memory_brute_force_test) {
-  using Type_info_pointer = std::shared_ptr<Type_info>;
-  using Layers = Node<Type_info>;
-
-  const std::string model_path = "resnet18-v2-7-inferred.onnx";
-
-  Graph<Layers> graph(model_path, true);
-
-  size_t half_size = graph.compute_memory_usage_input() / 2;
-
-  Butcher butcher(std::move(graph));
-
-  auto tot = butcher.compute_partial_two_slice_memory_brute_force(half_size);
-
-  std::cout << std::endl;
 }
 
 TEST(ButcherTest, compute_two_slice_memory_brute_force_test)
 {
-  using Type_info_pointer = std::shared_ptr<Type_info>;
-  using Layers            = Node<Type_info>;
+  using Input = graph_input_type;
 
   const std::string model_path = "resnet18-v2-7-inferred.onnx";
 
-  Graph<Layers> graph(model_path, true);
+  Graph<Input> graph(model_path, true);
+  const Computer computer{};
 
-  size_t half_size = graph.compute_memory_usage_input() / 2;
+  size_t half_size = computer.compute_memory_usage_input(graph) / 2;
 
-  Butcher butcher(std::move(graph));
+  Butcher<Input> butcher(std::move(graph));
 
   auto tot = butcher.compute_two_slice_memory_brute_force(half_size);
 

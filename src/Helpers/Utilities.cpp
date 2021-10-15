@@ -2,7 +2,6 @@
 // Created by faccus on 28/08/21.
 //
 #include "Utilities.h"
-#include <fstream>
 
 memory_type
 utilities::compute_memory_usage_from_enum(type_info_id_type input) {

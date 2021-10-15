@@ -17,13 +17,11 @@ void Analyze(const onnx::NodeProto &);
 void PrintInputOutput(const onnx::ModelProto &);
 
 TEST(MasterTest, Test) {
-  using Type_info_pointer = std::shared_ptr<Type_info>;
-  using Layers = Node<Type_info>;
-  using Slice_type = std::set<int>;
+  using Input = graph_input_type;
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   const std::string model_path = "resnet18-v2-7-inferred.onnx";
-  Graph<Layers> graph(model_path, true);
+  Graph<Input> graph(model_path, true);
   Butcher butcher(std::move(graph));
 
   auto res = butcher.compute_two_slice_brute_force();

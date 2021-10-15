@@ -20,117 +20,68 @@
 #include "../Helpers/Traits/Node_traits.h"
 
 /// Just another graph class...
-/// \tparam T Type of the node in the graph
+/// \tparam T Type of the content of the node
 template <class T>
 class Graph
 {
 private:
+  /// Compute node dependencies
+  void
+  compute_dependencies()
+  {
+    dependencies = std::vector<
+      std::pair<node_id_collection_type, node_id_collection_type>>();
+
+    // Compute appearances of inputs/outputs for a node
+    std::unordered_map<io_id_type, node_id_collection_type> input_appearances;
+    std::unordered_map<io_id_type, node_id_collection_type> output_appearances;
+
+    for (auto const &node : nodes)
+      {
+        for (auto &in : node.get_input())
+          input_appearances[in].insert(node.get_id());
+        for (auto &out : node.get_output())
+          output_appearances[out].insert(node.get_id());
+      }
+
+    for(auto const & appearance : input_appearances)
+      {
+        auto const & neib = output_appearances[appearance.first];
+        for(auto node_id : appearance.second)
+          dependencies[node_id].first.insert(neib.cbegin(), neib.cend());
+        for(auto node_id : neib)
+          dependencies[node_id].second.insert(appearance.second.cbegin(), appearance.second.cend());
+      }
+  }
+
 public:
+
   /// Vector of all the nodes
-  std::vector<T> nodes;
+  std::vector<node_type> nodes;
+
+  /// Relation between the id of the input/output with the content
+  std::map<io_id_type, T> nodes_content;
+
+  /// Vector that contains all the neighbours of every node (first input, then
+  /// output)
+  std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
+    dependencies;
 
   Graph() = default;
 
-  /// Construct the graph from the nodes
-  explicit Graph(const std::vector<T> &v)
-    : nodes(v)
-  {}
-
-  /// Compute the memory usage of all the nodes in the graph (method required by
-  /// the node: size_t(): compute_memory_usage() ) \return Vector containing the
-  /// memory usage of every node
-  std::vector<memory_type>
-  compute_nodes_memory_usage() const
+  /// Construct the graph from the nodes and the map containing the relation
+  /// between the id of the input/output with the content
+  /// \param v The collection of nodes ordered in an ascending order based on
+  /// the id. To work with butcher, the nodes must be sorted in topological
+  /// order, according to the Onnx IR specifications.
+  /// \param content The map that associated the id of the given node content (it's
+  /// different from the id of the node, since multiple nodes can have the same
+  /// input) with the itself content
+  Graph(std::vector<node_type> v, const std::map<io_id_type, T> &content)
+    : nodes(std::move(v))
+    , nodes_content(content)
   {
-    std::vector<memory_type> memory_usages;
-    memory_usages.resize(nodes.size());
-
-
-    std::transform(nodes.cbegin(),
-                   nodes.cend(),
-                   memory_usages.begin(),
-                   [](const T &in) { return in.compute_memory_usage(); });
-
-    return memory_usages;
-  }
-
-  /// Compute the memory usage of all inputs of all the nodes in the graph
-  /// (method required by the node: size_t(): compute_memory_usage_input() )
-  /// \return Vector containing the total memory usage of the inputs of every
-  /// node
-  std::vector<memory_type>
-  compute_nodes_memory_usage_input() const
-  {
-    std::vector<memory_type> memory_usages;
-    memory_usages.resize(nodes.size());
-
-
-    std::transform(nodes.cbegin(),
-                   nodes.cend(),
-                   memory_usages.begin(),
-                   [](const T &in) { return in.compute_memory_usage_input(); });
-
-    return memory_usages;
-  }
-
-  /// Compute the memory usage of all outputs of all the nodes in the graph
-  /// (method required by the node: size_t(): compute_memory_usage_input() )
-  /// \return Vector containing the total memory usage of the outputs of every
-  /// node
-  std::vector<memory_type>
-  compute_nodes_memory_usage_output() const
-  {
-    std::vector<memory_type> memory_usages;
-    memory_usages.resize(nodes.size());
-
-
-    std::transform(nodes.cbegin(),
-                   nodes.cend(),
-                   memory_usages.begin(),
-                   [](const T &in) {
-                     return in.compute_memory_usage_output();
-                   });
-
-    return memory_usages;
-  }
-
-  /// Compute the total memory usage of the nodes of the graph
-  /// \return Total memory usage of all the nodes of the graph
-  memory_type
-  compute_memory_usage() const
-  {
-    memory_type                    result;
-    const std::vector<memory_type> memory_usages = compute_nodes_memory_usage();
-    result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
-
-    return result;
-  }
-
-  /// Compute the total memory usage of all the inputs of all nodes of the graph
-  /// \return Total memory usage of all the inputs of all nodes of the graph
-  memory_type
-  compute_memory_usage_input() const
-  {
-    memory_type                    result;
-    const std::vector<memory_type> memory_usages =
-      compute_nodes_memory_usage_input();
-    result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
-
-    return result;
-  }
-
-  /// Compute the total memory usage of all the outputs of all nodes of the
-  /// graph \return Total memory usage of all the outputs of all nodes of the
-  /// graph
-  memory_type
-  compute_memory_usage_output() const
-  {
-    memory_type                    result;
-    const std::vector<memory_type> memory_usages =
-      compute_nodes_memory_usage_output();
-    result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
-
-    return result;
+    compute_dependencies();
   }
 };
 
@@ -139,31 +90,28 @@ template<>
 class Graph<graph_input_type>
 {
 private:
-  using Map_IO = std::unordered_map<std::string, type_info_pointer>;
+  using Map_IO = std::unordered_map<std::string, io_id_type>;
 
-  /// Maps the name of an input of the model with the respective type
-  Map_IO inputs;
-  /// Maps the name of an output of the model with the respective type
-  Map_IO outputs;
-  /// Maps the name of an value infos of the model with the respective type
-  Map_IO value_infos;
 
-  /// Have the dependencies of every node already computed?
-  bool dependencies_computed = false;
 
-  /// From a ValueInfoProto (type of an input/output/value_info of the graph) collection of elements, it will construct a map that associated the name of the ValueInfoProto to the respective type
-  /// \param params Collection of ValueInfoProto
-  /// \param ignore_set The names of the parameters to ignore
-  /// \return The map that associated the name of the ValueInfoProto to the respective type
-  static Map_IO
+  /// From a ValueInfoProto (type of an input/output/value_info of the graph)
+  /// collection of elements, it will add to the given map the association
+  /// between the name of the ValueInfoProto with the respective id, while the
+  /// respective type is inserted into nodes_content
+  /// \param in Collection of ValueInfoProto
+  /// \param parameters The names of the parameters
+  /// \param parameters_id The function will add to this set the ids of the parameters
+  void
   onnx_parameters_reader(
-    const google::protobuf::RepeatedPtrField<onnx::ValueInfoProto> &params,
-    const std::unordered_set<std::string>                          &ignore_set)
+    Map_IO & input_map,
+    const google::protobuf::RepeatedPtrField<onnx::ValueInfoProto> &in,
+    std::unordered_set<std::string> const &parameters,
+    std::unordered_set<io_id_type> &parameters_id,
+    bool ignore_parameters = false)
   {
-    Map_IO out;
-    for (const auto &param : params)
+    for (const auto &param : in)
       {
-        if (param.IsInitialized() && !ignore_set.contains(param.name()))
+        if (param.IsInitialized())
           {
             const auto & type = param.type();
             if (type.has_map_type())
@@ -181,8 +129,18 @@ private:
             if (type.has_tensor_type())
               {
                 auto &obj = type.tensor_type();
+                auto index = nodes_content.size();
 
-                out[param.name()] = std::make_shared<Dense_tensor>(param);
+                if(parameters.contains(param.name()))
+                  {
+                    if(ignore_parameters)
+                      continue;
+                    parameters_id.insert(index);
+                  }
+
+                nodes_content[index] = std::make_shared<Dense_tensor>(param);
+                input_map[param.name()] = index;
+
               }
 
             if (type.has_sparse_tensor_type())
@@ -193,70 +151,66 @@ private:
           {
           }
       }
-
-    return out;
   }
 
 
-  /// It will produce the set of all the nodes that have a Type_info in types and that appear in the map
-  /// \param types The collection of Type_info
-  /// \param appearances The map that associated to the name of a Type_info a collection of nodes
-  /// \return The set of all the nodes that have a Type_info in types and that appear in the map
-  static std::set<node_id_type>
-  find_nodes(
-    const std::vector<type_info_pointer>                    &types,
-    const std::unordered_map<std::string, std::vector<int>> &appearances)
-  {
-    std::set<node_id_type> res;
-    for (auto &out : types)
-      {
-        auto p = appearances.find(out->get_name());
-        if (p != appearances.end())
-          {
-            auto &tmp_output_nodes = (*p).second;
-            res.insert(tmp_output_nodes.begin(), tmp_output_nodes.end());
-          }
-      }
-    return res;
-  }
-
-  /// An helper function used to compute the dependencies of every node of the graph
+  /// Compute node dependencies
   void
-  helper_compute_dependencies() {
+  compute_dependencies()
+  {
+    dependencies = std::vector<
+      std::pair<node_id_collection_type, node_id_collection_type>>();
 
-    {
-      std::vector<std::pair<std::set<node_id_type>, std::set<node_id_type>>> tmp;
-      dependencies = tmp;
-    }
+    // Compute appearances of inputs/outputs for a node
+    std::unordered_map<io_id_type, node_id_collection_type> input_appearances;
+    std::unordered_map<io_id_type, node_id_collection_type> output_appearances;
 
-    for(auto & node : nodes) {
+    for (auto const &node : nodes)
+      {
+        for (auto &in : node.get_input())
+          input_appearances[in].insert(node.get_id());
+        for (auto &out : node.get_output())
+          output_appearances[out].insert(node.get_id());
+      }
 
-        // To get the input for a node, I have to look at the output of the others.
-        auto in = find_nodes(node.get_input(), appearances_output);
-        auto out = find_nodes(node.get_output(), appearances_input);
-
-        dependencies.emplace_back(in, out);
+    for(auto const & appearance : input_appearances)
+      {
+        auto const & neib = output_appearances[appearance.first];
+        for(auto node_id : appearance.second)
+          dependencies[node_id].first.insert(neib.cbegin(), neib.cend());
+        for(auto node_id : neib)
+          dependencies[node_id].second.insert(appearance.second.cbegin(), appearance.second.cend());
       }
   }
 
 public:
+  /// A vector containing, ordered by id, the different value infos
+  std::map<io_id_type, graph_input_type> nodes_content;
 
   /// Collection of nodes
-  std::vector<graph_input_type> nodes;
-
-  /// Map that associates the names of TypeInfos with the nodes that have as an input a Typeinfo
-  std::unordered_map<std::string, std::vector<node_id_type>> appearances_input;
-  /// Map that associates the names of TypeInfos with the nodes that have as an output a Typeinfo
-  std::unordered_map<std::string, std::vector<node_id_type>> appearances_output;
+  std::vector<node_type> nodes;
 
   /// Vector that contains all the neighbours of every node (first input, then output)
-  std::vector< std::pair<std::set<node_id_type>, std::set<node_id_type> > > dependencies;
+  std::vector< std::pair<node_id_collection_type, node_id_collection_type> > dependencies;
 
 
   Graph() = default;
-  explicit Graph(std::vector<graph_input_type> v)
+
+
+  /// Construct the graph from the nodes and the map containing the relation
+  /// between the id of the input/output with the content
+  /// \param v The collection of nodes ordered in an ascending order based on
+  /// the id. To work with butcher, the nodes must be sorted in topological
+  /// order, according to the Onnx IR specifications.
+  /// \param content The map that associated the id of the given node content (it's
+  /// different from the id of the node, since multiple nodes can have the same
+  /// input) with the itself content
+  Graph(std::vector<node_type> v, std::map<io_id_type, graph_input_type> content)
     : nodes(std::move(v))
-  {};
+    , nodes_content(std::move(content))
+  {
+    compute_dependencies();
+  }
 
 
   Graph(Graph<graph_input_type> &&) = default;
@@ -264,25 +218,34 @@ public:
   /// Construct a graph from a model
   /// \param model Protobuf model
   /// \param ignore_parameters Ignore the inputs/outputs already initialized
-  /// \param dependencies Compute the nodes dependencies
   explicit Graph(const onnx::ModelProto &model,
-        bool                    ignore_parameters = false,
-        bool                    dependencies      = true)
+        bool                    ignore_parameters = false)
   {
     const auto &in_graph = model.graph();
+    Map_IO io_value_infos_graph;
+    std::unordered_set<io_id_type>  parameters_id;
 
     {
-      std::unordered_set<std::string> ignore_set;
-      if (ignore_parameters)
-        {
-          for (auto &p : in_graph.initializer())
-            if (p.IsInitialized())
-              ignore_set.insert(p.name());
-        }
+      std::unordered_set<std::string> parameters;
 
-      inputs      = onnx_parameters_reader(in_graph.input(), ignore_set);
-      outputs     = onnx_parameters_reader(in_graph.output(), ignore_set);
-      value_infos = onnx_parameters_reader(in_graph.value_info(), ignore_set);
+      for (auto &p : in_graph.initializer())
+        if (p.IsInitialized())
+          parameters.insert(p.name());
+
+      onnx_parameters_reader(io_value_infos_graph,
+                             in_graph.input(),
+                             parameters,
+                             parameters_id);
+
+      onnx_parameters_reader(io_value_infos_graph,
+                             in_graph.output(),
+                             parameters,
+                             parameters_id);
+
+      onnx_parameters_reader(io_value_infos_graph,
+                             in_graph.value_info(),
+                             parameters,
+                             parameters_id);
     }
 
     // Vector of nodes of the graph
@@ -291,184 +254,57 @@ public:
     nodes.reserve(in_graph_nodes.size());
 
     // Base on the names of the input/output, it will produce the associated
-    // type
+    // type id
     auto process_nodes =
-      [&](
+      [&io_value_infos_graph, &parameters_id](
         const google::protobuf::RepeatedPtrField<std::basic_string<char>> &inp,
-        std::vector<type_info_pointer> &ing) {
-        for (auto &in : inp)
+        std::set<io_id_type> &ing, std::set<io_id_type> &params)
+    {
+        for (auto const &in : inp)
           {
-            auto p     = inputs.find(in);
-            bool valid = p != inputs.cend();
-
-            if (!valid)
-              {
-                p     = outputs.find(in);
-                valid = p != outputs.cend();
-              }
-            if (!valid)
-              {
-                p     = value_infos.find(in);
-                valid = p != value_infos.cend();
-              }
+            auto p     = io_value_infos_graph.find(in);
+            bool valid = p != io_value_infos_graph.cend();
 
             if (valid)
               {
-                ing.push_back(p->second);
+                if(parameters_id.contains(p->second))
+                  params.insert(p->second);
+                else
+                  ing.insert(p->second);
               }
           }
-      };
-
-    // Based on the name of the input/output, it will link it with the
-    // respective nodes
-    auto add_appearances =
-      [&](const std::vector<type_info_pointer>              &in,
-          int                                               &index,
-          std::unordered_map<std::string, std::vector<int>> &appearances) {
-        for (auto &i : in)
-          appearances[i->get_name()].push_back(index);
       };
 
     node_id_type node_index    = -1;
 
     for (const auto & node : in_graph_nodes)
       {
-        std::vector<type_info_pointer> input;
-        std::vector<type_info_pointer> output;
+        io_id_collection_type input;
+        io_id_collection_type output;
+        io_id_collection_type parameters;
 
-        process_nodes(node.input(), input);
-        process_nodes(node.output(), output);
+        process_nodes(node.input(), input, parameters);
+        process_nodes(node.output(), output, parameters);
 
 
         if (! (input.empty() && ignore_parameters) )
           {
             auto current_index = ++node_index;
-
-            add_appearances(input, current_index, appearances_input);
-            add_appearances(output, current_index, appearances_output);
-
-            nodes.emplace_back(current_index, input, output);
+            nodes.emplace_back(current_index, input, output, parameters);
           }
       }
 
-    if (dependencies)
-      compute_dependencies();
+    compute_dependencies();
   }
 
 
   /// Construct a graph from a Protobuf Model stored at the specified path
   /// \param path The absolute/relative path of the .onnx model
   /// \param ignore_parameters Ignore the inputs/outputs already initialized
-  /// \param dependencies Compute the nodes dependencies
   explicit Graph(const std::string &path,
-        bool               ignore_parameters = false,
-        bool               dependencies      = true)
-    : Graph(utilities::parse_onnx_file(path), ignore_parameters, dependencies)
+        bool               ignore_parameters = false)
+    : Graph(utilities::parse_onnx_file(path), ignore_parameters)
   {}
-
-  /// Compute the memory usage of all the nodes in the graph (method required by the node: size_t(): compute_memory_usage() )
-  /// \return Vector containing the memory usage of every node
-  std::vector<memory_type>
-  compute_nodes_memory_usage() const
-  {
-    std::vector<memory_type> memory_usages;
-    memory_usages.resize(nodes.size());
-
-
-    std::transform(nodes.cbegin(),
-                   nodes.cend(),
-                   memory_usages.begin(),
-                   [](const graph_input_type &in) { return in.compute_memory_usage(); });
-
-    return memory_usages;
-  }
-
-  /// Compute the memory usage of all inputs of all the nodes in the graph (method required by the node: size_t(): compute_memory_usage_input() )
-  /// \return Vector containing the total memory usage of the inputs of every node
-  std::vector<memory_type>
-  compute_nodes_memory_usage_input() const
-  {
-    std::vector<memory_type> memory_usages;
-    memory_usages.resize(nodes.size());
-
-
-    std::transform(nodes.cbegin(),
-                   nodes.cend(),
-                   memory_usages.begin(),
-                   [](const graph_input_type &in) { return in.compute_memory_usage_input(); });
-
-    return memory_usages;
-  }
-
-  /// Compute the memory usage of all outputs of all the nodes in the graph (method required by the node: size_t(): compute_memory_usage_input() )
-  /// \return Vector containing the total memory usage of the outputs of every node
-  std::vector<memory_type>
-  compute_nodes_memory_usage_output() const
-  {
-    std::vector<memory_type> memory_usages;
-    memory_usages.resize(nodes.size());
-
-
-    std::transform(nodes.cbegin(),
-                   nodes.cend(),
-                   memory_usages.begin(),
-                   [](const graph_input_type &in) {
-                     return in.compute_memory_usage_output();
-                   });
-
-    return memory_usages;
-  }
-
-  /// Compute the total memory usage of the nodes of the graph
-  /// \return Total memory usage of all the nodes of the graph
-  memory_type
-  compute_memory_usage() const
-  {
-    memory_type                    result;
-    const std::vector<memory_type> memory_usages = compute_nodes_memory_usage();
-    result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
-
-    return result;
-  }
-
-  /// Compute the total memory usage of all the inputs of all nodes of the graph
-  /// \return Total memory usage of all the inputs of all nodes of the graph
-  memory_type
-  compute_memory_usage_input() const
-  {
-    memory_type                    result;
-    const std::vector<memory_type> memory_usages =
-      compute_nodes_memory_usage_input();
-    result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
-
-    return result;
-  }
-
-  /// Compute the total memory usage of all the outputs of all nodes of the graph
-  /// \return Total memory usage of all the outputs of all nodes of the graph
-  memory_type
-  compute_memory_usage_output() const
-  {
-    memory_type                    result;
-    const std::vector<memory_type> memory_usages =
-      compute_nodes_memory_usage_output();
-    result = std::reduce(memory_usages.cbegin(), memory_usages.cend());
-
-    return result;
-  }
-
-  /// Compute node dependencies, if they were not already computed
-  /// \param forced Force the computation of the dependencies, even if they were already computed.
-  /// \return Return true if the dependencies were computed, false otherwise
-  bool
-  compute_dependencies(bool forced = false) {
-    if(!forced && dependencies_computed)
-      return false;
-
-    helper_compute_dependencies();
-    dependencies_computed = true;
-    return true;
-  }
 };
 
 

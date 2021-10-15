@@ -5,33 +5,79 @@
 #ifndef NETWORK_BUTCHER_BUTCHER_H
 #define NETWORK_BUTCHER_BUTCHER_H
 
+#include "Network/Computer.h"
 #include "Network/Graph.h"
 #include "Network/Node.h"
+
 #include "Helpers/Types/Type_info.h"
 #include "Helpers/Utilities.h"
 #include "Helpers/Traits/Graph_traits.h"
 
 
-
 /// Butcher butchers a given graph into slices
+template<class T>
 class Butcher
 {
 private:
+  using network    = Graph<T>;
   network graph;
 
   /// Compute the minimal connected graphs (with dependencies) containing every node
   /// \return returns the smallest connected sub-graph (with dependencies) that connects the first node with the n-th node
   std::vector<slice_type>
-  compute_basic_routes() const;
+  compute_basic_routes() const
+  {
+    std::vector<slice_type> basic_routes;
+    basic_routes.reserve(graph.nodes.size());
+
+    {
+      slice_type tmp;
+      tmp.insert(0);
+      basic_routes.push_back(tmp);
+    }
+
+    for (int i = 1; i < graph.nodes.size(); ++i)
+      {
+        slice_type partial_res;
+        partial_res.insert(i);
+
+        const auto &input_nodes = graph.dependencies[i].first;
+
+        // Construct the current basic_route the i (just add {i} to the basic
+        // routes of the parents).
+        for (auto &node : input_nodes)
+          partial_res.insert(basic_routes[node].begin(),
+                             basic_routes[node].end());
+        basic_routes.push_back(partial_res);
+      }
+
+    return basic_routes;
+  };
 
   /// Given a vector of slices, verify which ones applied to tester return true. Note that, at the end, all the ok slices will be moved to the return vector, while the non-compatible ones will be deleted
   /// \param slices The vector of input slices
   /// \param tester The tester function
   /// \return The slices that satisfy the tester function
   static std::vector<slice_type>
-  partition_checker(std::vector<slice_type> & slices,
-                    const std::function<bool(const slice_type &)>& tester) ;
+  partition_checker(std::vector<slice_type>                       &slices,
+                    const std::function<bool(const slice_type &)> &tester)
+  {
+    std::vector<slice_type> res;
 
+    for (int i = 0; i < slices.size(); ++i)
+      {
+        if (tester(slices[i]))
+          res.push_back(std::move(slices[i]));
+        else
+          {
+            {
+              slice_type tmp(std::move(slices[i]));
+            }
+          }
+      }
+
+    return res;
+  };
 
 public:
   Butcher() = default;
@@ -44,19 +90,66 @@ public:
   /// \param p Full path to the .onnx file model
   /// \param ignore_parameters Allows to choose if graph should ignore already initialized inputs/outputs (parameters)
   /// \param dep Make the graph compute the dependencies map
-  Butcher(const std::string &p, bool ignore_parameters = true, bool dep = true)
-    : graph(p, ignore_parameters, dep){};
+  Butcher(const std::string &p, bool ignore_parameters = true)
+    : graph(p, ignore_parameters){};
 
   /// It will compute every possible 2-slice partition of the network and it will select the partition whose total memory usage is less than the specified value
   /// \param memory_first_slice Total memory usage allowed to the first slice
   /// \return a collection of all the admissible partitions (and the nodes contained in the first partition)
   std::vector<slice_type>
-  compute_two_slice_memory_brute_force(memory_type memory_first_slice) const;
+  compute_two_slice_memory_brute_force(memory_type memory_first_slice) const
+  {
+    Computer computer;
+    auto slices             = compute_two_slice_brute_force();
+    auto nodes_memory_usage = computer.compute_nodes_memory_usage_input(graph);
+
+    auto tester = [&nodes_memory_usage,
+                   &memory_first_slice](const slice_type &slice) {
+      memory_type memory_usage = 0;
+      for (auto &j : slice)
+        memory_usage += nodes_memory_usage[j];
+      return memory_usage < memory_first_slice;
+    };
+
+    return partition_checker(slices, tester);
+  };
 
   /// It will try to compute every 2-slice partition of a graph
   /// \return A vector containing every possibile 2-slice partition of the graph (taking into account dependencies)
   std::vector<slice_type>
-  compute_two_slice_brute_force() const;
+  compute_two_slice_brute_force() const
+  {
+    std::vector<slice_type> res;
+    res.reserve(graph.nodes.size());
+
+    slice_type start{0};
+    res.push_back(start);
+
+    for (int i = 1; i < graph.nodes.size(); ++i)
+      {
+        auto &dependencies = graph.dependencies[i];
+        auto &input        = dependencies.first;
+
+        for (auto &part : res)
+          {
+            bool ok = true;
+            for (auto &in : input)
+              if (!part.contains(in))
+                {
+                  ok = false;
+                  break;
+                }
+            if (ok)
+              {
+                auto copy = part;
+                copy.insert(i);
+                res.push_back(copy);
+              }
+          }
+      }
+
+    return res;
+  };
 };
 
 

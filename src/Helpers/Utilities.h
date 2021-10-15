@@ -6,6 +6,7 @@
 #define NETWORK_BUTCHER_UTILITIES_H
 
 #include <filesystem>
+#include <fstream>
 
 #include "../Onnx_model/onnx.pb.h"
 #include "Traits/Basic_traits.h"
