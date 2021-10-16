@@ -7,7 +7,6 @@
 
 #include "Graph.h"
 #include "Hardware_specifications.h"
-#include <execution>
 
 class Computer
 {
