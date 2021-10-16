@@ -31,6 +31,7 @@ private:
   {
     dependencies = std::vector<
       std::pair<node_id_collection_type, node_id_collection_type>>();
+    dependencies.resize(nodes.size());
 
     // Compute appearances of inputs/outputs for a node
     std::unordered_map<io_id_type, node_id_collection_type> input_appearances;
@@ -160,6 +161,7 @@ private:
   {
     dependencies = std::vector<
       std::pair<node_id_collection_type, node_id_collection_type>>();
+    dependencies.resize(nodes.size());
 
     // Compute appearances of inputs/outputs for a node
     std::unordered_map<io_id_type, node_id_collection_type> input_appearances;

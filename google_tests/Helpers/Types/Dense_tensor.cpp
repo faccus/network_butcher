@@ -11,32 +11,40 @@ TEST(DenseTensorTest, ConstuctorAndMemoryUsage) {
 
   auto res = d.compute_memory_usage();
 
-  ASSERT_TRUE(res == 4 * sizeof(int64_t));
+  ASSERT_EQ(res, 4 * sizeof(int64_t));
 }
 
 TEST(DenseTensorTest, ConstuctorValueInfoProto) {
-  onnx::ValueInfoProto value;
-  onnx::TypeProto typeProto;
-  onnx::TypeProto_Tensor tensor;
-  onnx::TensorShapeProto shapeProto;
+  memory_type lhs = 0;
 
-    for(int i = 0; i < 4; ++i)
-    {
-      auto dim = shapeProto.add_dim();
-      dim->set_dim_value(i+1);
-    }
+  {
+    onnx::ValueInfoProto   value;
+    onnx::TypeProto        typeProto;
+    onnx::TypeProto_Tensor tensor;
+    onnx::TensorShapeProto shapeProto;
 
-  tensor.set_allocated_shape(&shapeProto);
-  tensor.set_elem_type(onnx::TensorProto_DataType_INT64);
+    for (int i = 0; i < 4; ++i)
+      {
+        auto dim = shapeProto.add_dim();
+        dim->set_dim_value(i + 1);
+      }
 
-  typeProto.set_allocated_tensor_type(&tensor);
+    tensor.set_allocated_shape(
+      new onnx::TensorShapeProto(std::move(shapeProto)));
+    tensor.set_elem_type(onnx::TensorProto_DataType_INT64);
 
-  value.set_allocated_type(&typeProto);
-  value.set_name("Test");
+    typeProto.set_allocated_tensor_type(
+      new onnx::TypeProto_Tensor(std::move(tensor)));
 
-  Dense_tensor d(value); // total memory 2*2*64=256 bits
+    value.set_allocated_type(new onnx::TypeProto(std::move(typeProto)));
+    value.set_name("Test");
 
-  auto res = d.compute_memory_usage();
+    Dense_tensor d(value); // total memory 2*2*64=256 bits
 
-  ASSERT_TRUE(res == 24 * sizeof(int64_t));
+    lhs = d.compute_memory_usage();
+  }
+
+  memory_type rhs = 24 * sizeof(int64_t);
+
+  ASSERT_EQ(lhs, rhs);
 }

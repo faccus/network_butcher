@@ -5,6 +5,8 @@
 #ifndef NETWORK_BUTCHER_BASIC_TRAITS_H
 #define NETWORK_BUTCHER_BASIC_TRAITS_H
 
+#include<set>
+
 using memory_type = std::size_t;
 using node_id_type = int;
 using io_id_type = int;

@@ -7,10 +7,11 @@
 
 #include "../src/Helpers/Traits/Basic_traits.h"
 
+template<class T>
 class TestMemoryUsage
 {
 public:
-  std::vector<int> data;
+  std::vector<T> data;
   TestMemoryUsage(int n) : data(n) {};
 
   TestMemoryUsage() = default;
@@ -20,7 +21,7 @@ public:
 
   memory_type compute_memory_usage() const
   {
-    return data.size() * sizeof(int);
+    return data.size() * sizeof(T);
   }
 
 

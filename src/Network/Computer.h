@@ -37,7 +37,6 @@ public:
   }
 
 
-
   template <class T>
   memory_type
   compute_memory_usage(const Graph<T>  &graph,
@@ -47,13 +46,25 @@ public:
     memory_type res = 0;
 
     for (auto const &in : node.get_input())
-      res += compute_memory_usage(graph.nodes_content[in]);
+      {
+        auto const p = graph.nodes_content.find(in);
+        if (p != graph.nodes_content.cend())
+          res += compute_memory_usage(p->second);
+      }
     for (auto const &out : node.get_output())
-      res += compute_memory_usage(graph.nodes_content[out]);
+      {
+        auto const p = graph.nodes_content.find(out);
+        if (p != graph.nodes_content.cend())
+          res += compute_memory_usage(p->second);
+      }
 
     if (include_parameters)
       for (auto const &param : node.get_parameters())
-        res += compute_memory_usage(graph.nodes_content[param]);
+        {
+          auto const p = graph.nodes_content.find(param);
+          if (p != graph.nodes_content.cend())
+            res += compute_memory_usage(p->second);
+        }
 
     return res;
   }
@@ -67,11 +78,19 @@ public:
     memory_type res = 0;
 
     for (auto const &in : node.get_input())
-      res += compute_memory_usage(graph.nodes_content[in]);
+      {
+        auto const p = graph.nodes_content.find(in);
+        if (p != graph.nodes_content.cend())
+          res += compute_memory_usage(p->second);
+      }
 
     if (include_parameters)
       for (auto const &param : node.get_parameters())
-        res += compute_memory_usage(graph.nodes_content[param]);
+        {
+          auto const p = graph.nodes_content.find(param);
+          if (p != graph.nodes_content.cend())
+            res += compute_memory_usage(p->second);
+        }
 
     return res;
   }
@@ -141,7 +160,7 @@ public:
     auto        nodes_memory_usage =
       compute_nodes_memory_usage(graph, include_parameters);
 
-    res = std::reduce(std::execution::par,
+    res = std::reduce(std::execution::seq,
                       nodes_memory_usage.cbegin(),
                       nodes_memory_usage.cend());
 
@@ -158,7 +177,7 @@ public:
     auto        nodes_memory_usage =
       compute_nodes_memory_usage_input(graph, include_parameters);
 
-    res = std::reduce(std::execution::par,
+    res = std::reduce(std::execution::seq,
                       nodes_memory_usage.cbegin(),
                       nodes_memory_usage.cend());
 

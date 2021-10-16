@@ -16,6 +16,8 @@ TEST(GraphTests, ConstructorFromModel) {
 
   Graph<Input> graph(model_test, true);
   Graph<Input> graph2(model_test);
+
+  std::cout << std::endl;
 }
 
 TEST(GraphTests, ConstructorFromString) {
@@ -26,6 +28,8 @@ TEST(GraphTests, ConstructorFromString) {
 
   Graph<Input> graph(model_path, true);
   Graph<Input> graph2(model_path);
+
+  std::cout << std::endl;
 }
 
 TEST(GraphTests, ConstructorFromGraph) {
@@ -39,30 +43,31 @@ TEST(GraphTests, ConstructorFromGraph) {
 }
 
 TEST(GraphTests, ConstructorFromCustomClass) {
-  using Input = TestMemoryUsage;
+  using basic_type = int;
+  using Input = TestMemoryUsage<basic_type>;
+  int number_of_nodes = 10;
 
   Graph<Input> graph_empty;
-
   std::vector<node_type> nodes;
   nodes.emplace_back(0,
                      io_id_collection_type(),
                      io_id_collection_type{0},
                      io_id_collection_type());
 
-  for (int i = 1; i < 9; ++i)
+  for (int i = 1; i < number_of_nodes-1; ++i)
     nodes.emplace_back(i,
-                       io_id_collection_type{i - 1},
-                       io_id_collection_type{i + 1},
+                       io_id_collection_type{(i-1)*10},
+                       io_id_collection_type{i*10},
                        io_id_collection_type{});
 
-  nodes.emplace_back(9,
-                     io_id_collection_type{8},
+  nodes.emplace_back(number_of_nodes-1,
+                     io_id_collection_type{(number_of_nodes-2) * 10},
                      io_id_collection_type{},
                      io_id_collection_type{});
 
   std::map<io_id_type, Input> map;
-  for(io_id_type i = 0; i < 9; ++i)
-    map[i] = Input(i+1);
+  for(io_id_type i = 0; i < 2 * number_of_nodes; ++i)
+    map[i*10] = Input(i+1);
 
   Graph<Input> graph_cons(nodes, map);
 
