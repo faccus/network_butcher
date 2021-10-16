@@ -5,13 +5,12 @@
 
 std::vector<memory_type>
 Computer::compute_nodes_memory_usage(const Graph<graph_input_type> &graph,
-                                     bool include_parameters) const
+                                     bool include_parameters)
 {
   std::vector<memory_type> memory_usages;
   memory_usages.resize(graph.nodes.size());
 
-  std::transform(std::execution::seq,
-                 graph.nodes.cbegin(),
+  std::transform(graph.nodes.cbegin(),
                  graph.nodes.cend(),
                  memory_usages.begin(),
                  [&graph, include_parameters](node_type const &node) {
@@ -47,13 +46,12 @@ Computer::compute_nodes_memory_usage(const Graph<graph_input_type> &graph,
 
 std::vector<memory_type>
 Computer::compute_nodes_memory_usage_input(const Graph<graph_input_type> &graph,
-                                           bool include_parameters) const
+                                           bool include_parameters)
 {
   std::vector<memory_type> memory_usages;
   memory_usages.resize(graph.nodes.size());
 
-  std::transform(std::execution::seq,
-                 graph.nodes.cbegin(),
+  std::transform(graph.nodes.cbegin(),
                  graph.nodes.cend(),
                  memory_usages.begin(),
                  [&graph, include_parameters](node_type const &node) {

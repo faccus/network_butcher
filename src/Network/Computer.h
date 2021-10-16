@@ -105,8 +105,7 @@ public:
     std::vector<memory_type> memory_usages;
     memory_usages.resize(graph.nodes.size());
 
-    std::transform(std::execution::seq,
-                   graph.nodes.cbegin(),
+    std::transform(graph.nodes.cbegin(),
                    graph.nodes.cend(),
                    memory_usages.begin(),
                    [&](node_type const &node) {
@@ -118,10 +117,9 @@ public:
     return memory_usages;
   }
 
-  [[nodiscard]] std::vector<memory_type>
+  [[nodiscard]] static std::vector<memory_type>
   compute_nodes_memory_usage(Graph<graph_input_type> const &graph,
-                             bool include_parameters = true) const;
-
+                             bool include_parameters = true);
 
 
   template <class T>
@@ -132,8 +130,7 @@ public:
     std::vector<memory_type> memory_usages;
     memory_usages.resize(graph.nodes.size());
 
-    std::transform(std::execution::seq,
-                   graph.nodes.cbegin(),
+    std::transform(graph.nodes.cbegin(),
                    graph.nodes.cend(),
                    memory_usages.begin(),
                    [&](node_type const &node) {
@@ -145,10 +142,9 @@ public:
     return memory_usages;
   }
 
-  [[nodiscard]] std::vector<memory_type>
+  [[nodiscard]] static std::vector<memory_type>
   compute_nodes_memory_usage_input(Graph<graph_input_type> const &graph,
-                             bool include_parameters = true) const;
-
+                                   bool include_parameters = true);
 
 
   template <class T>
@@ -160,9 +156,7 @@ public:
     auto        nodes_memory_usage =
       compute_nodes_memory_usage(graph, include_parameters);
 
-    res = std::reduce(std::execution::seq,
-                      nodes_memory_usage.cbegin(),
-                      nodes_memory_usage.cend());
+    res = std::reduce(nodes_memory_usage.cbegin(), nodes_memory_usage.cend());
 
     return res;
   }
@@ -177,9 +171,7 @@ public:
     auto        nodes_memory_usage =
       compute_nodes_memory_usage_input(graph, include_parameters);
 
-    res = std::reduce(std::execution::seq,
-                      nodes_memory_usage.cbegin(),
-                      nodes_memory_usage.cend());
+    res = std::reduce(nodes_memory_usage.cbegin(), nodes_memory_usage.cend());
 
     return res;
   }
