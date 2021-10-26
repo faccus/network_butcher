@@ -25,6 +25,7 @@ template <class T>
 class Graph
 {
 private:
+
   /// Compute node dependencies
   void
   compute_dependencies()
@@ -77,7 +78,7 @@ public:
   /// order, according to the Onnx IR specifications.
   /// \param content The map that associated the id of the given node content (it's
   /// different from the id of the node, since multiple nodes can have the same
-  /// input) with the itself content
+  /// input) with the content itself
   Graph(std::vector<node_type> v, const std::map<io_id_type, T> &content)
     : nodes(std::move(v))
     , nodes_content(content)
@@ -213,7 +214,7 @@ public:
   /// order, according to the Onnx IR specifications.
   /// \param content The map that associated the id of the given node content (it's
   /// different from the id of the node, since multiple nodes can have the same
-  /// input) with the itself content
+  /// input) with the  content itself
   Graph(std::vector<node_type> v, Map_Node_Content content)
     : nodes(std::move(v))
     , nodes_content(std::move(content))

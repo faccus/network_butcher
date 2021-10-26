@@ -7,6 +7,7 @@
 
 #include "../Traits/Graph_traits.h"
 #include <limits>
+#include <vector>
 
 
 template <class T>
@@ -25,7 +26,7 @@ private:
     constexpr bool
     operator<(const dijkstra_helper_struct &rhs) const
     {
-      return weight < rhs.weight && (weight == rhs.weight && id < rhs.id);
+      return weight < rhs.weight || (weight == rhs.weight && id < rhs.id);
     }
   };
 
@@ -38,19 +39,17 @@ public:
     , weights(w){};
 
   [[nodiscard]] std::pair<std::vector<node_id_type>, std::vector<type_weight>>
-  dijkstra() const // time: ((N+E)log(N)), space: O(N)
+  dijkstra(node_id_type root = 0) const // time: ((N+E)log(N)), space: O(N)
   {
     if (graph.nodes.empty())
-      return {};
+      return {{}, {}};
 
-    std::vector<type_weight> total_distance(
-      graph.nodes.size(), std::numeric_limits<type_weight>::max());
-    *total_distance.begin() = 0;
+    std::vector<type_weight> total_distance(graph.nodes.size(),
+                                            std::numeric_limits<double>::max());
+    total_distance[root] = 0;
 
-    std::vector<node_id_type> predecessors(graph.nodes.size(),
-                                           graph.nodes.front());
-
-    std::set<dijkstra_helper_struct> to_visit{graph.nodes.front()};
+    std::vector<node_id_type>        predecessors(graph.nodes.size(), root);
+    std::set<dijkstra_helper_struct> to_visit{{0, root}};
 
     while (!to_visit.empty()) // O(N)
       {
@@ -66,18 +65,29 @@ public:
         to_visit.erase(to_visit.begin()); // O(log(N))
 
         auto &exit_nodes = graph.dependencies[current_node.id].second; // O(1)
-        for (auto &j : exit_nodes)
+        for (auto j : exit_nodes)
           {
-            auto      &basic_dist = total_distance[j]; // O(1)
-            auto const candidate_distance =
-              start_distance + weights[{current_node.id, j}]; // O(1)
-            if (candidate_distance < basic_dist)              // O(1)
+            auto &basic_dist = total_distance[j]; // O(1)
+            auto  ref        = weights.find({current_node.id, j});
+
+            if (ref == weights.cend())
               {
-                to_visit.erase({j, basic_dist}); // O(log(N))
+                std::cout << "Error" << std::endl;
+                return {predecessors, total_distance};
+              }
+
+            auto const candidate_distance =
+              start_distance + ref->second;      // O(1)
+            if (candidate_distance < basic_dist) // O(1)
+              {
+                auto it = to_visit.find({basic_dist, j});
+
+                if (it != to_visit.end())
+                  to_visit.erase(it); // O(log(N))
 
                 predecessors[j] = current_node.id;        // O(1)
                 basic_dist      = candidate_distance;     // O(1)
-                to_visit.insert({j, candidate_distance}); // O(log(N))
+                to_visit.insert({candidate_distance, j}); // O(log(N))
               }
           }
       }
