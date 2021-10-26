@@ -43,7 +43,7 @@ public:
 
   /// Read-only getter for input
   /// \return Const reference to input
-  const io_id_collection_type &
+  inline const io_id_collection_type &
   get_input() const
   {
     return input;
@@ -52,7 +52,7 @@ public:
 
   /// Read-only getter for output
   /// \return Const reference to output
-  const io_id_collection_type &
+  inline const io_id_collection_type &
   get_output() const
   {
     return output;
@@ -61,17 +61,17 @@ public:
 
   /// Read-only getter for the parameters
   /// \return Const reference to the parameters
-  const io_id_collection_type &
+  inline const io_id_collection_type &
   get_parameters() const
   {
     return parameters;
   }
 
-  node_id_type get_id() const
+  inline node_id_type
+  get_id() const
   {
     return id;
   }
-
 };
 
 #endif // NETWORK_BUTCHER_NODE_H

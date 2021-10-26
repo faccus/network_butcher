@@ -1,0 +1,69 @@
+//
+// Created by faccus on 26/10/21.
+//
+
+#include "../../../src/Helpers/K-shortest_path/ksp.h"
+#include "../../TestClass.h"
+#include <gtest/gtest.h>
+
+TEST(KspTests, Constructor)
+{
+  using basic_type    = int;
+  using Input         = TestMemoryUsage<basic_type>;
+  int number_of_nodes = 10;
+
+
+  Graph<Input>                                            basic_graph;
+  std::map<std::pair<node_id_type, node_id_type>, double> weight;
+
+  KFinder kfinder(basic_graph, weight);
+  auto    res = kfinder.dijkstra();
+
+  ASSERT_EQ(res.first.size(), 0);
+}
+
+TEST(KspTests, DijkstraTest)
+{
+  using basic_type = int;
+  using Input      = TestMemoryUsage<basic_type>;
+
+  using type_weight = double;
+  using type_collection_weights =
+    std::map<std::pair<node_id_type, node_id_type>, type_weight>;
+
+  std::map<io_id_type, Input> map;
+  std::vector<node_type>      nodes;
+
+  nodes.push_back(node_type(1, {}, {2, 3}, {}));
+  nodes.push_back(node_type(2, {1, 3, 5}, {4}, {}));
+  nodes.push_back(node_type(3, {1, 4}, {2, 5, 6}, {}));
+  nodes.push_back(node_type(4, {2, 6}, {3, 5}, {}));
+  nodes.push_back(node_type(5, {3, 4, 6, 7}, {2}, {}));
+  nodes.push_back(node_type(6, {3}, {4, 5, 7}, {}));
+  nodes.push_back(node_type(7, {6}, {5}, {}));
+
+  for (io_id_type i = 1; i <= 7; ++i)
+    map[i] = Input(i + 1);
+
+  type_collection_weights weights;
+  weights[{1, 2}] = 4;
+  weights[{1, 3}] = 1;
+  weights[{3, 2}] = 2;
+  weights[{5, 2}] = 0;
+  weights[{2, 4}] = 3;
+  weights[{3, 5}] = 9;
+  weights[{4, 3}] = 1;
+  weights[{3, 6}] = 4;
+  weights[{4, 5}] = 2;
+  weights[{6, 5}] = 1;
+  weights[{6, 7}] = 2;
+  weights[{7, 5}] = 2;
+  weights[{6, 4}] = 1;
+
+
+  Graph<Input> graph_cons(nodes, map);
+  KFinder      kfinder(graph_cons, weights);
+  auto         res = kfinder.dijkstra();
+
+  std::cout << std::endl;
+}

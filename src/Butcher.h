@@ -19,12 +19,13 @@ template<class T>
 class Butcher
 {
 private:
-  using network    = Graph<T>;
+  using network = Graph<T>;
   network graph;
 
-  /// Compute the minimal connected graphs (with dependencies) containing every node
-  /// \return returns the smallest connected sub-graph (with dependencies) that connects the first node with the n-th node
-  std::vector<slice_type>
+  /// Compute the minimal connected graphs (with dependencies) containing every
+  /// node \return returns the smallest connected sub-graph (with dependencies)
+  /// that connects the first node with the n-th node
+  [[nodiscard]] std::vector<slice_type>
   compute_basic_routes() const
   {
     std::vector<slice_type> basic_routes;
@@ -89,7 +90,6 @@ public:
   /// butcher
   /// \param p Full path to the .onnx file model
   /// \param ignore_parameters Allows to choose if graph should ignore already initialized inputs/outputs (parameters)
-  /// \param dep Make the graph compute the dependencies map
   Butcher(const std::string &p, bool ignore_parameters = true)
     : graph(p, ignore_parameters){};
 

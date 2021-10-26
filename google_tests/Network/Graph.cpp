@@ -32,7 +32,8 @@ TEST(GraphTests, ConstructorFromString) {
   std::cout << std::endl;
 }
 
-TEST(GraphTests, ConstructorFromGraph) {
+TEST(GraphTests, ConstructorFromGraph)
+{
   using Input = graph_input_type;
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -42,19 +43,28 @@ TEST(GraphTests, ConstructorFromGraph) {
   Graph<Input> graph2(std::move(graph));
 }
 
-TEST(GraphTests, ConstructorFromCustomClass) {
+TEST(GraphTests, DefaultConstructors)
+{
   using basic_type = int;
-  using Input = TestMemoryUsage<basic_type>;
+  using Input      = TestMemoryUsage<basic_type>;
+
+  Graph<Input>            graph_empty;
+  Graph<graph_input_type> graph_empty2;
+}
+
+TEST(GraphTests, ConstructorFromCustomClass)
+{
+  using basic_type    = int;
+  using Input         = TestMemoryUsage<basic_type>;
   int number_of_nodes = 10;
 
-  Graph<Input> graph_empty;
   std::vector<node_type> nodes;
   nodes.emplace_back(0,
                      io_id_collection_type(),
                      io_id_collection_type{0},
                      io_id_collection_type());
 
-  for (int i = 1; i < number_of_nodes-1; ++i)
+  for (int i = 1; i < number_of_nodes - 1; ++i)
     nodes.emplace_back(i,
                        io_id_collection_type{(i-1)*10},
                        io_id_collection_type{i*10},

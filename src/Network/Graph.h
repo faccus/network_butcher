@@ -91,8 +91,8 @@ template<>
 class Graph<graph_input_type>
 {
 private:
-  using Map_IO = std::unordered_map<std::string, io_id_type>;
-
+  using Map_IO           = std::unordered_map<std::string, io_id_type>;
+  using Map_Node_Content = std::map<io_id_type, graph_input_type>;
 
 
   /// From a ValueInfoProto (type of an input/output/value_info of the graph)
@@ -101,7 +101,8 @@ private:
   /// respective type is inserted into nodes_content
   /// \param in Collection of ValueInfoProto
   /// \param parameters The names of the parameters
-  /// \param parameters_id The function will add to this set the ids of the parameters
+  /// \param parameters_id The function will add to this set the ids of the
+  /// parameters
   void
   onnx_parameters_reader(
     Map_IO & input_map,
@@ -187,13 +188,19 @@ private:
 
 public:
   /// A vector containing, ordered by id, the different value infos
-  std::map<io_id_type, graph_input_type> nodes_content;
+  Map_Node_Content nodes_content;
 
   /// Collection of nodes
   std::vector<node_type> nodes;
 
-  /// Vector that contains all the neighbours of every node (first input, then output)
-  std::vector< std::pair<node_id_collection_type, node_id_collection_type> > dependencies;
+  /// Vector that contains all the neighbours of every node (first input, then
+  /// output)
+  std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
+    dependencies;
+
+  /// A vector containing, ordered by id, the different operations taking place
+  /// in the nodes
+  std::vector<operation_id_type> nodes_operations;
 
 
   Graph() = default;
@@ -207,7 +214,7 @@ public:
   /// \param content The map that associated the id of the given node content (it's
   /// different from the id of the node, since multiple nodes can have the same
   /// input) with the itself content
-  Graph(std::vector<node_type> v, std::map<io_id_type, graph_input_type> content)
+  Graph(std::vector<node_type> v, Map_Node_Content content)
     : nodes(std::move(v))
     , nodes_content(std::move(content))
   {
@@ -254,6 +261,7 @@ public:
     const auto &in_graph_nodes = in_graph.node();
 
     nodes.reserve(in_graph_nodes.size());
+    nodes_operations.reserve(in_graph_nodes.size());
 
     // Base on the names of the input/output, it will produce the associated
     // type id
@@ -293,6 +301,7 @@ public:
           {
             auto current_index = ++node_index;
             nodes.emplace_back(current_index, input, output, parameters);
+            nodes_operations.emplace_back(node.op_type());
           }
       }
 
