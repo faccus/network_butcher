@@ -74,7 +74,8 @@ public:
 
             if (ref == weights.cend())
               {
-                std::cout << "Error: missing wieght" << std::endl;
+                std::cout << "Error: missing weight (" << current_node.id
+                          << ", " << j << ")" << std::endl;
                 return {predecessors, total_distance};
               }
 
