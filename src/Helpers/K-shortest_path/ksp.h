@@ -17,6 +17,7 @@ public:
   using type_weight = double;
   using type_collection_weights =
     std::map<std::pair<node_id_type, node_id_type>, type_weight>;
+
   struct path_info
   {
     type_weight               length;
@@ -28,6 +29,7 @@ public:
       return length < rhs.length || (length == rhs.length && path < rhs.path);
     }
   };
+
   explicit KFinder(Graph<T> const &g, type_collection_weights const &w)
     : graph(g)
     , weights(w){};
@@ -72,7 +74,7 @@ public:
 
             if (ref == weights.cend())
               {
-                std::cout << "Error" << std::endl;
+                std::cout << "Error: missing wieght" << std::endl;
                 return {predecessors, total_distance};
               }
 
@@ -104,12 +106,14 @@ public:
   std::set<path_info>
   lazy_eppstein(int k = 1)
   {
-    std::set<path_info> res;
-
     if (graph.nodes.empty())
-      return res;
+      return {};
     if (k == 1)
-      return shortest_path_finder();
+      return {shortest_path_finder()};
+
+    std::set<path_info> res;
+    auto const          dij_res = dijkstra(graph.nodes.size() - 1, true);
+
 
     return res;
   }
@@ -129,6 +133,21 @@ private:
 
   Graph<T> const                &graph;
   type_collection_weights const &weights;
+
+  type_collection_weights
+  sidetrack_distances(std::vector<type_weight> const &distances_from_sink) const
+  {
+    type_collection_weights res;
+    for (auto const &edge : weights) // O(E)
+      {
+        res.insert(res.cend(),
+                   {edge.first,
+                    edge.second + distances_from_sink[edge.first.second] -
+                      distances_from_sink[edge.first.first]}); // O(1)
+      }
+
+    return res;
+  }
 
   path_info
   shortest_path_finder(

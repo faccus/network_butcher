@@ -6,23 +6,8 @@
 #include "../../TestClass.h"
 #include <gtest/gtest.h>
 
-TEST(KspTests, Constructor)
-{
-  using basic_type    = int;
-  using Input         = TestMemoryUsage<basic_type>;
-  int number_of_nodes = 10;
-
-
-  Graph<Input>                                            basic_graph;
-  std::map<std::pair<node_id_type, node_id_type>, double> weight;
-
-  KFinder kFinder(basic_graph, weight);
-  auto    res = kFinder.dijkstra();
-
-  ASSERT_EQ(res.first.size(), 0);
-}
-
-TEST(KspTests, DijkstraTest)
+KFinder<TestMemoryUsage<int>>
+kfinder_construction()
 {
   using basic_type = int;
   using Input      = TestMemoryUsage<basic_type>;
@@ -62,13 +47,41 @@ TEST(KspTests, DijkstraTest)
 
 
   Graph<Input> graph_cons(nodes, map);
-  KFinder      kfinder(graph_cons, weights);
-  auto         res = kfinder.dijkstra();
+  return KFinder(graph_cons, weights);
+}
+
+TEST(KspTests, Constructor)
+{
+  using basic_type    = int;
+  using Input         = TestMemoryUsage<basic_type>;
+  int number_of_nodes = 10;
+
+
+  Graph<Input>                                            basic_graph;
+  std::map<std::pair<node_id_type, node_id_type>, double> weight;
+
+  KFinder kFinder(basic_graph, weight);
+  auto    res = kFinder.dijkstra();
+
+  ASSERT_EQ(res.first.size(), 0);
+}
+
+TEST(KspTests, DijkstraSourceSink)
+{
+  auto kfinder = kfinder_construction();
+  auto res     = kfinder.dijkstra();
 
   std::vector<node_id_type> theoretical_res = {0, 2, 0, 1, 5, 2, 5};
-  res                                       = kfinder.dijkstra(6, true);
 
-  std::cout << std::endl;
+  ASSERT_EQ(res.first, theoretical_res);
+}
+
+TEST(KspTests, DijkstraSinkSource)
+{
+  auto kfinder = kfinder_construction();
+  auto res     = kfinder.dijkstra(6, true);
+
+  std::vector<node_id_type> theoretical_res = {2, 3, 5, 2, 1, 6, 6};
 
   ASSERT_EQ(res.first, theoretical_res);
 }
