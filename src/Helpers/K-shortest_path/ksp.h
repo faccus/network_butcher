@@ -13,33 +13,29 @@
 template <class T>
 class KFinder
 {
-private:
+public:
   using type_weight = double;
   using type_collection_weights =
     std::map<std::pair<node_id_type, node_id_type>, type_weight>;
-
-  struct dijkstra_helper_struct
+  struct path_info
   {
-    type_weight  weight;
-    node_id_type id;
+    type_weight               length;
+    std::vector<node_id_type> path;
 
     constexpr bool
-    operator<(const dijkstra_helper_struct &rhs) const
+    operator<(const path_info &rhs) const
     {
-      return weight < rhs.weight || (weight == rhs.weight && id < rhs.id);
+      return length < rhs.length || (length == rhs.length && path < rhs.path);
     }
   };
-
-  Graph<T> const                &graph;
-  type_collection_weights const &weights;
-
-public:
   explicit KFinder(Graph<T> const &g, type_collection_weights const &w)
     : graph(g)
     , weights(w){};
 
+
   [[nodiscard]] std::pair<std::vector<node_id_type>, std::vector<type_weight>>
-  dijkstra(node_id_type root = 0) const // time: ((N+E)log(N)), space: O(N)
+  dijkstra(node_id_type root = 0,
+           bool reversed     = false) const // time: ((N+E)log(N)), space: O(N)
   {
     if (graph.nodes.empty())
       return {{}, {}};
@@ -64,11 +60,15 @@ public:
 
         to_visit.erase(to_visit.begin()); // O(log(N))
 
-        auto &exit_nodes = graph.dependencies[current_node.id].second; // O(1)
+        auto &exit_nodes = reversed ?
+                             graph.dependencies[current_node.id].first :
+                             graph.dependencies[current_node.id].second; // O(1)
+
         for (auto j : exit_nodes)
           {
             auto &basic_dist = total_distance[j]; // O(1)
-            auto  ref        = weights.find({current_node.id, j});
+            auto  ref        = reversed ? weights.find({j, current_node.id}) :
+                                          weights.find({current_node.id, j});
 
             if (ref == weights.cend())
               {
@@ -93,6 +93,67 @@ public:
       }
 
     return {predecessors, total_distance};
+  }
+
+  [[nodiscard]] std::pair<std::vector<node_id_type>, std::vector<type_weight>>
+  shortest_path_tree() const
+  {
+    return dijkstra(graph.nodes.size() - 1, true);
+  }
+
+  std::set<path_info>
+  lazy_eppstein(int k = 1)
+  {
+    std::set<path_info> res;
+
+    if (graph.nodes.empty())
+      return res;
+    if (k == 1)
+      return shortest_path_finder();
+
+    return res;
+  }
+
+private:
+  struct dijkstra_helper_struct
+  {
+    type_weight  weight;
+    node_id_type id;
+
+    constexpr bool
+    operator<(const dijkstra_helper_struct &rhs) const
+    {
+      return weight < rhs.weight || (weight == rhs.weight && id < rhs.id);
+    }
+  };
+
+  Graph<T> const                &graph;
+  type_collection_weights const &weights;
+
+  path_info
+  shortest_path_finder(
+    node_id_type root = 0,
+    std::pair<std::vector<node_id_type>, std::vector<type_weight>> const
+      &infos_succ =
+        std::pair<std::vector<node_id_type>, std::vector<type_weight>>()) const
+  {
+    auto const &dij_res =
+      !infos_succ.first.empty() && !infos_succ.second.empty() ?
+        infos_succ :
+        dijkstra(graph.nodes.size() - 1, true);
+
+    path_info info;
+    info.length = dij_res.second[root];
+
+    auto ind = root;
+    while (ind != graph.nodes.back().get_id())
+      {
+        info.path.push_back(ind);
+        ind = dij_res.first[ind];
+      }
+    info.path.push_back(ind);
+
+    return info;
   }
 };
 

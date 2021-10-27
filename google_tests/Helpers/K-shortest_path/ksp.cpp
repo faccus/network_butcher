@@ -65,5 +65,10 @@ TEST(KspTests, DijkstraTest)
   KFinder      kfinder(graph_cons, weights);
   auto         res = kfinder.dijkstra();
 
+  std::vector<node_id_type> theoretical_res = {0, 2, 0, 1, 5, 2, 5};
+  res                                       = kfinder.dijkstra(6, true);
+
   std::cout << std::endl;
+
+  ASSERT_EQ(res.first, theoretical_res);
 }
