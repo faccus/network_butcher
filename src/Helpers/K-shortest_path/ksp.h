@@ -9,6 +9,7 @@
 #include "Heap.h"
 
 #include <limits>
+#include <queue>
 #include <vector>
 
 
@@ -116,38 +117,15 @@ public:
     auto const sidetrack_distances_res = sidetrack_distances(dij_res.second);
     auto const shortest_path           = shortest_path_finder(dij_res);
 
-    std::set<path_info>                                  paths{shortest_path};
-    std::map<node_id_type, Heap<std::shared_ptr<H_out>>> h_out;
+    auto const &successors          = dij_res.first;
+    auto const &shortest_paths_cost = dij_res.second;
 
-    // H_out
-    for (auto &node : graph.nodes) // O(N)
-      {
-        auto const &exit_nodes =
-          graph.dependencies[node.get_id()].second; // O(1)
+    std::set<path_info> paths{shortest_path};
 
-        for (auto const &exit_node : exit_nodes)
-          {
-            if (shortest_path.path.find(exit_node.get_id()) !=
-                shortest_path.path.cend()) // O(log(E))
-              {
-                H_out tmp;
-                tmp.edge         = {node.get_id(), exit_node.get_id()};
-                tmp.delta_weight = sidetrack_distances_res[tmp.edge];
-
-                h_out.insert(node.get_id(), std::make_shared(tmp));
-              }
-          }
-      }
-
-    std::map<node_id_type, Heap<std::shared_ptr<H_out>>> h_g;
-    h_g[graph.nodes.size() - 1] = h_out[graph.nodes.size() - 1];
-
-    auto it = ++shortest_path.path.crbegin();
-    for (; it != shortest_path.path.crend(); ++it)
-      {
-        // Add a flag in graph that tells us if the nodes are topologically
-        // sorted. Add tological sorter for nodes in graph Cry.....
-      }
+    std::map<node_id_type, std::shared_ptr<Heap<H_out_helper>>> h_out =
+      construct_h_out(successors, sidetrack_distances_res);
+    std::map<node_id_type, std::shared_ptr<H_out>> h_g =
+      construct_h_g(h_out, successors);
 
 
     return res;
@@ -165,24 +143,107 @@ private:
       return weight < rhs.weight || (weight == rhs.weight && id < rhs.id);
     }
   };
-
-  struct H_out
+  struct H_out_helper
   {
     edge_type   edge;
     type_weight delta_weight;
     constexpr bool
-    operator<(const H_out &rhs) const
+    operator<(const H_out_helper &rhs) const
     {
       return delta_weight < rhs.delta_weight ||
              (delta_weight == rhs.delta_weight && edge < edge);
     }
   };
 
+  using H_out = std::shared_ptr<H_out_helper>;
+
+
   Graph<T> const                &graph;
   type_collection_weights const &weights;
 
 
-  type_collection_weights
+  std::map<node_id_type, std::shared_ptr<Heap<H_out_helper>>>
+  construct_h_out(std::vector<node_id_type> const &successors,
+                  type_collection_weights const   &sidetrack_distances) const
+  {
+    std::map<node_id_type, std::shared_ptr<Heap<H_out_helper>>> h_out;
+
+    // H_out
+    for (auto &node : graph.nodes)
+      {
+        auto const &exit_nodes = graph.dependencies[node.get_id()].second;
+        std::shared_ptr<Heap<H_out_helper>> heap;
+
+        if (!exit_nodes.empty())
+          {
+            auto &succ = successors[node.get_id()];
+            for (auto const &exit_node : exit_nodes) // O(E)
+              {
+                if (exit_node != succ)
+                  {
+                    H_out_helper tmp;
+                    tmp.edge         = {node.get_id(), exit_node};
+                    tmp.delta_weight = sidetrack_distances[tmp.edge];
+
+                    heap->children.insert(tmp); // O(log(E))
+                  }
+              }
+          }
+
+        h_out.insert(node.get_id(), heap);
+      }
+
+    return h_out;
+  }
+
+  std::map<node_id_type, std::shared_ptr<Heap<std::shared_ptr<Heap<H_out>>>>>
+  construct_h_g(
+    std::map<node_id_type, std::shared_ptr<Heap<H_out_helper>>> &h_out,
+    std::vector<node_id_type> const                             &successors)
+  {
+    std::map<node_id_type, std::shared_ptr<Heap<std::shared_ptr<Heap<H_out>>>>>
+      res;
+
+    std::vector<std::set<node_id_type>> sp_dependencies;
+    sp_dependencies.resize(graph.nodes.size());
+
+    for (auto &node : graph.nodes)
+      {
+        auto &tmp = successors[node.get_id()];
+
+        if (tmp != node.get_id())
+          sp_dependencies[tmp].insert(node.get_id());
+      }
+
+    res.insert(graph.nodes.size() - 1,
+               std::make_shared<Heap<std::shared_ptr<Heap<H_out>>>>());
+    res[graph.nodes.size() - 1]->merge(h_out[graph.nodes.size() - 1]);
+    std::queue<node_id_type> queue;
+
+    for (auto &node : graph.nodes)
+      if (successors[node.get_id] == graph.nodes.size() - 1)
+        queue.push(node.get_id());
+
+    while (!queue.empty())
+      {
+        auto &deps = sp_dependencies[queue.front()];
+
+        for (auto &n : deps)
+          queue.push(n);
+
+        res.insert(queue.front(),
+                   std::make_shared<Heap<std::shared_ptr<Heap<H_out>>>>());
+        res[queue.front()]->merge(h_out[queue.front()]);
+        res[queue.front()]->merge(*res[successors[queue.front()]]);
+
+        queue.pop();
+      }
+
+    return res;
+  }
+
+
+  [[nodiscard]] type_collection_weights
   sidetrack_distances(std::vector<type_weight> const &distances_from_sink) const
   {
     type_collection_weights res;
