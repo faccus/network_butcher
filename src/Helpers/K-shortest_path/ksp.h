@@ -6,6 +6,8 @@
 #define NETWORK_BUTCHER_KSP_H
 
 #include "../Traits/Graph_traits.h"
+#include "Heap.h"
+
 #include <limits>
 #include <vector>
 
@@ -14,10 +16,6 @@ template <class T>
 class KFinder
 {
 public:
-  using type_weight = double;
-  using type_collection_weights =
-    std::map<std::pair<node_id_type, node_id_type>, type_weight>;
-
   struct path_info
   {
     type_weight               length;
@@ -104,8 +102,8 @@ public:
     return dijkstra(graph.nodes.size() - 1, true);
   }
 
-  std::set<path_info>
-  lazy_eppstein(int k = 1)
+  [[nodiscard]] std::set<path_info>
+  lazy_lazy_eppstein(int k = 1)
   {
     if (graph.nodes.empty())
       return {};
@@ -113,7 +111,43 @@ public:
       return {shortest_path_finder()};
 
     std::set<path_info> res;
-    auto const          dij_res = dijkstra(graph.nodes.size() - 1, true);
+
+    auto const dij_res                 = shortest_path_tree();
+    auto const sidetrack_distances_res = sidetrack_distances(dij_res.second);
+    auto const shortest_path           = shortest_path_finder(dij_res);
+
+    std::set<path_info>                                  paths{shortest_path};
+    std::map<node_id_type, Heap<std::shared_ptr<H_out>>> h_out;
+
+    // H_out
+    for (auto &node : graph.nodes) // O(N)
+      {
+        auto const &exit_nodes =
+          graph.dependencies[node.get_id()].second; // O(1)
+
+        for (auto const &exit_node : exit_nodes)
+          {
+            if (shortest_path.path.find(exit_node.get_id()) !=
+                shortest_path.path.cend()) // O(log(E))
+              {
+                H_out tmp;
+                tmp.edge         = {node.get_id(), exit_node.get_id()};
+                tmp.delta_weight = sidetrack_distances_res[tmp.edge];
+
+                h_out.insert(node.get_id(), std::make_shared(tmp));
+              }
+          }
+      }
+
+    std::map<node_id_type, Heap<std::shared_ptr<H_out>>> h_g;
+    h_g[graph.nodes.size() - 1] = h_out[graph.nodes.size() - 1];
+
+    auto it = ++shortest_path.path.crbegin();
+    for (; it != shortest_path.path.crend(); ++it)
+      {
+        // Add a flag in graph that tells us if the nodes are topologically
+        // sorted. Add tological sorter for nodes in graph Cry.....
+      }
 
 
     return res;
@@ -132,8 +166,21 @@ private:
     }
   };
 
+  struct H_out
+  {
+    edge_type   edge;
+    type_weight delta_weight;
+    constexpr bool
+    operator<(const H_out &rhs) const
+    {
+      return delta_weight < rhs.delta_weight ||
+             (delta_weight == rhs.delta_weight && edge < edge);
+    }
+  };
+
   Graph<T> const                &graph;
   type_collection_weights const &weights;
+
 
   type_collection_weights
   sidetrack_distances(std::vector<type_weight> const &distances_from_sink) const
