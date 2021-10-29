@@ -6,6 +6,7 @@
 #define NETWORK_BUTCHER_HEAP_H
 
 #include "../Traits/Basic_traits.h"
+#include "../Traits/Node_traits.h"
 #include <utility>
 #include <vector>
 
@@ -17,17 +18,13 @@ public:
 
   children_type children;
 
+
   Heap() = default;
 
-  Heap(children_type children)
+  explicit Heap(children_type children)
     : children{std::move(children)}
-  {}
-
-  void
-  merge(children_type const &to_merge)
   {
-    children.reserve(children.size() + to_merge.children.size());
-    children.merge(to_merge.children);
+    std::sort(children.begin(), children.end());
   }
 };
 
