@@ -218,7 +218,8 @@ TEST(KspTests, Eppstein2)
   Graph<Input> graph_cons(nodes, map);
   KFinder      kfinder(graph_cons, weights);
 
-  auto res = kfinder.basic_eppstein(5);
+  auto res      = kfinder.basic_eppstein(5);
+  auto real_sol = {55., 58., 59., 61., 62.}; //, 64., 65., 68., 68., 71.};
 
   std::cout << std::endl;
 }
