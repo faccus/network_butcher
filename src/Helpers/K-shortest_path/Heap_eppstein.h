@@ -21,6 +21,13 @@ struct H_edge
     return delta_weight < rhs.delta_weight ||
            (delta_weight == rhs.delta_weight && edge < rhs.edge);
   }
+
+  constexpr bool
+  operator>(const H_edge &rhs) const
+  {
+    return delta_weight > rhs.delta_weight ||
+           (delta_weight == rhs.delta_weight && edge > rhs.edge);
+  }
 };
 
 struct H_out
@@ -62,6 +69,9 @@ public:
   get_value() const;
   bool
   operator<(H_g_content const &rhs) const;
+
+  [[nodiscard]] std::set<H_edge>
+  get_edges() const;
 };
 
 using H_g_pointer   = std::shared_ptr<H_g>;

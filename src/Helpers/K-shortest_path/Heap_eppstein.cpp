@@ -20,3 +20,21 @@ H_g_content::get_value() const
   else
     return {{-1, -1}, std::numeric_limits<type_weight>::max()};
 }
+std::set<H_edge>
+H_g_content::get_edges() const
+{
+  std::set<H_edge> res;
+  if (content_out)
+    res = content_out->heap.children;
+  else if (content_g)
+    {
+      for (auto &child : content_g->children)
+        {
+          auto edges = child.get_edges();
+          res.merge(std::move(edges));
+        }
+    }
+
+
+  return res;
+}

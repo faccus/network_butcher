@@ -173,6 +173,7 @@ TEST(KspTests, Eppstein2)
   using type_collection_weights =
     std::map<std::pair<node_id_type, node_id_type>, type_weight>;
 
+
   std::map<io_id_type, Input> map;
   std::vector<node_type>      nodes;
 
@@ -218,8 +219,23 @@ TEST(KspTests, Eppstein2)
   Graph<Input> graph_cons(nodes, map);
   KFinder      kfinder(graph_cons, weights);
 
-  auto res      = kfinder.basic_eppstein(5);
-  auto real_sol = {55., 58., 59., 61., 62.}; //, 64., 65., 68., 68., 71.};
+  int k = 11; // Up to 10
 
-  std::cout << std::endl;
+  std::vector<type_weight> real_sol = {
+    55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
+  auto res = kfinder.basic_eppstein(real_sol.size());
+
+  std::vector<type_weight> real_path_lengths;
+  std::vector<type_weight> path_lengths;
+
+  path_lengths.reserve(k);
+  real_path_lengths.reserve(k);
+
+  for (auto i = 0; i < k && i < path_lengths.size(); ++i)
+    {
+      path_lengths.push_back(res[i].length);
+      real_path_lengths.push_back(real_sol[i]);
+    }
+
+  ASSERT_EQ(path_lengths, real_path_lengths);
 }

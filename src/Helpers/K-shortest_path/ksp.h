@@ -40,6 +40,13 @@ public:
       return length < rhs.length ||
              (length == rhs.length && sidetracks < rhs.sidetracks);
     }
+
+    constexpr bool
+    operator>(const implicit_path_info &rhs) const
+    {
+      return length > rhs.length ||
+             (length == rhs.length && sidetracks > rhs.sidetracks);
+    }
   };
 
   explicit KFinder(Graph<T> const &g, type_collection_weights const &w)
@@ -116,13 +123,13 @@ public:
     return dijkstra(graph.nodes.size() - 1, true);
   }
 
-  [[nodiscard]] std::set<implicit_path_info>
-  basic_eppstein(int K = 2)
+  [[nodiscard]] std::vector<implicit_path_info>
+  basic_eppstein(std::size_t K = 2)
   {
     auto const dij_res = shortest_path_tree();
 
-    std::set<implicit_path_info> res;
-    res.insert(res.cend(), {{}, dij_res.second.front()});
+    std::vector<implicit_path_info> res;
+    res.push_back({{}, dij_res.second.front()});
 
     if (graph.nodes.empty())
       return {};
@@ -145,7 +152,10 @@ public:
 
     auto const first_side_track = side_track(0, h_g);
 
-    std::priority_queue<implicit_path_info> Q;
+    std::priority_queue<implicit_path_info,
+                        std::vector<implicit_path_info>,
+                        std::greater<implicit_path_info>>
+      Q;
 
     implicit_path_info first_path;
     first_path.sidetracks = {first_side_track.edge};
@@ -157,7 +167,7 @@ public:
       {
         auto SK = Q.top();
         Q.pop();
-        res.insert(SK);
+        res.push_back(SK);
 
         auto const e  = SK.sidetracks.back();
         auto const ot = sidetrack_distances_res.find(e);
@@ -170,12 +180,15 @@ public:
           }
 
         {
-          auto       mod_sk = SK;
-          auto const f      = side_track(e.second, h_g);
+          auto const f = side_track(e.second, h_g);
 
-          mod_sk.sidetracks.push_back(f.edge);
-          mod_sk.length += f.delta_weight;
-          Q.push(std::move(mod_sk));
+          if (f.edge.first >= 0 && f.edge.second >= 0)
+            {
+              auto mod_sk = SK;
+              mod_sk.sidetracks.push_back(f.edge);
+              mod_sk.length += f.delta_weight;
+              Q.push(std::move(mod_sk));
+            }
         }
         auto const it = edges_edges.find(e);
         if (it != edges_edges.cend())
@@ -231,7 +244,7 @@ private:
   {
     auto const it = h_g.find(j);
     if (it == h_g.cend() || it->second->children.empty())
-      return {};
+      return {{-1, -1}, std::numeric_limits<type_weight>::max()};
 
     return it->second->children.begin()->get_value();
   }
@@ -350,8 +363,13 @@ private:
             std::size_t external_parent = (j - 1) / 2;
             if (external_parent != j)
               {
-                auto edge = previous_steps[external_parent]->get_value().edge;
-                edge_edges[edge].insert(it->get_value().edge);
+                auto const parents =
+                  previous_steps[external_parent]->get_edges();
+                auto const children = it->get_edges();
+
+                for (auto &parent : parents)
+                  for (auto &child : children)
+                    edge_edges[parent.edge].insert(child.edge);
               }
           }
       }
