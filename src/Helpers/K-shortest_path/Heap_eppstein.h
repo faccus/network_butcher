@@ -48,15 +48,6 @@ class H_g_content
   std::shared_ptr<H_g>   content_g;
 
 public:
-  const std::shared_ptr<H_out> &
-  getContentOut() const;
-  const std::shared_ptr<H_g> &
-  getContentG() const;
-  bool
-  isOut() const;
-  bool
-  isG() const;
-
 
   H_g_content() = default;
   H_g_content(std::shared_ptr<H_out> p)
@@ -70,7 +61,7 @@ public:
   [[nodiscard]] H_edge
   get_value() const;
   bool
-  operator<(H_g_content const &rhs);
+  operator<(H_g_content const &rhs) const;
 };
 
 using H_g_pointer   = std::shared_ptr<H_g>;

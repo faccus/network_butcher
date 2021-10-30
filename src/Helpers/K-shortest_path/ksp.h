@@ -139,12 +139,9 @@ public:
     std::map<node_id_type, H_out_pointer> h_out =
       construct_h_out(successors, sidetrack_distances_res);
 
-    std::pair<std::map<node_id_type, H_g_pointer>,
-              std::map<edge_type, std::set<edge_type>>>
-      pair = construct_h_g(h_out, successors);
-
-    auto &h_g         = pair.first;
-    auto &edges_edges = pair.second;
+    auto const h_g         = construct_h_g(h_out, successors);
+    auto       edges_edges = std::map<edge_type, std::set<edge_type>>();
+    get_edges_edges(edges_edges, h_g);
 
     auto const first_side_track = side_track(0, h_g);
 
@@ -229,13 +226,14 @@ private:
   type_collection_weights const &weights;
 
   H_edge
-  side_track(node_id_type const &j, std::map<node_id_type, H_g> const &h_g)
+  side_track(node_id_type const                        &j,
+             std::map<node_id_type, H_g_pointer> const &h_g)
   {
     auto const it = h_g.find(j);
-    if (it == h_g.cend() || it->second.children.empty())
+    if (it == h_g.cend() || it->second->children.empty())
       return {};
 
-    return it->second.children.begin()->get_value();
+    return it->second->children.begin()->get_value();
   }
 
   [[nodiscard]] std::map<node_id_type, H_out_pointer>
@@ -299,7 +297,7 @@ private:
     H_g_pointer heap_last_node = std::make_shared<H_g>();
 
     if (!h_out[graph.nodes.size() - 1]->heap.children.empty())
-      heap_last_node->children.emplace(h_out[graph.nodes.size() - 1]));
+      heap_last_node->children.emplace(h_out[graph.nodes.size() - 1]);
 
     res.insert({graph.nodes.size() - 1, std::move(heap_last_node)});
 
@@ -316,7 +314,7 @@ private:
         for (auto &n : deps)
           queue.push(n);
 
-        H_g_pointer heap_node;
+        H_g_pointer heap_node = std::make_shared<H_g>();
 
         if (!h_out[queue.front()]->heap.children.empty())
           heap_node->children.emplace(h_out[queue.front()]);
@@ -337,7 +335,7 @@ private:
     return res;
   }
 
-  [[nodiscard]] void
+  void
   get_g_edges_edges(std::map<edge_type, std::set<edge_type>> &edge_edges,
                     H_g_pointer const                        &h_g) const
   {
@@ -350,11 +348,16 @@ private:
         if (j > 0)
           {
             std::size_t external_parent = (j - 1) / 2;
+            if (external_parent != j)
+              {
+                auto edge = previous_steps[external_parent]->get_value().edge;
+                edge_edges[edge].insert(it->get_value().edge);
+              }
           }
       }
   }
 
-  [[nodiscard]] void
+  void
   get_edges_edges(std::map<edge_type, std::set<edge_type>>  &edge_edges,
                   std::map<node_id_type, H_g_pointer> const &h_gs) const
   {
@@ -371,7 +374,7 @@ private:
           previous_external;
 
         for (auto it2 = h_g->children.begin(); it2 != h_g->children.cend();
-             ++it2)
+             ++it2, ++j)
           {
             auto const &internal_content = *it2;
             previous_external.push_back(it2);
@@ -387,8 +390,6 @@ private:
                       internal_content.get_value().edge);
                   }
               }
-
-            ++j;
           }
       }
   }

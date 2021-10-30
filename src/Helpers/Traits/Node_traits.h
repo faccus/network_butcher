@@ -6,6 +6,8 @@
 #define NETWORK_BUTCHER_NODE_TRAITS_H
 
 #include "../../Network/Node.h"
+#include "../Types/Type_info.h"
+#include <memory>
 
 using node_type               = Node;
 using type_info_pointer       = std::shared_ptr<Type_info>;
