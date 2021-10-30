@@ -34,7 +34,7 @@ struct H_out
 {
   Heap<H_edge> heap;
 
-  constexpr bool
+  bool
   operator<(const H_out &rhs) const
   {
     if (!heap.children.empty() && !rhs.heap.children.empty())
