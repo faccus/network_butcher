@@ -21,7 +21,7 @@ TEST(ButcherTest, compute_two_slice_memory_brute_force_test)
   const std::string model_path = "resnet18-v2-7-inferred.onnx";
 
   Graph<Input> graph(model_path, true);
-  const Computer computer{};
+  const Computer_memory computer{};
 
   size_t half_size = computer.compute_memory_usage_input(graph) / 2;
 

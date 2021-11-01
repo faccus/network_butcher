@@ -74,8 +74,8 @@ public:
   /// Construct the graph from the nodes and the map containing the relation
   /// between the id of the input/output with the content
   /// \param v The collection of nodes ordered in an ascending order based on
-  /// the id. To work with some parts of butcher, the nodes must be sorted in
-  /// topological order, according to the Onnx IR specifications.///
+  /// the id. To work with butcher, the nodes must be sorted in
+  /// topological order, according to the Onnx IR specifications.
   /// \param content The map that associated the id of the given node content
   /// (it's different from the id of the node, since multiple nodes can have the
   /// same input) with the content itself (default: {}) \param dep The

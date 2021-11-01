@@ -2,39 +2,35 @@
 // Created by faccus on 14/10/21.
 //
 
-#ifndef NETWORK_BUTCHER_COMPUTER_H
-#define NETWORK_BUTCHER_COMPUTER_H
+#ifndef NETWORK_BUTCHER_COMPUTER_MEMORY_H
+#define NETWORK_BUTCHER_COMPUTER_MEMORY_H
 
-#include "Graph.h"
-#include "Hardware_specifications.h"
+#include "../../Network/Graph.h"
 
-class Computer
+class Computer_memory
 {
-private:
-  Hardware_specifications hw_spec;
 public:
 
   template <class T>
   [[nodiscard]] inline memory_type
-  compute_memory_usage(const T &in) const
+  compute(const T &in) const
   {
-    return in.compute_memory_usage();
+    return in.compute();
   }
 
   template <class T>
   [[nodiscard]] inline memory_type
-  compute_memory_usage(const std::shared_ptr<T> &in) const
+  compute(const std::shared_ptr<T> &in) const
   {
-    return in->compute_memory_usage();
+    return in->compute();
   }
 
   template <class T>
   [[nodiscard]] inline memory_type
-  compute_memory_usage(const std::unique_ptr<T> &in) const
+  compute(const std::unique_ptr<T> &in) const
   {
-    return in->compute_memory_usage();
+    return in->compute();
   }
-
 
   template <class T>
   memory_type
@@ -67,6 +63,8 @@ public:
 
     return res;
   }
+
+
 
   template <class T>
   memory_type
@@ -121,6 +119,7 @@ public:
                              bool include_parameters = true);
 
 
+
   template <class T>
   std::vector<memory_type>
   compute_nodes_memory_usage_input(Graph<T> const &graph,
@@ -144,6 +143,7 @@ public:
   [[nodiscard]] static std::vector<memory_type>
   compute_nodes_memory_usage_input(Graph<graph_input_type> const &graph,
                                    bool include_parameters = true);
+
 
 
   template <class T>
@@ -178,4 +178,4 @@ public:
 
 
 
-#endif // NETWORK_BUTCHER_COMPUTER_H
+#endif // NETWORK_BUTCHER_COMPUTER_MEMORY_H

@@ -24,6 +24,7 @@ private:
   /// Collection of the ids of parameters of the node
   io_id_collection_type parameters;
 
+
 public:
 
   /// Basic constructor for a node

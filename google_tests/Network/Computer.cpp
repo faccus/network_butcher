@@ -5,31 +5,31 @@
 #include <gtest/gtest.h>
 #include <memory>
 
+#include "../../src/Helpers/Computer/Computer_memory.h"
 #include "../TestClass.h"
-#include "../../src/Network/Computer.h"
 
 TEST(ComputerTests, ConctructorTest) {
-  Computer computer{};
+  Computer_memory computer{};
 }
 
 TEST(ComputerTests, ComputeMemoryUsageTypeInfo) {
-  Computer computer;
+  Computer_memory computer;
   Dense_tensor d(onnx::TensorProto_DataType_INT64,
                  {1, 1, 2, 2}); // total memory 2*2*64=256 bits
-  auto res = computer.compute_memory_usage(d);
+  auto res = computer.compute(d);
   ASSERT_EQ(res, 4 * sizeof(int64_t));
 
   {
     std::shared_ptr<Type_info> pointer = std::make_shared<Dense_tensor>(d);
 
-    res = computer.compute_memory_usage(pointer);
+    res = computer.compute(pointer);
     ASSERT_EQ(res, 4 * sizeof(int64_t));
   }
 
   {
     std::unique_ptr<Type_info> pointer = std::make_unique<Dense_tensor>(d);
 
-    res = computer.compute_memory_usage(pointer);
+    res = computer.compute(pointer);
     ASSERT_EQ(res, 4 * sizeof(int64_t));
   }
 }
@@ -37,17 +37,17 @@ TEST(ComputerTests, ComputeMemoryUsageTypeInfo) {
 TEST(ComputerTests, ComputeMemoryUsageCustomClass) {
   using basic_type = int;
 
-  Computer                    computer;
+  Computer_memory             computer;
   TestMemoryUsage<basic_type> ex(10);
 
-  ASSERT_EQ(computer.compute_memory_usage(ex), 10 * sizeof(basic_type));
+  ASSERT_EQ(computer.compute(ex), 10 * sizeof(basic_type));
 }
 
 TEST(ComputerTests, ComputeMemoryUsageGraphCustomClass) {
   using basic_type = int;
   using Input = TestMemoryUsage<basic_type>;
 
-  Computer computer;
+  Computer_memory computer;
   int number_of_nodes = 10;
 
   std::vector<node_type> nodes;

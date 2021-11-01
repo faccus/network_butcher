@@ -5,13 +5,14 @@
 #ifndef NETWORK_BUTCHER_BUTCHER_H
 #define NETWORK_BUTCHER_BUTCHER_H
 
-#include "Network/Computer.h"
+#include "Helpers/Computer/Computer_memory.h"
 #include "Network/Graph.h"
 #include "Network/Node.h"
 
 #include "Helpers/Types/Type_info.h"
 #include "Helpers/Utilities.h"
 #include "Helpers/Traits/Graph_traits.h"
+#include "Helpers/K-shortest_path/KEppstein.h"
 
 
 /// Butcher butchers a given graph into slices
@@ -80,6 +81,68 @@ private:
     return res;
   };
 
+  std::pair<Graph<std::set<node_id_type>>, std::function<type_weight(edge_type)>>
+  block_graph() const
+  {
+    std::vector<node_type>                       new_nodes;
+    std::map<io_id_type, std::set<node_id_type>> new_content;
+    std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
+      new_dependencies;
+
+    new_nodes.reserve(graph.nodes.size());
+    new_dependencies.reserve(graph.nodes.size());
+
+    int         counter = 0;
+    std::size_t id      = 0;
+    for (auto &node : graph.nodes)
+      {
+        bool        done          = false;
+        auto const &dep           = graph.dependencies[node.get_id()];
+        auto const  local_counter = dep.second.size() - dep.first.size();
+
+        if (local_counter == 0 && counter == 0) // Add new node
+          {
+            new_nodes.emplace_back(id);
+            new_dependencies.emplace_back();
+            new_dependencies.back().first =
+              graph.dependencies[node.get_id()].first;
+
+            new_content[id].insert(node.get_id());
+
+            for (auto &in : new_dependencies.back().first)
+              new_dependencies[in].second.insert(node.get_id());
+
+            ++id;
+          }
+        else if (local_counter > 0 &&
+                 counter == 0) // Add new node and add master node for next steps
+          {
+            new_nodes.emplace_back(id);
+            new_dependencies.emplace_back();
+            new_dependencies.back().first =
+              graph.dependencies[node.get_id()].first;
+
+            new_content[id].insert(node.get_id());
+
+            for (auto &in : new_dependencies.back().first)
+              new_dependencies[in].second.insert(node.get_id());
+            ++id;
+
+            new_nodes.emplace_back(id);
+            new_dependencies.emplace_back();
+            new_dependencies.back().first.insert(node.get_id());
+            new_content[id];
+          }
+        else if(local_counter == 0 && dep.second.size() == 1 && counter > 0)
+          {
+
+          }
+
+
+      }
+  }
+
+
 public:
   Butcher() = default;
   /// Move constructor
@@ -99,7 +162,7 @@ public:
   std::vector<slice_type>
   compute_two_slice_memory_brute_force(memory_type memory_first_slice) const
   {
-    Computer computer;
+    Computer_memory computer;
     auto slices             = compute_two_slice_brute_force();
     auto nodes_memory_usage = computer.compute_nodes_memory_usage_input(graph);
 
@@ -150,6 +213,14 @@ public:
 
     return res;
   };
+
+  std::vector<typename KFinder<T>::path_info>
+  compute_k_shortest_paths(std::function<type_weight(edge_type)> &weights) const
+  {
+
+
+
+  }
 };
 
 

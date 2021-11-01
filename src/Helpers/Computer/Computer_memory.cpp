@@ -1,10 +1,10 @@
 //
 // Created by faccus on 15/10/21.
 //
-#include "Computer.h"
+#include "Computer_memory.h"
 
 std::vector<memory_type>
-Computer::compute_nodes_memory_usage(const Graph<graph_input_type> &graph,
+Computer_memory::compute_nodes_memory_usage(const Graph<graph_input_type> &graph,
                                      bool include_parameters)
 {
   std::vector<memory_type> memory_usages;
@@ -45,7 +45,7 @@ Computer::compute_nodes_memory_usage(const Graph<graph_input_type> &graph,
 }
 
 std::vector<memory_type>
-Computer::compute_nodes_memory_usage_input(const Graph<graph_input_type> &graph,
+Computer_memory::compute_nodes_memory_usage_input(const Graph<graph_input_type> &graph,
                                            bool include_parameters)
 {
   std::vector<memory_type> memory_usages;
