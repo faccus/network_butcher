@@ -5,19 +5,19 @@
 #ifndef NETWORK_BUTCHER_GRAPH_H
 #define NETWORK_BUTCHER_GRAPH_H
 
-#include <utility>
-#include <vector>
 #include <algorithm>
 #include <numeric>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
+#include <vector>
 
 
-#include "../Helpers/Types/Type_info.h"
+#include "../Helpers/Traits/Node_traits.h"
 #include "../Helpers/Types/Dense_tensor.h"
+#include "../Helpers/Types/Type_info.h"
 #include "../Onnx_model/onnx.pb.h"
 #include "Node.h"
-#include "../Helpers/Traits/Node_traits.h"
 
 /// Just another graph class...
 /// \tparam T Type of the content of the node
@@ -25,7 +25,6 @@ template <class T>
 class Graph
 {
 private:
-
   /// Compute node dependencies
   void
   compute_dependencies()
@@ -46,18 +45,18 @@ private:
           output_appearances[out].insert(node.get_id());
       }
 
-    for(auto const & appearance : input_appearances)
+    for (auto const &appearance : input_appearances)
       {
-        auto const & neib = output_appearances[appearance.first];
-        for(auto node_id : appearance.second)
+        auto const &neib = output_appearances[appearance.first];
+        for (auto node_id : appearance.second)
           dependencies[node_id].first.insert(neib.cbegin(), neib.cend());
-        for(auto node_id : neib)
-          dependencies[node_id].second.insert(appearance.second.cbegin(), appearance.second.cend());
+        for (auto node_id : neib)
+          dependencies[node_id].second.insert(appearance.second.cbegin(),
+                                              appearance.second.cend());
       }
   }
 
 public:
-
   /// Vector of all the nodes
   std::vector<node_type> nodes;
 

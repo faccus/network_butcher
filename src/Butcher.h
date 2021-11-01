@@ -9,14 +9,14 @@
 #include "Network/Graph.h"
 #include "Network/Node.h"
 
+#include "Helpers/K-shortest_path/KEppstein.h"
+#include "Helpers/Traits/Graph_traits.h"
 #include "Helpers/Types/Type_info.h"
 #include "Helpers/Utilities.h"
-#include "Helpers/Traits/Graph_traits.h"
-#include "Helpers/K-shortest_path/KEppstein.h"
 
 
 /// Butcher butchers a given graph into slices
-template<class T>
+template <class T>
 class Butcher
 {
 private:
@@ -56,10 +56,11 @@ private:
     return basic_routes;
   };
 
-  /// Given a vector of slices, verify which ones applied to tester return true. Note that, at the end, all the ok slices will be moved to the return vector, while the non-compatible ones will be deleted
-  /// \param slices The vector of input slices
-  /// \param tester The tester function
-  /// \return The slices that satisfy the tester function
+  /// Given a vector of slices, verify which ones applied to tester return true.
+  /// Note that, at the end, all the ok slices will be moved to the return
+  /// vector, while the non-compatible ones will be deleted \param slices The
+  /// vector of input slices \param tester The tester function \return The
+  /// slices that satisfy the tester function
   static std::vector<slice_type>
   partition_checker(std::vector<slice_type>                       &slices,
                     const std::function<bool(const slice_type &)> &tester)
@@ -81,7 +82,8 @@ private:
     return res;
   };
 
-  std::pair<Graph<std::set<node_id_type>>, std::function<type_weight(edge_type)>>
+  std::pair<Graph<std::set<node_id_type>>,
+            std::function<type_weight(edge_type)>>
   block_graph() const
   {
     std::vector<node_type>                       new_nodes;
@@ -115,7 +117,8 @@ private:
             ++id;
           }
         else if (local_counter > 0 &&
-                 counter == 0) // Add new node and add master node for next steps
+                 counter ==
+                   0) // Add new node and add master node for next steps
           {
             new_nodes.emplace_back(id);
             new_dependencies.emplace_back();
@@ -133,12 +136,8 @@ private:
             new_dependencies.back().first.insert(node.get_id());
             new_content[id];
           }
-        else if(local_counter == 0 && dep.second.size() == 1 && counter > 0)
-          {
-
-          }
-
-
+        else if (local_counter == 0 && dep.second.size() == 1 && counter > 0)
+          {}
       }
   }
 
@@ -152,18 +151,21 @@ public:
   /// Read from a file the model, construct the associated graph and prepare the
   /// butcher
   /// \param p Full path to the .onnx file model
-  /// \param ignore_parameters Allows to choose if graph should ignore already initialized inputs/outputs (parameters)
+  /// \param ignore_parameters Allows to choose if graph should ignore already
+  /// initialized inputs/outputs (parameters)
   Butcher(const std::string &p, bool ignore_parameters = true)
     : graph(p, ignore_parameters){};
 
-  /// It will compute every possible 2-slice partition of the network and it will select the partition whose total memory usage is less than the specified value
-  /// \param memory_first_slice Total memory usage allowed to the first slice
-  /// \return a collection of all the admissible partitions (and the nodes contained in the first partition)
+  /// It will compute every possible 2-slice partition of the network and it
+  /// will select the partition whose total memory usage is less than the
+  /// specified value \param memory_first_slice Total memory usage allowed to
+  /// the first slice \return a collection of all the admissible partitions (and
+  /// the nodes contained in the first partition)
   std::vector<slice_type>
   compute_two_slice_memory_brute_force(memory_type memory_first_slice) const
   {
     Computer_memory computer;
-    auto slices             = compute_two_slice_brute_force();
+    auto            slices  = compute_two_slice_brute_force();
     auto nodes_memory_usage = computer.compute_nodes_memory_usage_input(graph);
 
     auto tester = [&nodes_memory_usage,
@@ -178,7 +180,8 @@ public:
   };
 
   /// It will try to compute every 2-slice partition of a graph
-  /// \return A vector containing every possibile 2-slice partition of the graph (taking into account dependencies)
+  /// \return A vector containing every possibile 2-slice partition of the graph
+  /// (taking into account dependencies)
   std::vector<slice_type>
   compute_two_slice_brute_force() const
   {
@@ -216,11 +219,7 @@ public:
 
   std::vector<typename KFinder<T>::path_info>
   compute_k_shortest_paths(std::function<type_weight(edge_type)> &weights) const
-  {
-
-
-
-  }
+  {}
 };
 
 
