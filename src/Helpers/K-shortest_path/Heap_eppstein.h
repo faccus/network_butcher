@@ -11,19 +11,19 @@
 #include <memory>
 #include <utility>
 
-struct H_edge
+struct edge_info
 {
   edge_type   edge;
   type_weight delta_weight;
   constexpr bool
-  operator<(const H_edge &rhs) const
+  operator<(const edge_info &rhs) const
   {
     return delta_weight < rhs.delta_weight ||
            (delta_weight == rhs.delta_weight && edge < rhs.edge);
   }
 
   constexpr bool
-  operator>(const H_edge &rhs) const
+  operator>(const edge_info &rhs) const
   {
     return delta_weight > rhs.delta_weight ||
            (delta_weight == rhs.delta_weight && edge > rhs.edge);
@@ -32,7 +32,7 @@ struct H_edge
 
 struct H_out
 {
-  Heap<H_edge> heap;
+  Heap<edge_info> heap;
 
   bool
   operator<(const H_out &rhs) const
@@ -65,12 +65,12 @@ public:
     : content_g(std::move(p))
   {}
 
-  [[nodiscard]] H_edge
+  [[nodiscard]] edge_info
   get_value() const;
   bool
   operator<(H_g_content const &rhs) const;
 
-  [[nodiscard]] std::set<H_edge>
+  [[nodiscard]] std::set<edge_info>
   get_edges() const;
 };
 

@@ -10,7 +10,7 @@ H_g_content::operator<(const H_g_content &rhs) const
   return get_value() < rhs.get_value();
 }
 
-H_edge
+edge_info
 H_g_content::get_value() const
 {
   if (content_g && !content_g->children.empty())
@@ -20,15 +20,15 @@ H_g_content::get_value() const
   else
     return {{-1, -1}, std::numeric_limits<type_weight>::max()};
 }
-std::set<H_edge>
+std::set<edge_info>
 H_g_content::get_edges() const
 {
-  std::set<H_edge> res;
+  std::set<edge_info> res;
   if (content_out)
-    res = content_out->heap.children;
+    res = content_out->heap.children; // O(N)
   else if (content_g)
     {
-      for (auto &child : content_g->children)
+      for (auto &child : content_g->children) // O(N)
         {
           auto edges = child.get_edges();
           res.merge(std::move(edges));
