@@ -13,23 +13,23 @@ public:
 
   template <class T>
   [[nodiscard]] inline memory_type
-  compute(const T &in) const
+  compute_memory_usage(const T &in) const
   {
-    return in.compute();
+    return in.compute_memory_usage();
   }
 
   template <class T>
   [[nodiscard]] inline memory_type
-  compute(const std::shared_ptr<T> &in) const
+  compute_memory_usage(const std::shared_ptr<T> &in) const
   {
-    return in->compute();
+    return in->compute_memory_usage();
   }
 
   template <class T>
   [[nodiscard]] inline memory_type
-  compute(const std::unique_ptr<T> &in) const
+  compute_memory_usage(const std::unique_ptr<T> &in) const
   {
-    return in->compute();
+    return in->compute_memory_usage();
   }
 
   template <class T>

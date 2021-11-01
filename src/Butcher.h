@@ -82,8 +82,8 @@ private:
     return res;
   };
 
-  std::pair<Graph<std::set<node_id_type>>,
-            std::function<type_weight(edge_type)>>
+  [[nodiscard]] std::pair<Graph<std::set<node_id_type>>,
+                          std::function<type_weight(edge_type)>>
   block_graph() const
   {
     std::vector<node_type>                       new_nodes;
@@ -139,6 +139,8 @@ private:
         else if (local_counter == 0 && dep.second.size() == 1 && counter > 0)
           {}
       }
+
+    return {};
   }
 
 

@@ -18,20 +18,20 @@ TEST(ComputerTests, ComputeMemoryUsageTypeInfo)
   Computer_memory computer;
   Dense_tensor    d(onnx::TensorProto_DataType_INT64,
                     {1, 1, 2, 2}); // total memory 2*2*64=256 bits
-  auto            res = computer.compute(d);
+  auto            res = computer.compute_memory_usage(d);
   ASSERT_EQ(res, 4 * sizeof(int64_t));
 
   {
     std::shared_ptr<Type_info> pointer = std::make_shared<Dense_tensor>(d);
 
-    res = computer.compute(pointer);
+    res = computer.compute_memory_usage(pointer);
     ASSERT_EQ(res, 4 * sizeof(int64_t));
   }
 
   {
     std::unique_ptr<Type_info> pointer = std::make_unique<Dense_tensor>(d);
 
-    res = computer.compute(pointer);
+    res = computer.compute_memory_usage(pointer);
     ASSERT_EQ(res, 4 * sizeof(int64_t));
   }
 }
@@ -43,7 +43,7 @@ TEST(ComputerTests, ComputeMemoryUsageCustomClass)
   Computer_memory             computer;
   TestMemoryUsage<basic_type> ex(10);
 
-  ASSERT_EQ(computer.compute(ex), 10 * sizeof(basic_type));
+  ASSERT_EQ(computer.compute_memory_usage(ex), 10 * sizeof(basic_type));
 }
 
 TEST(ComputerTests, ComputeMemoryUsageGraphCustomClass)
