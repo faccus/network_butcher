@@ -30,10 +30,10 @@ public:
   /// \param starting_id Initial node id
   /// \param initial_input Initial set of inputs
   /// \param initial_output Initial set of outputs
-  Node(node_id_type   starting_id,
-       io_id_collection_type initial_input,
-       io_id_collection_type initial_output,
-       io_id_collection_type initial_parameters)
+  Node(node_id_type          starting_id,
+       io_id_collection_type initial_input      = {},
+       io_id_collection_type initial_output     = {},
+       io_id_collection_type initial_parameters = {})
     : id(starting_id)
     , input(std::move(initial_input))
     , output(std::move(initial_output))

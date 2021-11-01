@@ -2,7 +2,7 @@
 // Created by faccus on 26/10/21.
 //
 
-#include "../../../src/Helpers/K-shortest_path/ksp.h"
+#include "../../../src/Helpers/K-shortest_path/KEppstein.h"
 #include "../../TestClass.h"
 #include <gtest/gtest.h>
 
@@ -273,10 +273,10 @@ TEST(KspTests, Eppstein)
   weights[{6, 4}] = 2;
 
 
-  Graph<Input> graph_cons(nodes, map);
-  KFinder      kfinder(graph_cons);
+  Graph<Input>     graph_cons(nodes, map);
+  KFinder_Eppstein kfinder(graph_cons);
 
-  auto res = kfinder.basic_eppstein(weights, 5);
+  auto res = kfinder.eppstein(weights, 5);
 
   std::cout << std::endl;
 }
@@ -334,14 +334,14 @@ TEST(KspTests, EppsteinOriginalNetwork)
   weights[{10, 11}] = 11;
 
 
-  Graph<Input> graph_cons(nodes, map);
-  KFinder      kfinder(graph_cons);
+  Graph<Input>     graph_cons(nodes, map);
+  KFinder_Eppstein kfinder(graph_cons);
 
   int k = 11; // Up to 10
 
   std::vector<type_weight> real_sol = {
     55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
-  auto res = kfinder.basic_eppstein(weights, real_sol.size());
+  auto res = kfinder.eppstein(weights, real_sol.size());
 
   std::vector<type_weight> real_path_lengths;
   std::vector<type_weight> path_lengths;
@@ -419,14 +419,14 @@ TEST(KspTests, EppsteinWeightFunctional)
         return it->second;
     };
 
-  Graph<Input> graph_cons(nodes, map);
-  KFinder      kfinder(graph_cons);
+  Graph<Input>     graph_cons(nodes, map);
+  KFinder_Eppstein kfinder(graph_cons);
 
   int k = 11; // Up to 10
 
   std::vector<type_weight> real_sol = {
     55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
-  auto res = kfinder.basic_eppstein(weight_fun, real_sol.size());
+  auto res = kfinder.eppstein(weight_fun, real_sol.size());
 
   std::vector<type_weight> real_path_lengths;
   std::vector<type_weight> path_lengths;
@@ -438,6 +438,135 @@ TEST(KspTests, EppsteinWeightFunctional)
     {
       path_lengths.push_back(res[i].length);
       real_path_lengths.push_back(real_sol[i]);
+    }
+
+  ASSERT_EQ(path_lengths, real_path_lengths);
+}
+
+
+TEST(KspTests, EppsteinLinearGraph)
+{
+  using basic_type = int;
+  using Input      = TestMemoryUsage<basic_type>;
+
+  using type_weight = double;
+  using type_collection_weights =
+    std::map<std::pair<node_id_type, node_id_type>, type_weight>;
+
+
+  std::map<io_id_type, Input> map;
+  std::vector<node_type>      nodes;
+
+  auto const num_nodes = 4;
+  nodes.reserve(num_nodes);
+
+  nodes.emplace_back(node_type(0, {}, {0}));
+  for (auto i = 1; i < num_nodes; ++i)
+    nodes.emplace_back(node_type(i, {i - 1}, {i}));
+
+  for (io_id_type i = 0; i < num_nodes; ++i)
+    map[i] = i;
+
+  type_collection_weights weights;
+  weights[{0, 1}] = 1;
+  weights[{0, 5}] = 0;
+  weights[{1, 2}] = 1;
+  weights[{1, 6}] = 1;
+  weights[{2, 3}] = 1;
+  weights[{2, 7}] = std::numeric_limits<double>::max();
+  weights[{4, 1}] = 1;
+  weights[{4, 5}] = 3;
+  weights[{5, 2}] = 2;
+  weights[{5, 6}] = 1;
+  weights[{6, 3}] = 0;
+  weights[{6, 7}] = std::numeric_limits<double>::max();
+
+  Graph<Input>     graph_cons(nodes, map);
+  KFinder_Eppstein kfinder(graph_cons);
+  auto             res = kfinder.eppstein_linear(weights, 1000, 2);
+
+  int                      k       = 4;
+  std::vector<type_weight> lengths = {1, 2, 3, 3};
+
+  std::vector<type_weight> real_path_lengths;
+  std::vector<type_weight> path_lengths;
+
+  path_lengths.reserve(k);
+  real_path_lengths.reserve(k);
+
+  for (auto i = 0; i < k && i < path_lengths.size(); ++i)
+    {
+      path_lengths.push_back(res[i].length);
+      real_path_lengths.push_back(lengths[i]);
+    }
+
+  ASSERT_EQ(path_lengths, real_path_lengths);
+}
+
+
+TEST(KspTests, EppsteinLinearGraphFunc)
+{
+  using basic_type = int;
+  using Input      = TestMemoryUsage<basic_type>;
+
+  using type_weight = double;
+  using type_collection_weights =
+    std::map<std::pair<node_id_type, node_id_type>, type_weight>;
+
+
+  std::map<io_id_type, Input> map;
+  std::vector<node_type>      nodes;
+
+  auto const num_nodes = 4;
+  nodes.reserve(num_nodes);
+
+  nodes.emplace_back(node_type(0, {}, {0}));
+  for (auto i = 1; i < num_nodes; ++i)
+    nodes.emplace_back(node_type(i, {i - 1}, {i}));
+
+  for (io_id_type i = 0; i < num_nodes; ++i)
+    map[i] = i;
+
+  type_collection_weights weights;
+  weights[{0, 1}] = 1;
+  weights[{0, 5}] = 0;
+  weights[{1, 2}] = 1;
+  weights[{1, 6}] = 1;
+  weights[{2, 3}] = 1;
+  weights[{2, 7}] = std::numeric_limits<double>::max();
+  weights[{4, 1}] = 1;
+  weights[{4, 5}] = 3;
+  weights[{5, 2}] = 2;
+  weights[{5, 6}] = 1;
+  weights[{6, 3}] = 0;
+  weights[{6, 7}] = std::numeric_limits<double>::max();
+
+  std::function<type_weight(edge_type const &)> weight_fun =
+    [&weights](edge_type const &edge) {
+      auto const it = weights.find(edge);
+      if (it == weights.cend())
+        return -1.;
+      else
+        return it->second;
+    };
+
+  Graph<Input>     graph_cons(nodes, map);
+  KFinder_Eppstein kfinder(graph_cons);
+  auto             res = kfinder.eppstein_linear(weight_fun, 1000, 2);
+
+  int                      k       = 4;
+  std::vector<type_weight> lengths = {1, 2, 3, 3};
+
+  std::vector<type_weight> real_path_lengths;
+  std::vector<type_weight> path_lengths;
+
+  path_lengths.reserve(k);
+  real_path_lengths.reserve(k);
+
+  for (auto i = 0; i < k && i < path_lengths.size(); ++i)
+    {
+      path_lengths.push_back(res[i].length);
+      real_path_lengths.push_back(lengths[i]);
     }
 
   ASSERT_EQ(path_lengths, real_path_lengths);
