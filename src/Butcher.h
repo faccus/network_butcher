@@ -6,6 +6,7 @@
 #define NETWORK_BUTCHER_BUTCHER_H
 
 #include "Helpers/Computer/Computer_memory.h"
+#include "Helpers/Computer/Hardware_specifications.h"
 #include "Network/Graph.h"
 #include "Network/Node.h"
 
@@ -81,6 +82,7 @@ private:
 
     return res;
   };
+
 
   [[nodiscard]] Graph<node_id_type, node_id_type>
   block_graph() const
@@ -191,6 +193,7 @@ private:
 
   [[nodiscard]] std::function<type_weight(edge_type const &)>
   block_graph_weights(
+    type_collection_weights                       &new_weight_map,
     std::function<type_weight(edge_type const &)> &original_weights,
     Graph<node_id_type, node_id_type> const       &new_graph) const
   {
@@ -199,33 +202,58 @@ private:
     for (auto const &node : new_graph.nodes_content)
       map[node.second].insert(node.first);
 
-    return [&new_graph, &original_weights, &graph = graph, map](
-             edge_type const &edge) {
-      auto const it_out = map.find(edge.second);
-      if (it_out == map.cend() || it_out->second.size() == 0)
-        return -1;
-      auto const it_in = map.find(edge.first);
-      if (it_in == map.cend() || it_in->second.size() == 0)
-        return -1;
-
-      auto const &inputs  = it_in->second;
-      auto const &outputs = it_out->second;
-
-
-      if (outputs.size() == 1 && inputs.size() == 1)
-        return original_weights({*inputs.begin(), *outputs.begin()});
-      else if (outputs.size() == 1)
+    return
+      [&new_graph, &original_weights, &new_weight_map, &graph = graph, map](
+        edge_type const &edge) {
         {
-          type_weight res = .0;
-          for (auto const &exit : graph.dependencies[it_out->second].first)
-            res += original_weights({exit, it_out->second});
-          return res;
+          auto const candidate_sol = new_weight_map.find(edge);
+          if (candidate_sol != new_weight_map.cend())
+            return candidate_sol->second;
         }
-      else if (inputs.size() == 1)
-        {}
-      else
-        return -1;
-    };
+
+        auto const it_out = map.find(edge.second);
+        if (it_out == map.cend() || it_out->second.size() == 0)
+          return -1;
+        auto const it_in = map.find(edge.first);
+        if (it_in == map.cend() || it_in->second.size() == 0)
+          return -1;
+
+        auto const &inputs  = it_in->second;
+        auto const &outputs = it_out->second;
+
+        if (outputs.size() == 1 && inputs.size() == 1)
+          {
+            auto const res =
+              original_weights({*inputs.begin(), *outputs.begin()});
+            new_weight_map[edge] = res;
+            return res;
+          }
+        else if (outputs.size() == 1)
+          {
+            type_weight res = .0;
+            for (auto const &exit : graph.dependencies[it_out->second].first)
+              res += original_weights({exit, it_out->second});
+            new_weight_map[edge] = res;
+            return res;
+          }
+        else if (inputs.size() == 1)
+          {
+            type_weight res = .0;
+
+            for (auto const &node : outputs)
+              for (auto &dep : graph.dependencies[node].second)
+                if (outputs.find(dep) != outputs.cend())
+                  res += original_weights({node, dep});
+
+            for (auto const &node : graph.dependencies[*inputs.begin()].second)
+              res += original_weights({*inputs.begin(), node});
+
+            new_weight_map[edge] = res;
+            return res;
+          }
+        else
+          return -1;
+      };
   }
 
 public:
@@ -303,11 +331,27 @@ public:
     return res;
   };
 
+  /// It will prodice the k-shortest paths for the linearized block graph
+  /// associated with the original one
+  /// \param weights The weight map function, that associates to every edge
+  /// (also the "fake" ones) the corresponding weight
+  /// \param num_of_devices The number of devices
+  /// \param k The number of shortest paths to find
+  /// \return The k shortest paths
   std::vector<typename KFinder<T>::path_info>
-  compute_k_shortest_paths(
-    std::function<type_weight(edge_type const &)> &) const
+  compute_k_shortest_paths_linear(
+    std::function<type_weight(edge_type const &)> &weights,
+    std::size_t                                    num_of_devices,
+    std::size_t                                    k) const
   {
-    auto const new_graph = block_graph();
+    auto const              new_graph = block_graph();
+    type_collection_weights new_weight_map;
+
+    auto new_weights_fun =
+      block_graph_weights(new_weight_map, weights, new_graph);
+
+    KFinder_Eppstein<T> kFinder(new_graph);
+    return kFinder.eppstein_linear(new_weight_map, k, num_of_devices);
   }
 };
 
