@@ -73,7 +73,7 @@ public:
             auto  ref        = reversed ? weights.find({j, current_node.id}) :
                                           weights.find({current_node.id, j});
 
-            if (ref == weights.cend())
+            if (ref == weights.cend() || ref->second < 0)
               {
                 std::cout << "Error: missing weight (" << current_node.id
                           << ", " << j << ")" << std::endl;
@@ -216,7 +216,7 @@ public:
                 auto  ref        = reversed ? weights.find({head, tail}) :
                                               weights.find({tail, head});
 
-                if (ref == weights.cend())
+                if (ref == weights.cend() || ref->second < 0)
                   {
                     std::cout << "Error: missing weight (" << head << ", "
                               << tail << ")" << std::endl;
@@ -374,7 +374,7 @@ protected:
     }
   };
 
-  Graph<T> const &graph;
+  Graph<T, id_content> const &graph;
 
 
   path_info

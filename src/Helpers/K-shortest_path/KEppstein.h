@@ -10,7 +10,7 @@
 template <class T, typename id_content = io_id_type>
 class KFinder_Eppstein : KFinder<T, id_content>
 {
-private:
+protected:
   using base = KFinder<T, id_content>;
 
 public:
@@ -125,7 +125,7 @@ public:
   }
 
 
-  explicit KFinder_Eppstein(Graph<T> const &g)
+  explicit KFinder_Eppstein(Graph<T, id_content> const &g)
     : base(g){};
 
 protected:

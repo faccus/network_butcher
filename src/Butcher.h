@@ -24,6 +24,14 @@ private:
   using network = Graph<T>;
   network graph;
 
+public:
+  const network &
+  getGraph() const
+  {
+    return graph;
+  }
+
+private:
   /// Compute the minimal connected graphs (with dependencies) containing every
   /// node \return returns the smallest connected sub-graph (with dependencies)
   /// that connects the first node with the n-th node
@@ -92,17 +100,13 @@ private:
     std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
       new_dependencies;
 
-    int counter =
-      graph.dependencies.front().second - graph.dependencies.front().first;
+    int counter = graph.dependencies.front().second.size() -
+                  graph.dependencies.front().first.size() - 1;
     std::size_t id = 0;
 
     new_nodes.reserve(graph.nodes.size());
-    new_dependencies.reserve(graph.nodes.size());
-
     new_nodes.emplace_back(id++);
-    new_dependencies.emplace_back();
-    new_dependencies.back().first = graph.dependencies.front().first;
-
+    new_content[0] = 0;
 
     for (auto it = ++graph.nodes.begin(); it != graph.nodes.end(); ++it)
       {
@@ -114,9 +118,6 @@ private:
         if (local_counter == 0 && counter == 0)
           {
             new_nodes.emplace_back(id);
-            new_dependencies.emplace_back();
-            new_dependencies.back().first = new_dependencies[id - 1].first;
-
             new_content[node.get_id()] = id;
 
             for (auto &in : new_dependencies.back().first)
@@ -128,13 +129,8 @@ private:
         else if (local_counter > 0 && counter == 0)
           {
             new_nodes.emplace_back(id);
-            new_dependencies.emplace_back();
-            new_dependencies.back().first = new_dependencies[id - 1].first;
-
             new_content[node.get_id()] = id;
 
-            for (auto &in : new_dependencies.back().first)
-              new_dependencies[in].second.insert(id);
             ++id;
 
             new_nodes.emplace_back(id);
@@ -157,30 +153,25 @@ private:
         else if (counter > 0 && ((local_counter >= 0 && dep.first.size() > 1) ||
                                  (local_counter < 0)))
           {
-            counter -= dep.first.size();
+            counter -= (dep.first.size() - 1);
             if (counter == 0)
               {
                 new_nodes.emplace_back(++id);
-                new_dependencies.emplace_back();
-                new_dependencies.back().first = new_dependencies[id - 1].first;
 
                 new_content[node.get_id()] = id;
 
-                for (auto &in : new_dependencies.back().first)
-                  new_dependencies[in].second.insert(id);
-
-
-                new_nodes.emplace_back(++id);
-                new_dependencies.emplace_back();
-                new_dependencies.back().first.insert(id - 1);
-                new_content[id];
+                if (local_counter >= 0)
+                  {
+                    new_nodes.emplace_back(++id);
+                    new_content[id];
+                  }
               }
             else
               {
                 new_content[node.get_id()] = id;
               }
 
-            counter += dep.second.size();
+            counter += (dep.second.size() - 1);
           }
         else
           {
@@ -188,7 +179,20 @@ private:
           }
       }
 
-    return Graph(new_nodes, new_content, new_dependencies);
+    new_dependencies.reserve(new_nodes.size());
+    new_dependencies.emplace_back(
+      std::make_pair<node_id_collection_type, node_id_collection_type>({},
+                                                                       {1}));
+
+    for (node_id_type i = 1; i < new_nodes.size() - 1; ++i)
+      new_dependencies.emplace_back(
+        std::make_pair<node_id_collection_type, node_id_collection_type>(
+          {i - 1}, {i + 1}));
+    new_dependencies.emplace_back(
+      std::make_pair<node_id_collection_type, node_id_collection_type>(
+        {new_nodes.size() - 1}, {}));
+
+    return Graph(new_nodes, new_content, new_dependencies, false);
   }
 
   [[nodiscard]] std::function<type_weight(edge_type const &)>
@@ -213,10 +217,10 @@ private:
 
         auto const it_out = map.find(edge.second);
         if (it_out == map.cend() || it_out->second.size() == 0)
-          return -1;
+          return -1.;
         auto const it_in = map.find(edge.first);
         if (it_in == map.cend() || it_in->second.size() == 0)
-          return -1;
+          return -1.;
 
         auto const &inputs  = it_in->second;
         auto const &outputs = it_out->second;
@@ -231,8 +235,17 @@ private:
         else if (outputs.size() == 1)
           {
             type_weight res = .0;
-            for (auto const &exit : graph.dependencies[it_out->second].first)
-              res += original_weights({exit, it_out->second});
+            for (auto const &exit :
+                 graph.dependencies[*it_out->second.begin()].first)
+              {
+                auto const weight =
+                  original_weights({exit, *it_out->second.begin()});
+
+                if (weight < 0)
+                  return -1.;
+
+                res += weight;
+              }
             new_weight_map[edge] = res;
             return res;
           }
@@ -243,16 +256,30 @@ private:
             for (auto const &node : outputs)
               for (auto &dep : graph.dependencies[node].second)
                 if (outputs.find(dep) != outputs.cend())
-                  res += original_weights({node, dep});
+                  {
+                    auto const weight = original_weights({node, dep});
+
+                    if (weight < 0)
+                      return -1.;
+
+                    res += weight;
+                  }
 
             for (auto const &node : graph.dependencies[*inputs.begin()].second)
-              res += original_weights({*inputs.begin(), node});
+              {
+                auto const weight = original_weights({*inputs.begin(), node});
+
+                if (weight < 0)
+                  return -1.;
+
+                res += weight;
+              }
 
             new_weight_map[edge] = res;
             return res;
           }
         else
-          return -1;
+          return -1.;
       };
   }
 
@@ -338,7 +365,7 @@ public:
   /// \param num_of_devices The number of devices
   /// \param k The number of shortest paths to find
   /// \return The k shortest paths
-  std::vector<typename KFinder<T>::path_info>
+  std::vector<typename KFinder<node_id_type, node_id_type>::path_info>
   compute_k_shortest_paths_linear(
     std::function<type_weight(edge_type const &)> &weights,
     std::size_t                                    num_of_devices,
@@ -350,7 +377,7 @@ public:
     auto new_weights_fun =
       block_graph_weights(new_weight_map, weights, new_graph);
 
-    KFinder_Eppstein<T> kFinder(new_graph);
+    KFinder_Eppstein<node_id_type, node_id_type> kFinder(new_graph);
     return kFinder.eppstein_linear(new_weight_map, k, num_of_devices);
   }
 };
