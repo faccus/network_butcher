@@ -91,52 +91,96 @@ private:
     std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
       new_dependencies;
 
+    int counter =
+      graph.dependencies.front().second - graph.dependencies.front().first;
+    std::size_t id = 0;
+
     new_nodes.reserve(graph.nodes.size());
     new_dependencies.reserve(graph.nodes.size());
 
-    int         counter = 0;
-    std::size_t id      = 0;
-    for (auto &node : graph.nodes)
+    new_nodes.emplace_back(id++);
+    new_dependencies.emplace_back();
+    new_dependencies.back().first = graph.dependencies.front().first;
+
+
+    for (auto it = ++graph.nodes.begin(); it != graph.nodes.end(); ++it)
       {
-        bool        done          = false;
+        auto const &node          = *it;
         auto const &dep           = graph.dependencies[node.get_id()];
         auto const  local_counter = dep.second.size() - dep.first.size();
 
-        if (local_counter == 0 && counter == 0) // Add new node
+        // Add new node
+        if (local_counter == 0 && counter == 0)
           {
             new_nodes.emplace_back(id);
             new_dependencies.emplace_back();
-            new_dependencies.back().first =
-              graph.dependencies[node.get_id()].first;
+            new_dependencies.back().first = new_dependencies[id - 1].first;
 
             new_content[id].insert(node.get_id());
 
             for (auto &in : new_dependencies.back().first)
-              new_dependencies[in].second.insert(node.get_id());
+              new_dependencies[in].second.insert(id);
 
             ++id;
           }
-        else if (local_counter > 0 &&
-                 counter ==
-                   0) // Add new node and add master node for next steps
+        // Add new node and add master node for next steps
+        else if (local_counter > 0 && counter == 0)
           {
             new_nodes.emplace_back(id);
             new_dependencies.emplace_back();
-            new_dependencies.back().first =
-              graph.dependencies[node.get_id()].first;
+            new_dependencies.back().first = new_dependencies[id - 1].first;
 
             new_content[id].insert(node.get_id());
 
             for (auto &in : new_dependencies.back().first)
-              new_dependencies[in].second.insert(node.get_id());
+              new_dependencies[in].second.insert(id);
             ++id;
 
             new_nodes.emplace_back(id);
             new_dependencies.emplace_back();
-            new_dependencies.back().first.insert(node.get_id());
+            new_dependencies.back().first.insert(id - 1);
             new_content[id];
+
+            counter += local_counter;
           }
+        // Add node link to the "big" node
         else if (local_counter == 0 && dep.second.size() == 1 && counter > 0)
+          {
+            new_content[id].insert(node.get_id());
+          }
+        else if (local_counter > 0 && counter > 0 && dep.first.size() <= 1)
+          {
+            new_content[id].insert(node.get_id());
+            counter += local_counter;
+          }
+        else if (local_counter >= 0 && counter > 0 && dep.first.size() > 1)
+          {
+            counter -= dep.first.size();
+            if (counter == 0)
+              {
+                new_nodes.emplace_back(++id);
+                new_dependencies.emplace_back();
+                new_dependencies.back().first = new_dependencies[id - 1].first;
+
+                new_content[id].insert(node.get_id());
+
+                for (auto &in : new_dependencies.back().first)
+                  new_dependencies[in].second.insert(id);
+
+
+                new_nodes.emplace_back(++id);
+                new_dependencies.emplace_back();
+                new_dependencies.back().first.insert(id - 1);
+                new_content[id];
+              }
+            else
+              {
+                new_content[id].insert(node.get_id());
+              }
+
+            counter += dep.second.size();
+          }
+        else if (local_counter < 0 && counter > 0 && dep.second.size() <= 1)
           {}
       }
 
