@@ -14,7 +14,7 @@
 #include <vector>
 
 
-template <class T>
+template <class T, typename id_content = io_id_type>
 class KFinder
 {
 public:
@@ -30,7 +30,7 @@ public:
     }
   };
 
-  explicit KFinder(Graph<T> const &g)
+  explicit KFinder(Graph<T, id_content> const &g)
     : graph(g){};
 
 

@@ -82,12 +82,11 @@ private:
     return res;
   };
 
-  [[nodiscard]] std::pair<Graph<std::set<node_id_type>>,
-                          std::function<type_weight(edge_type)>>
+  [[nodiscard]] Graph<node_id_type, node_id_type>
   block_graph() const
   {
-    std::vector<node_type>                       new_nodes;
-    std::map<io_id_type, std::set<node_id_type>> new_content;
+    std::vector<node_type>               new_nodes;
+    std::map<node_id_type, node_id_type> new_content; // Old node -> New node
     std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
       new_dependencies;
 
@@ -116,7 +115,7 @@ private:
             new_dependencies.emplace_back();
             new_dependencies.back().first = new_dependencies[id - 1].first;
 
-            new_content[id].insert(node.get_id());
+            new_content[node.get_id()] = id;
 
             for (auto &in : new_dependencies.back().first)
               new_dependencies[in].second.insert(id);
@@ -130,7 +129,7 @@ private:
             new_dependencies.emplace_back();
             new_dependencies.back().first = new_dependencies[id - 1].first;
 
-            new_content[id].insert(node.get_id());
+            new_content[node.get_id()] = id;
 
             for (auto &in : new_dependencies.back().first)
               new_dependencies[in].second.insert(id);
@@ -146,14 +145,15 @@ private:
         // Add node link to the "big" node
         else if (local_counter == 0 && dep.second.size() == 1 && counter > 0)
           {
-            new_content[id].insert(node.get_id());
+            new_content[node.get_id()] = id;
           }
         else if (local_counter > 0 && counter > 0 && dep.first.size() <= 1)
           {
-            new_content[id].insert(node.get_id());
+            new_content[node.get_id()] = id;
             counter += local_counter;
           }
-        else if (local_counter >= 0 && counter > 0 && dep.first.size() > 1)
+        else if (counter > 0 && ((local_counter >= 0 && dep.first.size() > 1) ||
+                                 (local_counter < 0)))
           {
             counter -= dep.first.size();
             if (counter == 0)
@@ -162,7 +162,7 @@ private:
                 new_dependencies.emplace_back();
                 new_dependencies.back().first = new_dependencies[id - 1].first;
 
-                new_content[id].insert(node.get_id());
+                new_content[node.get_id()] = id;
 
                 for (auto &in : new_dependencies.back().first)
                   new_dependencies[in].second.insert(id);
@@ -175,18 +175,58 @@ private:
               }
             else
               {
-                new_content[id].insert(node.get_id());
+                new_content[node.get_id()] = id;
               }
 
             counter += dep.second.size();
           }
-        else if (local_counter < 0 && counter > 0 && dep.second.size() <= 1)
-          {}
+        else
+          {
+            std::cout << std::endl;
+          }
       }
 
-    return {};
+    return Graph(new_nodes, new_content, new_dependencies);
   }
 
+  [[nodiscard]] std::function<type_weight(edge_type const &)>
+  block_graph_weights(
+    std::function<type_weight(edge_type const &)> &original_weights,
+    Graph<node_id_type, node_id_type> const       &new_graph) const
+  {
+    std::unordered_map<node_id_type, std::set<node_id_type>>
+      map; // New node -> Old nodes
+    for (auto const &node : new_graph.nodes_content)
+      map[node.second].insert(node.first);
+
+    return [&new_graph, &original_weights, &graph = graph, map](
+             edge_type const &edge) {
+      auto const it_out = map.find(edge.second);
+      if (it_out == map.cend() || it_out->second.size() == 0)
+        return -1;
+      auto const it_in = map.find(edge.first);
+      if (it_in == map.cend() || it_in->second.size() == 0)
+        return -1;
+
+      auto const &inputs  = it_in->second;
+      auto const &outputs = it_out->second;
+
+
+      if (outputs.size() == 1 && inputs.size() == 1)
+        return original_weights({*inputs.begin(), *outputs.begin()});
+      else if (outputs.size() == 1)
+        {
+          type_weight res = .0;
+          for (auto const &exit : graph.dependencies[it_out->second].first)
+            res += original_weights({exit, it_out->second});
+          return res;
+        }
+      else if (inputs.size() == 1)
+        {}
+      else
+        return -1;
+    };
+  }
 
 public:
   Butcher() = default;
@@ -264,8 +304,11 @@ public:
   };
 
   std::vector<typename KFinder<T>::path_info>
-  compute_k_shortest_paths(std::function<type_weight(edge_type)> &weights) const
-  {}
+  compute_k_shortest_paths(
+    std::function<type_weight(edge_type const &)> &) const
+  {
+    auto const new_graph = block_graph();
+  }
 };
 
 

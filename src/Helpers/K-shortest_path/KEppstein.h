@@ -7,11 +7,14 @@
 
 #include "ksp.h"
 
-template <class T>
-class KFinder_Eppstein : KFinder<T>
+template <class T, typename id_content = io_id_type>
+class KFinder_Eppstein : KFinder<T, id_content>
 {
+private:
+  using base = KFinder<T, id_content>;
+
 public:
-  using path_info = typename KFinder<T>::path_info;
+  using path_info = typename base::path_info;
   struct implicit_path_info
   {
     std::vector<edge_type> sidetracks;
@@ -35,16 +38,16 @@ public:
   [[nodiscard]] std::vector<path_info>
   eppstein(type_collection_weights const &weights, std::size_t K)
   {
-    auto const &graph = KFinder<T>::graph;
+    auto const &graph = base::graph;
 
     if (graph.nodes.empty() || K == 0)
       return {};
 
-    auto const dij_res = KFinder<T>::shortest_path_tree(
-      weights); // time: ((N+E)log(N)), space: O(N)
+    auto const dij_res =
+      base::shortest_path_tree(weights); // time: ((N+E)log(N)), space: O(N)
 
     if (K == 1)
-      return {KFinder<T>::shortest_path_finder(dij_res, 0)};
+      return {base::shortest_path_finder(dij_res, 0)};
 
     auto const epp_res = basic_eppstein(weights, K, dij_res);
 
@@ -55,16 +58,16 @@ public:
   eppstein(std::function<type_weight(edge_type const &)> &weights,
            std::size_t                                    K)
   {
-    auto const &graph = KFinder<T>::graph;
+    auto const &graph = base::graph;
 
     if (graph.nodes.empty() || K == 0)
       return {};
 
-    auto const dij_res = KFinder<T>::shortest_path_tree(
-      weights); // time: ((N+E)log(N)), space: O(N)
+    auto const dij_res =
+      base::shortest_path_tree(weights); // time: ((N+E)log(N)), space: O(N)
 
     if (K == 1)
-      return {KFinder<T>::shortest_path_finder(dij_res, 0)};
+      return {base::shortest_path_finder(dij_res, 0)};
 
 
     auto const epp_res = basic_eppstein(weights, K, dij_res);
@@ -78,18 +81,18 @@ public:
                   std::size_t                    K,
                   std::size_t                    devices)
   {
-    auto const &graph = KFinder<T>::graph;
+    auto const &graph = base::graph;
 
     if (graph.nodes.empty() || K == 0 || devices == 0)
       return {};
     if (devices == 1)
       return eppstein(weights, K);
 
-    auto const dij_res = KFinder<T>::shortest_path_tree_linear(
+    auto const dij_res = base::shortest_path_tree_linear(
       weights, devices); // time: ((N+E)log(N)), space: O(N)
 
     if (K == 1)
-      return {KFinder<T>::shortest_path_finder(dij_res, 0)};
+      return {base::shortest_path_finder(dij_res, 0)};
 
 
     auto const epp_res = basic_eppstein_linear(weights, K, devices, dij_res);
@@ -102,18 +105,18 @@ public:
                   std::size_t                                    K,
                   std::size_t                                    devices)
   {
-    auto const &graph = KFinder<T>::graph;
+    auto const &graph = base::graph;
 
     if (graph.nodes.empty() || K == 0 || devices == 0)
       return {};
     if (devices == 1)
       return eppstein(weights, K);
 
-    auto const dij_res = KFinder<T>::shortest_path_tree_linear(
+    auto const dij_res = base::shortest_path_tree_linear(
       weights, devices); // time: ((N+E)log(N)), space: O(N)
 
     if (K == 1)
-      return {KFinder<T>::shortest_path_finder(dij_res, 0)};
+      return {base::shortest_path_finder(dij_res, 0)};
 
 
     auto const epp_res = basic_eppstein_linear(weights, K, devices, dij_res);
@@ -123,7 +126,7 @@ public:
 
 
   explicit KFinder_Eppstein(Graph<T> const &g)
-    : KFinder<T>(g){};
+    : base(g){};
 
 protected:
   using H_out_map = std::map<node_id_type, H_out_pointer>;
@@ -147,7 +150,7 @@ protected:
     type_collection_weights const   &sidetrack_distances) const // O(N+E*log(N))
   {
     H_out_map   h_out;
-    auto const &graph = KFinder<T>::graph;
+    auto const &graph = base::graph;
 
     for (auto &node : graph.nodes) // O(N)
       h_out.insert(h_out.cend(), {node.get_id(), std::make_shared<H_out>()});
@@ -181,7 +184,7 @@ protected:
                          std::size_t devices) const // O(N+E*log(N))
   {
     H_out_map   h_out;
-    auto const &graph     = KFinder<T>::graph;
+    auto const &graph     = base::graph;
     auto const  num_nodes = graph.nodes.size();
 
     for (auto i = 0; i < num_nodes * devices; ++i)
@@ -218,7 +221,7 @@ protected:
 
     std::vector<std::set<node_id_type>> sp_dependencies;
 
-    auto const &graph     = KFinder<T>::graph;
+    auto const &graph     = base::graph;
     auto const  num_nodes = graph.nodes.size();
     auto const &nodes     = graph.nodes;
 
@@ -281,7 +284,7 @@ protected:
   {
     std::map<node_id_type, H_g_pointer> res;
 
-    auto const &graph     = KFinder<T>::graph;
+    auto const &graph     = base::graph;
     auto const  num_nodes = graph.nodes.size();
     auto const &nodes     = graph.nodes;
 
@@ -429,7 +432,7 @@ protected:
                       std::vector<type_weight> const &distances_from_sink) const
   {
     type_collection_weights res;
-    auto const             &graph     = KFinder<T>::graph;
+    auto const             &graph     = base::graph;
     auto const              num_nodes = graph.nodes.size();
 
     for (std::size_t i = 0; i < num_nodes; ++i)
@@ -456,7 +459,7 @@ protected:
     std::vector<type_weight> const &distances_from_sink) const
   {
     type_collection_weights res;
-    auto const             &graph     = KFinder<T>::graph;
+    auto const             &graph     = base::graph;
     auto const              num_nodes = graph.nodes.size();
 
     for (std::size_t s = 0; s < devices; ++s)
@@ -492,7 +495,7 @@ protected:
     std::vector<type_weight> const                &distances_from_sink) const
   {
     type_collection_weights res;
-    auto const             &graph     = KFinder<T>::graph;
+    auto const             &graph     = base::graph;
     auto const              num_nodes = graph.nodes.size();
 
     for (std::size_t s = 0; s < devices; ++s)
@@ -521,7 +524,7 @@ protected:
     std::vector<KFinder_Eppstein::implicit_path_info> const &epp_res)
   {
     std::vector<path_info> res;
-    auto const            &graph = KFinder<T>::graph;
+    auto const            &graph = base::graph;
 
     for (auto implicit_path = epp_res.cbegin(); implicit_path != epp_res.cend();
          ++implicit_path)
@@ -563,13 +566,12 @@ protected:
   {
     std::vector<implicit_path_info> res;
     res.push_back({{}, dij_res.second.front()}); // O(K)
-    auto const &graph = KFinder<T>::graph;
+    auto const &graph = base::graph;
 
 
     auto const sidetrack_distances_res =
-      sidetrack_distances(weights, dij_res.second); // O(E)
-    auto const shortest_path =
-      KFinder<T>::shortest_path_finder(dij_res, 0); // O(N)
+      sidetrack_distances(weights, dij_res.second);                    // O(E)
+    auto const shortest_path = base::shortest_path_finder(dij_res, 0); // O(N)
 
     auto const &successors          = dij_res.first;
     auto const &shortest_paths_cost = dij_res.second;
@@ -667,7 +669,7 @@ protected:
     std::vector<implicit_path_info> res;
     res.push_back({{}, dij_res.second.front()}); // O(K)
 
-    auto const &graph = KFinder<T>::graph;
+    auto const &graph = base::graph;
 
     if (graph.nodes.empty() || devices == 0)
       return {};
@@ -678,9 +680,8 @@ protected:
 
 
     auto const sidetrack_distances_res =
-      sidetrack_distances_linear(weights, devices, dij_res.second); // O(E)
-    auto const shortest_path =
-      KFinder<T>::shortest_path_finder(dij_res, 0); // O(N)
+      sidetrack_distances_linear(weights, devices, dij_res.second);    // O(E)
+    auto const shortest_path = base::shortest_path_finder(dij_res, 0); // O(N)
 
     auto const &successors          = dij_res.first;
     auto const &shortest_paths_cost = dij_res.second;
@@ -792,7 +793,7 @@ protected:
     std::vector<implicit_path_info> res;
     res.push_back({{}, dij_res.second.front()}); // O(K)
 
-    auto const &graph = KFinder<T>::graph;
+    auto const &graph = base::graph;
 
     if (graph.nodes.empty())
       return {};
@@ -801,9 +802,8 @@ protected:
 
 
     auto const sidetrack_distances_res =
-      sidetrack_distances(weights, dij_res.second); // O(E)
-    auto const shortest_path =
-      KFinder<T>::shortest_path_finder(dij_res, 0); // O(N)
+      sidetrack_distances(weights, dij_res.second);                    // O(E)
+    auto const shortest_path = base::shortest_path_finder(dij_res, 0); // O(N)
 
     auto const &successors          = dij_res.first;
     auto const &shortest_paths_cost = dij_res.second;
@@ -899,7 +899,7 @@ protected:
   {
     std::vector<implicit_path_info> res;
     res.push_back({{}, dij_res.second.front()}); // O(K)
-    auto const &graph = KFinder<T>::graph;
+    auto const &graph = base::graph;
 
     if (graph.nodes.empty() || devices == 0)
       return {};
@@ -910,9 +910,8 @@ protected:
 
 
     auto const sidetrack_distances_res =
-      sidetrack_distances_linear(weights, devices, dij_res.second); // O(E)
-    auto const shortest_path =
-      KFinder<T>::shortest_path_finder(dij_res, 0); // O(N)
+      sidetrack_distances_linear(weights, devices, dij_res.second);    // O(E)
+    auto const shortest_path = base::shortest_path_finder(dij_res, 0); // O(N)
 
     auto const &successors          = dij_res.first;
     auto const &shortest_paths_cost = dij_res.second;

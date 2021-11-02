@@ -21,7 +21,7 @@
 
 /// Just another graph class...
 /// \tparam T Type of the content of the node
-template <class T>
+template <class T, typename id_content = io_id_type>
 class Graph
 {
 private:
@@ -61,7 +61,7 @@ public:
   std::vector<node_type> nodes;
 
   /// Relation between the id of the input/output with the content
-  std::map<io_id_type, T> nodes_content;
+  std::map<id_content, T> nodes_content;
 
   /// Vector that contains all the neighbours of every node (first input, then
   /// output)
@@ -82,7 +82,7 @@ public:
   /// automatic computation of the edges (default: true)
   explicit Graph(
     std::vector<node_type>         v,
-    const std::map<io_id_type, T> &content = {},
+    const std::map<id_content, T> &content = {},
     std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
          dep          = {},
     bool dependencies = true)
