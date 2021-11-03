@@ -46,36 +46,13 @@ struct H_out
   }
 };
 
-class H_g_content;
-using H_g = Heap<H_g_content>;
-
-class H_g_content
-{
-  std::shared_ptr<H_out> content_out;
-  std::shared_ptr<H_g>   content_g;
-
-public:
-
-  H_g_content() = default;
-  H_g_content(std::shared_ptr<H_out> p)
-    : content_out(std::move(p))
-  {}
-
-  H_g_content(std::shared_ptr<H_g> p)
-    : content_g(std::move(p))
-  {}
-
-  [[nodiscard]] edge_info
-  get_value() const;
-  bool
-  operator<(H_g_content const &rhs) const;
-
-  [[nodiscard]] std::set<edge_info>
-  get_edges() const;
-};
-
-using H_g_pointer   = std::shared_ptr<H_g>;
 using H_out_pointer = std::shared_ptr<H_out>;
+
+bool
+operator<(std::shared_ptr<H_out> const &lhs, std::shared_ptr<H_out> const &rhs);
+
+using H_g         = Heap<H_out_pointer>;
+using H_g_pointer = std::shared_ptr<H_g>;
 
 
 #endif // NETWORK_BUTCHER_HEAP_EPPSTEIN_H

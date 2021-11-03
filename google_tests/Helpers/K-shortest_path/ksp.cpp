@@ -234,54 +234,6 @@ TEST(KspTests, DijkstraSinkSourceFunctional)
 }
 
 
-TEST(KspTests, Eppstein)
-{
-  using basic_type = int;
-  using Input      = TestMemoryUsage<basic_type>;
-
-  using type_weight = double;
-  using type_collection_weights =
-    std::map<std::pair<node_id_type, node_id_type>, type_weight>;
-
-  std::map<io_id_type, Input> map;
-  std::vector<node_type>      nodes;
-
-  nodes.push_back(node_type(0, {}, {0}, {}));
-  nodes.push_back(node_type(1, {0, 2, 4}, {1}, {}));
-  nodes.push_back(node_type(2, {0, 3}, {2}, {}));
-  nodes.push_back(node_type(3, {1, 5}, {3}, {}));
-  nodes.push_back(node_type(4, {2, 3, 6}, {4}, {}));
-  nodes.push_back(node_type(5, {2, 4}, {5}, {}));
-  nodes.push_back(node_type(6, {5}, {6}, {}));
-
-  for (io_id_type i = 0; i <= 6; ++i)
-    map[i] = i;
-
-  type_collection_weights weights;
-  weights[{0, 1}] = 4;
-  weights[{0, 2}] = 1;
-  weights[{1, 3}] = 3;
-  weights[{2, 1}] = 2;
-  weights[{2, 4}] = 9;
-  weights[{2, 5}] = 4;
-  weights[{3, 2}] = 1;
-  weights[{3, 4}] = 2;
-  weights[{4, 1}] = 0;
-  weights[{4, 5}] = 1;
-  weights[{5, 3}] = 1;
-  weights[{5, 6}] = 2;
-  weights[{6, 4}] = 2;
-
-
-  Graph<Input>     graph_cons(nodes, map);
-  KFinder_Eppstein kfinder(graph_cons);
-
-  auto res = kfinder.eppstein(weights, 5);
-
-  std::cout << std::endl;
-}
-
-
 TEST(KspTests, EppsteinOriginalNetwork)
 {
   using basic_type = int;

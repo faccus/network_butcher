@@ -12,6 +12,8 @@ class KFinder_Eppstein : KFinder<T, id_content>
 {
 protected:
   using base = KFinder<T, id_content>;
+  using dij_res_type =
+    std::pair<std::vector<node_id_type>, std::vector<type_weight>>;
 
 public:
   using path_info = typename base::path_info;
@@ -32,20 +34,15 @@ public:
   [[nodiscard]] std::vector<path_info>
   eppstein(type_collection_weights const &weights, std::size_t K)
   {
-    auto const &graph = base::graph;
+    std::function<type_weight(edge_type const &)> weight_fun =
+      [&weights](edge_type const &edge) {
+        auto const it = weights.find(edge);
+        if (it != weights.cend())
+          return it->second;
+        return -1.;
+      };
 
-    if (graph.nodes.empty() || K == 0)
-      return {};
-
-    auto const dij_res =
-      base::shortest_path_tree(weights); // time: ((N+E)log(N)), space: O(N)
-
-    if (K == 1)
-      return {base::shortest_path_finder(dij_res, 0)};
-
-    auto const epp_res = basic_eppstein(weights, K, dij_res);
-
-    return helper_eppstein(dij_res, epp_res);
+    return eppstein(weight_fun, K);
   }
 
   [[nodiscard]] std::vector<path_info>
@@ -75,23 +72,15 @@ public:
                   std::size_t                    K,
                   std::size_t                    devices)
   {
-    auto const &graph = base::graph;
+    std::function<type_weight(edge_type const &)> weight_fun =
+      [&weights](edge_type const &edge) {
+        auto const it = weights.find(edge);
+        if (it != weights.cend())
+          return it->second;
+        return -1.;
+      };
 
-    if (graph.nodes.empty() || K == 0 || devices == 0)
-      return {};
-    if (devices == 1)
-      return eppstein(weights, K);
-
-    auto const dij_res = base::shortest_path_tree_linear(
-      weights, devices); // time: ((N+E)log(N)), space: O(N)
-
-    if (K == 1)
-      return {base::shortest_path_finder(dij_res, 0)};
-
-
-    auto const epp_res = basic_eppstein_linear(weights, K, devices, dij_res);
-
-    return helper_eppstein(dij_res, epp_res);
+    return eppstein_linear(weight_fun, K, devices);
   }
 
   [[nodiscard]] std::vector<path_info>
@@ -127,14 +116,14 @@ protected:
 
 
   std::pair<bool, edge_info>
-  side_track(node_id_type const                        &j,
-             std::map<node_id_type, H_g_pointer> const &h_g)
+  side_track(node_id_type const &j, std::map<node_id_type, H_g> const &h_g)
   {
     auto const it = h_g.find(j);
-    if (it == h_g.cend() || it->second->children.empty())
+    if (it == h_g.cend() || it->second.children.empty() ||
+        (*it->second.children.begin())->heap.children.empty())
       return {false, {{-1, -1}, std::numeric_limits<type_weight>::max()}};
 
-    return {true, it->second->children.begin()->get_value()};
+    return {true, *(*it->second.children.begin())->heap.children.begin()};
   }
 
 
@@ -207,11 +196,11 @@ protected:
   }
 
 
-  std::map<node_id_type, H_g_pointer>
+  std::map<node_id_type, H_g>
   construct_h_g(std::map<node_id_type, H_out_pointer> const &h_out,
                 std::vector<node_id_type> const &successors) // O(N*log(N))
   {
-    std::map<node_id_type, H_g_pointer> res;
+    std::map<node_id_type, H_g> res;
 
     std::vector<std::set<node_id_type>> sp_dependencies;
 
@@ -228,14 +217,13 @@ protected:
         if (tmp != node.get_id())
           sp_dependencies[tmp].insert(node.get_id());
 
-        res.insert(res.cend(),
-                   {node.get_id(), std::make_shared<H_g>()}); // O(1)
+        res.insert(res.cend(), {node.get_id(), H_g()}); // O(1)
       }
 
     auto iterator = h_out.find(num_nodes - 1);
     if (iterator != h_out.cend() && !iterator->second->heap.children.empty())
       {
-        res[num_nodes - 1]->children.emplace(iterator->second); // O(log(N))
+        res[num_nodes - 1].children.emplace(iterator->second); // O(log(N))
       }
 
     std::queue<node_id_type> queue;
@@ -256,13 +244,13 @@ protected:
         iterator = h_out.find(queue.front());
         if (iterator != h_out.cend() &&
             !iterator->second->heap.children.empty())
-          heap_node->children.emplace(iterator->second); // O(1)
+          heap_node.children.emplace(iterator->second); // O(1)
 
         auto const &tmo = res[successors[queue.front()]];
 
-        if (!tmo->children.empty())
-          heap_node->children.emplace(tmo); // O(1)
-
+        if (!tmo.children.empty())
+          heap_node.children.insert(tmo.children.begin(),
+                                    tmo.children.end()); // O(1)
 
         queue.pop();
       }
@@ -271,12 +259,12 @@ protected:
   }
 
 
-  std::map<node_id_type, H_g_pointer>
+  std::map<node_id_type, H_g>
   construct_h_g_linear(std::map<node_id_type, H_out_pointer> const &h_out,
                        std::vector<node_id_type> const             &successors,
                        std::size_t devices) // O(N*log(N))
   {
-    std::map<node_id_type, H_g_pointer> res;
+    std::map<node_id_type, H_g> res;
 
     auto const &graph     = base::graph;
     auto const  num_nodes = graph.nodes.size();
@@ -286,7 +274,7 @@ protected:
     sp_dependencies.resize(num_nodes * devices);
 
     for (auto i = 0; i < num_nodes * devices; ++i)
-      res.insert(res.cend(), {i, std::make_shared<H_g>()});
+      res.insert(res.cend(), {i, H_g()});
 
     for (auto i = 0; i < num_nodes * devices; ++i) // O(N)
       {
@@ -301,7 +289,7 @@ protected:
     auto iterator = h_out.find(sink);
     if (iterator != h_out.cend() && !iterator->second->heap.children.empty())
       {
-        res[sink]->children.emplace(iterator->second); // O(log(N))
+        res[sink].children.emplace(iterator->second); // O(log(N))
       }
 
     std::queue<node_id_type> queue;
@@ -322,12 +310,13 @@ protected:
         iterator = h_out.find(queue.front());
         if (iterator != h_out.cend() &&
             !iterator->second->heap.children.empty())
-          heap_node->children.emplace(iterator->second); // O(1)
+          heap_node.children.emplace(iterator->second); // O(1)
 
         auto const &tmo = res[successors[queue.front()]];
 
-        if (!tmo->children.empty())
-          heap_node->children.emplace(tmo); // O(1)
+        if (!tmo.children.empty())
+          heap_node.children.insert(tmo.children.begin(),
+                                    tmo.children.end()); // O(1)
 
 
         queue.pop();
@@ -338,86 +327,64 @@ protected:
 
 
   void
-  get_g_edges_edges(std::map<edge_type, std::set<edge_type>> &edge_edges,
-                    H_g_pointer const                        &h_g) const
+  get_internal_edges(std::map<edge_type, std::set<edge_type>> &edge_edges,
+                     H_out_pointer const                      &h_out) const
   {
-    std::size_t                                        j = 0;
-    std::vector<std::set<H_g_content>::const_iterator> previous_steps;
-    previous_steps.reserve(h_g->children.size());
+    std::size_t                                      j = 0;
+    std::vector<std::set<edge_info>::const_iterator> previous_steps;
+    previous_steps.reserve(h_out->heap.children.size());
 
-    for (auto it = h_g->children.cbegin(); it != h_g->children.cend(); // O(N)
+    for (auto it = h_out->heap.children.cbegin();
+         it != h_out->heap.children.cend();
          ++it, ++j)
       {
         previous_steps.push_back(it);
-        if (j > 0)
-          {
-            std::size_t external_parent = (j - 1) / 2;
-            if (external_parent != j)
-              {
-                auto const parents =
-                  previous_steps[external_parent]->get_edges();
-                auto const children = it->get_edges(); // O(E)
 
-                for (auto &parent : parents)
-                  for (auto &child : children)
-                    edge_edges[parent.edge].insert(child.edge);
+        std::size_t parent = j / 2;
+        if (parent != j)
+          {
+            auto const &parent_edge  = previous_steps[parent]->edge;
+            auto const &current_edge = it->edge;
+
+            edge_edges[parent_edge].insert(current_edge);
+          }
+      }
+  }
+
+  void
+  get_internal_edges(std::map<edge_type, std::set<edge_type>> &edge_edges,
+                     H_g const                                &h_g) const
+  {
+    std::size_t                                          j = 0;
+    std::vector<std::set<H_out_pointer>::const_iterator> previous_steps;
+    previous_steps.reserve(h_g.children.size());
+
+    for (auto it = h_g.children.cbegin(); it != h_g.children.cend(); ++it, ++j)
+      {
+        previous_steps.push_back(it);
+        get_internal_edges(edge_edges, *it);
+
+        std::size_t parent = (j - 1) / 2;
+        if (j > 0 && parent != j)
+          {
+            for (auto i = 0; i <= parent; ++i)
+              {
+                auto const &parent_edge =
+                  (*previous_steps[i])->heap.children.cbegin()->edge;
+                auto const &child_edge = (*it)->heap.children.cbegin()->edge;
+
+                edge_edges[parent_edge].insert(child_edge);
               }
           }
       }
   }
 
   void
-  get_edges_edges(std::map<edge_type, std::set<edge_type>>  &edge_edges,
-                  std::map<node_id_type, H_g_pointer> const &h_gs) const
+  get_edge_edges(std::map<edge_type, std::set<edge_type>> &edge_edges,
+                 std::map<node_id_type, H_g> const        &h_gs) const
   {
     for (auto it = h_gs.cbegin(); it != h_gs.cend(); ++it) // O(N)
-      {
-        auto const &h_g_tm = *it;
-        auto const &h_g    = h_g_tm.second;
-
-        if (h_g)
-          get_g_edges_edges(edge_edges, h_g);
-
-        std::size_t j = 0;
-        std::vector<typename std::set<H_g_content>::const_iterator>
-          previous_external;
-
-        for (auto it2 = h_g->children.begin(); it2 != h_g->children.cend();
-             ++it2, ++j)
-          {
-            auto const &internal_content = *it2;
-            previous_external.push_back(it2);
-
-            if (j > 0)
-              {
-                std::size_t external_parent = (j - 1) / 2;
-                if (external_parent != j)
-                  {
-                    auto edge_index =
-                      previous_external[external_parent]->get_value().edge;
-                    edge_edges[edge_index].insert(
-                      internal_content.get_value().edge);
-                  }
-              }
-          }
-      }
-  }
-
-
-  [[nodiscard]] type_collection_weights
-  sidetrack_distances(type_collection_weights const  &weights,
-                      std::vector<type_weight> const &distances_from_sink) const
-  {
-    type_collection_weights res;
-    for (auto const &edge : weights) // O(E)
-      {
-        res.insert(res.cend(),
-                   {edge.first,
-                    edge.second + distances_from_sink[edge.first.second] -
-                      distances_from_sink[edge.first.first]}); // O(1)
-      }
-
-    return res;
+      get_internal_edges(edge_edges, it->second);
   }
 
 
@@ -444,43 +411,6 @@ protected:
 
     return res;
   }
-
-
-  [[nodiscard]] type_collection_weights
-  sidetrack_distances_linear(
-    type_collection_weights const  &weights,
-    std::size_t                     devices,
-    std::vector<type_weight> const &distances_from_sink) const
-  {
-    type_collection_weights res;
-    auto const             &graph     = base::graph;
-    auto const              num_nodes = graph.nodes.size();
-
-    for (std::size_t s = 0; s < devices; ++s)
-      for (std::size_t k = 0; k < devices; ++k)
-        for (std::size_t i = 0; i < num_nodes; ++i)
-          for (auto const &dep : graph.dependencies[i].second)
-            {
-              auto const tail = i + s * num_nodes;
-              auto const head = dep + k * num_nodes;
-              auto const edge = std::make_pair(tail, head);
-
-              auto const it = weights.find(edge);
-              if (it == weights.cend())
-                {
-                  std::cout << "Error: missing weight (" << tail << ", " << head
-                            << ")" << std::endl;
-                }
-              else
-                res.insert(res.cend(),
-                           {edge,
-                            it->second + distances_from_sink[head] -
-                              distances_from_sink[tail]}); // O(1)
-            }
-
-    return res;
-  }
-
 
   [[nodiscard]] type_collection_weights
   sidetrack_distances_linear(
@@ -513,8 +443,7 @@ protected:
 
   [[nodiscard]] std::vector<path_info>
   helper_eppstein(
-    std::pair<std::vector<node_id_type>, std::vector<type_weight>> const
-                                                            &dij_res,
+    dij_res_type const                                      &dij_res,
     std::vector<KFinder_Eppstein::implicit_path_info> const &epp_res)
   {
     std::vector<path_info> res;
@@ -553,10 +482,9 @@ protected:
 
 
   [[nodiscard]] std::vector<implicit_path_info>
-  basic_eppstein(type_collection_weights const             &weights,
-                 std::size_t                                K,
-                 std::pair<std::vector<node_id_type>,
-                           std::vector<type_weight>> const &dij_res)
+  basic_eppstein(type_collection_weights const &weights,
+                 std::size_t                    K,
+                 dij_res_type const            &dij_res)
   {
     std::function<type_weight(edge_type const &)> &weights_fun =
       [&weights](edge_type const &edge) {
@@ -571,11 +499,10 @@ protected:
 
 
   [[nodiscard]] std::vector<implicit_path_info>
-  basic_eppstein_linear(type_collection_weights const             &weights,
-                        std::size_t                                K,
-                        std::size_t                                devices,
-                        std::pair<std::vector<node_id_type>,
-                                  std::vector<type_weight>> const &dij_res)
+  basic_eppstein_linear(type_collection_weights const &weights,
+                        std::size_t                    K,
+                        std::size_t                    devices,
+                        dij_res_type const            &dij_res)
   {
     std::function<type_weight(edge_type const &)> &weights_fun =
       [&weights](edge_type const &edge) {
@@ -591,8 +518,7 @@ protected:
   [[nodiscard]] std::vector<implicit_path_info>
   basic_eppstein(std::function<type_weight(edge_type const &)> &weights,
                  std::size_t                                    K,
-                 std::pair<std::vector<node_id_type>,
-                           std::vector<type_weight>> const     &dij_res)
+                 dij_res_type const                            &dij_res)
   {
     std::vector<implicit_path_info> res;
     res.push_back({{}, dij_res.second.front()}); // O(K)
@@ -616,7 +542,7 @@ protected:
 
     auto const h_g         = construct_h_g(h_out, successors);
     auto       edges_edges = std::map<edge_type, std::set<edge_type>>();
-    get_edges_edges(edges_edges, h_g);
+    get_edge_edges(edges_edges, h_g);
 
     auto const first_side_track_res = side_track(0, h_g);
     if (!first_side_track_res.first)
@@ -650,14 +576,15 @@ protected:
 
         {
           auto const f_res = side_track(e.second, h_g);
-          if (!f_res.first)
-            continue;
-          auto const &f = f_res.second;
+          if (f_res.first)
+            {
+              auto const &f = f_res.second;
 
-          auto mod_sk = SK;
-          mod_sk.sidetracks.push_back(f.edge);
-          mod_sk.length += f.delta_weight;
-          Q.insert(std::move(mod_sk));
+              auto mod_sk = SK;
+              mod_sk.sidetracks.push_back(f.edge);
+              mod_sk.length += f.delta_weight;
+              Q.insert(std::move(mod_sk));
+            }
         }
         auto const it = edges_edges.find(e);
         if (it != edges_edges.cend())
@@ -695,8 +622,7 @@ protected:
   basic_eppstein_linear(std::function<type_weight(edge_type const &)> &weights,
                         std::size_t                                    K,
                         std::size_t                                    devices,
-                        std::pair<std::vector<node_id_type>,
-                                  std::vector<type_weight>> const     &dij_res)
+                        dij_res_type const                            &dij_res)
   {
     std::vector<implicit_path_info> res;
     res.push_back({{}, dij_res.second.front()}); // O(K)
@@ -722,7 +648,7 @@ protected:
 
     auto const h_g         = construct_h_g_linear(h_out, successors, devices);
     auto       edges_edges = std::map<edge_type, std::set<edge_type>>();
-    get_edges_edges(edges_edges, h_g);
+    get_edge_edges(edges_edges, h_g);
 
     auto const first_side_track_res = side_track(0, h_g);
     if (!first_side_track_res.first)
@@ -757,25 +683,22 @@ protected:
 
         auto const f_res = side_track(e.second, h_g);
 
-        if (!f_res.first)
-          continue;
+        if (f_res.first)
+          {
+            auto const &f = f_res.second;
+            auto const  fake_node =
+              (f.edge.first != 0 && f.edge.first % graph.nodes.size() == 0) ||
+              (f.edge.second != graph.nodes.size() - 1 &&
+               f.edge.second % graph.nodes.size() == graph.nodes.size() - 1);
 
-        auto const &f = f_res.second;
-        auto const  fake_node =
-          (f.edge.first != 0 && f.edge.first % graph.nodes.size() == 0) ||
-          (f.edge.second != graph.nodes.size() - 1 &&
-           f.edge.second % graph.nodes.size() == graph.nodes.size() - 1);
-
-        if (fake_node)
-          continue;
-
-        {
-          auto mod_sk = SK;
-          mod_sk.sidetracks.push_back(f.edge);
-          mod_sk.length += f.delta_weight;
-          Q.insert(std::move(mod_sk));
-        }
-
+            if (!fake_node)
+              {
+                auto mod_sk = SK;
+                mod_sk.sidetracks.push_back(f.edge);
+                mod_sk.length += f.delta_weight;
+                Q.insert(std::move(mod_sk));
+              }
+          }
 
         auto const it = edges_edges.find(e);
         if (it != edges_edges.cend())
@@ -819,11 +742,6 @@ protected:
   }
 
 
-  void
-  build_h_g(std::map<node_id_type, H_g_pointer> &h_g, node_id_type node_id)
-  {}
-
-
   [[nodiscard]] std::vector<implicit_path_info>
   basic_lazy_eppstein(std::function<type_weight(edge_type const &)> &weights,
                       std::size_t                                    K,
@@ -853,7 +771,7 @@ protected:
     std::map<node_id_type, H_g_pointer> const h_g =
       construct_h_g(h_out, successors);
     auto edges_edges = std::map<edge_type, std::set<edge_type>>();
-    get_edges_edges(edges_edges, h_g);
+    get_edge_edges(edges_edges, h_g);
 
     auto const first_side_track_res = side_track(0, h_g);
     if (!first_side_track_res.first)

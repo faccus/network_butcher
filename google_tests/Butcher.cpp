@@ -52,10 +52,12 @@ TEST(ButcherTest, compute_k_shortest_paths_linear)
   nodes.push_back(node_type(0, {}, {0}));
   nodes.push_back(node_type(1, {0}, {1}));
   nodes.push_back(node_type(2, {1}, {2}));
-  nodes.push_back(node_type(3, {1}, {3}));
-  nodes.push_back(node_type(4, {3}, {4}));
-  nodes.push_back(node_type(5, {2, 4}, {5}));
-  nodes.push_back(node_type(6, {5}, {6}));
+  nodes.push_back(node_type(3, {2}, {3}));
+  nodes.push_back(node_type(4, {2}, {4}));
+  nodes.push_back(node_type(5, {4}, {5}));
+  nodes.push_back(node_type(6, {3, 5}, {6}));
+  nodes.push_back(node_type(7, {6}, {7}));
+  nodes.push_back(node_type(8, {7}, {8}));
 
   for (io_id_type i = 0; i < nodes.size(); ++i)
     map[i] = i;
@@ -64,13 +66,16 @@ TEST(ButcherTest, compute_k_shortest_paths_linear)
   Butcher<Input> butcher(std::move(graph_cons));
 
   type_collection_weights weight_map;
-  weight_map[{0, 1}] = 1000.;
+  weight_map[{0, 1}] = 0.;
   weight_map[{1, 2}] = 1000.;
-  weight_map[{2, 5}] = 1000.;
+  weight_map[{2, 3}] = 1000.;
+  weight_map[{2, 4}] = 500.;
+  weight_map[{4, 5}] = 500.;
+  weight_map[{3, 6}] = 1000.;
   weight_map[{5, 6}] = 1000.;
-  weight_map[{4, 5}] = 1000.;
-  weight_map[{1, 3}] = 500.;
-  weight_map[{3, 4}] = 500.;
+  weight_map[{6, 7}] = 1000.;
+  weight_map[{7, 8}] = 0.;
+
 
   type_collection_weights additional_weights;
 
