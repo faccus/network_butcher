@@ -26,14 +26,8 @@ public:
       return length < rhs.length ||
              (length == rhs.length && sidetracks < rhs.sidetracks);
     }
-
-    constexpr bool
-    operator>(const implicit_path_info &rhs) const
-    {
-      return length > rhs.length ||
-             (length == rhs.length && sidetracks > rhs.sidetracks);
-    }
   };
+
 
   [[nodiscard]] std::vector<path_info>
   eppstein(type_collection_weights const &weights, std::size_t K)
@@ -564,98 +558,15 @@ protected:
                  std::pair<std::vector<node_id_type>,
                            std::vector<type_weight>> const &dij_res)
   {
-    std::vector<implicit_path_info> res;
-    res.push_back({{}, dij_res.second.front()}); // O(K)
-    auto const &graph = base::graph;
+    std::function<type_weight(edge_type const &)> &weights_fun =
+      [&weights](edge_type const &edge) {
+        auto const it = weights.find(edge);
+        if (it == weights.cend())
+          return -1.;
+        return it->second;
+      };
 
-
-    auto const sidetrack_distances_res =
-      sidetrack_distances(weights, dij_res.second);                    // O(E)
-    auto const shortest_path = base::shortest_path_finder(dij_res, 0); // O(N)
-
-    auto const &successors          = dij_res.first;
-    auto const &shortest_paths_cost = dij_res.second;
-
-    auto const h_out = construct_h_out(successors, sidetrack_distances_res);
-
-    auto const h_g         = construct_h_g(h_out, successors);
-    auto       edges_edges = std::map<edge_type, std::set<edge_type>>();
-    get_edges_edges(edges_edges, h_g);
-
-    auto const first_side_track_res = side_track(0, h_g);
-    if (!first_side_track_res.first)
-      return res;
-    auto const &first_side_track = first_side_track_res.second;
-
-    std::priority_queue<implicit_path_info,
-                        std::vector<implicit_path_info>,
-                        std::greater<implicit_path_info>>
-      Q;
-
-    implicit_path_info first_path;
-    first_path.sidetracks = {first_side_track.edge};
-    first_path.length = first_side_track.delta_weight + dij_res.second.front();
-
-    Q.push(std::move(first_path));
-
-    for (int k = 2; k <= K && !Q.empty(); ++k)
-      {
-        auto SK = Q.top();
-        Q.pop();
-        res.push_back(SK);
-
-        auto const e  = SK.sidetracks.back();
-        auto const ot = sidetrack_distances_res.find(e);
-
-        if (ot == sidetrack_distances_res.cend())
-          {
-            std::cout
-              << "Error: cannot find proper sidetrack distance for edge ("
-              << e.first << ", " << e.second << ")" << std::endl;
-            continue;
-          }
-
-        {
-          auto const f_res = side_track(e.second, h_g);
-
-          if (!f_res.first)
-            continue;
-          auto const &f = f_res.second;
-
-          auto mod_sk = SK;
-          mod_sk.sidetracks.push_back(f.edge);
-          mod_sk.length += f.delta_weight;
-          Q.push(std::move(mod_sk));
-        }
-        auto const it = edges_edges.find(e);
-        if (it != edges_edges.cend())
-          {
-            SK.sidetracks.pop_back();
-
-            for (auto &f : it->second)
-              {
-                auto ut = sidetrack_distances_res.find(f);
-
-                if (ut == sidetrack_distances_res.cend())
-                  {
-                    std::cout << "Error: cannot find proper sidetrack distance "
-                                 "for edge ("
-                              << f.first << ", " << f.second << ")"
-                              << std::endl;
-                    continue;
-                  }
-
-                auto mod_sk = SK;
-                mod_sk.sidetracks.push_back(f);
-                mod_sk.length += (ut->second - ot->second);
-
-                Q.push(std::move(mod_sk));
-              }
-          }
-      }
-
-
-    return res;
+    return basic_eppstein(weights_fun, K, dij_res);
   }
 
 
@@ -666,122 +577,15 @@ protected:
                         std::pair<std::vector<node_id_type>,
                                   std::vector<type_weight>> const &dij_res)
   {
-    std::vector<implicit_path_info> res;
-    res.push_back({{}, dij_res.second.front()}); // O(K)
+    std::function<type_weight(edge_type const &)> &weights_fun =
+      [&weights](edge_type const &edge) {
+        auto const it = weights.find(edge);
+        if (it == weights.cend())
+          return -1.;
+        return it->second;
+      };
 
-    auto const &graph = base::graph;
-
-    if (graph.nodes.empty() || devices == 0)
-      return {};
-    else if (K == 1)
-      return res;
-    else if (devices == 1)
-      return basic_eppstein(weights, K, dij_res);
-
-
-    auto const sidetrack_distances_res =
-      sidetrack_distances_linear(weights, devices, dij_res.second);    // O(E)
-    auto const shortest_path = base::shortest_path_finder(dij_res, 0); // O(N)
-
-    auto const &successors          = dij_res.first;
-    auto const &shortest_paths_cost = dij_res.second;
-
-    auto const h_out =
-      construct_h_out_linear(successors, sidetrack_distances_res, devices);
-
-    auto const h_g         = construct_h_g_linear(h_out, successors, devices);
-    auto       edges_edges = std::map<edge_type, std::set<edge_type>>();
-    get_edges_edges(edges_edges, h_g);
-
-    auto const first_side_track_res = side_track(0, h_g);
-    if (!first_side_track_res.first)
-      return res;
-    auto const &first_side_track = first_side_track_res.second;
-
-    std::priority_queue<implicit_path_info,
-                        std::vector<implicit_path_info>,
-                        std::greater<implicit_path_info>>
-      Q;
-
-    implicit_path_info first_path;
-    first_path.sidetracks = {first_side_track.edge};
-    first_path.length = first_side_track.delta_weight + dij_res.second.front();
-
-    Q.push(std::move(first_path));
-
-    for (int k = 2; k <= K && !Q.empty(); ++k)
-      {
-        auto SK = Q.top();
-        Q.pop();
-        res.push_back(SK);
-
-        auto const e  = SK.sidetracks.back();
-        auto const ot = sidetrack_distances_res.find(e);
-
-        if (ot == sidetrack_distances_res.cend())
-          {
-            std::cout
-              << "Error: cannot find proper sidetrack distance for edge ("
-              << e.first << ", " << e.second << ")" << std::endl;
-            continue;
-          }
-
-        {
-          auto const f_res = side_track(e.second, h_g);
-          auto const f     = f_res.second;
-
-          if (!f_res.first)
-            continue;
-
-          auto const fake_node =
-            (f.edge.first != 0 && f.edge.first % graph.nodes.size() == 0) ||
-            (f.edge.second != graph.nodes.size() - 1 &&
-             f.edge.second % graph.nodes.size() == graph.nodes.size() - 1);
-
-          if (fake_node)
-            continue;
-
-          auto mod_sk = SK;
-          mod_sk.sidetracks.push_back(f.edge);
-          mod_sk.length += f.delta_weight;
-          Q.push(std::move(mod_sk));
-        }
-        auto const it = edges_edges.find(e);
-        if (it != edges_edges.cend())
-          {
-            SK.sidetracks.pop_back();
-
-            for (auto &f : it->second)
-              {
-                auto const fake_node =
-                  (f.first != 0 && f.first % graph.nodes.size() == 0) ||
-                  (f.second != graph.nodes.size() - 1 &&
-                   f.second % graph.nodes.size() == graph.nodes.size() - 1);
-
-                if (fake_node)
-                  continue;
-
-                auto ut = sidetrack_distances_res.find(f);
-                if (ut == sidetrack_distances_res.cend())
-                  {
-                    std::cout << "Error: cannot find proper sidetrack distance "
-                                 "for edge ("
-                              << f.first << ", " << f.second << ")"
-                              << std::endl;
-                    continue;
-                  }
-
-                auto mod_sk = SK;
-                mod_sk.sidetracks.push_back(f);
-                mod_sk.length += (ut->second - ot->second);
-
-                Q.push(std::move(mod_sk));
-              }
-          }
-      }
-
-
-    return res;
+    return basic_eppstein_linear(weights_fun, K, devices, dij_res);
   }
 
   [[nodiscard]] std::vector<implicit_path_info>
@@ -819,21 +623,18 @@ protected:
       return res;
     auto const &first_side_track = first_side_track_res.second;
 
-    std::priority_queue<implicit_path_info,
-                        std::vector<implicit_path_info>,
-                        std::greater<implicit_path_info>>
-      Q;
+    std::set<implicit_path_info> Q;
 
     implicit_path_info first_path;
     first_path.sidetracks = {first_side_track.edge};
     first_path.length = first_side_track.delta_weight + dij_res.second.front();
 
-    Q.push(std::move(first_path));
+    Q.insert(std::move(first_path));
 
     for (int k = 2; k <= K && !Q.empty(); ++k)
       {
-        auto SK = Q.top();
-        Q.pop();
+        auto SK = *Q.begin();
+        Q.erase(Q.begin());
         res.push_back(SK);
 
         auto const e  = SK.sidetracks.back();
@@ -856,7 +657,7 @@ protected:
           auto mod_sk = SK;
           mod_sk.sidetracks.push_back(f.edge);
           mod_sk.length += f.delta_weight;
-          Q.push(std::move(mod_sk));
+          Q.insert(std::move(mod_sk));
         }
         auto const it = edges_edges.find(e);
         if (it != edges_edges.cend())
@@ -880,7 +681,7 @@ protected:
                 mod_sk.sidetracks.push_back(f);
                 mod_sk.length += (ut->second - ot->second);
 
-                Q.push(std::move(mod_sk));
+                Q.insert(std::move(mod_sk));
               }
           }
       }
@@ -928,21 +729,149 @@ protected:
       return res;
     auto const &first_side_track = first_side_track_res.second;
 
-    std::priority_queue<implicit_path_info,
-                        std::vector<implicit_path_info>,
-                        std::greater<implicit_path_info>>
-      Q;
+    std::set<implicit_path_info> Q;
 
     implicit_path_info first_path;
     first_path.sidetracks = {first_side_track.edge};
     first_path.length = first_side_track.delta_weight + dij_res.second.front();
 
-    Q.push(std::move(first_path));
+    Q.insert(std::move(first_path));
 
     for (int k = 2; k <= K && !Q.empty(); ++k)
       {
-        auto SK = Q.top();
-        Q.pop();
+        auto SK = *Q.begin();
+        Q.erase(Q.begin());
+        res.push_back(SK);
+
+        auto const e  = SK.sidetracks.back();
+        auto const ot = sidetrack_distances_res.find(e);
+
+        if (ot == sidetrack_distances_res.cend())
+          {
+            std::cout
+              << "Error: cannot find proper sidetrack distance for edge ("
+              << e.first << ", " << e.second << ")" << std::endl;
+            continue;
+          }
+
+
+        auto const f_res = side_track(e.second, h_g);
+
+        if (!f_res.first)
+          continue;
+
+        auto const &f = f_res.second;
+        auto const  fake_node =
+          (f.edge.first != 0 && f.edge.first % graph.nodes.size() == 0) ||
+          (f.edge.second != graph.nodes.size() - 1 &&
+           f.edge.second % graph.nodes.size() == graph.nodes.size() - 1);
+
+        if (fake_node)
+          continue;
+
+        {
+          auto mod_sk = SK;
+          mod_sk.sidetracks.push_back(f.edge);
+          mod_sk.length += f.delta_weight;
+          Q.insert(std::move(mod_sk));
+        }
+
+
+        auto const it = edges_edges.find(e);
+        if (it != edges_edges.cend())
+          {
+            SK.sidetracks.pop_back();
+
+            for (auto &f_child : it->second)
+              {
+                auto const fake_node =
+                  (f_child.first != 0 &&
+                   f_child.first % graph.nodes.size() == 0) ||
+                  (f_child.second != graph.nodes.size() - 1 &&
+                   f_child.second % graph.nodes.size() ==
+                     graph.nodes.size() - 1);
+
+                if (fake_node)
+                  continue;
+
+                auto ut = sidetrack_distances_res.find(f_child);
+
+                if (ut == sidetrack_distances_res.cend())
+                  {
+                    std::cout << "Error: cannot find proper sidetrack distance "
+                                 "for edge ("
+                              << f_child.first << ", " << f_child.second << ")"
+                              << std::endl;
+                    continue;
+                  }
+
+                auto mod_sk = SK;
+                mod_sk.sidetracks.push_back(f_child);
+                mod_sk.length += (ut->second - ot->second);
+
+                Q.insert(std::move(mod_sk));
+              }
+          }
+      }
+
+
+    return res;
+  }
+
+
+  void
+  build_h_g(std::map<node_id_type, H_g_pointer> &h_g, node_id_type node_id)
+  {}
+
+
+  [[nodiscard]] std::vector<implicit_path_info>
+  basic_lazy_eppstein(std::function<type_weight(edge_type const &)> &weights,
+                      std::size_t                                    K,
+                      std::pair<std::vector<node_id_type>,
+                                std::vector<type_weight>> const     &dij_res)
+  {
+    std::vector<implicit_path_info> res;
+    res.push_back({{}, dij_res.second.front()}); // O(K)
+
+    auto const &graph = base::graph;
+
+    if (graph.nodes.empty())
+      return {};
+    if (K == 1)
+      return res;
+
+
+    auto const sidetrack_distances_res =
+      sidetrack_distances(weights, dij_res.second);                    // O(E)
+    auto const shortest_path = base::shortest_path_finder(dij_res, 0); // O(N)
+
+    auto const &successors          = dij_res.first;
+    auto const &shortest_paths_cost = dij_res.second;
+
+    auto const h_out = construct_h_out(successors, sidetrack_distances_res);
+
+    std::map<node_id_type, H_g_pointer> const h_g =
+      construct_h_g(h_out, successors);
+    auto edges_edges = std::map<edge_type, std::set<edge_type>>();
+    get_edges_edges(edges_edges, h_g);
+
+    auto const first_side_track_res = side_track(0, h_g);
+    if (!first_side_track_res.first)
+      return res;
+    auto const &first_side_track = first_side_track_res.second;
+
+    std::set<implicit_path_info> Q;
+
+    implicit_path_info first_path;
+    first_path.sidetracks = {first_side_track.edge};
+    first_path.length = first_side_track.delta_weight + dij_res.second.front();
+
+    Q.insert(std::move(first_path));
+
+    for (int k = 2; k <= K && !Q.empty(); ++k)
+      {
+        auto SK = *Q.begin();
+        Q.erase(Q.begin());
         res.push_back(SK);
 
         auto const e  = SK.sidetracks.back();
@@ -958,7 +887,6 @@ protected:
 
         {
           auto const f_res = side_track(e.second, h_g);
-
           if (!f_res.first)
             continue;
           auto const &f = f_res.second;
@@ -966,7 +894,7 @@ protected:
           auto mod_sk = SK;
           mod_sk.sidetracks.push_back(f.edge);
           mod_sk.length += f.delta_weight;
-          Q.push(std::move(mod_sk));
+          Q.insert(std::move(mod_sk));
         }
         auto const it = edges_edges.find(e);
         if (it != edges_edges.cend())
@@ -990,7 +918,7 @@ protected:
                 mod_sk.sidetracks.push_back(f);
                 mod_sk.length += (ut->second - ot->second);
 
-                Q.push(std::move(mod_sk));
+                Q.insert(std::move(mod_sk));
               }
           }
       }

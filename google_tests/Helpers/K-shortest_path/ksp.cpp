@@ -337,7 +337,7 @@ TEST(KspTests, EppsteinOriginalNetwork)
   Graph<Input>     graph_cons(nodes, map);
   KFinder_Eppstein kfinder(graph_cons);
 
-  int k = 11; // Up to 10
+  int k = 100; // Up to 10
 
   std::vector<type_weight> real_sol = {
     55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
@@ -349,7 +349,7 @@ TEST(KspTests, EppsteinOriginalNetwork)
   path_lengths.reserve(k);
   real_path_lengths.reserve(k);
 
-  for (auto i = 0; i < k && i < path_lengths.size(); ++i)
+  for (auto i = 0; i < k && i < res.size(); ++i)
     {
       path_lengths.push_back(res[i].length);
       real_path_lengths.push_back(real_sol[i]);

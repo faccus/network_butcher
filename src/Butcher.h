@@ -112,16 +112,13 @@ private:
       {
         auto const &node          = *it;
         auto const &dep           = graph.dependencies[node.get_id()];
-        auto const  local_counter = dep.second.size() - dep.first.size();
+        int const   local_counter = dep.second.size() - dep.first.size();
 
         // Add new node
-        if (local_counter == 0 && counter == 0)
+        if (local_counter <= 0 && counter == 0)
           {
             new_nodes.emplace_back(id);
             new_content[node.get_id()] = id;
-
-            for (auto &in : new_dependencies.back().first)
-              new_dependencies[in].second.insert(id);
 
             ++id;
           }
@@ -134,8 +131,6 @@ private:
             ++id;
 
             new_nodes.emplace_back(id);
-            new_dependencies.emplace_back();
-            new_dependencies.back().first.insert(id - 1);
             new_content[id];
 
             counter += local_counter;
@@ -157,7 +152,6 @@ private:
             if (counter == 0)
               {
                 new_nodes.emplace_back(++id);
-
                 new_content[node.get_id()] = id;
 
                 if (local_counter >= 0)
@@ -165,6 +159,8 @@ private:
                     new_nodes.emplace_back(++id);
                     new_content[id];
                   }
+                else
+                  ++id;
               }
             else
               {
@@ -190,7 +186,7 @@ private:
           {i - 1}, {i + 1}));
     new_dependencies.emplace_back(
       std::make_pair<node_id_collection_type, node_id_collection_type>(
-        {new_nodes.size() - 1}, {}));
+        {new_nodes.size() - 2}, {}));
 
     return Graph(new_nodes, new_content, new_dependencies, false);
   }
@@ -199,6 +195,7 @@ private:
   block_graph_weights(
     type_collection_weights                       &new_weight_map,
     std::function<type_weight(edge_type const &)> &original_weights,
+    std::function<type_weight(edge_type const &)> &transmission_weights,
     Graph<node_id_type, node_id_type> const       &new_graph) const
   {
     std::unordered_map<node_id_type, std::set<node_id_type>>
@@ -207,39 +204,65 @@ private:
       map[node.second].insert(node.first);
 
     return
-      [&new_graph, &original_weights, &new_weight_map, &graph = graph, map](
-        edge_type const &edge) {
-        {
-          auto const candidate_sol = new_weight_map.find(edge);
-          if (candidate_sol != new_weight_map.cend())
-            return candidate_sol->second;
-        }
+      [&new_graph,
+       &original_weights,
+       &new_weight_map,
+       &transmission_weights,
+       &graph = graph,
+       map](edge_type const &edge) {
+        auto const candidate_sol = new_weight_map.find(edge);
+        if (candidate_sol != new_weight_map.cend())
+          return candidate_sol->second;
 
-        auto const it_out = map.find(edge.second);
+        auto const size = new_graph.nodes.size();
+
+        auto const first_index  = edge.first % size;
+        auto const second_index = edge.second % size;
+
+        if (first_index > second_index && second_index + 1 != first_index ||
+            second_index > first_index && first_index + 1 != second_index ||
+            first_index == second_index)
+          return -1.;
+
+        auto const it_out = map.find(second_index);
         if (it_out == map.cend() || it_out->second.size() == 0)
           return -1.;
-        auto const it_in = map.find(edge.first);
+
+        auto const it_in = map.find(first_index);
         if (it_in == map.cend() || it_in->second.size() == 0)
           return -1.;
 
         auto const &inputs  = it_in->second;
         auto const &outputs = it_out->second;
 
+        auto const in_device_id  = edge.first / size;
+        auto const out_device_id = edge.second / size;
+
+        auto const in_index_adj  = in_device_id * graph.nodes.size();
+        auto const out_index_adj = out_device_id * graph.nodes.size();
+
         if (outputs.size() == 1 && inputs.size() == 1)
           {
-            auto const res =
-              original_weights({*inputs.begin(), *outputs.begin()});
+            auto const tail_in  = *inputs.begin() + in_index_adj;
+            auto const tail_out = *inputs.begin() + out_index_adj;
+            auto const head     = *outputs.begin() + out_index_adj;
+
+            auto const res = original_weights({tail_out, head}) +
+                             transmission_weights({tail_in, head});
+
             new_weight_map[edge] = res;
             return res;
           }
         else if (outputs.size() == 1)
           {
             type_weight res = .0;
-            for (auto const &exit :
-                 graph.dependencies[*it_out->second.begin()].first)
+            for (auto const &exit : graph.dependencies[*outputs.begin()].first)
               {
                 auto const weight =
-                  original_weights({exit, *it_out->second.begin()});
+                  original_weights(
+                    {exit + out_index_adj, *outputs.begin() + out_index_adj}) +
+                  transmission_weights(
+                    {exit + in_index_adj, *outputs.begin() + out_index_adj});
 
                 if (weight < 0)
                   return -1.;
@@ -253,27 +276,34 @@ private:
           {
             type_weight res = .0;
 
-            for (auto const &node : outputs)
-              for (auto &dep : graph.dependencies[node].second)
-                if (outputs.find(dep) != outputs.cend())
-                  {
-                    auto const weight = original_weights({node, dep});
-
-                    if (weight < 0)
-                      return -1.;
-
-                    res += weight;
-                  }
-
             for (auto const &node : graph.dependencies[*inputs.begin()].second)
               {
-                auto const weight = original_weights({*inputs.begin(), node});
+                auto const weight = original_weights(
+                  {*inputs.begin() + out_index_adj, node + out_index_adj});
 
                 if (weight < 0)
                   return -1.;
 
                 res += weight;
               }
+
+            res += transmission_weights(
+              {*inputs.begin() + in_index_adj,
+               *graph.dependencies[*inputs.begin()].second.begin() +
+                 out_index_adj});
+
+            for (auto const &node : outputs)
+              for (auto &dep : graph.dependencies[node].second)
+                if (outputs.find(dep) != outputs.cend())
+                  {
+                    auto const weight = original_weights(
+                      {node + out_index_adj, dep + out_index_adj});
+
+                    if (weight < 0)
+                      return -1.;
+
+                    res += weight;
+                  }
 
             new_weight_map[edge] = res;
             return res;
@@ -368,17 +398,24 @@ public:
   std::vector<typename KFinder<node_id_type, node_id_type>::path_info>
   compute_k_shortest_paths_linear(
     std::function<type_weight(edge_type const &)> &weights,
+    std::function<type_weight(edge_type const &)> &transmission_weights,
     std::size_t                                    num_of_devices,
     std::size_t                                    k) const
   {
     auto const              new_graph = block_graph();
     type_collection_weights new_weight_map;
 
-    auto new_weights_fun =
-      block_graph_weights(new_weight_map, weights, new_graph);
+    auto new_weights_fun = block_graph_weights(new_weight_map,
+                                               weights,
+                                               transmission_weights,
+                                               new_graph);
 
     KFinder_Eppstein<node_id_type, node_id_type> kFinder(new_graph);
-    return kFinder.eppstein_linear(new_weight_map, k, num_of_devices);
+
+    auto const res =
+      kFinder.eppstein_linear(new_weights_fun, k, num_of_devices);
+
+    return res;
   }
 };
 

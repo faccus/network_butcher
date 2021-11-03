@@ -75,8 +75,12 @@ public:
 
             if (ref == weights.cend() || ref->second < 0)
               {
-                std::cout << "Error: missing weight (" << current_node.id
-                          << ", " << j << ")" << std::endl;
+                if (!reversed)
+                  std::cout << "Error: missing weight (" << current_node.id
+                            << ", " << j << ")" << std::endl;
+                else
+                  std::cout << "Error: missing weight (" << j << ", "
+                            << current_node.id << ")" << std::endl;
                 return {predecessors, total_distance};
               }
 
@@ -140,8 +144,12 @@ public:
 
             if (ref < 0)
               {
-                std::cout << "Error: missing weight (" << current_node.id
-                          << ", " << j << ")" << std::endl;
+                if (!reversed)
+                  std::cout << "Error: missing weight (" << current_node.id
+                            << ", " << j << ")" << std::endl;
+                else
+                  std::cout << "Error: missing weight (" << j << ", "
+                            << current_node.id << ")" << std::endl;
                 return {predecessors, total_distance};
               }
 
@@ -216,11 +224,25 @@ public:
                 auto  ref        = reversed ? weights.find({head, tail}) :
                                               weights.find({tail, head});
 
-                if (ref == weights.cend() || ref->second < 0)
+                if (ref == weights.cend())
                   {
-                    std::cout << "Error: missing weight (" << head << ", "
-                              << tail << ")" << std::endl;
+                    if (!reversed)
+                      std::cout << "Error: missing weight (" << head << ", "
+                                << tail << ")" << std::endl;
+                    else
+                      std::cout << "Error: missing weight (" << tail << ", "
+                                << head << ")" << std::endl;
                     return {predecessors, total_distance};
+                  }
+                else if (ref->second < 0)
+                  {
+                    if (!reversed)
+                      std::cout << "Error: missing weight (" << head << ", "
+                                << tail << ")" << std::endl;
+                    else
+                      std::cout << "Error: missing weight (" << tail << ", "
+                                << head << ")" << std::endl;
+                    continue;
                   }
 
                 auto const fake_node =
@@ -303,9 +325,13 @@ public:
 
                 if (ref < 0)
                   {
-                    std::cout << "Error: missing weight (" << head << ", "
-                              << tail << ")" << std::endl;
-                    return {predecessors, total_distance};
+                    if (!reversed)
+                      std::cout << "Error: missing weight (" << head << ", "
+                                << tail << ")" << std::endl;
+                    else
+                      std::cout << "Error: missing weight (" << tail << ", "
+                                << head << ")" << std::endl;
+                    continue;
                   }
 
                 auto const fake_node =
@@ -399,4 +425,4 @@ protected:
 };
 
 
-#endif // NETWORK_BUTCHER_KSP_H
+#endif // NETWORK_BUTCHER_KEPPSTEIN_H
