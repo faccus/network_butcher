@@ -363,3 +363,80 @@ TEST(KspTests, EppsteinLinearGraph)
 
   ASSERT_EQ(path_lengths, real_path_lengths);
 }
+
+
+TEST(KspTests, LazyEppsteinOriginalNetwork)
+{
+  using basic_type = int;
+  using Input      = TestMemoryUsage<basic_type>;
+
+  using type_weight = double;
+  using type_collection_weights =
+    std::map<std::pair<node_id_type, node_id_type>, type_weight>;
+
+
+  std::map<io_id_type, Input> map;
+  std::vector<node_type>      nodes;
+
+  nodes.push_back(node_type(0, {}, {0}, {}));
+
+  for (int i = 1; i < 12; ++i)
+    {
+      if (i < 4)
+        nodes.push_back(node_type(i, {i - 1}, {i}, {}));
+      else if (i == 4)
+        nodes.push_back(node_type(4, {0}, {4}, {}));
+      else if (4 < i && i < 8)
+        nodes.push_back(node_type(i, {i % 4, i - 1}, {i}, {}));
+      else if (i == 8)
+        nodes.push_back(node_type(8, {4}, {8}, {}));
+      else if (i > 8)
+        nodes.push_back(node_type(i, {i % 4 + 4, i - 1}, {i}, {}));
+    }
+
+  for (io_id_type i = 0; i < 12; ++i)
+    map[i] = i;
+
+  type_collection_weights weights;
+  weights[{0, 1}]   = 2;
+  weights[{1, 2}]   = 20;
+  weights[{2, 3}]   = 14;
+  weights[{0, 4}]   = 13;
+  weights[{1, 5}]   = 27;
+  weights[{2, 6}]   = 14;
+  weights[{3, 7}]   = 15;
+  weights[{4, 5}]   = 9;
+  weights[{5, 6}]   = 10;
+  weights[{6, 7}]   = 25;
+  weights[{4, 8}]   = 15;
+  weights[{5, 9}]   = 20;
+  weights[{6, 10}]  = 12;
+  weights[{7, 11}]  = 7;
+  weights[{8, 9}]   = 18;
+  weights[{9, 10}]  = 8;
+  weights[{10, 11}] = 11;
+
+
+  Graph<Input>     graph_cons(nodes, map);
+  KFinder_Eppstein kfinder(graph_cons);
+
+  int k = 100; // Up to 10
+
+  std::vector<type_weight> real_sol = {
+    55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
+  auto res = kfinder.lazy_eppstein(weights, real_sol.size());
+
+  std::vector<type_weight> real_path_lengths;
+  std::vector<type_weight> path_lengths;
+
+  path_lengths.reserve(k);
+  real_path_lengths.reserve(k);
+
+  for (auto i = 0; i < k && i < res.size(); ++i)
+    {
+      path_lengths.push_back(res[i].length);
+      real_path_lengths.push_back(real_sol[i]);
+    }
+
+  ASSERT_EQ(path_lengths, real_path_lengths);
+}
