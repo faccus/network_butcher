@@ -203,114 +203,207 @@ private:
     for (auto const &node : new_graph.nodes_content)
       map[node.second].insert(node.first);
 
-    return
-      [&new_graph,
-       &original_weights,
-       &new_weight_map,
-       &transmission_weights,
-       &graph = graph,
-       map](edge_type const &edge) {
-        auto const candidate_sol = new_weight_map.find(edge);
-        if (candidate_sol != new_weight_map.cend())
-          return candidate_sol->second;
+    return [&new_graph,
+            &original_weights,
+            &new_weight_map,
+            &transmission_weights,
+            &graph = graph,
+            map](edge_type const &edge) {
+      auto const candidate_sol = new_weight_map.find(edge);
+      if (candidate_sol != new_weight_map.cend())
+        return candidate_sol->second;
 
-        auto const size = new_graph.nodes.size();
+      auto const size = new_graph.nodes.size();
 
-        auto const first_index  = edge.first % size;
-        auto const second_index = edge.second % size;
+      auto const first_index =
+        edge.first < size ? edge.first : (edge.first - 2) % (size - 2) + 1;
 
-        if (first_index > second_index && second_index + 1 != first_index ||
-            second_index > first_index && first_index + 1 != second_index ||
-            first_index == second_index)
+      auto const second_index =
+        edge.second < size ? edge.second : (edge.second - 2) % (size - 2) + 1;
+
+
+      if (first_index > second_index && second_index + 1 != first_index ||
+          second_index > first_index && first_index + 1 != second_index ||
+          first_index == second_index)
+        {
+          std::cout
+            << "Requested an invalid edge: check if the graph is correct!"
+            << std::endl;
           return -1.;
+        }
 
-        auto const it_out = map.find(second_index);
-        if (it_out == map.cend() || it_out->second.size() == 0)
-          return -1.;
+      auto const it_out = map.find(second_index);
+      if (it_out == map.cend() || it_out->second.size() == 0)
+        return -1.;
 
-        auto const it_in = map.find(first_index);
-        if (it_in == map.cend() || it_in->second.size() == 0)
-          return -1.;
+      auto const it_in = map.find(first_index);
+      if (it_in == map.cend() || it_in->second.size() == 0)
+        return -1.;
 
-        auto const &inputs  = it_in->second;
-        auto const &outputs = it_out->second;
+      auto const &inputs  = it_in->second;
+      auto const &outputs = it_out->second;
 
-        auto const in_device_id  = edge.first / size;
-        auto const out_device_id = edge.second / size;
+      auto const in_device_id =
+        edge.first < size ? 0 : (edge.first - 2) / (size - 2);
+      auto const out_device_id =
+        edge.second < size ? 0 : (edge.second - 2) / (size - 2);
 
-        auto const in_index_adj  = in_device_id * graph.nodes.size();
-        auto const out_index_adj = out_device_id * graph.nodes.size();
+      auto const in_index_adj =
+        in_device_id == 0 ? 0 : 1 + (graph.nodes.size() - 2) * in_device_id;
+      auto const out_index_adj =
+        out_device_id == 0 ? 0 : 1 + (graph.nodes.size() - 2) * out_device_id;
 
-        if (outputs.size() == 1 && inputs.size() == 1)
-          {
-            auto const tail_in  = *inputs.begin() + in_index_adj;
-            auto const tail_out = *inputs.begin() + out_index_adj;
-            auto const head     = *outputs.begin() + out_index_adj;
+      if (outputs.size() == 1 && inputs.size() == 1)
+        {
+          if (first_index == 0)
+            {
+              auto const head    = *outputs.begin() + out_index_adj;
+              auto const tm_edge = std::make_pair(*inputs.begin(), head);
 
-            auto const res = original_weights({tail_out, head}) +
-                             transmission_weights({tail_in, head});
+              auto const res =
+                original_weights(tm_edge) + transmission_weights(tm_edge);
 
-            new_weight_map[edge] = res;
-            return res;
-          }
-        else if (outputs.size() == 1)
-          {
-            type_weight res = .0;
-            for (auto const &exit : graph.dependencies[*outputs.begin()].first)
-              {
-                auto const weight =
-                  original_weights(
-                    {exit + out_index_adj, *outputs.begin() + out_index_adj}) +
-                  transmission_weights(
-                    {exit + in_index_adj, *outputs.begin() + out_index_adj});
+              new_weight_map[edge] = res;
+              return res;
+            }
+          else if (second_index == size - 1)
+            {
+              auto const tail    = *inputs.begin() + in_index_adj;
+              auto const tm_edge = std::make_pair(tail, *outputs.begin());
 
-                if (weight < 0)
-                  return -1.;
+              auto const res =
+                original_weights(tm_edge) + transmission_weights(tm_edge);
 
-                res += weight;
-              }
-            new_weight_map[edge] = res;
-            return res;
-          }
-        else if (inputs.size() == 1)
-          {
-            type_weight res = .0;
+              new_weight_map[edge] = res;
+              return res;
+            }
+          else
+            {
+              auto const tail_in  = *inputs.begin() + in_index_adj;
+              auto const tail_out = *inputs.begin() + out_index_adj;
+              auto const head     = *outputs.begin() + out_index_adj;
 
-            for (auto const &node : graph.dependencies[*inputs.begin()].second)
-              {
-                auto const weight = original_weights(
-                  {*inputs.begin() + out_index_adj, node + out_index_adj});
+              auto const res = original_weights({tail_out, head}) +
+                               transmission_weights({tail_in, head});
 
-                if (weight < 0)
-                  return -1.;
+              new_weight_map[edge] = res;
+              return res;
+            }
+        }
+      else if (outputs.size() == 1)
+        {
+          type_weight res = .0;
+          if (second_index == size - 1)
+            {
+              for (auto const &exit :
+                   graph.dependencies[*outputs.begin()].first)
+                {
+                  auto const weight =
+                    original_weights({exit + in_index_adj, *outputs.begin()}) +
+                    transmission_weights(
+                      {exit + in_index_adj, *outputs.begin()});
 
-                res += weight;
-              }
+                  if (weight < 0)
+                    return -1.;
 
-            res += transmission_weights(
-              {*inputs.begin() + in_index_adj,
-               *graph.dependencies[*inputs.begin()].second.begin() +
-                 out_index_adj});
+                  res += weight;
+                }
+            }
+          else
+            {
+              for (auto const &exit :
+                   graph.dependencies[*outputs.begin()].first)
+                {
+                  auto const weight =
+                    original_weights({exit + out_index_adj,
+                                      *outputs.begin() + out_index_adj}) +
+                    transmission_weights(
+                      {exit + in_index_adj, *outputs.begin() + out_index_adj});
 
-            for (auto const &node : outputs)
-              for (auto &dep : graph.dependencies[node].second)
-                if (outputs.find(dep) != outputs.cend())
-                  {
-                    auto const weight = original_weights(
-                      {node + out_index_adj, dep + out_index_adj});
+                  if (weight < 0)
+                    return -1.;
 
-                    if (weight < 0)
-                      return -1.;
+                  res += weight;
+                }
+            }
+          new_weight_map[edge] = res;
+          return res;
+        }
+      else if (inputs.size() == 1)
+        {
+          type_weight res = .0;
 
-                    res += weight;
-                  }
+          if (first_index == 0)
+            {
+              for (auto const &node :
+                   graph.dependencies[*inputs.begin()].second)
+                {
+                  auto const weight =
+                    original_weights({*inputs.begin(), node + out_index_adj});
 
-            new_weight_map[edge] = res;
-            return res;
-          }
-        else
-          return -1.;
-      };
+                  if (weight < 0)
+                    return -1.;
+
+                  res += weight;
+                }
+
+              res += transmission_weights(
+                {*inputs.begin(),
+                 *graph.dependencies[*inputs.begin()].second.begin() +
+                   out_index_adj});
+
+              for (auto const &node : outputs)
+                for (auto &dep : graph.dependencies[node].second)
+                  if (outputs.find(dep) != outputs.cend())
+                    {
+                      auto const weight = original_weights(
+                        {node + out_index_adj, dep + out_index_adj});
+
+                      if (weight < 0)
+                        return -1.;
+
+                      res += weight;
+                    }
+            }
+          else
+            {
+              for (auto const &node :
+                   graph.dependencies[*inputs.begin()].second)
+                {
+                  auto const weight = original_weights(
+                    {*inputs.begin() + out_index_adj, node + out_index_adj});
+
+                  if (weight < 0)
+                    return -1.;
+
+                  res += weight;
+                }
+
+              res += transmission_weights(
+                {*inputs.begin() + in_index_adj,
+                 *graph.dependencies[*inputs.begin()].second.begin() +
+                   out_index_adj});
+
+              for (auto const &node : outputs)
+                for (auto &dep : graph.dependencies[node].second)
+                  if (outputs.find(dep) != outputs.cend())
+                    {
+                      auto const weight = original_weights(
+                        {node + out_index_adj, dep + out_index_adj});
+
+                      if (weight < 0)
+                        return -1.;
+
+                      res += weight;
+                    }
+            }
+
+          new_weight_map[edge] = res;
+          return res;
+        }
+      else
+        return -1.;
+    };
   }
 
 public:

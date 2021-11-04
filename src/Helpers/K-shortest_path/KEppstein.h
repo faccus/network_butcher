@@ -167,10 +167,11 @@ protected:
                          std::size_t devices) const // O(N+E*log(N))
   {
     H_out_map   h_out;
-    auto const &graph     = base::graph;
-    auto const  num_nodes = graph.nodes.size();
+    auto const &graph          = base::graph;
+    auto const  num_nodes      = graph.nodes.size();
+    auto const  real_num_nodes = num_nodes + (num_nodes - 2) * (devices - 1);
 
-    for (auto i = 0; i < num_nodes * devices; ++i)
+    for (auto i = 0; i < real_num_nodes; ++i)
       h_out.insert(h_out.cend(), {i, std::make_shared<H_out>()});
 
     for (auto const &edge_pair : sidetrack_distances) // O(E)
@@ -270,13 +271,15 @@ protected:
     auto const  num_nodes = graph.nodes.size();
     auto const &nodes     = graph.nodes;
 
+    auto const real_num_nodes = num_nodes + (num_nodes - 2) * (devices - 1);
+
     std::vector<std::set<node_id_type>> sp_dependencies;
     sp_dependencies.resize(num_nodes * devices);
 
-    for (auto i = 0; i < num_nodes * devices; ++i)
+    for (auto i = 0; i < real_num_nodes; ++i)
       res.insert(res.cend(), {i, H_g()});
 
-    for (auto i = 0; i < num_nodes * devices; ++i) // O(N)
+    for (auto i = 0; i < real_num_nodes; ++i) // O(N)
       {
         auto const &tmp = successors[i];
 
@@ -367,14 +370,14 @@ protected:
         std::size_t parent = (j - 1) / 2;
         if (j > 0 && parent != j)
           {
-            for (auto i = 0; i <= parent; ++i)
-              {
-                auto const &parent_edge =
-                  (*previous_steps[i])->heap.children.cbegin()->edge;
-                auto const &child_edge = (*it)->heap.children.cbegin()->edge;
+            // for (auto i = 0; i <= parent; ++i)
+            {
+              auto const &parent_edge =
+                (*previous_steps[parent])->heap.children.cbegin()->edge;
+              auto const &child_edge = (*it)->heap.children.cbegin()->edge;
 
-                edge_edges[parent_edge].insert(child_edge);
-              }
+              edge_edges[parent_edge].insert(child_edge);
+            }
           }
       }
   }
@@ -424,18 +427,79 @@ protected:
 
     for (std::size_t s = 0; s < devices; ++s)
       for (std::size_t k = 0; k < devices; ++k)
-        for (std::size_t i = 0; i < num_nodes; ++i)
-          for (auto const &dep : graph.dependencies[i].second)
-            {
-              auto const tail = i + s * num_nodes;
-              auto const head = dep + k * num_nodes;
-              auto const edge = std::make_pair(tail, head);
+        for (std::size_t i = 1; i < num_nodes - 2; ++i)
+          {
+            node_id_type tail = i;
 
-              res.insert(res.cend(),
-                         {edge,
-                          weights(edge) + distances_from_sink[head] -
-                            distances_from_sink[tail]}); // O(1)
+            if (s > 0)
+              {
+                if (s == 1)
+                  tail += num_nodes - 1;
+                else
+                  tail += num_nodes - 1 + (s - 1) * (num_nodes - 2);
+              }
+
+            node_id_type head = i + 1;
+
+            if (k > 0)
+              {
+                if (k == 1)
+                  head += num_nodes - 1;
+                else
+                  head += num_nodes - 1 + (k - 1) * (num_nodes - 2);
+              }
+
+            auto const edge = std::make_pair(tail, head);
+
+            res.insert(res.cend(),
+                       {edge,
+                        weights(edge) + distances_from_sink[head] -
+                          distances_from_sink[tail]}); // O(1)
+          }
+
+    if (num_nodes > 1)
+      for (std::size_t k = 0; k < devices; ++k)
+        {
+          const node_id_type tail = 0;
+          node_id_type       head = 1;
+
+          if (k > 0)
+            {
+              if (k == 1)
+                head += num_nodes - 1;
+              else
+                head += num_nodes - 1 + (k - 1) * (num_nodes - 2);
             }
+
+          auto const edge = std::make_pair(tail, head);
+
+          res.insert(res.cend(),
+                     {edge,
+                      weights(edge) + distances_from_sink[head] -
+                        distances_from_sink[tail]}); // O(1)
+        }
+
+    if (num_nodes > 2)
+      for (std::size_t s = 0; s < devices; ++s)
+        {
+          node_id_type       tail = num_nodes - 2;
+          const node_id_type head = num_nodes - 1;
+
+          if (s > 0)
+            {
+              if (s == 1)
+                tail += num_nodes - 1;
+              else
+                tail += num_nodes - 1 + (s - 1) * (num_nodes - 2);
+            }
+
+          auto const edge = std::make_pair(tail, head);
+
+          res.insert(res.cend(),
+                     {edge,
+                      weights(edge) + distances_from_sink[head] -
+                        distances_from_sink[tail]}); // O(1)
+        }
 
     return res;
   }
@@ -686,18 +750,11 @@ protected:
         if (f_res.first)
           {
             auto const &f = f_res.second;
-            auto const  fake_node =
-              (f.edge.first != 0 && f.edge.first % graph.nodes.size() == 0) ||
-              (f.edge.second != graph.nodes.size() - 1 &&
-               f.edge.second % graph.nodes.size() == graph.nodes.size() - 1);
 
-            if (!fake_node)
-              {
-                auto mod_sk = SK;
-                mod_sk.sidetracks.push_back(f.edge);
-                mod_sk.length += f.delta_weight;
-                Q.insert(std::move(mod_sk));
-              }
+            auto mod_sk = SK;
+            mod_sk.sidetracks.push_back(f.edge);
+            mod_sk.length += f.delta_weight;
+            Q.insert(std::move(mod_sk));
           }
 
         auto const it = edges_edges.find(e);
@@ -705,18 +762,8 @@ protected:
           {
             SK.sidetracks.pop_back();
 
-            for (auto &f_child : it->second)
+            for (auto const &f_child : it->second)
               {
-                auto const fake_node =
-                  (f_child.first != 0 &&
-                   f_child.first % graph.nodes.size() == 0) ||
-                  (f_child.second != graph.nodes.size() - 1 &&
-                   f_child.second % graph.nodes.size() ==
-                     graph.nodes.size() - 1);
-
-                if (fake_node)
-                  continue;
-
                 auto ut = sidetrack_distances_res.find(f_child);
 
                 if (ut == sidetrack_distances_res.cend())
@@ -745,8 +792,7 @@ protected:
   [[nodiscard]] std::vector<implicit_path_info>
   basic_lazy_eppstein(std::function<type_weight(edge_type const &)> &weights,
                       std::size_t                                    K,
-                      std::pair<std::vector<node_id_type>,
-                                std::vector<type_weight>> const     &dij_res)
+                      dij_res_type const                            &dij_res)
   {
     std::vector<implicit_path_info> res;
     res.push_back({{}, dij_res.second.front()}); // O(K)
