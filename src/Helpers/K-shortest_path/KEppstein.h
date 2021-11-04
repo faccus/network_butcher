@@ -355,12 +355,48 @@ protected:
   }
 
   void
+  get_internal_edges(std::map<edge_type, std::vector<edge_type>> &edge_edges,
+                     H_out_pointer const                         &h_out,
+                     std::vector<node_id_type> const &successors) const
+  {
+    std::size_t                                      j = 0;
+    std::vector<std::set<edge_info>::const_iterator> previous_steps;
+    previous_steps.reserve(h_out->heap.children.size());
+    auto const &graph = base::graph;
+
+    for (auto it = h_out->heap.children.cbegin();
+         it != h_out->heap.children.cend();
+         ++it, ++j)
+      {
+        previous_steps.push_back(it);
+
+        std::size_t parent = j / 2;
+        if (parent != j)
+          {
+            auto const &parent_edge = previous_steps[parent]->edge;
+            auto const &child_edge  = it->edge;
+
+            auto n = parent_edge.first; //
+            while (n != child_edge.first && n != graph.nodes.size() - 1)
+              n = successors[n];
+            if (n == child_edge.first)
+              {
+                edge_edges[parent_edge].reserve(4);
+                edge_edges[parent_edge].push_back(child_edge);
+              }
+          }
+      }
+  }
+
+
+  void
   get_internal_edges(std::map<edge_type, std::set<edge_type>> &edge_edges,
                      H_g const                                &h_g) const
   {
     std::size_t                                          j = 0;
     std::vector<std::set<H_out_pointer>::const_iterator> previous_steps;
     previous_steps.reserve(h_g.children.size());
+    const auto &graph = base::graph;
 
     for (auto it = h_g.children.cbegin(); it != h_g.children.cend(); ++it, ++j)
       {
@@ -383,13 +419,61 @@ protected:
   }
 
   void
-  get_edge_edges(std::map<edge_type, std::set<edge_type>> &edge_edges,
-                 std::map<node_id_type, H_g> const        &h_gs) const
+  get_internal_edges(std::map<edge_type, std::vector<edge_type>> &edge_edges,
+                     H_g const                                   &h_g,
+                     std::vector<node_id_type> const &successors) const
   {
-    for (auto it = h_gs.cbegin(); it != h_gs.cend(); ++it) // O(N)
-      get_internal_edges(edge_edges, it->second);
+    std::size_t                                          j = 0;
+    std::vector<std::set<H_out_pointer>::const_iterator> previous_steps;
+    previous_steps.reserve(h_g.children.size());
+    const auto &graph = base::graph;
+
+    for (auto it = h_g.children.cbegin(); it != h_g.children.cend(); ++it, ++j)
+      {
+        previous_steps.push_back(it);
+        get_internal_edges(edge_edges, *it, successors);
+
+        std::size_t parent = (j - 1) / 2;
+        if (j > 0 && parent != j)
+          {
+            // for (auto i = 0; i <= parent; ++i)
+            {
+              auto const &parent_edge =
+                (*previous_steps[parent])->heap.children.cbegin()->edge;
+              auto const &child_edge = (*it)->heap.children.cbegin()->edge;
+
+              auto n = parent_edge.second;
+              while (successors[n] != child_edge.first &&
+                     successors[n] != graph.nodes.size() - 1)
+                n = successors[n];
+              if (n == child_edge.first)
+                {
+                  edge_edges[parent_edge].reserve(4);
+                  edge_edges[parent_edge].push_back(child_edge);
+                }
+            }
+          }
+      }
   }
 
+  [[nodiscard]] std::map<edge_type, std::set<edge_type>>
+  get_edge_edges(std::map<node_id_type, H_g> const &h_gs) const
+  {
+    std::map<edge_type, std::set<edge_type>> res;
+    for (auto it = h_gs.cbegin(); it != h_gs.cend(); ++it) // O(N)
+      get_internal_edges(res, it->second);
+    return res;
+  }
+
+  [[nodiscard]] std::map<edge_type, std::vector<edge_type>>
+  get_edge_edges(std::map<node_id_type, H_g> const &h_gs,
+                 std::vector<node_id_type> const   &successors) const
+  {
+    std::map<edge_type, std::vector<edge_type>> res;
+    for (auto it = h_gs.cbegin(); it != h_gs.cend(); ++it) // O(N)
+      get_internal_edges(res, it->second, successors);
+    return res;
+  }
 
   [[nodiscard]] type_collection_weights
   sidetrack_distances(std::function<type_weight(edge_type const &)> &weights,
@@ -605,8 +689,7 @@ protected:
     auto const h_out = construct_h_out(successors, sidetrack_distances_res);
 
     auto const h_g         = construct_h_g(h_out, successors);
-    auto       edges_edges = std::map<edge_type, std::set<edge_type>>();
-    get_edge_edges(edges_edges, h_g);
+    auto       edges_edges = get_edge_edges(h_g);
 
     auto const first_side_track_res = side_track(0, h_g);
     if (!first_side_track_res.first)
@@ -672,6 +755,20 @@ protected:
                 mod_sk.sidetracks.push_back(f);
                 mod_sk.length += (ut->second - ot->second);
 
+                if (!SK.sidetracks.empty())
+                  {
+                    auto n =
+                      mod_sk.sidetracks[mod_sk.sidetracks.size() - 2].second;
+                    while (n != graph.nodes.size() - 1 &&
+                           n != mod_sk.sidetracks.back().first)
+                      {
+                        n = successors[n];
+                      }
+
+                    if (n != mod_sk.sidetracks.back().first)
+                      continue;
+                  }
+
                 Q.insert(std::move(mod_sk));
               }
           }
@@ -711,8 +808,7 @@ protected:
       construct_h_out_linear(successors, sidetrack_distances_res, devices);
 
     auto const h_g         = construct_h_g_linear(h_out, successors, devices);
-    auto       edges_edges = std::map<edge_type, std::set<edge_type>>();
-    get_edge_edges(edges_edges, h_g);
+    auto       edges_edges = get_edge_edges(h_g);
 
     auto const first_side_track_res = side_track(0, h_g);
     if (!first_side_track_res.first)
@@ -762,22 +858,36 @@ protected:
           {
             SK.sidetracks.pop_back();
 
-            for (auto const &f_child : it->second)
+            for (auto const &f : it->second)
               {
-                auto ut = sidetrack_distances_res.find(f_child);
+                auto ut = sidetrack_distances_res.find(f);
 
                 if (ut == sidetrack_distances_res.cend())
                   {
                     std::cout << "Error: cannot find proper sidetrack distance "
                                  "for edge ("
-                              << f_child.first << ", " << f_child.second << ")"
+                              << f.first << ", " << f.second << ")"
                               << std::endl;
                     continue;
                   }
 
                 auto mod_sk = SK;
-                mod_sk.sidetracks.push_back(f_child);
+                mod_sk.sidetracks.push_back(f);
                 mod_sk.length += (ut->second - ot->second);
+
+                if (!SK.sidetracks.empty())
+                  {
+                    auto n =
+                      mod_sk.sidetracks[mod_sk.sidetracks.size() - 2].second;
+                    while (n != graph.nodes.size() - 1 &&
+                           n != mod_sk.sidetracks.back().first)
+                      {
+                        n = successors[n];
+                      }
+
+                    if (n != mod_sk.sidetracks.back().first)
+                      continue;
+                  }
 
                 Q.insert(std::move(mod_sk));
               }

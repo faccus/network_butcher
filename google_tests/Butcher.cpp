@@ -179,14 +179,11 @@ TEST(ButcherTest, compute_k_shortest_paths_linear)
                                                            transmission_fun,
                                                            num_devices,
                                                            1000);
-  std::set<KFinder<node_id_type, node_id_type>::path_info> tmp_res;
-  tmp_res.insert(res.cbegin(), res.cend());
 
   for (auto i = 0; i < res.size(); ++i)
     for (auto j = 0; j < res.size(); ++j)
       if (i != j && !(res[i] < res[j] || res[j] < res[i]))
-        std::cout << std::endl;
+        ASSERT_TRUE(!(res[i] < res[j] || res[j] < res[i]));
 
-
-  std::cout << std::endl;
+  ASSERT_EQ(res.size(), 81);
 }
