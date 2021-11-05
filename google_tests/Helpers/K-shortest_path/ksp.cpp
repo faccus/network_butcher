@@ -440,3 +440,57 @@ TEST(KspTests, LazyEppsteinOriginalNetwork)
 
   ASSERT_EQ(path_lengths, real_path_lengths);
 }
+
+TEST(KspTests, LazyEppsteinLinearGraph)
+{
+  using basic_type = int;
+  using Input      = TestMemoryUsage<basic_type>;
+
+  using type_weight = double;
+  using type_collection_weights =
+    std::map<std::pair<node_id_type, node_id_type>, type_weight>;
+
+
+  std::map<io_id_type, Input> map;
+  std::vector<node_type>      nodes;
+
+  nodes.emplace_back(node_type(0, {}, {0}));
+  nodes.emplace_back(node_type(1, {0}, {1}));
+  nodes.emplace_back(node_type(2, {1, 4}, {2}));
+  nodes.emplace_back(node_type(3, {2, 5}, {3}));
+
+
+  for (io_id_type i = 0; i < nodes.size(); ++i)
+    map[i] = i;
+
+  type_collection_weights weights;
+  weights[{0, 1}] = 1;
+  weights[{0, 4}] = 0;
+  weights[{1, 2}] = 1;
+  weights[{1, 5}] = 1;
+  weights[{2, 3}] = 1;
+  weights[{4, 2}] = 2;
+  weights[{4, 5}] = 1;
+  weights[{5, 3}] = 0;
+
+  Graph<Input>     graph_cons(nodes, map);
+  KFinder_Eppstein kfinder(graph_cons);
+  auto             res = kfinder.lazy_eppstein_linear(weights, 1000, 2);
+
+  int                      k       = 10;
+  std::vector<type_weight> lengths = {1, 2, 3, 3};
+
+  std::vector<type_weight> real_path_lengths;
+  std::vector<type_weight> path_lengths;
+
+  path_lengths.reserve(k);
+  real_path_lengths.reserve(k);
+
+  for (auto i = 0; i < k && i < path_lengths.size(); ++i)
+    {
+      path_lengths.push_back(res[i].length);
+      real_path_lengths.push_back(lengths[i]);
+    }
+
+  ASSERT_EQ(path_lengths, real_path_lengths);
+}

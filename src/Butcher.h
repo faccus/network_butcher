@@ -489,7 +489,7 @@ public:
   /// \param k The number of shortest paths to find
   /// \return The k shortest paths
   std::vector<typename KFinder<node_id_type, node_id_type>::path_info>
-  compute_k_shortest_paths_linear(
+  compute_k_shortest_paths_eppstein_linear(
     std::function<type_weight(edge_type const &)> &weights,
     std::function<type_weight(edge_type const &)> &transmission_weights,
     std::size_t                                    num_of_devices,
@@ -507,6 +507,36 @@ public:
 
     auto const res =
       kFinder.eppstein_linear(new_weights_fun, k, num_of_devices);
+
+    return res;
+  }
+
+  /// It will prodice the k-shortest paths for the linearized block graph
+  /// associated with the original one
+  /// \param weights The weight map function, that associates to every edge
+  /// (also the "fake" ones) the corresponding weight
+  /// \param num_of_devices The number of devices
+  /// \param k The number of shortest paths to find
+  /// \return The k shortest paths
+  std::vector<typename KFinder<node_id_type, node_id_type>::path_info>
+  compute_k_shortest_paths_lazy_eppstein_linear(
+    std::function<type_weight(edge_type const &)> &weights,
+    std::function<type_weight(edge_type const &)> &transmission_weights,
+    std::size_t                                    num_of_devices,
+    std::size_t                                    k) const
+  {
+    auto const              new_graph = block_graph();
+    type_collection_weights new_weight_map;
+
+    auto new_weights_fun = block_graph_weights(new_weight_map,
+                                               weights,
+                                               transmission_weights,
+                                               new_graph);
+
+    KFinder_Eppstein<node_id_type, node_id_type> kFinder(new_graph);
+
+    auto const res =
+      kFinder.lazy_eppstein_linear(new_weights_fun, k, num_of_devices);
 
     return res;
   }
