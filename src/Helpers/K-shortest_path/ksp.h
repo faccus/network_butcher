@@ -34,6 +34,13 @@ public:
     : graph(g){};
 
 
+  /// Executes dijkstra algorithm to compute the shortest paths from the root to
+  /// evert node for the given graph \param weights The weight map of the edges
+  /// \param root The starting vertex
+  /// \param reversed Reverses the edge directions
+  /// \return A pair: the first element is the collection of the successors
+  /// (along the shortest path) of the different nodes while the second element
+  /// is the shortest path length
   [[nodiscard]] std::pair<std::vector<node_id_type>, std::vector<type_weight>>
   dijkstra(type_collection_weights const &weights,
            node_id_type                   root = 0,
@@ -50,6 +57,13 @@ public:
     return dijkstra(weight_fun, root, reversed);
   }
 
+  /// Executes dijkstra algorithm to compute the shortest paths from the root to
+  /// evert node for the given graph \param weights The weight map of the edges
+  /// \param root The starting vertex
+  /// \param reversed Reverses the edge directions
+  /// \return A pair: the first element is the collection of the successors
+  /// (along the shortest path) of the different nodes while the second element
+  /// is the shortest path length
   [[nodiscard]] std::pair<std::vector<node_id_type>, std::vector<type_weight>>
   dijkstra(std::function<type_weight(edge_type const &)> &weights,
            node_id_type                                   root = 0,
@@ -119,6 +133,14 @@ public:
   }
 
 
+  /// Executes dijkstra algorithm to compute the shortest paths from the root to
+  /// evert node for the given linear graph
+  /// \param weights The weight map of the edges
+  /// \param root The starting vertex
+  /// \param reversed Reverses the edge directions
+  /// \return A pair: the first element is the collection of the successors
+  /// (along the shortest path) of the different nodes while the second element
+  /// is the shortest path length
   [[nodiscard]] std::pair<std::vector<node_id_type>, std::vector<type_weight>>
   dijkstra_linear(type_collection_weights const &weights,
                   node_id_type                   root,
@@ -137,6 +159,14 @@ public:
     return dijkstra_linear(weights, root, reversed, devices);
   }
 
+  /// Executes dijkstra algorithm to compute the shortest paths from the root to
+  /// evert node for the given linear graph
+  /// \param weights The weight map of the edges
+  /// \param root The starting vertex
+  /// \param reversed Reverses the edge directions
+  /// \return A pair: the first element is the collection of the successors
+  /// (along the shortest path) of the different nodes while the second element
+  /// is the shortest path length
   [[nodiscard]] std::pair<std::vector<node_id_type>, std::vector<type_weight>>
   dijkstra_linear(std::function<type_weight(edge_type const &)> &weights,
                   node_id_type                                   root,
@@ -232,12 +262,24 @@ public:
     return {predecessors, total_distance};
   }
 
+  /// Computes through dijkstra the shortest path single destination tree for
+  /// the given graph
+  /// \param weights The weight map of the edges
+  /// \return A pair: the first element is the collection of the successors
+  /// (along the shortest path) of the different nodes while the second element
+  /// is the shortest path length
   [[nodiscard]] std::pair<std::vector<node_id_type>, std::vector<type_weight>>
   shortest_path_tree(type_collection_weights const &weights) const
   {
     return dijkstra(weights, graph.nodes.size() - 1, true);
   } // time: ((N+E)log(N)), space: O(N)
 
+  /// Computes through dijkstra the shortest path single destination tree for
+  /// the given linear graph
+  /// \param weights The weight map of the edges
+  /// \return A pair: the first element is the collection of the successors
+  /// (along the shortest path) of the different nodes while the second element
+  /// is the shortest path length
   [[nodiscard]] std::pair<std::vector<node_id_type>, std::vector<type_weight>>
   shortest_path_tree_linear(type_collection_weights const &weights,
                             std::size_t                    devices) const
@@ -245,6 +287,12 @@ public:
     return dijkstra_linear(weights, graph.nodes.size() - 1, true, devices);
   } // time: ((N+E)log(N)), space: O(N)
 
+  /// Computes through dijkstra the shortest path single destination tree for
+  /// the given graph
+  /// \param weights The weight map of the edges
+  /// \return A pair: the first element is the collection of the successors
+  /// (along the shortest path) of the different nodes while the second element
+  /// is the shortest path length
   [[nodiscard]] std::pair<std::vector<node_id_type>, std::vector<type_weight>>
   shortest_path_tree(
     std::function<type_weight(edge_type const &)> &weights) const
@@ -252,6 +300,12 @@ public:
     return dijkstra(weights, graph.nodes.size() - 1, true);
   } // time: ((N+E)log(N)), space: O(N)
 
+  /// Computes through dijkstra the shortest path single destination tree for
+  /// the given linear graph
+  /// \param weights The weight map of the edges
+  /// \return A pair: the first element is the collection of the successors
+  /// (along the shortest path) of the different nodes while the second element
+  /// is the shortest path length
   [[nodiscard]] std::pair<std::vector<node_id_type>, std::vector<type_weight>>
   shortest_path_tree_linear(
     std::function<type_weight(edge_type const &)> &weights,
@@ -262,6 +316,7 @@ public:
 
 
 protected:
+  /// A helper struct for the dijkstra algo
   struct dijkstra_helper_struct
   {
     type_weight  weight;
@@ -277,6 +332,10 @@ protected:
   Graph<T, id_content> const &graph;
 
 
+  ///
+  /// \param dij_res
+  /// \param root
+  /// \return
   path_info
   shortest_path_finder(std::pair<std::vector<node_id_type>,
                                  std::vector<type_weight>> const &dij_res,
