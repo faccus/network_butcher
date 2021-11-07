@@ -29,6 +29,7 @@ private:
   void
   compute_dependencies()
   {
+    // Reset the dependency vector.
     dependencies = std::vector<
       std::pair<node_id_collection_type, node_id_collection_type>>();
     dependencies.resize(nodes.size());
@@ -37,6 +38,7 @@ private:
     std::unordered_map<io_id_type, node_id_collection_type> input_appearances;
     std::unordered_map<io_id_type, node_id_collection_type> output_appearances;
 
+    // Check which node has which input/output
     for (auto const &node : nodes)
       {
         for (auto &in : node.get_input())
@@ -45,6 +47,7 @@ private:
           output_appearances[out].insert(node.get_id());
       }
 
+    // Matched the input of a node to his outputs and viceversa
     for (auto const &appearance : input_appearances)
       {
         auto const &neib = output_appearances[appearance.first];
@@ -163,6 +166,7 @@ private:
   void
   compute_dependencies()
   {
+    // Reset the dependency vector.
     dependencies = std::vector<
       std::pair<node_id_collection_type, node_id_collection_type>>();
     dependencies.resize(nodes.size());
@@ -171,6 +175,7 @@ private:
     std::unordered_map<io_id_type, node_id_collection_type> input_appearances;
     std::unordered_map<io_id_type, node_id_collection_type> output_appearances;
 
+    // Check which node has which input/output
     for (auto const &node : nodes)
       {
         for (auto &in : node.get_input())
@@ -179,6 +184,7 @@ private:
           output_appearances[out].insert(node.get_id());
       }
 
+    // Matched the input of a node to his outputs and viceversa
     for (auto const &appearance : input_appearances)
       {
         auto const &neib = output_appearances[appearance.first];
@@ -244,6 +250,8 @@ public:
   explicit Graph(const onnx::ModelProto &model, bool ignore_parameters = false)
   {
     const auto                    &in_graph = model.graph();
+
+
     Map_IO                         io_value_infos_graph;
     std::unordered_set<io_id_type> parameters_id;
 

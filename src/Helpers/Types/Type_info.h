@@ -6,7 +6,9 @@
 #define NETWORK_BUTCHER_TYPE_INFO_H
 
 #include <string>
+
 #include "../Traits/Basic_traits.h"
+#include "../Traits/Hardware_traits.h"
 
 /// Generic type contained in a onnx model (only type info, no values are actually stored)
 class Type_info

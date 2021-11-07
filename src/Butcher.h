@@ -64,8 +64,6 @@ private:
 
 
   /// Given a vector of slices, verify which ones applied to tester return true.
-  /// Note that, at the end, all the ok slices will be moved to the return
-  /// vector, while the non-compatible ones will be deleted
   /// \param slices The vector of input slices
   /// \param tester The tester function
   /// \return The slices that satisfy the tester function
@@ -78,13 +76,7 @@ private:
     for (int i = 0; i < slices.size(); ++i)
       {
         if (tester(slices[i]))
-          res.push_back(std::move(slices[i]));
-        else
-          {
-            {
-              slice_type tmp(std::move(slices[i]));
-            }
-          }
+          res.push_back(slices[i]);
       }
 
     return res;
@@ -101,8 +93,12 @@ private:
     std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
       new_dependencies;
 
+    // Counter is used to establish if the current node has more output
+    // connections than the inputs one.
     int counter = graph.dependencies.front().second.size() -
                   graph.dependencies.front().first.size() - 1;
+
+    // Id of the node to be inserted
     std::size_t id = 0;
 
     new_nodes.reserve(graph.nodes.size());
@@ -137,24 +133,24 @@ private:
             counter += local_counter;
           }
         // Add node link to the "big" node
-        else if (local_counter == 0 && dep.second.size() == 1 && counter > 0)
+        else if ((local_counter == 0 && dep.second.size() == 1 ||
+                  local_counter > 0 && dep.first.size() <= 1) &&
+                 counter > 0)
           {
             new_content[node.get_id()] = id;
-          }
-        else if (local_counter > 0 && counter > 0 && dep.first.size() <= 1)
-          {
-            new_content[node.get_id()] = id;
-            counter += local_counter;
           }
         else if (counter > 0 && ((local_counter >= 0 && dep.first.size() > 1) ||
                                  (local_counter < 0)))
           {
             counter -= (dep.first.size() - 1);
+
+            // End of the master node
             if (counter == 0)
               {
                 new_nodes.emplace_back(++id);
                 new_content[node.get_id()] = id;
 
+                // Do we have to add another master node?
                 if (local_counter >= 0)
                   {
                     new_nodes.emplace_back(++id);
@@ -181,10 +177,13 @@ private:
       std::make_pair<node_id_collection_type, node_id_collection_type>({},
                                                                        {1}));
 
+    // Since the graph is linear, the input of the i-th node is the node i-1
+    // while the output is the node i+1
     for (node_id_type i = 1; i < new_nodes.size() - 1; ++i)
       new_dependencies.emplace_back(
         std::make_pair<node_id_collection_type, node_id_collection_type>(
           {i - 1}, {i + 1}));
+
     new_dependencies.emplace_back(
       std::make_pair<node_id_collection_type, node_id_collection_type>(
         {new_nodes.size() - 2}, {}));
@@ -212,6 +211,7 @@ private:
   {
     std::unordered_map<node_id_type, std::set<node_id_type>>
       map; // New node -> Old nodes
+
     for (auto const &node : new_graph.nodes_content)
       map[node.second].insert(node.first);
 
@@ -221,15 +221,18 @@ private:
             &transmission_weights,
             &graph = graph,
             map](edge_type const &edge) {
+      // If a weight was created, return it
       auto const candidate_sol = new_weight_map.find(edge);
       if (candidate_sol != new_weight_map.cend())
         return candidate_sol->second;
 
       auto const size = new_graph.nodes.size();
 
+      // The index of the input node on the linearized graph
       auto const first_index =
         edge.first < size ? edge.first : (edge.first - 2) % (size - 2) + 1;
 
+      // The index of the output node on the linearized graph
       auto const second_index =
         edge.second < size ? edge.second : (edge.second - 2) % (size - 2) + 1;
 
@@ -244,10 +247,14 @@ private:
           return -1.;
         }
 
+      // Look for the nodes of the original graph that are represented by the
+      // output node (in the linearized graph)
       auto const it_out = map.find(second_index);
       if (it_out == map.cend() || it_out->second.size() == 0)
         return -1.;
 
+      // Look for the nodes of the original graph that are represented by the
+      // input node (in the linearized graph)
       auto const it_in = map.find(first_index);
       if (it_in == map.cend() || it_in->second.size() == 0)
         return -1.;
@@ -255,16 +262,21 @@ private:
       auto const &inputs  = it_in->second;
       auto const &outputs = it_out->second;
 
+      // The device id of the input node (=0 starting device, >0 other device)
       auto const in_device_id =
         edge.first < size ? 0 : (edge.first - 2) / (size - 2);
+      // The device id of the output node (=0 starting device, >0 other device)
       auto const out_device_id =
         edge.second < size ? 0 : (edge.second - 2) / (size - 2);
 
+      // The padding to be inserted to the nodes of the original graph to obtain
+      // the corresponding node on the multi-device graph
       auto const in_index_adj =
         in_device_id == 0 ? 0 : 1 + (graph.nodes.size() - 2) * in_device_id;
       auto const out_index_adj =
         out_device_id == 0 ? 0 : 1 + (graph.nodes.size() - 2) * out_device_id;
 
+      // 1-1 correspondence
       if (outputs.size() == 1 && inputs.size() == 1)
         {
           if (first_index == 0)
@@ -302,9 +314,14 @@ private:
               return res;
             }
         }
+      // (2+)-1 correspondence. The idea is that the input nodes must transmit
+      // to the output node the different values. Thus, the transmission cost is
+      // paid serveral times
       else if (outputs.size() == 1)
         {
           type_weight res = .0;
+          // For convention, the last node is a "communication" node. Thus, we
+          // read the weights directly from the real input id
           if (second_index == size - 1)
             {
               for (auto const &exit :
@@ -321,6 +338,8 @@ private:
                   res += weight;
                 }
             }
+          // Here, the weight is read on the appropriate nodes of the original
+          // graph
           else
             {
               for (auto const &exit :
@@ -341,10 +360,15 @@ private:
           new_weight_map[edge] = res;
           return res;
         }
+      // 1-(2+). In this case, the input is sent to the device of the output
+      // nodes a single time. Thus, this transmission cost is taken into account
+      // only once.
       else if (inputs.size() == 1)
         {
           type_weight res = .0;
 
+          // If it's the starting node, then, by convention, the weights are
+          // explicit
           if (first_index == 0)
             {
               for (auto const &node :
@@ -363,20 +387,9 @@ private:
                 {*inputs.begin(),
                  *graph.dependencies[*inputs.begin()].second.begin() +
                    out_index_adj});
-
-              for (auto const &node : outputs)
-                for (auto &dep : graph.dependencies[node].second)
-                  if (outputs.find(dep) != outputs.cend())
-                    {
-                      auto const weight = original_weights(
-                        {node + out_index_adj, dep + out_index_adj});
-
-                      if (weight < 0)
-                        return -1.;
-
-                      res += weight;
-                    }
             }
+          // In this case, the weights are implicit. Thus, we have to look for
+          // the correct weights
           else
             {
               for (auto const &node :
@@ -395,20 +408,22 @@ private:
                 {*inputs.begin() + in_index_adj,
                  *graph.dependencies[*inputs.begin()].second.begin() +
                    out_index_adj});
-
-              for (auto const &node : outputs)
-                for (auto &dep : graph.dependencies[node].second)
-                  if (outputs.find(dep) != outputs.cend())
-                    {
-                      auto const weight = original_weights(
-                        {node + out_index_adj, dep + out_index_adj});
-
-                      if (weight < 0)
-                        return -1.;
-
-                      res += weight;
-                    }
             }
+
+          // Compute the total weight associated to the non-outputs node of the
+          // output node.
+          for (auto const &node : outputs)
+            for (auto &dep : graph.dependencies[node].second)
+              if (outputs.find(dep) != outputs.cend())
+                {
+                  auto const weight = original_weights(
+                    {node + out_index_adj, dep + out_index_adj});
+
+                  if (weight < 0)
+                    return -1.;
+
+                  res += weight;
+                }
 
           new_weight_map[edge] = res;
           return res;
