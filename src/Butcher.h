@@ -5,14 +5,18 @@
 #ifndef NETWORK_BUTCHER_BUTCHER_H
 #define NETWORK_BUTCHER_BUTCHER_H
 
+#include "Helpers/Traits/Graph_traits.h"
+#include "Helpers/Traits/Hardware_traits.h"
+
 #include "Helpers/Computer/Computer_memory.h"
-#include "Helpers/Computer/Hardware_specifications.h"
+
 #include "Network/Graph.h"
 #include "Network/Node.h"
 
 #include "Helpers/K-shortest_path/KEppstein.h"
-#include "Helpers/Traits/Graph_traits.h"
+
 #include "Helpers/Types/Type_info.h"
+
 #include "Helpers/Utilities.h"
 
 
@@ -24,16 +28,9 @@ private:
   using network = Graph<T>;
   network graph;
 
-public:
-  const network &
-  getGraph() const
-  {
-    return graph;
-  }
-
-private:
   /// Compute the minimal connected graphs (with dependencies) containing every
-  /// node \return returns the smallest connected sub-graph (with dependencies)
+  /// node
+  /// \return returns the smallest connected sub-graph (with dependencies)
   /// that connects the first node with the n-th node
   [[nodiscard]] std::vector<slice_type>
   compute_basic_routes() const
@@ -65,11 +62,13 @@ private:
     return basic_routes;
   };
 
+
   /// Given a vector of slices, verify which ones applied to tester return true.
   /// Note that, at the end, all the ok slices will be moved to the return
-  /// vector, while the non-compatible ones will be deleted \param slices The
-  /// vector of input slices \param tester The tester function \return The
-  /// slices that satisfy the tester function
+  /// vector, while the non-compatible ones will be deleted
+  /// \param slices The vector of input slices
+  /// \param tester The tester function
+  /// \return The slices that satisfy the tester function
   static std::vector<slice_type>
   partition_checker(std::vector<slice_type>                       &slices,
                     const std::function<bool(const slice_type &)> &tester)
@@ -92,6 +91,8 @@ private:
   };
 
 
+  /// It will produce a linearized version of the current graph
+  /// \return The linearized graph
   [[nodiscard]] Graph<node_id_type, node_id_type>
   block_graph() const
   {
@@ -191,6 +192,17 @@ private:
     return Graph(new_nodes, new_content, new_dependencies, false);
   }
 
+
+  /// Given the current graph and the original weight function, it will produce
+  /// a new weight function for the linearized graph
+  /// \param new_weight_map The new weight map will look for the value of the
+  /// weight firstly in this map. If it cannot find it, it will store the proper
+  /// weight into the map (to make everything faster)
+  /// \param original_weights The weight function for the original graph
+  /// \param transmission_weights Used when we are switching from a device to
+  /// another
+  /// \param new_graph The lineatized graph (result of block_graph)
+  /// \return The new weight function
   [[nodiscard]] std::function<type_weight(edge_type const &)>
   block_graph_weights(
     type_collection_weights                       &new_weight_map,
@@ -412,6 +424,14 @@ public:
   explicit Butcher(network &&g)
     : graph(std::move(g)){};
 
+  /// Basic getter for graph
+  /// \return The graph (const reference)
+  const network &
+  getGraph() const
+  {
+    return graph;
+  }
+
   /// Read from a file the model, construct the associated graph and prepare the
   /// butcher
   /// \param p Full path to the .onnx file model
@@ -420,11 +440,13 @@ public:
   Butcher(const std::string &p, bool ignore_parameters = true)
     : graph(p, ignore_parameters){};
 
+
   /// It will compute every possible 2-slice partition of the network and it
   /// will select the partition whose total memory usage is less than the
-  /// specified value \param memory_first_slice Total memory usage allowed to
-  /// the first slice \return a collection of all the admissible partitions (and
-  /// the nodes contained in the first partition)
+  /// specified value
+  /// \param memory_first_slice Total memory usage allowed to the first slice
+  /// \return a collection of all the admissible partitions (and the nodes
+  /// contained in the first partition)
   std::vector<slice_type>
   compute_two_slice_memory_brute_force(memory_type memory_first_slice) const
   {
@@ -442,6 +464,7 @@ public:
 
     return partition_checker(slices, tester);
   };
+
 
   /// It will try to compute every 2-slice partition of a graph
   /// \return A vector containing every possibile 2-slice partition of the graph
@@ -481,6 +504,7 @@ public:
     return res;
   };
 
+
   /// It will prodice the k-shortest paths for the linearized block graph
   /// associated with the original one
   /// \param weights The weight map function, that associates to every edge
@@ -510,6 +534,7 @@ public:
 
     return res;
   }
+
 
   /// It will prodice the k-shortest paths for the linearized block graph
   /// associated with the original one

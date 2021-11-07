@@ -6,6 +6,7 @@
 #define NETWORK_BUTCHER_COMPUTER_MEMORY_H
 
 #include "../../Network/Graph.h"
+#include "../Traits/Hardware_traits.h"
 
 class Computer_memory
 {
@@ -18,6 +19,7 @@ public:
     return in.compute_memory_usage();
   }
 
+
   template <class T>
   [[nodiscard]] inline memory_type
   compute_memory_usage(const std::shared_ptr<T> &in) const
@@ -25,12 +27,26 @@ public:
     return in->compute_memory_usage();
   }
 
+
   template <class T>
   [[nodiscard]] inline memory_type
   compute_memory_usage(const std::unique_ptr<T> &in) const
   {
     return in->compute_memory_usage();
   }
+
+
+  template <class T>
+  memory_type
+  compute_memory_usage(const Graph<T> &graph,
+                       node_id_type    node_id,
+                       bool            include_parameters) const
+  {
+    return compute_memory_usage(graph,
+                                graph.nodes[node_id],
+                                include_parameters);
+  }
+
 
   template <class T>
   memory_type
@@ -65,7 +81,6 @@ public:
   }
 
 
-
   template <class T>
   memory_type
   compute_memory_usage_input(const Graph<T>  &graph,
@@ -93,7 +108,6 @@ public:
   }
 
 
-
   template <class T>
   std::vector<memory_type>
   compute_nodes_memory_usage(Graph<T> const &graph,
@@ -114,10 +128,10 @@ public:
     return memory_usages;
   }
 
+
   [[nodiscard]] static std::vector<memory_type>
   compute_nodes_memory_usage(Graph<graph_input_type> const &graph,
                              bool include_parameters = true);
-
 
 
   template <class T>
@@ -140,10 +154,10 @@ public:
     return memory_usages;
   }
 
+
   [[nodiscard]] static std::vector<memory_type>
   compute_nodes_memory_usage_input(Graph<graph_input_type> const &graph,
                                    bool include_parameters = true);
-
 
 
   template <class T>

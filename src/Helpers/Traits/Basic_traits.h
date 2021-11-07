@@ -8,7 +8,7 @@
 #include <map>
 #include <set>
 
-using memory_type           = std::size_t;
+
 using node_id_type          = std::size_t;
 using io_id_type            = int;
 using io_id_collection_type = std::set<io_id_type>;

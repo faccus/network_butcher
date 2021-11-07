@@ -332,10 +332,11 @@ protected:
   Graph<T, id_content> const &graph;
 
 
-  ///
-  /// \param dij_res
-  /// \param root
-  /// \return
+  /// Given the result of the dijkstra algorithm, it will return the shortest
+  /// path from the root to the final node
+  /// \param dij_res The result of the dijkstra algorithm
+  /// \param root The starting node
+  /// \return The shortest path
   path_info
   shortest_path_finder(std::pair<std::vector<node_id_type>,
                                  std::vector<type_weight>> const &dij_res,
