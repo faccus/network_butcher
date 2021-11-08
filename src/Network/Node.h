@@ -31,6 +31,7 @@ public:
   /// \param starting_id Initial node id
   /// \param initial_input Initial set of inputs
   /// \param initial_output Initial set of outputs
+  /// \param initial_output Initial set of parameters
   Node(node_id_type          starting_id,
        io_id_collection_type initial_input      = {},
        io_id_collection_type initial_output     = {},

@@ -679,6 +679,7 @@ private:
   /// map
   /// \param h_out The collection of h_outs
   /// \param successors The successors collection
+  /// \param devices The number of devices
   /// \return The map associating every node to its corresponding H_g map
   std::map<node_id_type, H_g>
   construct_h_g_linear(std::map<node_id_type, H_out_pointer> const &h_out,

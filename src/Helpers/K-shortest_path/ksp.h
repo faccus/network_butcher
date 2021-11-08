@@ -138,6 +138,7 @@ public:
   /// \param weights The weight map of the edges
   /// \param root The starting vertex
   /// \param reversed Reverses the edge directions
+  /// \param devices The number of devices
   /// \return A pair: the first element is the collection of the successors
   /// (along the shortest path) of the different nodes while the second element
   /// is the shortest path length
@@ -164,6 +165,7 @@ public:
   /// \param weights The weight map of the edges
   /// \param root The starting vertex
   /// \param reversed Reverses the edge directions
+  /// \param devices The number of devices
   /// \return A pair: the first element is the collection of the successors
   /// (along the shortest path) of the different nodes while the second element
   /// is the shortest path length
@@ -277,6 +279,7 @@ public:
   /// Computes through dijkstra the shortest path single destination tree for
   /// the given linear graph
   /// \param weights The weight map of the edges
+  /// \param devices The number of devices
   /// \return A pair: the first element is the collection of the successors
   /// (along the shortest path) of the different nodes while the second element
   /// is the shortest path length
@@ -303,6 +306,7 @@ public:
   /// Computes through dijkstra the shortest path single destination tree for
   /// the given linear graph
   /// \param weights The weight map of the edges
+  /// \param devices The number of devices
   /// \return A pair: the first element is the collection of the successors
   /// (along the shortest path) of the different nodes while the second element
   /// is the shortest path length
