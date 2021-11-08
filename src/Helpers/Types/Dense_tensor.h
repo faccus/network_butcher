@@ -35,6 +35,14 @@ public:
   /// \return Memory usage of the associated type
   memory_type
   compute_memory_usage() const override;
+
+  /// Basic getter for shape
+  /// \return The shape
+  std::vector<shape_type> const &
+  get_shape() const override
+  {
+    return shape;
+  }
 };
 
 #endif // NETWORK_BUTCHER_DENSE_TENSOR_H

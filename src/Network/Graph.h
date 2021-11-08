@@ -197,7 +197,7 @@ private:
   }
 
 public:
-  /// A vector containing, ordered by id, the different value infos
+  /// A vector containing, ordered by id, the different type_infos
   Map_Node_Content nodes_content;
 
   /// Collection of nodes

@@ -6,6 +6,6 @@
 #define NETWORK_BUTCHER_TYPE_INFO_TRAITS_H
 
 using type_info_id_type = int;
-using shape_type = long;
+using shape_type        = std::size_t;
 
 #endif // NETWORK_BUTCHER_TYPE_INFO_TRAITS_H

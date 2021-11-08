@@ -9,6 +9,7 @@
 
 using hardware_id_type = std::string;
 using memory_type      = std::size_t;
-using time_type        = double;
+using time_type           = double;
+using num_operations_type = std::size_t;
 
 #endif // NETWORK_BUTCHER_HARDWARE_TRAITS_H
