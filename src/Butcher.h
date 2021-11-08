@@ -452,7 +452,7 @@ public:
   /// \param p Full path to the .onnx file model
   /// \param ignore_parameters Allows to choose if graph should ignore already
   /// initialized inputs/outputs (parameters)
-  Butcher(const std::string &p, bool ignore_parameters = true)
+  Butcher(const std::string &p, bool ignore_parameters = false)
     : graph(p, ignore_parameters){};
 
 
