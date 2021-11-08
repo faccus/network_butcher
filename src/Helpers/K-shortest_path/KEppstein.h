@@ -31,6 +31,11 @@ public:
   using base      = KFinder<T, id_content>;
 
 
+  /// Applies the Eppstein algorithm to find the k-shortest paths on the given
+  /// graph (from the first node to the last one)
+  /// \param weights The weights associated to the different edges
+  /// \param K The number of shortest paths to find
+  /// \return The shortest paths
   [[nodiscard]] std::vector<path_info>
   eppstein(type_collection_weights const &weights, std::size_t K)
   {
@@ -45,6 +50,12 @@ public:
     return eppstein(weight_fun, K);
   }
 
+
+  /// Applies the Eppstein algorithm to find the k-shortest paths on the given
+  /// graph (from the first node to the last one)
+  /// \param weights The weights associated to the different edges
+  /// \param K The number of shortest paths to find
+  /// \return The shortest paths
   [[nodiscard]] std::vector<path_info>
   eppstein(std::function<type_weight(edge_type const &)> &weights,
            std::size_t                                    K)
@@ -67,6 +78,13 @@ public:
   }
 
 
+  /// Applies the Eppstein algorithm to find the k-shortest paths on the given
+  /// linear graph, admitting different devices (from the first node to the last
+  /// one).
+  /// \param weights The weights associated to the different edges
+  /// \param K The number of shortest paths to find
+  /// \param devices The number of different devices
+  /// \return The shortest paths
   [[nodiscard]] std::vector<path_info>
   eppstein_linear(type_collection_weights const &weights,
                   std::size_t                    K,
@@ -83,6 +101,14 @@ public:
     return eppstein_linear(weight_fun, K, devices);
   }
 
+
+  /// Applies the Eppstein algorithm to find the k-shortest paths on the given
+  /// linear graph, admitting different devices (from the first node to the last
+  /// one).
+  /// \param weights The weights associated to the different edges
+  /// \param K The number of shortest paths to find
+  /// \param devices The number of different devices
+  /// \return The shortest paths
   [[nodiscard]] std::vector<path_info>
   eppstein_linear(std::function<type_weight(edge_type const &)> &weights,
                   std::size_t                                    K,
@@ -108,7 +134,12 @@ public:
   }
 
 
-  std::vector<path_info>
+  /// Applies the lazy Eppstein algorithm to find the k-shortest paths on the
+  /// given graph (from the first node to the last one)
+  /// \param weights The weights associated to the different edges
+  /// \param K The number of shortest paths to find
+  /// \return The shortest paths
+  [[nodiscard]] std::vector<path_info>
   lazy_eppstein(type_collection_weights const &weights, std::size_t K)
   {
     std::function<type_weight(edge_type const &)> weights_fun =
@@ -123,7 +154,12 @@ public:
   }
 
 
-  std::vector<path_info>
+  /// Applies the lazy Eppstein algorithm to find the k-shortest paths on the
+  /// given graph (from the first node to the last one)
+  /// \param weights The weights associated to the different edges
+  /// \param K The number of shortest paths to find
+  /// \return The shortest paths
+  [[nodiscard]] std::vector<path_info>
   lazy_eppstein(std::function<type_weight(edge_type const &)> &weights,
                 std::size_t                                    K)
   {
@@ -145,7 +181,14 @@ public:
   }
 
 
-  std::vector<path_info>
+  /// Applies the lazy Eppstein algorithm to find the k-shortest paths on the
+  /// given linear graph, admitting different devices (from the first node to
+  /// the last one).
+  /// \param weights The weights associated to the different edges
+  /// \param K The number of shortest paths to find
+  /// \param devices The number of different devices
+  /// \return The shortest paths
+  [[nodiscard]] std::vector<path_info>
   lazy_eppstein_linear(type_collection_weights const &weights,
                        std::size_t                    K,
                        std::size_t                    devices)
@@ -162,7 +205,14 @@ public:
   }
 
 
-  std::vector<path_info>
+  /// Applies the lazy Eppstein algorithm to find the k-shortest paths on the
+  /// given linear graph, admitting different devices (from the first node to
+  /// the last one).
+  /// \param weights The weights associated to the different edges
+  /// \param K The number of shortest paths to find
+  /// \param devices The number of different devices
+  /// \return The shortest paths
+  [[nodiscard]] std::vector<path_info>
   lazy_eppstein_linear(std::function<type_weight(edge_type const &)> &weights,
                        std::size_t                                    K,
 
@@ -193,6 +243,11 @@ public:
     : base(g){};
 
 protected:
+  /// Helper function for the Eppstein algorithm. It converts a vector of
+  /// implicit paths to a vector of explicit paths
+  /// \param dij_res The result of the Dijkstra result
+  /// \param epp_res The result of basic_eppstein or basic_eppstein_linear
+  /// \return The shortest paths
   [[nodiscard]] std::vector<path_info>
   helper_eppstein(dij_res_type const                    &dij_res,
                   std::vector<implicit_path_info> const &epp_res)
@@ -232,6 +287,11 @@ protected:
   }
 
 
+  /// It extracts the first sidetrack associated to the given node
+  /// \param j The index of the node
+  /// \param h_g The h_g map
+  /// \return The pair: the operation completed successfully and the
+  /// corresponding sidetrack edge
   [[nodiscard]] std::pair<bool, edge_info>
   side_track(node_id_type const                &j,
              std::map<node_id_type, H_g> const &h_g) const
@@ -244,7 +304,9 @@ protected:
     return {true, *(*it->second.children.begin())->heap.children.begin()};
   }
 
-
+  /// It will update edge_edges with the parent-child relationships in h_out
+  /// \param edge_edges The map of childrens of the given edge
+  /// \param h_out H_out of a given node
   void
   get_internal_edges(std::map<edge_type, std::set<edge_type>> &edge_edges,
                      H_out_pointer const                      &h_out) const
@@ -270,6 +332,11 @@ protected:
       }
   }
 
+  /// It will update edge_edges with the parent-child relationships in h_g
+  /// \param edge_edges The map of childrens of the given edge
+  /// \param h_g H_g of a given node
+  /// \param include_h_outs Calls get_internal_edges for all the encountered
+  /// H_outs in H_g
   void
   get_internal_edges(std::map<edge_type, std::set<edge_type>> &edge_edges,
                      H_g const                                &h_g,
@@ -303,6 +370,11 @@ protected:
   }
 
 
+  /// Computes the sidetrack distances for all the different sidetrack edges
+  /// \param weights The weight map (for the edges)
+  /// \param distances_from_sink The shortest distance from the given node to
+  /// the sink (the last node of the graph)
+  /// \return The collection of sidetrack distances for the different edges
   [[nodiscard]] type_collection_weights
   sidetrack_distances(std::function<type_weight(edge_type const &)> &weights,
                       std::vector<type_weight> const &distances_from_sink) const
@@ -327,6 +399,14 @@ protected:
     return res;
   }
 
+
+  /// Computes the sidetrack distances for all the different sidetrack edges
+  /// (taking into account the multiple devices)
+  /// \param weights The weight map (for the edges)
+  /// \param devices The number of devices
+  /// \param distances_from_sink The shortest distance from the given node to
+  /// the sink (the last node of the graph)
+  /// \return The collection of sidetrack distances for the different edges
   [[nodiscard]] type_collection_weights
   sidetrack_distances_linear(
     std::function<type_weight(edge_type const &)> &weights,
@@ -418,6 +498,9 @@ protected:
 
 
 private:
+  /// It will construct a map associating every edge to its children
+  /// \param h_gs The h_g map
+  /// \return The map associating every edge to its children
   [[nodiscard]] std::map<edge_type, std::set<edge_type>>
   get_edge_edges(std::map<node_id_type, H_g> const &h_gs) const
   {
@@ -427,7 +510,14 @@ private:
     return res;
   }
 
-
+  /// Helper function in the construction of the H_outs
+  /// \param successors The list of the successors of every node (the node
+  /// following the current one in the shortest path)
+  /// \param sidetrack_distances The collection of the sidetrack distances for
+  /// all the sidetrack edges
+  /// \param real_num_nodes The real number of nodes (that is the number of
+  /// nodes taking into account the multiple devices)
+  /// \return H_out map
   [[nodiscard]] H_out_map
   helper_construct_h_out(std::vector<node_id_type> const &successors,
                          type_collection_weights const   &sidetrack_distances,
@@ -462,6 +552,13 @@ private:
     return h_out;
   }
 
+  /// Given the successors collection and the sidetrack distances, it will
+  /// construct the h_out map
+  /// \param successors The list of the successors of every node (the node
+  /// following the current one in the shortest path)
+  /// \param sidetrack_distances The collection of the sidetrack distances for
+  /// all the sidetrack edges
+  /// \return H_out map
   [[nodiscard]] H_out_map
   construct_h_out(
     std::vector<node_id_type> const &successors,
@@ -472,6 +569,14 @@ private:
                                   base::graph.nodes.size());
   }
 
+  /// Given the successors collection and the sidetrack distances, it will
+  /// construct the h_out map
+  /// \param successors The list of the successors of every node (the node
+  /// following the current one in the shortest path)
+  /// \param sidetrack_distances The collection of the sidetrack distances for
+  /// all the sidetrack edges
+  /// \param devices The number of devices
+  /// \return H_out map
   [[nodiscard]] H_out_map
   construct_h_out_linear(std::vector<node_id_type> const &successors,
                          type_collection_weights const   &sidetrack_distances,
@@ -486,6 +591,13 @@ private:
   }
 
 
+  /// Given the h_out map, the successors collection and the sidetrack distance,
+  /// it will produce the h_g map
+  /// \param h_out H_out map
+  /// \param successors The list of the successors of every node (the node
+  /// following the current one in the shortest path)
+  /// \param num_nodes The number of nodes
+  /// \return The h_g map
   [[nodiscard]] std::map<node_id_type, H_g>
   helper_construct_h_g(std::map<node_id_type, H_out_pointer> const &h_out,
                        std::vector<node_id_type> const             &successors,
@@ -552,6 +664,9 @@ private:
     return res;
   }
 
+  /// It will produce the map associating every node to its corresponding H_g
+  /// map \param h_out The collection of h_outs \param successors The successors
+  /// list \return The map associating every node to its corresponding H_g map
   [[nodiscard]] std::map<node_id_type, H_g>
   construct_h_g(
     std::map<node_id_type, H_out_pointer> const &h_out,
@@ -560,6 +675,11 @@ private:
     return helper_construct_h_g(h_out, successors, base::graph.nodes.size());
   }
 
+  /// It will produce the map associating every node to its corresponding H_g
+  /// map
+  /// \param h_out The collection of h_outs
+  /// \param successors The successors collection
+  /// \return The map associating every node to its corresponding H_g map
   std::map<node_id_type, H_g>
   construct_h_g_linear(std::map<node_id_type, H_out_pointer> const &h_out,
                        std::vector<node_id_type> const             &successors,
@@ -572,6 +692,12 @@ private:
   }
 
 
+  /// It will add to the h_out map the h_out associates to the current node
+  /// \param h_out The h_out map
+  /// \param sidetrack_distances The sidetrack distances
+  /// \param successors The successor collection
+  /// \param node The node associated to the h_out to construct
+  /// \return The iterator of the added h_out
   H_out_map::iterator
   construct_partial_h_out(H_out_map                       &h_out,
                           type_collection_weights const   &sidetrack_distances,
@@ -611,6 +737,13 @@ private:
     return it.first;
   }
 
+  /// It will add to the h_out map the h_out associates to the current node
+  /// \param h_out The h_out map
+  /// \param sidetrack_distances The sidetrack distances
+  /// \param successors The successor collection
+  /// \param node The node associated to the h_out to construct
+  /// \param devices The number of devices
+  /// \return The iterator of the added h_out
   H_out_map::iterator
   construct_partial_h_out_linear(
     H_out_map                       &h_out,
@@ -666,6 +799,16 @@ private:
   }
 
 
+  /// It will add to the h_g map the h_g associated to the current node. It will
+  /// also update the edge_edges map (that associated every edge to its
+  /// children)
+  /// \param h_g The h_g map
+  /// \param h_out The h_out map
+  /// \param sidetrack_distances The sidetrack distances
+  /// \param successors The successor collection
+  /// \param node The node associated to the h_out to construct
+  /// \param edge_edges The edge_edges map
+  /// \return The iterator to the added element
   std::map<node_id_type, H_g>::iterator
   construct_partial_h_g(std::map<node_id_type, H_g>           &h_g,
                         std::map<node_id_type, H_out_pointer> &h_out,
@@ -721,6 +864,17 @@ private:
     return it.first;
   }
 
+  /// It will add to the h_g map the h_g associated to the current node. It will
+  /// also update the edge_edges map (that associated every edge to its
+  /// children)
+  /// \param h_g The h_g map
+  /// \param h_out The h_out map
+  /// \param sidetrack_distances The sidetrack distances
+  /// \param successors The successor collection
+  /// \param node The node associated to the h_out to construct
+  /// \param devices The number of devices
+  /// \param edge_edges The edge_edges map
+  /// \return The iterator to the added element
   std::map<node_id_type, H_g>::iterator
   construct_partial_h_g_linear(
     std::map<node_id_type, H_g>              &h_g,
@@ -781,6 +935,14 @@ private:
   }
 
 
+  /// The final function called by the basic_eppstein and basic_eppstein_linear.
+  /// It will construct the actual shortest paths
+  /// \param K The number of shortest paths
+  /// \param dij_res The result of the dijkstra algorithm
+  /// \param sidetrack_distances_res The sidetrack distances of every edge
+  /// \param h_g The h_g map
+  /// \param edges_edges The edge_edges map
+  /// \return The (implicit) shortest paths
   std::vector<implicit_path_info>
   base_path_selector_eppstein(
     std::size_t                                     K,
@@ -882,6 +1044,11 @@ private:
   }
 
 
+  /// The basic function for the Eppstein algorithm
+  /// \param weights The weights of the edges
+  /// \param K The number of shortest paths
+  /// \param dij_res The result of dijkstra
+  /// \return The (implicit) k shortest paths
   [[nodiscard]] std::vector<implicit_path_info>
   basic_eppstein(std::function<type_weight(edge_type const &)> &weights,
                  std::size_t                                    K,
@@ -910,6 +1077,18 @@ private:
       K, dij_res, sidetrack_distances_res, h_g, edges_edges);
   }
 
+  /// The basic function for the Eppstein linear algorithm
+  /// \param weights The weights of the edges
+  /// \param K The number of shortest paths
+  /// \param devices The number of devices (basically, the given graph is
+  /// linear. If devices >= 2, we add an extra graph constructed in such a way
+  /// that it has the same number of nodes and such that every node of the first
+  /// graph corresponds to a node in the second graph. The inputs and outputs of
+  /// the added nodes are the same of the corresponding node. Moreover, the
+  /// corresponding node adds as an input the corresponding nodes of its inputs
+  /// and the same thing for the outputs)
+  /// \param dij_res The result of dijkstra
+  /// \return The (implicit) k shortest paths
   [[nodiscard]] std::vector<implicit_path_info>
   basic_eppstein_linear(std::function<type_weight(edge_type const &)> &weights,
                         std::size_t                                    K,
@@ -942,6 +1121,11 @@ private:
   }
 
 
+  /// The basic function for the lazy Eppstein algorithm
+  /// \param weights The weights of the edges
+  /// \param K The number of shortest paths
+  /// \param dij_res The result of dijkstra
+  /// \return The (implicit) k shortest paths
   [[nodiscard]] std::vector<implicit_path_info>
   basic_lazy_eppstein(std::function<type_weight(edge_type const &)> &weights,
                       std::size_t                                    K,
@@ -1070,6 +1254,18 @@ private:
     return res;
   }
 
+  /// The basic function for the lazy Eppstein linear algorithm
+  /// \param weights The weights of the edges
+  /// \param K The number of shortest paths
+  /// \param devices The number of devices (basically, the given graph is
+  /// linear. If devices >= 2, we add an extra graph constructed in such a way
+  /// that it has the same number of nodes and such that every node of the first
+  /// graph corresponds to a node in the second graph. The inputs and outputs of
+  /// the added nodes are the same of the corresponding node. Moreover, the
+  /// corresponding node adds as an input the corresponding nodes of its inputs
+  /// and the same thing for the outputs)
+  /// \param dij_res The result of dijkstra
+  /// \return The (implicit) k shortest paths
   [[nodiscard]] std::vector<implicit_path_info>
   basic_lazy_eppstein_linear(
     std::function<type_weight(edge_type const &)> &weights,
