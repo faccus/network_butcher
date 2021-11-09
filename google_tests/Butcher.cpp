@@ -491,7 +491,7 @@ TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_multiple_random)
   std::vector<node_type>      nodes;
 
   std::size_t       num_devices     = 3;
-  std::size_t const num_nodes       = 1000;
+  std::size_t const num_nodes       = 10000;
   std::size_t const number_of_tests = 1000;
 
   nodes.push_back(node_type(0, {}, {0}));
