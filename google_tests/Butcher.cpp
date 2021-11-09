@@ -492,7 +492,7 @@ TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_multiple_random)
 
   std::size_t       num_devices     = 3;
   std::size_t const num_nodes       = 1000;
-  std::size_t const number_of_tests = 100;
+  std::size_t const number_of_tests = 1000;
 
   nodes.push_back(node_type(0, {}, {0}));
   for (int n = 1; n < num_nodes - 1; ++n)
@@ -621,9 +621,8 @@ TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_multiple_random)
       total_time += crono.wallTime();
     }
 
-
   std::cout << "Average time per test: " << total_time / number_of_tests
-            << "micro-seconds" << std::endl;
+            << " micro-seconds" << std::endl;
   ASSERT_GE(total_time / number_of_tests, 0);
 }
 
