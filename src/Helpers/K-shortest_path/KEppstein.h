@@ -347,12 +347,13 @@ protected:
     previous_steps.reserve(h_g.children.size());
     const auto &graph = base::graph;
 
-    for (auto it = h_g.children.cbegin(); it != h_g.children.cend(); ++it, ++j)
+    for (auto it = h_g.children.cbegin(); it != h_g.children.cend();
+         ++it, ++j) // O(N)
       {
         previous_steps.push_back(it);
 
         if (include_h_outs)
-          get_internal_edges(edge_edges, *it);
+          get_internal_edges(edge_edges, *it); // O(N)
 
         std::size_t parent = (j - 1) / 2;
         if (j > 0 && parent != j)
@@ -1069,9 +1070,10 @@ private:
     auto const &successors          = dij_res.first;
     auto const &shortest_paths_cost = dij_res.second;
 
-    auto const h_out = construct_h_out(successors, sidetrack_distances_res);
+    auto const h_out =
+      construct_h_out(successors, sidetrack_distances_res); // O(N+E*log(N))
 
-    auto const h_g         = construct_h_g(h_out, successors);
+    auto const h_g         = construct_h_g(h_out, successors); // O(N*log(N))
     auto       edges_edges = get_edge_edges(h_g);
 
     return base_path_selector_eppstein(
@@ -1133,7 +1135,7 @@ private:
                       dij_res_type const                            &dij_res)
   {
     std::vector<implicit_path_info> res;
-    res.push_back({{}, dij_res.second.front()}); // O(K)
+    res.push_back({{}, dij_res.second.front()}); // O(1)
 
     auto const &graph = base::graph;
 
@@ -1141,6 +1143,7 @@ private:
       return {};
     if (K == 1)
       return res;
+    res.reserve(K);
 
 
     auto const sidetrack_distances_res =
