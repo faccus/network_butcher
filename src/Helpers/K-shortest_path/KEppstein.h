@@ -521,7 +521,7 @@ private:
   [[nodiscard]] H_out_map
   helper_construct_h_out(std::vector<node_id_type> const &successors,
                          type_collection_weights const   &sidetrack_distances,
-                         auto const                       real_num_nodes) const
+                         std::size_t const                real_num_nodes) const
   {
     H_out_map   h_out;
     auto const &graph     = base::graph;
