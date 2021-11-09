@@ -623,7 +623,7 @@ TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_multiple_random)
 
 
   std::cout << "Average time per test: " << total_time / number_of_tests
-            << std::endl;
+            << "micro-seconds" << std::endl;
   ASSERT_GE(total_time / number_of_tests, 0);
 }
 
