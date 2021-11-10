@@ -492,7 +492,7 @@ TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_multiple_random)
 
   std::size_t       num_devices     = 3;
   std::size_t const num_nodes       = 10000;
-  std::size_t const number_of_tests = 1000;
+  std::size_t const number_of_tests = 100;
 
   nodes.push_back(node_type(0, {}, {0}));
   for (int n = 1; n < num_nodes - 1; ++n)
@@ -615,7 +615,7 @@ TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_multiple_random)
       Chrono crono;
       crono.start();
       auto const res = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
-        weight_fun, transmission_fun, num_devices, num_nodes * 0.1);
+        weight_fun, transmission_fun, num_devices, 100);
       crono.stop();
 
       total_time += crono.wallTime();
