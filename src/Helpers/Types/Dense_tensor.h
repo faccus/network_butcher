@@ -38,7 +38,7 @@ public:
 
   /// Basic getter for shape
   /// \return The shape
-  std::vector<shape_type> const &
+  inline std::vector<shape_type> const &
   get_shape() const override
   {
     return shape;

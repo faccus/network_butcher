@@ -3,6 +3,7 @@
 //
 
 #include "../../../src/Helpers/K-shortest_path/KEppstein.h"
+#include "../../../src/Helpers/K-shortest_path/KEppstein_lazy.h"
 #include "../../TestClass.h"
 #include <gtest/gtest.h>
 
@@ -16,8 +17,8 @@ TEST(KspTests, Constructor)
   Graph<Input>                                            basic_graph;
   std::map<std::pair<node_id_type, node_id_type>, double> weight;
 
-  KFinder kFinder(basic_graph);
-  auto    res = kFinder.dijkstra(weight);
+  Shortest_path_finder kFinder(basic_graph);
+  auto                 res = kFinder.dijkstra(weight);
 
   ASSERT_EQ(res.first.size(), 0);
 }
@@ -61,9 +62,9 @@ TEST(KspTests, DijkstraSourceSink)
   weights[{6, 4}] = 2;
 
 
-  Graph<basic_type> graph_cons(nodes, map);
-  KFinder           kfinder(graph_cons);
-  auto              res = kfinder.dijkstra(weights);
+  Graph<basic_type>    graph_cons(nodes, map);
+  Shortest_path_finder kfinder(graph_cons);
+  auto                 res = kfinder.dijkstra(weights);
 
   std::vector<node_id_type> theoretical_res = {0, 2, 0, 1, 3, 2, 5};
 
@@ -110,9 +111,9 @@ TEST(KspTests, DijkstraSinkSource)
   weights[{6, 4}] = 2;
 
 
-  Graph<Input> graph_cons(nodes, map);
-  KFinder      kfinder(graph_cons);
-  auto         res = kfinder.dijkstra(weights, 6, true);
+  Graph<Input>         graph_cons(nodes, map);
+  Shortest_path_finder kfinder(graph_cons);
+  auto                 res = kfinder.dijkstra(weights, 6, true);
 
   std::vector<node_id_type> theoretical_res = {2, 3, 5, 4, 5, 6, 6};
 
@@ -168,8 +169,8 @@ TEST(KspTests, DijkstraSourceSinkFunctional)
         return it->second;
     };
 
-  KFinder kfinder(graph_cons);
-  auto    res = kfinder.dijkstra(weight_fun);
+  Shortest_path_finder kfinder(graph_cons);
+  auto                 res = kfinder.dijkstra(weight_fun);
 
   std::vector<node_id_type> theoretical_res = {0, 2, 0, 1, 3, 2, 5};
 
@@ -225,8 +226,8 @@ TEST(KspTests, DijkstraSinkSourceFunctional)
       else
         return it->second;
     };
-  KFinder kfinder(graph_cons);
-  auto    res = kfinder.dijkstra(weight_fun, 6, true);
+  Shortest_path_finder kfinder(graph_cons);
+  auto                 res = kfinder.dijkstra(weight_fun, 6, true);
 
   std::vector<node_id_type> theoretical_res = {2, 3, 5, 4, 5, 6, 6};
 
@@ -417,8 +418,8 @@ TEST(KspTests, LazyEppsteinOriginalNetwork)
   weights[{10, 11}] = 11;
 
 
-  Graph<Input>     graph_cons(nodes, map);
-  KFinder_Eppstein kfinder(graph_cons);
+  Graph<Input>          graph_cons(nodes, map);
+  KFinder_Lazy_Eppstein kfinder(graph_cons);
 
   int k = 100; // Up to 10
 
@@ -473,9 +474,9 @@ TEST(KspTests, LazyEppsteinLinearGraph)
   weights[{4, 5}] = 1;
   weights[{5, 3}] = 0;
 
-  Graph<Input>     graph_cons(nodes, map);
-  KFinder_Eppstein kfinder(graph_cons);
-  auto             res = kfinder.lazy_eppstein_linear(weights, 1000, 2);
+  Graph<Input>          graph_cons(nodes, map);
+  KFinder_Lazy_Eppstein kfinder(graph_cons);
+  auto                  res = kfinder.lazy_eppstein_linear(weights, 1000, 2);
 
   int                      k       = 10;
   std::vector<type_weight> lengths = {1, 2, 3, 3};

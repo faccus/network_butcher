@@ -14,6 +14,7 @@
 #include "Network/Node.h"
 
 #include "Helpers/K-shortest_path/KEppstein.h"
+#include "Helpers/K-shortest_path/KEppstein_lazy.h"
 
 #include "Helpers/Types/Type_info.h"
 
@@ -527,7 +528,8 @@ public:
   /// \param num_of_devices The number of devices
   /// \param k The number of shortest paths to find
   /// \return The k shortest paths
-  std::vector<typename KFinder<node_id_type, node_id_type>::path_info>
+  std::vector<
+    typename Shortest_path_finder<node_id_type, node_id_type>::path_info>
   compute_k_shortest_paths_eppstein_linear(
     std::function<type_weight(edge_type const &)> &weights,
     std::function<type_weight(edge_type const &)> &transmission_weights,
@@ -558,7 +560,8 @@ public:
   /// \param num_of_devices The number of devices
   /// \param k The number of shortest paths to find
   /// \return The k shortest paths
-  std::vector<typename KFinder<node_id_type, node_id_type>::path_info>
+  std::vector<
+    typename Shortest_path_finder<node_id_type, node_id_type>::path_info>
   compute_k_shortest_paths_lazy_eppstein_linear(
     std::function<type_weight(edge_type const &)> &weights,
     std::function<type_weight(edge_type const &)> &transmission_weights,
@@ -573,7 +576,7 @@ public:
                                                transmission_weights,
                                                new_graph);
 
-    KFinder_Eppstein<node_id_type, node_id_type> kFinder(new_graph);
+    KFinder_Lazy_Eppstein<node_id_type, node_id_type> kFinder(new_graph);
 
     auto const res =
       kFinder.lazy_eppstein_linear(new_weights_fun, k, num_of_devices);

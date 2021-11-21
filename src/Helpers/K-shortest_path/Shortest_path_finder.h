@@ -2,8 +2,8 @@
 // Created by faccus on 26/10/21.
 //
 
-#ifndef NETWORK_BUTCHER_KSP_H
-#define NETWORK_BUTCHER_KSP_H
+#ifndef NETWORK_BUTCHER_SHORTEST_PATH_FINDER_H
+#define NETWORK_BUTCHER_SHORTEST_PATH_FINDER_H
 
 #include "../Traits/Graph_traits.h"
 
@@ -15,7 +15,7 @@
 
 
 template <class T, typename id_content = io_id_type>
-class KFinder
+class Shortest_path_finder
 {
 public:
   struct path_info
@@ -29,8 +29,23 @@ public:
       return length < rhs.length || (length == rhs.length && path < rhs.path);
     }
   };
+  struct implicit_path_info
+  {
+    std::vector<edge_type> sidetracks;
+    type_weight            length;
 
-  explicit KFinder(Graph<T, id_content> const &g)
+    constexpr bool
+    operator<(const implicit_path_info &rhs) const
+    {
+      return length < rhs.length ||
+             (length == rhs.length && sidetracks < rhs.sidetracks);
+    }
+  };
+
+  using dij_res_type =
+    std::pair<std::vector<node_id_type>, std::vector<type_weight>>;
+
+  explicit Shortest_path_finder(Graph<T, id_content> const &g)
     : graph(g){};
 
 
@@ -41,7 +56,7 @@ public:
   /// \return A pair: the first element is the collection of the successors
   /// (along the shortest path) of the different nodes while the second element
   /// is the shortest path length
-  [[nodiscard]] std::pair<std::vector<node_id_type>, std::vector<type_weight>>
+  [[nodiscard]] dij_res_type
   dijkstra(type_collection_weights const &weights,
            node_id_type                   root = 0,
            bool reversed = false) const // time: ((N+E)log(N)), space: O(N)
@@ -64,7 +79,7 @@ public:
   /// \return A pair: the first element is the collection of the successors
   /// (along the shortest path) of the different nodes while the second element
   /// is the shortest path length
-  [[nodiscard]] std::pair<std::vector<node_id_type>, std::vector<type_weight>>
+  [[nodiscard]] dij_res_type
   dijkstra(std::function<type_weight(edge_type const &)> &weights,
            node_id_type                                   root = 0,
            bool reversed = false) const // time: ((N+E)log(N)), space: O(N)
@@ -142,7 +157,7 @@ public:
   /// \return A pair: the first element is the collection of the successors
   /// (along the shortest path) of the different nodes while the second element
   /// is the shortest path length
-  [[nodiscard]] std::pair<std::vector<node_id_type>, std::vector<type_weight>>
+  [[nodiscard]] dij_res_type
   dijkstra_linear(type_collection_weights const &weights,
                   node_id_type                   root,
                   bool                           reversed,
@@ -169,7 +184,7 @@ public:
   /// \return A pair: the first element is the collection of the successors
   /// (along the shortest path) of the different nodes while the second element
   /// is the shortest path length
-  [[nodiscard]] std::pair<std::vector<node_id_type>, std::vector<type_weight>>
+  [[nodiscard]] dij_res_type
   dijkstra_linear(std::function<type_weight(edge_type const &)> &weights,
                   node_id_type                                   root,
                   bool                                           reversed,
@@ -270,7 +285,7 @@ public:
   /// \return A pair: the first element is the collection of the successors
   /// (along the shortest path) of the different nodes while the second element
   /// is the shortest path length
-  [[nodiscard]] std::pair<std::vector<node_id_type>, std::vector<type_weight>>
+  [[nodiscard]] dij_res_type
   shortest_path_tree(type_collection_weights const &weights) const
   {
     return dijkstra(weights, graph.nodes.size() - 1, true);
@@ -283,7 +298,7 @@ public:
   /// \return A pair: the first element is the collection of the successors
   /// (along the shortest path) of the different nodes while the second element
   /// is the shortest path length
-  [[nodiscard]] std::pair<std::vector<node_id_type>, std::vector<type_weight>>
+  [[nodiscard]] dij_res_type
   shortest_path_tree_linear(type_collection_weights const &weights,
                             std::size_t                    devices) const
   {
@@ -296,7 +311,7 @@ public:
   /// \return A pair: the first element is the collection of the successors
   /// (along the shortest path) of the different nodes while the second element
   /// is the shortest path length
-  [[nodiscard]] std::pair<std::vector<node_id_type>, std::vector<type_weight>>
+  [[nodiscard]] dij_res_type
   shortest_path_tree(
     std::function<type_weight(edge_type const &)> &weights) const
   {
@@ -310,7 +325,7 @@ public:
   /// \return A pair: the first element is the collection of the successors
   /// (along the shortest path) of the different nodes while the second element
   /// is the shortest path length
-  [[nodiscard]] std::pair<std::vector<node_id_type>, std::vector<type_weight>>
+  [[nodiscard]] dij_res_type
   shortest_path_tree_linear(
     std::function<type_weight(edge_type const &)> &weights,
     std::size_t                                    devices) const

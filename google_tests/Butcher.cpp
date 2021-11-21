@@ -352,7 +352,7 @@ TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_random)
   type_collection_weights     weight_map;
 
   std::size_t       num_devices = 3;
-  std::size_t const num_nodes   = 10000;
+  std::size_t const num_nodes   = 1000;
 
   nodes.push_back(node_type(0, {}, {0}));
   for (int n = 1; n < num_nodes - 1; ++n)
@@ -491,8 +491,8 @@ TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_multiple_random)
   std::vector<node_type>      nodes;
 
   std::size_t       num_devices     = 3;
-  std::size_t const num_nodes       = 10000;
-  std::size_t const number_of_tests = 1000;
+  std::size_t const num_nodes       = 100;
+  std::size_t const number_of_tests = 100;
 
   nodes.push_back(node_type(0, {}, {0}));
   for (int n = 1; n < num_nodes - 1; ++n)
@@ -640,7 +640,7 @@ TEST(ButcherTest, compute_k_shortest_paths_eppstein_random)
   type_collection_weights     weight_map;
 
   std::size_t       num_devices = 3;
-  std::size_t const num_nodes   = 10000;
+  std::size_t const num_nodes   = 1000;
 
   nodes.push_back(node_type(0, {}, {0}));
   for (int n = 1; n < num_nodes - 1; ++n)
@@ -779,7 +779,7 @@ TEST(ButcherTest, compute_k_shortest_paths_eppstein_vs_lazy_random)
   type_collection_weights     weight_map;
 
   std::size_t       num_devices = 3;
-  std::size_t const num_nodes   = 10000;
+  std::size_t const num_nodes   = 1000;
 
   nodes.push_back(node_type(0, {}, {0}));
   for (int n = 1; n < num_nodes - 1; ++n)
