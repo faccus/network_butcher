@@ -5,15 +5,20 @@
 #ifndef NETWORK_BUTCHER_NODE_H
 #define NETWORK_BUTCHER_NODE_H
 
+#include "../Helpers/Traits/Basic_traits.h"
 #include <utility>
 
-#include "../Helpers/Traits/Basic_traits.h"
 
+template <class T, typename id_content>
+class Graph;
 
 /// A node of a graph
 class Node
 {
 private:
+  template <class T, typename id_content>
+  friend class Graph;
+
   /// Current node id
   node_id_type id;
 
@@ -25,18 +30,30 @@ private:
   io_id_collection_type parameters;
 
 
-public:
-
   /// Basic constructor for a node
   /// \param starting_id Initial node id
   /// \param initial_input Initial set of inputs
   /// \param initial_output Initial set of outputs
   /// \param initial_output Initial set of parameters
   Node(node_id_type          starting_id,
-       io_id_collection_type initial_input      = {},
-       io_id_collection_type initial_output     = {},
+       io_id_collection_type initial_input,
+       io_id_collection_type initial_output,
        io_id_collection_type initial_parameters = {})
     : id(starting_id)
+    , input(std::move(initial_input))
+    , output(std::move(initial_output))
+    , parameters(std::move(initial_parameters))
+  {}
+
+public:
+  /// Basic constructor for a node
+  /// \param initial_input Initial set of inputs
+  /// \param initial_output Initial set of outputs
+  /// \param initial_output Initial set of parameters
+  Node(io_id_collection_type initial_input      = {},
+       io_id_collection_type initial_output     = {},
+       io_id_collection_type initial_parameters = {})
+    : id(std::numeric_limits<node_id_type>::max())
     , input(std::move(initial_input))
     , output(std::move(initial_output))
     , parameters(std::move(initial_parameters))

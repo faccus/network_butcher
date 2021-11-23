@@ -103,7 +103,8 @@ private:
     std::size_t id = 0;
 
     new_nodes.reserve(graph.nodes.size());
-    new_nodes.emplace_back(id++);
+    new_nodes.emplace_back();
+    id++;
     new_content[0] = 0;
 
     for (auto it = ++graph.nodes.begin(); it != graph.nodes.end(); ++it)
@@ -115,7 +116,7 @@ private:
         // Add new node
         if (local_counter <= 0 && counter == 0)
           {
-            new_nodes.emplace_back(id);
+            new_nodes.emplace_back();
             new_content[node.get_id()] = id;
 
             ++id;
@@ -123,13 +124,11 @@ private:
         // Add new node and add master node for next steps
         else if (local_counter > 0 && counter == 0)
           {
-            new_nodes.emplace_back(id);
+            new_nodes.emplace_back();
             new_content[node.get_id()] = id;
 
-            ++id;
-
-            new_nodes.emplace_back(id);
-            new_content[id];
+            new_nodes.emplace_back();
+            new_content[++id];
 
             counter += local_counter;
           }
@@ -148,14 +147,14 @@ private:
             // End of the master node
             if (counter == 0)
               {
-                new_nodes.emplace_back(++id);
-                new_content[node.get_id()] = id;
+                new_nodes.emplace_back();
+                new_content[node.get_id()] = ++id;
 
                 // Do we have to add another master node?
                 if (local_counter >= 0)
                   {
-                    new_nodes.emplace_back(++id);
-                    new_content[id];
+                    new_nodes.emplace_back();
+                    new_content[++id];
                   }
                 else
                   ++id;

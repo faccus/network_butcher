@@ -35,13 +35,13 @@ TEST(KspTests, DijkstraSourceSink)
   std::map<io_id_type, basic_type> map;
   std::vector<node_type>           nodes;
 
-  nodes.push_back(node_type(0, {}, {0}, {}));
-  nodes.push_back(node_type(1, {0, 2, 4}, {1}, {}));
-  nodes.push_back(node_type(2, {0, 3}, {2}, {}));
-  nodes.push_back(node_type(3, {1, 5}, {3}, {}));
-  nodes.push_back(node_type(4, {2, 3, 6}, {4}, {}));
-  nodes.push_back(node_type(5, {2, 4}, {5}, {}));
-  nodes.push_back(node_type(6, {5}, {6}, {}));
+  nodes.push_back(node_type(io_id_collection_type{}, {0}, {}));
+  nodes.push_back(node_type({0, 2, 4}, {1}, {}));
+  nodes.push_back(node_type({0, 3}, {2}, {}));
+  nodes.push_back(node_type({1, 5}, {3}, {}));
+  nodes.push_back(node_type({2, 3, 6}, {4}, {}));
+  nodes.push_back(node_type({2, 4}, {5}, {}));
+  nodes.push_back(node_type(io_id_collection_type{5}, {6}, {}));
 
   for (io_id_type i = 0; i <= 6; ++i)
     map[i] = i;
@@ -84,13 +84,13 @@ TEST(KspTests, DijkstraSinkSource)
   std::map<io_id_type, Input> map;
   std::vector<node_type>      nodes;
 
-  nodes.push_back(node_type(0, {}, {0}, {}));
-  nodes.push_back(node_type(1, {0, 2, 4}, {1}, {}));
-  nodes.push_back(node_type(2, {0, 3}, {2}, {}));
-  nodes.push_back(node_type(3, {1, 5}, {3}, {}));
-  nodes.push_back(node_type(4, {2, 3, 6}, {4}, {}));
-  nodes.push_back(node_type(5, {2, 4}, {5}, {}));
-  nodes.push_back(node_type(6, {5}, {6}, {}));
+  nodes.push_back(node_type(io_id_collection_type{}, {0}, {}));
+  nodes.push_back(node_type({0, 2, 4}, {1}, {}));
+  nodes.push_back(node_type({0, 3}, {2}, {}));
+  nodes.push_back(node_type({1, 5}, {3}, {}));
+  nodes.push_back(node_type({2, 3, 6}, {4}, {}));
+  nodes.push_back(node_type({2, 4}, {5}, {}));
+  nodes.push_back(node_type(io_id_collection_type{5}, {6}, {}));
 
   for (io_id_type i = 0; i <= 6; ++i)
     map[i] = i;
@@ -132,13 +132,13 @@ TEST(KspTests, DijkstraSourceSinkFunctional)
   std::map<io_id_type, basic_type> map;
   std::vector<node_type>           nodes;
 
-  nodes.push_back(node_type(0, {}, {0}, {}));
-  nodes.push_back(node_type(1, {0, 2, 4}, {1}, {}));
-  nodes.push_back(node_type(2, {0, 3}, {2}, {}));
-  nodes.push_back(node_type(3, {1, 5}, {3}, {}));
-  nodes.push_back(node_type(4, {2, 3, 6}, {4}, {}));
-  nodes.push_back(node_type(5, {2, 4}, {5}, {}));
-  nodes.push_back(node_type(6, {5}, {6}, {}));
+  nodes.push_back(node_type(io_id_collection_type{}, {0}, {}));
+  nodes.push_back(node_type({0, 2, 4}, {1}, {}));
+  nodes.push_back(node_type({0, 3}, {2}, {}));
+  nodes.push_back(node_type({1, 5}, {3}, {}));
+  nodes.push_back(node_type({2, 3, 6}, {4}, {}));
+  nodes.push_back(node_type({2, 4}, {5}, {}));
+  nodes.push_back(node_type(io_id_collection_type{5}, {6}, {}));
 
   for (io_id_type i = 0; i <= 6; ++i)
     map[i] = i;
@@ -190,13 +190,13 @@ TEST(KspTests, DijkstraSinkSourceFunctional)
   std::map<io_id_type, Input> map;
   std::vector<node_type>      nodes;
 
-  nodes.push_back(node_type(0, {}, {0}, {}));
-  nodes.push_back(node_type(1, {0, 2, 4}, {1}, {}));
-  nodes.push_back(node_type(2, {0, 3}, {2}, {}));
-  nodes.push_back(node_type(3, {1, 5}, {3}, {}));
-  nodes.push_back(node_type(4, {2, 3, 6}, {4}, {}));
-  nodes.push_back(node_type(5, {2, 4}, {5}, {}));
-  nodes.push_back(node_type(6, {5}, {6}, {}));
+  nodes.push_back(node_type(io_id_collection_type{}, {0}, {}));
+  nodes.push_back(node_type({0, 2, 4}, {1}, {}));
+  nodes.push_back(node_type({0, 3}, {2}, {}));
+  nodes.push_back(node_type({1, 5}, {3}, {}));
+  nodes.push_back(node_type({2, 3, 6}, {4}, {}));
+  nodes.push_back(node_type({2, 4}, {5}, {}));
+  nodes.push_back(node_type(io_id_collection_type{5}, {6}, {}));
 
   for (io_id_type i = 0; i <= 6; ++i)
     map[i] = i;
@@ -248,20 +248,22 @@ TEST(KspTests, EppsteinOriginalNetwork)
   std::map<io_id_type, Input> map;
   std::vector<node_type>      nodes;
 
-  nodes.push_back(node_type(0, {}, {0}, {}));
+  nodes.push_back(node_type(io_id_collection_type{}, {0}, {}));
 
   for (int i = 1; i < 12; ++i)
     {
       if (i < 4)
-        nodes.push_back(node_type(i, {i - 1}, {i}, {}));
+        nodes.push_back(node_type(io_id_collection_type{i - 1}, {i}, {}));
       else if (i == 4)
-        nodes.push_back(node_type(4, {0}, {4}, {}));
+        nodes.push_back(node_type(io_id_collection_type{0}, {4}, {}));
       else if (4 < i && i < 8)
-        nodes.push_back(node_type(i, {i % 4, i - 1}, {i}, {}));
+        nodes.push_back(
+          node_type(io_id_collection_type{i % 4, i - 1}, {i}, {}));
       else if (i == 8)
-        nodes.push_back(node_type(8, {4}, {8}, {}));
+        nodes.push_back(node_type(io_id_collection_type{4}, {8}, {}));
       else if (i > 8)
-        nodes.push_back(node_type(i, {i % 4 + 4, i - 1}, {i}, {}));
+        nodes.push_back(
+          node_type(io_id_collection_type{i % 4 + 4, i - 1}, {i}, {}));
     }
 
   for (io_id_type i = 0; i < 12; ++i)
@@ -324,10 +326,10 @@ TEST(KspTests, EppsteinLinearGraph)
   std::map<io_id_type, Input> map;
   std::vector<node_type>      nodes;
 
-  nodes.emplace_back(node_type(0, {}, {0}));
-  nodes.emplace_back(node_type(1, {0}, {1}));
-  nodes.emplace_back(node_type(2, {1, 4}, {2}));
-  nodes.emplace_back(node_type(3, {2, 5}, {3}));
+  nodes.emplace_back(node_type({}, {0}));
+  nodes.emplace_back(node_type({0}, {1}));
+  nodes.emplace_back(node_type({1, 4}, {2}));
+  nodes.emplace_back(node_type({2, 5}, {3}));
 
 
   for (io_id_type i = 0; i < nodes.size(); ++i)
@@ -379,20 +381,22 @@ TEST(KspTests, LazyEppsteinOriginalNetwork)
   std::map<io_id_type, Input> map;
   std::vector<node_type>      nodes;
 
-  nodes.push_back(node_type(0, {}, {0}, {}));
+  nodes.push_back(node_type(io_id_collection_type{}, {0}, {}));
 
   for (int i = 1; i < 12; ++i)
     {
       if (i < 4)
-        nodes.push_back(node_type(i, {i - 1}, {i}, {}));
+        nodes.push_back(node_type(io_id_collection_type{i - 1}, {i}, {}));
       else if (i == 4)
-        nodes.push_back(node_type(4, {0}, {4}, {}));
+        nodes.push_back(node_type(io_id_collection_type{0}, {4}, {}));
       else if (4 < i && i < 8)
-        nodes.push_back(node_type(i, {i % 4, i - 1}, {i}, {}));
+        nodes.push_back(
+          node_type(io_id_collection_type{i % 4, i - 1}, {i}, {}));
       else if (i == 8)
-        nodes.push_back(node_type(8, {4}, {8}, {}));
+        nodes.push_back(node_type(io_id_collection_type{4}, {8}, {}));
       else if (i > 8)
-        nodes.push_back(node_type(i, {i % 4 + 4, i - 1}, {i}, {}));
+        nodes.push_back(
+          node_type(io_id_collection_type{i % 4 + 4, i - 1}, {i}, {}));
     }
 
   for (io_id_type i = 0; i < 12; ++i)
@@ -455,10 +459,10 @@ TEST(KspTests, LazyEppsteinLinearGraph)
   std::map<io_id_type, Input> map;
   std::vector<node_type>      nodes;
 
-  nodes.emplace_back(node_type(0, {}, {0}));
-  nodes.emplace_back(node_type(1, {0}, {1}));
-  nodes.emplace_back(node_type(2, {1, 4}, {2}));
-  nodes.emplace_back(node_type(3, {2, 5}, {3}));
+  nodes.emplace_back(node_type({}, {0}));
+  nodes.emplace_back(node_type({0}, {1}));
+  nodes.emplace_back(node_type({1, 4}, {2}));
+  nodes.emplace_back(node_type({2, 5}, {3}));
 
 
   for (io_id_type i = 0; i < nodes.size(); ++i)

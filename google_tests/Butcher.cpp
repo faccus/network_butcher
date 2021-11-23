@@ -51,14 +51,14 @@ TEST(ButcherTest, compute_k_shortest_paths_eppstein_linear)
   std::map<io_id_type, Input> map;
   std::vector<node_type>      nodes;
 
-  nodes.push_back(node_type(0, {}, {0}));
-  nodes.push_back(node_type(1, {0}, {1}));
-  nodes.push_back(node_type(2, {1}, {2}));
-  nodes.push_back(node_type(3, {1}, {3}));
-  nodes.push_back(node_type(4, {3}, {4}));
-  nodes.push_back(node_type(5, {2, 4}, {5}));
-  nodes.push_back(node_type(6, {5}, {6}));
-  nodes.push_back(node_type(7, {6}, {7}));
+  nodes.push_back(node_type(io_id_collection_type{}, {0}));
+  nodes.push_back(node_type(io_id_collection_type{0}, {1}));
+  nodes.push_back(node_type(io_id_collection_type{1}, {2}));
+  nodes.push_back(node_type(io_id_collection_type{1}, {3}));
+  nodes.push_back(node_type(io_id_collection_type{3}, {4}));
+  nodes.push_back(node_type(io_id_collection_type{2, 4}, {5}));
+  nodes.push_back(node_type(io_id_collection_type{5}, {6}));
+  nodes.push_back(node_type(io_id_collection_type{6}, {7}));
 
   for (io_id_type i = 0; i < nodes.size(); ++i)
     map[i] = i;
@@ -201,14 +201,14 @@ TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_linear)
   std::map<io_id_type, Input> map;
   std::vector<node_type>      nodes;
 
-  nodes.push_back(node_type(0, {}, {0}));
-  nodes.push_back(node_type(1, {0}, {1}));
-  nodes.push_back(node_type(2, {1}, {2}));
-  nodes.push_back(node_type(3, {1}, {3}));
-  nodes.push_back(node_type(4, {3}, {4}));
-  nodes.push_back(node_type(5, {2, 4}, {5}));
-  nodes.push_back(node_type(6, {5}, {6}));
-  nodes.push_back(node_type(7, {6}, {7}));
+  nodes.push_back(node_type(io_id_collection_type{}, {0}));
+  nodes.push_back(node_type(io_id_collection_type{0}, {1}));
+  nodes.push_back(node_type(io_id_collection_type{1}, {2}));
+  nodes.push_back(node_type(io_id_collection_type{1}, {3}));
+  nodes.push_back(node_type(io_id_collection_type{3}, {4}));
+  nodes.push_back(node_type(io_id_collection_type{2, 4}, {5}));
+  nodes.push_back(node_type(io_id_collection_type{5}, {6}));
+  nodes.push_back(node_type(io_id_collection_type{6}, {7}));
 
   for (io_id_type i = 0; i < nodes.size(); ++i)
     map[i] = i;
@@ -354,10 +354,10 @@ TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_random)
   std::size_t       num_devices = 3;
   std::size_t const num_nodes   = 1000;
 
-  nodes.push_back(node_type(0, {}, {0}));
+  nodes.push_back(node_type(io_id_collection_type{}, {0}));
   for (int n = 1; n < num_nodes - 1; ++n)
-    nodes.push_back(node_type(n, {n - 1}, {n}));
-  nodes.push_back(node_type(num_nodes - 1, {num_nodes - 2}, {0}));
+    nodes.push_back(node_type(io_id_collection_type{n - 1}, {n}));
+  nodes.push_back(node_type(io_id_collection_type{num_nodes - 2}, {0}));
 
   Graph<Input>   graph_cons(nodes, map);
   Butcher<Input> butcher(std::move(graph_cons));
@@ -494,10 +494,10 @@ TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_multiple_random)
   std::size_t const num_nodes       = 100;
   std::size_t const number_of_tests = 100;
 
-  nodes.push_back(node_type(0, {}, {0}));
+  nodes.push_back(node_type(io_id_collection_type{}, {0}));
   for (int n = 1; n < num_nodes - 1; ++n)
-    nodes.push_back(node_type(n, {n - 1}, {n}));
-  nodes.push_back(node_type(num_nodes - 1, {num_nodes - 2}, {0}));
+    nodes.push_back(node_type(io_id_collection_type{n - 1}, {n}));
+  nodes.push_back(node_type(io_id_collection_type{num_nodes - 2}, {0}));
 
   Graph<Input>   graph_cons(nodes, map);
   Butcher<Input> butcher(std::move(graph_cons));
@@ -642,10 +642,10 @@ TEST(ButcherTest, compute_k_shortest_paths_eppstein_random)
   std::size_t       num_devices = 3;
   std::size_t const num_nodes   = 1000;
 
-  nodes.push_back(node_type(0, {}, {0}));
+  nodes.push_back(node_type(io_id_collection_type{}, {0}));
   for (int n = 1; n < num_nodes - 1; ++n)
-    nodes.push_back(node_type(n, {n - 1}, {n}));
-  nodes.push_back(node_type(num_nodes - 1, {num_nodes - 2}, {0}));
+    nodes.push_back(node_type(io_id_collection_type{n - 1}, {n}));
+  nodes.push_back(node_type(io_id_collection_type{num_nodes - 2}, {0}));
 
   Graph<Input>   graph_cons(nodes, map);
   Butcher<Input> butcher(std::move(graph_cons));
@@ -781,10 +781,10 @@ TEST(ButcherTest, compute_k_shortest_paths_eppstein_vs_lazy_random)
   std::size_t       num_devices = 3;
   std::size_t const num_nodes   = 1000;
 
-  nodes.push_back(node_type(0, {}, {0}));
+  nodes.push_back(node_type(io_id_collection_type{}, {0}));
   for (int n = 1; n < num_nodes - 1; ++n)
-    nodes.push_back(node_type(n, {n - 1}, {n}));
-  nodes.push_back(node_type(num_nodes - 1, {num_nodes - 2}, {0}));
+    nodes.push_back(node_type(io_id_collection_type{n - 1}, {n}));
+  nodes.push_back(node_type(io_id_collection_type{num_nodes - 2}, {0}));
 
   Graph<Input>   graph_cons(nodes, map);
   Butcher<Input> butcher(std::move(graph_cons));

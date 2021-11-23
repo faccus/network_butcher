@@ -93,6 +93,9 @@ public:
     , nodes_content(content)
     , dependencies(std::move(dep))
   {
+    for (node_id_type i = 0; i < nodes.size(); ++i)
+      nodes[i].id = i;
+
     if (dependencies)
       compute_dependencies();
   }
@@ -105,6 +108,8 @@ class Graph<graph_input_type>
 private:
   using Map_IO           = std::unordered_map<std::string, io_id_type>;
   using Map_Node_Content = std::map<io_id_type, graph_input_type>;
+
+  friend class Node;
 
 
   /// From a ValueInfoProto (type of an input/output/value_info of the graph)
@@ -237,6 +242,9 @@ public:
     , nodes_content(std::move(content))
     , dependencies(std::move(dep))
   {
+    for (node_id_type i = 0; i < nodes.size(); ++i)
+      nodes[i].id = i;
+
     if (dependencies)
       compute_dependencies();
   }
@@ -320,8 +328,9 @@ public:
 
         if (!(input.empty() && ignore_parameters))
           {
-            auto current_index = ++node_index;
-            nodes.emplace_back(current_index, input, output, parameters);
+            Node new_entry(++node_index, input, output, parameters);
+
+            nodes.push_back(std::move(new_entry));
             nodes_operations.emplace_back(node.op_type());
           }
       }
