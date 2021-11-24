@@ -28,13 +28,16 @@ namespace utilities
   /// \param m Reference to the model that will be constructed
   /// \param model_path Path to the .onnx file
   void
-  parse_onnx_file(onnx::ModelProto &m, const std::string& model_path);
+  parse_onnx_file(onnx::ModelProto &m, const std::string &model_path);
 
   /// Construct a ModelProto from an onnx file
   /// \param model_path Path to the .onnx file
   /// \return The constructed model
   onnx::ModelProto
-  parse_onnx_file(const std::string& model_path);
+  parse_onnx_file(const std::string &model_path);
+
+  void
+  output_onnx_file(onnx::ModelProto const &m, const std::string &path);
 
   /// Check if a file exists
   /// \param name Path to the file
@@ -42,10 +45,9 @@ namespace utilities
   inline bool
   file_exists(const std::string &name)
   {
-    const std::filesystem::path p = name ;
+    const std::filesystem::path p = name;
     return std::filesystem::exists(p);
   }
-
 
 } // namespace utilities
 

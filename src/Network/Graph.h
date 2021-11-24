@@ -259,7 +259,6 @@ public:
   {
     const auto                    &in_graph = model.graph();
 
-
     Map_IO                         io_value_infos_graph;
     std::unordered_set<io_id_type> parameters_id;
 

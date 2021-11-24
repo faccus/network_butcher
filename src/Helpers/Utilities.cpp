@@ -51,27 +51,20 @@ utilities::compute_memory_usage_from_enum(type_info_id_type input) {
 
 void utilities::parse_onnx_file(onnx::ModelProto & m, const std::string& model_path)
 {
-  std::ifstream in(model_path, std::ios::binary);
+  std::fstream input(model_path, std::ios::in | std::ios::binary);
 
   // File can be opened
-  if(in.good())
-    {
-      // Compute the total byte lenght of the file
-      in.seekg(0, std::ios_base::end);
-      std::size_t len = in.tellg();
+  if (input.good())
+    m.ParseFromIstream(&input);
+}
 
-      // Prepare the array
-      char *ret = new char[len];
+void
+utilities::output_onnx_file(onnx::ModelProto const &m, const std::string &path)
+{
+  std::fstream output(path, std::ios::out | std::ios::trunc | std::ios::binary);
 
-      in.seekg(0, std::ios_base::beg);
-
-      // Read the file into the array
-      in.read(ret, len);
-      in.close();
-
-      // Let protobuf construct the model
-      m.ParseFromArray(ret, len);
-    }
+  if (output.good())
+    m.SerializeToOstream(&output);
 }
 
 onnx::ModelProto
