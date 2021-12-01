@@ -926,8 +926,10 @@ TEST(ButcherTest, compute_k_shortest_paths_eppstein_vs_lazy_random)
 
 TEST(ButcherTest, compute_k_shortest_paths_test_network)
 {
+  std::string path = "resnet18-v2-7-inferred.onnx";
+
   type_collection_weights   weight_map;
-  Butcher<graph_input_type> butcher("resnet18-v2-7-inferred.onnx");
+  Butcher<graph_input_type> butcher(path);
 
   auto const &graph     = butcher.getGraph();
   auto const &nodes     = graph.nodes;
@@ -1049,11 +1051,7 @@ TEST(ButcherTest, compute_k_shortest_paths_test_network)
   crono.stop();
   crono.wallTime();
 
-
-  auto res = butcher.reconstruct_model(tmp_res.first, tmp_res.second.front());
-
-
-  std::cout << std::endl;
+  auto res = butcher.reconstruct_model(tmp_res.first, tmp_res.second.back());
 }
 
 
@@ -1065,43 +1063,112 @@ TEST(ButcherTest, butcher_test_zone)
 
   onnx::ModelProto model = utilities::parse_onnx_file(path);
 
+  PrintInputOutput(model);
+
   onnx::ModelProto first_half;
   onnx::ModelProto second_half;
 
-  first_half.CopyFrom(model);
-  second_half.CopyFrom(model);
+  first_half.set_doc_string(model.doc_string());
+  first_half.set_domain(model.domain());
+  first_half.set_producer_name(model.producer_name());
+  first_half.set_producer_version(model.producer_version());
 
-  auto first_graph  = first_half.release_graph();
-  auto second_graph = second_half.release_graph();
+  second_half.set_doc_string(model.doc_string());
+  second_half.set_domain(model.domain());
+  second_half.set_producer_name(model.producer_name());
+  second_half.set_producer_version(model.producer_version());
+
+  auto first_graph  = new onnx::GraphProto;
+  auto second_graph = new onnx::GraphProto;
   auto graph        = model.graph();
 
   first_graph->clear_node();
   second_graph->clear_node();
 
-  auto        nodes             = graph.node();
-  std::size_t nodes_first_graph = 12;
+  first_graph->clear_input();
+  second_graph->clear_input();
+
+  first_graph->clear_output();
+  second_graph->clear_output();
+
+  first_graph->clear_initializer();
+  second_graph->clear_initializer();
+
+  first_graph->clear_sparse_initializer();
+  second_graph->clear_sparse_initializer();
+
+  first_graph->clear_value_info();
+  second_graph->clear_value_info();
+
+
+  auto                                   nodes             = graph.node();
+  std::size_t                            nodes_first_graph = 12;
+  std::set<onnx::ValueInfoProto const *> first_input;
+
+  std::function<void(onnx::GraphProto *, onnx::NodeProto *)> add_to_graph =
+    [&graph](onnx::GraphProto *sup_graph, onnx::NodeProto *node) {
+      for (std::size_t i = 0; i < node->input_size(); ++i)
+        {
+          auto it = std::find_if(graph.input().begin(),
+                                 graph.input().end(),
+                                 [&node, &i](onnx::ValueInfoProto const &ref) {
+                                   return node->input(i) == ref.name();
+                                 });
+
+          if (it != graph.input().end())
+            {
+              auto const tmp = sup_graph->add_input();
+              *tmp           = *it;
+            }
+          else
+            {
+              it = std::find_if(graph.value_info().begin(),
+                                graph.value_info().end(),
+                                [&node, &i](onnx::ValueInfoProto const &ref) {
+                                  return node->input(i) == ref.name();
+                                });
+
+              if (it != graph.value_info().end())
+                {
+                  auto const tmp = sup_graph->add_value_info();
+                  *tmp           = *it;
+                }
+            }
+
+          auto init = std::find_if(graph.initializer().begin(),
+                                   graph.initializer().end(),
+                                   [&node, &i](onnx::TensorProto const &ref) {
+                                     return node->input(i) == ref.name();
+                                   });
+          if (init != graph.initializer().end())
+            {
+              auto const tmp = sup_graph->add_initializer();
+              *tmp           = *init;
+            }
+        }
+    };
 
   for (std::size_t i = 0; i < nodes_first_graph; ++i)
     {
       auto tmp = first_graph->add_node();
       *tmp     = nodes.Get(i);
+
+      add_to_graph(first_graph, tmp);
     }
 
   for (std::size_t i = first_graph->node_size(); i < nodes.size(); ++i)
     {
       auto tmp = second_graph->add_node();
       *tmp     = nodes.Get(i);
+
+      add_to_graph(second_graph, tmp);
     }
 
   {
-    second_graph->mutable_input()->erase(
-      second_graph->mutable_input()->begin());
     auto tmp_in                  = second_graph->add_input();
     auto in_node                 = *(--first_graph->node().end());
     auto communication_node_name = *in_node.output().begin();
 
-    first_graph->mutable_output()->erase(
-      --first_graph->mutable_output()->end());
     auto tmp_out = first_graph->add_output();
 
     auto res = std::find_if(model.graph().input().begin(),
@@ -1136,11 +1203,6 @@ TEST(ButcherTest, butcher_test_zone)
 
   first_half.set_allocated_graph(first_graph);
   second_half.set_allocated_graph(second_graph);
-
-
-  utilities::output_onnx_file(first_half, res_path_1);
-  utilities::output_onnx_file(second_half, res_path_2);
-
 
   std::cout << std::endl;
 }
@@ -1214,19 +1276,19 @@ PrintInputOutput(const onnx::ModelProto &mod)
   auto &outputs    = graph.output();
   auto &value_info = graph.value_info();
 
-  std::cout << "General Inputs: " << std::endl;
+  std::cout << "General Inputs: " << std::endl << std::endl;
   for (auto &in : inputs)
     Analyze(in);
 
-  std::cout << "General Outputs: " << std::endl;
+  std::cout << "General Outputs: " << std::endl << std::endl;
   for (auto &out : outputs)
     Analyze(out);
 
-  std::cout << "Value_info: " << std::endl;
+  std::cout << "Value_info: " << std::endl << std::endl;
   for (auto &vi : value_info)
     Analyze(vi);
 
-  std::cout << "Nodes: " << std::endl;
-  for (auto &node : graph.node())
-    Analyze(node);
+  std::cout << "Initializers: " << std::endl << std::endl;
+  for (auto &init : graph.initializer())
+    std::cout << init.name() << std::endl;
 }

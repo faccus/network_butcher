@@ -447,14 +447,6 @@ public:
     return graph;
   }
 
-  /// Read from a file the model, construct the associated graph and prepare the
-  /// butcher
-  /// \param p Full path to the .onnx file model
-  /// \param ignore_parameters Allows to choose if graph should ignore already
-  /// initialized inputs/outputs (parameters)
-  Butcher(const std::string &p, bool ignore_parameters = false)
-    : graph(p, ignore_parameters){};
-
 
   /// It will compute every possible 2-slice partition of the network and it
   /// will select the partition whose total memory usage is less than the
@@ -592,7 +584,6 @@ class Butcher<graph_input_type>
 private:
   using network = Graph<graph_input_type>;
 
-  onnx::ModelProto original_model;
   network          graph;
 
 
@@ -1020,8 +1011,7 @@ public:
   /// \param ignore_parameters Allows to choose if graph should ignore already
   /// initialized inputs/outputs (parameters)
   Butcher(const std::string &p, bool ignore_parameters = false)
-    : original_model(utilities::parse_onnx_file(p))
-    , graph(original_model, ignore_parameters){};
+    : graph(p, ignore_parameters){};
 
 
   /// It will compute every possible 2-slice partition of the network and it
@@ -1169,30 +1159,237 @@ public:
     Graph<node_id_type, node_id_type> const &new_graph,
     Shortest_path_finder<node_id_type, node_id_type>::path_info const &path)
   {
-    auto const                   &path_nodes = path.path;
-    std::vector<onnx::ModelProto> res;
-    auto const                    new_graph_size = new_graph.nodes.size();
+    auto const &original_model = graph.original_model;
+    auto const &path_nodes     = path.path;
+    std::vector<std::pair<onnx::ModelProto, std::size_t>> res;
+    auto const new_graph_size = new_graph.nodes.size();
+
+    std::unordered_map<node_id_type, std::set<node_id_type>>
+      map; // New node -> Old nodes
+
+    for (auto const &node : new_graph.nodes_content)
+      map[node.second].insert(node.first);
 
     std::size_t current_model_device =
       path_nodes.front() < new_graph_size ?
         0 :
         (path_nodes.front() - 2) / (new_graph_size - 2);
 
-    onnx::ModelProto partial_res = original_model;
-    std::size_t      start_node  = 0;
+    res.emplace_back(onnx::ModelProto(), current_model_device);
 
-    for (std::size_t i = 0; i < path.path.size(); ++i)
+    res.back().first.set_doc_string(original_model.doc_string());
+    res.back().first.set_domain(original_model.domain());
+    res.back().first.set_producer_name(original_model.producer_name());
+    res.back().first.set_producer_version(original_model.producer_version());
+
+
+    auto        tmp_graph   = new onnx::GraphProto;
+    auto const &model_graph = original_model.graph();
+
+    tmp_graph->set_name(model_graph.name());
+    tmp_graph->set_doc_string(model_graph.doc_string());
+
+    std::function<google::protobuf::internal::RepeatedPtrIterator<
+      const onnx::ValueInfoProto>(std::string const &)>
+      get_type = [&](std::string const &communication_node_name) {
+        auto tmp_res =
+          std::find_if(original_model.graph().input().begin(),
+                       original_model.graph().input().end(),
+                       [communication_node_name](auto const &ref) {
+                         return ref.name() == communication_node_name;
+                       });
+
+        if (tmp_res == original_model.graph().input().end())
+          tmp_res = std::find_if(original_model.graph().output().begin(),
+                                 original_model.graph().output().end(),
+                                 [communication_node_name](auto const &ref) {
+                                   return ref.name() == communication_node_name;
+                                 });
+        else
+          return tmp_res;
+
+        if (tmp_res == original_model.graph().output().end())
+          tmp_res = std::find_if(original_model.graph().value_info().begin(),
+                                 original_model.graph().value_info().end(),
+                                 [communication_node_name](auto const &ref) {
+                                   return ref.name() == communication_node_name;
+                                 });
+
+        return tmp_res;
+      };
+
+
+    std::function<void(onnx::GraphProto *, onnx::NodeProto const *)>
+      add_to_graph = [&model_graph](onnx::GraphProto      *sup_graph,
+                                    onnx::NodeProto const *node) {
+        auto const &graph = model_graph;
+        for (std::size_t i = 0; i < node->input_size(); ++i)
+          {
+            auto it =
+              std::find_if(graph.input().begin(),
+                           graph.input().end(),
+                           [&node, &i](onnx::ValueInfoProto const &ref) {
+                             return node->input(i) == ref.name();
+                           });
+
+            if (it != graph.input().end())
+              {
+                auto const tmp = sup_graph->add_input();
+                *tmp           = *it;
+              }
+            else
+              {
+                it = std::find_if(graph.value_info().begin(),
+                                  graph.value_info().end(),
+                                  [&node, &i](onnx::ValueInfoProto const &ref) {
+                                    return node->input(i) == ref.name();
+                                  });
+
+                if (it != graph.value_info().end())
+                  {
+                    auto const tmp = sup_graph->add_value_info();
+                    *tmp           = *it;
+                  }
+              }
+
+            auto init = std::find_if(graph.initializer().begin(),
+                                     graph.initializer().end(),
+                                     [&node, &i](onnx::TensorProto const &ref) {
+                                       return node->input(i) == ref.name();
+                                     });
+            if (init != graph.initializer().end())
+              {
+                auto const tmp = sup_graph->add_initializer();
+                *tmp           = *init;
+              }
+          }
+      };
+
+
+    std::function<void(std::size_t const &)> add_nodes =
+      [&](std::size_t const &id) {
+        for (auto const &original_id : map[id])
+          {
+            auto const tmp = tmp_graph->add_node();
+            *tmp           = *graph.node_collection[original_id];
+
+            add_to_graph(tmp_graph, tmp);
+          }
+      };
+
+    for (std::size_t i = 0; i < path_nodes.size(); ++i)
       {
-        auto const &nodes  = *partial_res.graph().node().begin();
-        auto const &output = *partial_res.graph().output().begin();
-        auto const &input  = *partial_res.graph().input().begin();
+        auto const ind = path_nodes[i];
+        auto const actual_id =
+          ind < new_graph_size ? ind : (ind - 2) % (new_graph_size - 2) + 1;
 
-        auto const name = nodes.name();
+        std::size_t device_id =
+          ind < new_graph_size ? 0 : (ind - 2) / (new_graph_size - 2);
 
-        std::cout << std::endl;
+        if (device_id != current_model_device)
+          {
+            auto tmp_last_graph = tmp_graph;
+
+            current_model_device = device_id;
+
+            res.emplace_back(onnx::ModelProto(), current_model_device);
+
+            res.back().first.set_doc_string(original_model.doc_string());
+            res.back().first.set_domain(original_model.domain());
+            res.back().first.set_producer_name(original_model.producer_name());
+            res.back().first.set_producer_version(
+              original_model.producer_version());
+
+            auto tmp_new_graph = new onnx::GraphProto;
+
+            tmp_new_graph->set_name(model_graph.name());
+            tmp_new_graph->set_doc_string(model_graph.doc_string());
+
+            auto const out_nodes      = map[actual_id - 1];
+            auto const out_nodes_size = out_nodes.size();
+            std::vector<onnx::NodeProto const *> communication_nodes;
+
+            auto const &out =
+              *graph.dependencies[*out_nodes.rbegin()].second.begin();
+
+            for (auto set_it = out_nodes.rbegin(); set_it != out_nodes.rend();
+                 ++set_it)
+              if (graph.dependencies[*set_it].second.contains(out))
+                communication_nodes.push_back(graph.node_collection[*set_it]);
+
+            for (auto const &in_node : communication_nodes)
+              {
+                auto tmp_out = tmp_last_graph->add_output();
+                auto tmp_in  = tmp_new_graph->add_input();
+
+                auto communication_node_name = *in_node->output().begin();
+
+                tmp_out->set_name(communication_node_name);
+                tmp_in->set_name(communication_node_name);
+
+                auto tmp_res = get_type(communication_node_name);
+
+                if (tmp_res != original_model.graph().input().end())
+                  {
+                    tmp_out->set_allocated_type(
+                      new onnx::TypeProto(tmp_res->type()));
+                    tmp_in->set_allocated_type(
+                      new onnx::TypeProto(tmp_res->type()));
+                  }
+              }
+
+            (++res.rbegin())->first.set_allocated_graph(tmp_last_graph);
+            tmp_graph = tmp_new_graph;
+
+            add_nodes(actual_id);
+
+            for (auto it = tmp_graph->mutable_node()->begin();
+                 it != tmp_graph->mutable_node()->end();
+                 ++it)
+              {
+                auto const &ins = it->input();
+                for (auto const &in : ins)
+                  {
+                    bool ok = false;
+                    for (std::size_t j = 0; j < tmp_graph->input_size() && !ok;
+                         ++j)
+                      if (tmp_graph->input(j).name() == in)
+                        ok = true;
+
+                    for (auto it2 = tmp_graph->mutable_node()->begin();
+                         it2 != it && !ok;
+                         ++it2)
+                      {
+                        for (std::size_t j = 0; j < it2->output_size() && !ok;
+                             ++j)
+                          if (it2->output(j) == in)
+                            ok = true;
+                      }
+                    if (!ok)
+                      {
+                        auto tmp_in  = tmp_graph->add_input();
+                        auto tmp_res = get_type(in);
+
+                        tmp_in->set_name(in);
+                        if (tmp_res != original_model.graph().input().end())
+                          tmp_in->set_allocated_type(
+                            new onnx::TypeProto(tmp_res->type()));
+                      }
+                  }
+              }
+          }
+        else
+          add_nodes(actual_id);
       }
 
-    return {{partial_res, 0}};
+    {
+      auto tmp = tmp_graph->add_output();
+      *tmp     = model_graph.output(model_graph.output_size() - 1);
+    }
+
+    res.back().first.set_allocated_graph(tmp_graph);
+
+    return res;
   }
 };
 

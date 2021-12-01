@@ -213,11 +213,14 @@ public:
   std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
     dependencies;
 
+  onnx::ModelProto original_model;
 
   /// A vector containing, ordered by id, the different operations taking place
   /// in the nodes
   std::vector<operation_id_type> nodes_operations;
 
+  ///
+  std::vector<onnx::NodeProto const *> node_collection;
 
   Graph() = default;
 
@@ -257,7 +260,8 @@ public:
   /// \param ignore_parameters Ignore the inputs/outputs already initialized
   explicit Graph(const onnx::ModelProto &model, bool ignore_parameters = false)
   {
-    const auto                    &in_graph = model.graph();
+    original_model.CopyFrom(model);
+    const auto &in_graph = original_model.graph();
 
     Map_IO                         io_value_infos_graph;
     std::unordered_set<io_id_type> parameters_id;
@@ -324,13 +328,13 @@ public:
         process_nodes(node.input(), input, parameters);
         process_nodes(node.output(), output, parameters);
 
-
-        if (!(input.empty() && ignore_parameters))
+        if (!input.empty())
           {
             Node new_entry(++node_index, input, output, parameters);
 
             nodes.push_back(std::move(new_entry));
             nodes_operations.emplace_back(node.op_type());
+            node_collection.push_back(&node);
           }
       }
 
