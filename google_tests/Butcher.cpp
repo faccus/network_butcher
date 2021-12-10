@@ -9,12 +9,15 @@
 #include "../src/Helpers/APCS/chrono.h"
 #include "TestClass.h"
 
+/*
 void
 Analyze(const onnx::ValueInfoProto &);
 void
 Analyze(const onnx::NodeProto &);
 void
 PrintInputOutput(const onnx::ModelProto &);
+*/
+
 
 TEST(ButcherTest, compute_two_slice_brute_force_test)
 {
@@ -73,118 +76,70 @@ TEST(ButcherTest, compute_k_shortest_paths_eppstein_linear)
   Graph<Input>   graph_cons(nodes, map);
   Butcher<Input> butcher(std::move(graph_cons));
 
-  type_collection_weights weight_map;
+  std::vector<type_collection_weights> weight_maps;
+  weight_maps.reserve(num_devices);
 
-  weight_map[{0, 1}]  = 1000.;
-  weight_map[{0, 8}]  = 500.;
-  weight_map[{0, 13}] = 250.;
+  weight_maps.emplace_back();
+  auto &initial_map = weight_maps.back();
 
-  weight_map[{1, 2}] = 1000.;
-  weight_map[{1, 3}] = 500.;
-  weight_map[{3, 4}] = 500.;
-  weight_map[{2, 5}] = 1000.;
-  weight_map[{4, 5}] = 1000.;
-  weight_map[{5, 6}] = 1000.;
+  initial_map[{0, 1}] = 1000.;
+  initial_map[{1, 2}] = 1000.;
+  initial_map[{1, 3}] = 500.;
+  initial_map[{3, 4}] = 500.;
+  initial_map[{2, 5}] = 1000.;
+  initial_map[{4, 5}] = 1000.;
+  initial_map[{5, 6}] = 1000.;
+  initial_map[{6, 7}] = 0.;
 
-
-  weight_map[{6, 7}]  = 0.;
-  weight_map[{13, 7}] = 0.;
-  weight_map[{19, 7}] = 0.;
-
-
-  type_collection_weights additional_weights;
-  auto const             &graph     = butcher.getGraph();
-  auto const              num_nodes = graph.nodes.size();
-
-  for (auto const &edge : weight_map)
+  for (std::size_t k = 1; k < num_devices; ++k)
     {
-      if (edge.first.first == 0)
-        {
-          for (std::size_t i = 1; i < num_devices; ++i)
-            {
-              additional_weights[{edge.first.first,
-                                  edge.first.second + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2)}] =
-                weight_map[edge.first] / std::pow(2, i);
-            }
-        }
-      else if (edge.first.second == num_nodes - 1)
-        {
-          for (std::size_t i = 1; i < num_devices; ++i)
-            {
-              additional_weights[{edge.first.first + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2),
-                                  edge.first.second}] =
-                weight_map[edge.first] / std::pow(2, i);
-            }
-        }
-      if (edge.first.first != 0 && edge.first.second != num_nodes - 1)
-        {
-          for (std::size_t i = 1; i < num_devices; ++i)
-            {
-              additional_weights[{edge.first.first + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2),
-                                  edge.first.second + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2)}] =
-                weight_map[edge.first] / std::pow(2, i);
-            }
-        }
+      weight_maps.emplace_back(weight_maps.front());
+      auto &tmp_map = weight_maps.back();
+      for (auto &edge : tmp_map)
+        edge.second /= std::pow(2, k);
     }
-  weight_map.merge(std::move(additional_weights));
 
-  std::function<type_weight(edge_type const &)> weight_fun =
-    [&](edge_type const &edge) {
-      if (edge.first >= 0 &&
-          edge.first < num_nodes + (num_nodes - 2) * (num_devices - 1) &&
-          edge.second >= 0 &&
-          edge.second < num_nodes + (num_nodes - 2) * (num_devices - 1))
-        {
-          auto const it = weight_map.find(edge);
-          if (it != weight_map.cend())
-            return it->second;
-          else
-            return -1.;
-        }
-      else
-        return -1.;
-    };
+  auto const &graph     = butcher.getGraph();
+  auto const  num_nodes = graph.nodes.size();
 
-  std::function<type_weight(edge_type const &)> transmission_fun =
-    [&](edge_type const &edge) {
-      auto const &graph     = butcher.getGraph();
-      auto const  num_nodes = graph.nodes.size();
-      if (edge.first >= 0 &&
-          edge.first < num_nodes + (num_nodes - 2) * (num_devices - 1) &&
-          edge.second >= 0 &&
-          edge.second < num_nodes + (num_nodes - 2) * (num_devices - 1))
-        {
-          auto in_device_id =
-            edge.first < num_nodes ? 0 : (edge.first - 2) / (num_nodes - 2);
-          auto out_device_id =
-            edge.second < num_nodes ? 0 : (edge.second - 2) / (num_nodes - 2);
+  std::vector<std::function<type_weight(edge_type const &)>> maps;
 
-          if (in_device_id > out_device_id)
-            std::swap(in_device_id, out_device_id);
+  for (std::size_t i = 0; i < num_devices; ++i)
+    {
+      auto &weight_map = weight_maps[i];
 
-          if (out_device_id - in_device_id == 2)
-            return 1000.;
-          else if (out_device_id - in_device_id == 1)
-            {
-              if (out_device_id == 2)
-                return 700.;
-              else
-                return 300.;
-            }
-          else
-            return 0.;
-        }
-      else
-        return -1.;
-    };
+      maps.emplace_back([&weight_map](edge_type const &edge) {
+        return weight_map.find(edge)->second;
+      });
+    }
+
+  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+    transmission_fun =
+      [&](node_id_type const &input, std::size_t first, std::size_t second) {
+        auto in_device_id  = first;
+        auto out_device_id = second;
+
+        if (in_device_id > out_device_id)
+          std::swap(in_device_id, out_device_id);
+
+        if (out_device_id - in_device_id == 2)
+          return 1000.;
+        else if (out_device_id - in_device_id == 1)
+          {
+            if (out_device_id == 2)
+              return 700.;
+            else
+              return 300.;
+          }
+        else
+          return 0.;
+      };
 
 
-  auto const res = butcher.compute_k_shortest_paths_eppstein_linear(
-    weight_fun, transmission_fun, num_devices, 1000);
+  auto const tmp_res = butcher.compute_k_shortest_paths_eppstein_linear(
+    maps, transmission_fun, num_devices, 1000);
+
+  auto const &res = tmp_res.second;
 
   for (auto i = 0; i < res.size(); ++i)
     for (auto j = 0; j < res.size(); ++j)
@@ -223,118 +178,70 @@ TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_linear)
   Graph<Input>   graph_cons(nodes, map);
   Butcher<Input> butcher(std::move(graph_cons));
 
-  type_collection_weights weight_map;
+  std::vector<type_collection_weights> weight_maps;
+  weight_maps.reserve(num_devices);
 
-  weight_map[{0, 1}]  = 1000.;
-  weight_map[{0, 8}]  = 500.;
-  weight_map[{0, 13}] = 250.;
+  weight_maps.emplace_back();
+  auto &initial_map = weight_maps.back();
 
-  weight_map[{1, 2}] = 1000.;
-  weight_map[{1, 3}] = 500.;
-  weight_map[{3, 4}] = 500.;
-  weight_map[{2, 5}] = 1000.;
-  weight_map[{4, 5}] = 1000.;
-  weight_map[{5, 6}] = 1000.;
+  initial_map[{0, 1}] = 1000.;
+  initial_map[{1, 2}] = 1000.;
+  initial_map[{1, 3}] = 500.;
+  initial_map[{3, 4}] = 500.;
+  initial_map[{2, 5}] = 1000.;
+  initial_map[{4, 5}] = 1000.;
+  initial_map[{5, 6}] = 1000.;
+  initial_map[{6, 7}] = 0.;
 
-
-  weight_map[{6, 7}]  = 0.;
-  weight_map[{13, 7}] = 0.;
-  weight_map[{19, 7}] = 0.;
-
-
-  type_collection_weights additional_weights;
-  auto const             &graph     = butcher.getGraph();
-  auto const              num_nodes = graph.nodes.size();
-
-  for (auto const &edge : weight_map)
+  for (std::size_t k = 1; k < num_devices; ++k)
     {
-      if (edge.first.first == 0)
-        {
-          for (std::size_t i = 1; i < num_devices; ++i)
-            {
-              additional_weights[{edge.first.first,
-                                  edge.first.second + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2)}] =
-                weight_map[edge.first] / std::pow(2, i);
-            }
-        }
-      else if (edge.first.second == num_nodes - 1)
-        {
-          for (std::size_t i = 1; i < num_devices; ++i)
-            {
-              additional_weights[{edge.first.first + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2),
-                                  edge.first.second}] =
-                weight_map[edge.first] / std::pow(2, i);
-            }
-        }
-      if (edge.first.first != 0 && edge.first.second != num_nodes - 1)
-        {
-          for (std::size_t i = 1; i < num_devices; ++i)
-            {
-              additional_weights[{edge.first.first + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2),
-                                  edge.first.second + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2)}] =
-                weight_map[edge.first] / std::pow(2, i);
-            }
-        }
+      weight_maps.emplace_back(weight_maps.front());
+      auto &tmp_map = weight_maps.back();
+      for (auto &edge : tmp_map)
+        edge.second /= std::pow(2, k);
     }
-  weight_map.merge(std::move(additional_weights));
 
-  std::function<type_weight(edge_type const &)> weight_fun =
-    [&](edge_type const &edge) {
-      if (edge.first >= 0 &&
-          edge.first < num_nodes + (num_nodes - 2) * (num_devices - 1) &&
-          edge.second >= 0 &&
-          edge.second < num_nodes + (num_nodes - 2) * (num_devices - 1))
-        {
-          auto const it = weight_map.find(edge);
-          if (it != weight_map.cend())
-            return it->second;
-          else
-            return -1.;
-        }
-      else
-        return -1.;
-    };
+  auto const &graph     = butcher.getGraph();
+  auto const  num_nodes = graph.nodes.size();
 
-  std::function<type_weight(edge_type const &)> transmission_fun =
-    [&](edge_type const &edge) {
-      auto const &graph     = butcher.getGraph();
-      auto const  num_nodes = graph.nodes.size();
-      if (edge.first >= 0 &&
-          edge.first < num_nodes + (num_nodes - 2) * (num_devices - 1) &&
-          edge.second >= 0 &&
-          edge.second < num_nodes + (num_nodes - 2) * (num_devices - 1))
-        {
-          auto in_device_id =
-            edge.first < num_nodes ? 0 : (edge.first - 2) / (num_nodes - 2);
-          auto out_device_id =
-            edge.second < num_nodes ? 0 : (edge.second - 2) / (num_nodes - 2);
+  std::vector<std::function<type_weight(edge_type const &)>> maps;
 
-          if (in_device_id > out_device_id)
-            std::swap(in_device_id, out_device_id);
+  for (std::size_t i = 0; i < num_devices; ++i)
+    {
+      auto &weight_map = weight_maps[i];
 
-          if (out_device_id - in_device_id == 2)
-            return 1000.;
-          else if (out_device_id - in_device_id == 1)
-            {
-              if (out_device_id == 2)
-                return 700.;
-              else
-                return 300.;
-            }
-          else
-            return 0.;
-        }
-      else
-        return -1.;
-    };
+      maps.emplace_back([&weight_map](edge_type const &edge) {
+        return weight_map.find(edge)->second;
+      });
+    }
+
+  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+    transmission_fun =
+      [&](node_id_type const &input, std::size_t first, std::size_t second) {
+        auto in_device_id  = first;
+        auto out_device_id = second;
+
+        if (in_device_id > out_device_id)
+          std::swap(in_device_id, out_device_id);
+
+        if (out_device_id - in_device_id == 2)
+          return 1000.;
+        else if (out_device_id - in_device_id == 1)
+          {
+            if (out_device_id == 2)
+              return 700.;
+            else
+              return 300.;
+          }
+        else
+          return 0.;
+      };
 
 
-  auto const res = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
-    weight_fun, transmission_fun, num_devices, 1000);
+  auto const tmp_res = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
+    maps, transmission_fun, num_devices, 1000);
+
+  auto const &res = tmp_res.second;
 
   for (auto i = 0; i < res.size(); ++i)
     for (auto j = 0; j < res.size(); ++j)
@@ -343,7 +250,6 @@ TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_linear)
 
   ASSERT_EQ(res.size(), 81);
 }
-
 
 TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_random)
 {
@@ -354,12 +260,11 @@ TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_random)
   using type_collection_weights =
     std::map<std::pair<node_id_type, node_id_type>, type_weight>;
 
-  std::map<io_id_type, Input> map;
-  std::vector<node_type>      nodes;
-  type_collection_weights     weight_map;
-
   std::size_t       num_devices = 3;
   std::size_t const num_nodes   = 1000;
+
+  std::map<io_id_type, Input> map;
+  std::vector<node_type>      nodes;
 
   nodes.push_back(node_type(io_id_collection_type{}, {0}));
   for (int n = 1; n < num_nodes - 1; ++n)
@@ -372,111 +277,64 @@ TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_random)
 
   std::random_device         rd;
   std::default_random_engine random_engine{rd()};
-  type_collection_weights    additional_weights;
 
   std::uniform_real_distribution node_weights_generator{5000., 10000.};
 
+
+  std::vector<type_collection_weights> weight_maps;
+  weight_maps.reserve(num_devices);
+
+  weight_maps.emplace_back();
+  auto &initial_weight_map = weight_maps.back();
+
   for (node_id_type i = 0; i < num_nodes - 1; ++i)
-    weight_map[{i, i + 1}] = node_weights_generator(random_engine);
-  for (std::size_t i = 1; i < num_devices; ++i)
+    initial_weight_map[{i, i + 1}] = node_weights_generator(random_engine);
+
+  for (std::size_t k = 1; k < num_devices; ++k)
     {
-      weight_map[{0, num_nodes + (num_nodes - 2) * (i - 1)}] =
-        node_weights_generator(random_engine) / std::pow(2, i);
-      weight_map[{num_nodes + num_nodes - 3 + (num_nodes - 2) * (i - 1),
-                  num_nodes - 1}] =
-        node_weights_generator(random_engine) / std::pow(2, i);
+      weight_maps.emplace_back(weight_maps.front());
+      auto &tmp_map = weight_maps.back();
+      for (auto &edge : tmp_map)
+        edge.second /= std::pow(2, k);
     }
 
-  for (auto const &edge : weight_map)
+  std::vector<std::function<type_weight(edge_type const &)>> maps;
+
+  for (std::size_t i = 0; i < num_devices; ++i)
     {
-      if (edge.first.first == 0)
-        {
-          for (std::size_t i = 1; i < num_devices; ++i)
-            {
-              additional_weights[{edge.first.first,
-                                  edge.first.second + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2)}] =
-                weight_map[edge.first] / std::pow(2, i);
-            }
-        }
-      else if (edge.first.second == num_nodes - 1)
-        {
-          for (std::size_t i = 1; i < num_devices; ++i)
-            {
-              additional_weights[{edge.first.first + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2),
-                                  edge.first.second}] =
-                weight_map[edge.first] / std::pow(2, i);
-            }
-        }
-      if (edge.first.first != 0 && edge.first.second != num_nodes - 1)
-        {
-          for (std::size_t i = 1; i < num_devices; ++i)
-            {
-              additional_weights[{edge.first.first + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2),
-                                  edge.first.second + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2)}] =
-                weight_map[edge.first] / std::pow(2, i);
-            }
-        }
+      auto &weight_map = weight_maps[i];
+
+      maps.emplace_back([&weight_map](edge_type const &edge) {
+        return weight_map.find(edge)->second;
+      });
     }
-  weight_map.merge(std::move(additional_weights));
 
+  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+    transmission_fun =
+      [&](node_id_type const &input, std::size_t first, std::size_t second) {
+        auto in_device_id  = first;
+        auto out_device_id = second;
 
-  std::function<type_weight(edge_type const &)> weight_fun =
-    [&](edge_type const &edge) {
-      if (edge.first >= 0 &&
-          edge.first < num_nodes + (num_nodes - 2) * (num_devices - 1) &&
-          edge.second >= 0 &&
-          edge.second < num_nodes + (num_nodes - 2) * (num_devices - 1))
-        {
-          auto const it = weight_map.find(edge);
-          if (it != weight_map.cend())
-            return it->second;
-          else
-            return -1.;
-        }
-      else
-        return -1.;
-    };
+        if (in_device_id > out_device_id)
+          std::swap(in_device_id, out_device_id);
 
-  std::function<type_weight(edge_type const &)> transmission_fun =
-    [&](edge_type const &edge) {
-      auto const &graph = butcher.getGraph();
-      if (edge.first >= 0 &&
-          edge.first < num_nodes + (num_nodes - 2) * (num_devices - 1) &&
-          edge.second >= 0 &&
-          edge.second < num_nodes + (num_nodes - 2) * (num_devices - 1))
-        {
-          auto in_device_id =
-            edge.first < num_nodes ? 0 : (edge.first - 2) / (num_nodes - 2);
-          auto out_device_id =
-            edge.second < num_nodes ? 0 : (edge.second - 2) / (num_nodes - 2);
-
-          if (in_device_id > out_device_id)
-            std::swap(in_device_id, out_device_id);
-
-          if (out_device_id - in_device_id == 2)
-            return 10000.;
-          else if (out_device_id - in_device_id == 1)
-            {
-              if (out_device_id == 2)
-                return 7000.;
-              else
-                return 3000.;
-            }
-          else
-            return 0.;
-        }
-      else
-        return -1.;
-    };
+        if (out_device_id - in_device_id == 2)
+          return 1000.;
+        else if (out_device_id - in_device_id == 1)
+          {
+            if (out_device_id == 2)
+              return 700.;
+            else
+              return 300.;
+          }
+        else
+          return 0.;
+      };
 
   Chrono crono;
   crono.start();
   auto const res = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
-    weight_fun, transmission_fun, num_devices, num_nodes * 0.1);
+    maps, transmission_fun, num_devices, num_nodes * 0.1);
   crono.stop();
 
   crono.wallTime();
@@ -484,6 +342,7 @@ TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_random)
 
   std::cout << std::endl;
 }
+
 
 TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_multiple_random)
 {
@@ -518,111 +377,61 @@ TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_multiple_random)
 
   for (auto num_test = 0; num_test < number_of_tests; ++num_test)
     {
-      type_collection_weights weight_map;
-      type_collection_weights additional_weights;
+      std::vector<type_collection_weights> weight_maps;
+      weight_maps.reserve(num_devices);
+
+      weight_maps.emplace_back();
+      auto &initial_weight_map = weight_maps.back();
 
       for (node_id_type i = 0; i < num_nodes - 1; ++i)
-        weight_map[{i, i + 1}] = node_weights_generator(random_engine);
-      for (std::size_t i = 1; i < num_devices; ++i)
+        initial_weight_map[{i, i + 1}] = node_weights_generator(random_engine);
+
+      for (std::size_t k = 1; k < num_devices; ++k)
         {
-          weight_map[{0, num_nodes + (num_nodes - 2) * (i - 1)}] =
-            node_weights_generator(random_engine) / std::pow(2, i);
-          weight_map[{num_nodes + num_nodes - 3 + (num_nodes - 2) * (i - 1),
-                      num_nodes - 1}] =
-            node_weights_generator(random_engine) / std::pow(2, i);
+          weight_maps.emplace_back(weight_maps.front());
+          auto &tmp_map = weight_maps.back();
+          for (auto &edge : tmp_map)
+            edge.second /= std::pow(2, k);
         }
 
-      for (auto const &edge : weight_map)
+      std::vector<std::function<type_weight(edge_type const &)>> maps;
+
+      for (std::size_t i = 0; i < num_devices; ++i)
         {
-          if (edge.first.first == 0)
-            {
-              for (std::size_t i = 1; i < num_devices; ++i)
-                {
-                  additional_weights[{edge.first.first,
-                                      edge.first.second + nodes.size() - 1 +
-                                        (i - 1) * (num_nodes - 2)}] =
-                    weight_map[edge.first] / std::pow(2, i);
-                }
-            }
-          else if (edge.first.second == num_nodes - 1)
-            {
-              for (std::size_t i = 1; i < num_devices; ++i)
-                {
-                  additional_weights[{edge.first.first + nodes.size() - 1 +
-                                        (i - 1) * (num_nodes - 2),
-                                      edge.first.second}] =
-                    weight_map[edge.first] / std::pow(2, i);
-                }
-            }
-          if (edge.first.first != 0 && edge.first.second != num_nodes - 1)
-            {
-              for (std::size_t i = 1; i < num_devices; ++i)
-                {
-                  additional_weights[{edge.first.first + nodes.size() - 1 +
-                                        (i - 1) * (num_nodes - 2),
-                                      edge.first.second + nodes.size() - 1 +
-                                        (i - 1) * (num_nodes - 2)}] =
-                    weight_map[edge.first] / std::pow(2, i);
-                }
-            }
+          auto &weight_map = weight_maps[i];
+
+          maps.emplace_back([&weight_map](edge_type const &edge) {
+            return weight_map.find(edge)->second;
+          });
         }
-      weight_map.merge(std::move(additional_weights));
 
+      std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+        transmission_fun = [&](node_id_type const &input,
+                               std::size_t         first,
+                               std::size_t         second) {
+          auto in_device_id  = first;
+          auto out_device_id = second;
 
-      std::function<type_weight(edge_type const &)> weight_fun =
-        [&](edge_type const &edge) {
-          if (edge.first >= 0 &&
-              edge.first < num_nodes + (num_nodes - 2) * (num_devices - 1) &&
-              edge.second >= 0 &&
-              edge.second < num_nodes + (num_nodes - 2) * (num_devices - 1))
+          if (in_device_id > out_device_id)
+            std::swap(in_device_id, out_device_id);
+
+          if (out_device_id - in_device_id == 2)
+            return 1000.;
+          else if (out_device_id - in_device_id == 1)
             {
-              auto const it = weight_map.find(edge);
-              if (it != weight_map.cend())
-                return it->second;
+              if (out_device_id == 2)
+                return 700.;
               else
-                return -1.;
+                return 300.;
             }
           else
-            return -1.;
-        };
-
-      std::function<type_weight(edge_type const &)> transmission_fun =
-        [&](edge_type const &edge) {
-          auto const &graph = butcher.getGraph();
-          if (edge.first >= 0 &&
-              edge.first < num_nodes + (num_nodes - 2) * (num_devices - 1) &&
-              edge.second >= 0 &&
-              edge.second < num_nodes + (num_nodes - 2) * (num_devices - 1))
-            {
-              auto in_device_id =
-                edge.first < num_nodes ? 0 : (edge.first - 2) / (num_nodes - 2);
-              auto out_device_id = edge.second < num_nodes ?
-                                     0 :
-                                     (edge.second - 2) / (num_nodes - 2);
-
-              if (in_device_id > out_device_id)
-                std::swap(in_device_id, out_device_id);
-
-              if (out_device_id - in_device_id == 2)
-                return 10000.;
-              else if (out_device_id - in_device_id == 1)
-                {
-                  if (out_device_id == 2)
-                    return 7000.;
-                  else
-                    return 3000.;
-                }
-              else
-                return 0.;
-            }
-          else
-            return -1.;
+            return 0.;
         };
 
       Chrono crono;
       crono.start();
       auto const res = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
-        weight_fun, transmission_fun, num_devices, num_nodes * 0.1);
+        maps, transmission_fun, num_devices, num_nodes * 0.1);
       crono.stop();
 
       total_time += crono.wallTime();
@@ -642,12 +451,11 @@ TEST(ButcherTest, compute_k_shortest_paths_eppstein_random)
   using type_collection_weights =
     std::map<std::pair<node_id_type, node_id_type>, type_weight>;
 
-  std::map<io_id_type, Input> map;
-  std::vector<node_type>      nodes;
-  type_collection_weights     weight_map;
-
   std::size_t       num_devices = 3;
   std::size_t const num_nodes   = 1000;
+
+  std::map<io_id_type, Input> map;
+  std::vector<node_type>      nodes;
 
   nodes.push_back(node_type(io_id_collection_type{}, {0}));
   for (int n = 1; n < num_nodes - 1; ++n)
@@ -664,113 +472,69 @@ TEST(ButcherTest, compute_k_shortest_paths_eppstein_random)
 
   std::uniform_real_distribution node_weights_generator{5000., 10000.};
 
+
+  std::vector<type_collection_weights> weight_maps;
+  weight_maps.reserve(num_devices);
+
+  weight_maps.emplace_back();
+  auto &initial_weight_map = weight_maps.back();
+
   for (node_id_type i = 0; i < num_nodes - 1; ++i)
-    weight_map[{i, i + 1}] = node_weights_generator(random_engine);
-  for (std::size_t i = 1; i < num_devices; ++i)
+    initial_weight_map[{i, i + 1}] = node_weights_generator(random_engine);
+
+  for (std::size_t k = 1; k < num_devices; ++k)
     {
-      weight_map[{0, num_nodes + (num_nodes - 2) * (i - 1)}] =
-        node_weights_generator(random_engine) / std::pow(2, i);
-      weight_map[{num_nodes + num_nodes - 3 + (num_nodes - 2) * (i - 1),
-                  num_nodes - 1}] =
-        node_weights_generator(random_engine) / std::pow(2, i);
+      weight_maps.emplace_back(weight_maps.front());
+      auto &tmp_map = weight_maps.back();
+      for (auto &edge : tmp_map)
+        edge.second /= std::pow(2, k);
     }
 
-  for (auto const &edge : weight_map)
+  std::vector<std::function<type_weight(edge_type const &)>> maps;
+
+  for (std::size_t i = 0; i < num_devices; ++i)
     {
-      if (edge.first.first == 0)
-        {
-          for (std::size_t i = 1; i < num_devices; ++i)
-            {
-              additional_weights[{edge.first.first,
-                                  edge.first.second + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2)}] =
-                weight_map[edge.first] / std::pow(2, i);
-            }
-        }
-      else if (edge.first.second == num_nodes - 1)
-        {
-          for (std::size_t i = 1; i < num_devices; ++i)
-            {
-              additional_weights[{edge.first.first + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2),
-                                  edge.first.second}] =
-                weight_map[edge.first] / std::pow(2, i);
-            }
-        }
-      if (edge.first.first != 0 && edge.first.second != num_nodes - 1)
-        {
-          for (std::size_t i = 1; i < num_devices; ++i)
-            {
-              additional_weights[{edge.first.first + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2),
-                                  edge.first.second + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2)}] =
-                weight_map[edge.first] / std::pow(2, i);
-            }
-        }
+      auto &weight_map = weight_maps[i];
+
+      maps.emplace_back([&weight_map](edge_type const &edge) {
+        return weight_map.find(edge)->second;
+      });
     }
-  weight_map.merge(std::move(additional_weights));
 
+  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+    transmission_fun =
+      [&](node_id_type const &input, std::size_t first, std::size_t second) {
+        auto in_device_id  = first;
+        auto out_device_id = second;
 
-  std::function<type_weight(edge_type const &)> weight_fun =
-    [&](edge_type const &edge) {
-      if (edge.first >= 0 &&
-          edge.first < num_nodes + (num_nodes - 2) * (num_devices - 1) &&
-          edge.second >= 0 &&
-          edge.second < num_nodes + (num_nodes - 2) * (num_devices - 1))
-        {
-          auto const it = weight_map.find(edge);
-          if (it != weight_map.cend())
-            return it->second;
-          else
-            return -1.;
-        }
-      else
-        return -1.;
-    };
+        if (in_device_id > out_device_id)
+          std::swap(in_device_id, out_device_id);
 
-  std::function<type_weight(edge_type const &)> transmission_fun =
-    [&](edge_type const &edge) {
-      auto const &graph = butcher.getGraph();
-      if (edge.first >= 0 &&
-          edge.first < num_nodes + (num_nodes - 2) * (num_devices - 1) &&
-          edge.second >= 0 &&
-          edge.second < num_nodes + (num_nodes - 2) * (num_devices - 1))
-        {
-          auto in_device_id =
-            edge.first < num_nodes ? 0 : (edge.first - 2) / (num_nodes - 2);
-          auto out_device_id =
-            edge.second < num_nodes ? 0 : (edge.second - 2) / (num_nodes - 2);
-
-          if (in_device_id > out_device_id)
-            std::swap(in_device_id, out_device_id);
-
-          if (out_device_id - in_device_id == 2)
-            return 10000.;
-          else if (out_device_id - in_device_id == 1)
-            {
-              if (out_device_id == 2)
-                return 7000.;
-              else
-                return 3000.;
-            }
-          else
-            return 0.;
-        }
-      else
-        return -1.;
-    };
+        if (out_device_id - in_device_id == 2)
+          return 1000.;
+        else if (out_device_id - in_device_id == 1)
+          {
+            if (out_device_id == 2)
+              return 700.;
+            else
+              return 300.;
+          }
+        else
+          return 0.;
+      };
 
   Chrono crono;
   crono.start();
   auto const res = butcher.compute_k_shortest_paths_eppstein_linear(
-    weight_fun, transmission_fun, num_devices, num_nodes * 0.1);
+    maps, transmission_fun, num_devices, num_nodes * 0.1);
   crono.stop();
 
   crono.wallTime();
 
+
   std::cout << std::endl;
 }
+
 
 TEST(ButcherTest, compute_k_shortest_paths_eppstein_vs_lazy_random)
 {
@@ -783,7 +547,6 @@ TEST(ButcherTest, compute_k_shortest_paths_eppstein_vs_lazy_random)
 
   std::map<io_id_type, Input> map;
   std::vector<node_type>      nodes;
-  type_collection_weights     weight_map;
 
   std::size_t       num_devices = 3;
   std::size_t const num_nodes   = 1000;
@@ -803,132 +566,87 @@ TEST(ButcherTest, compute_k_shortest_paths_eppstein_vs_lazy_random)
 
   std::uniform_real_distribution node_weights_generator{5000., 10000.};
 
+  std::vector<type_collection_weights> weight_maps;
+  weight_maps.reserve(num_devices);
+
+  weight_maps.emplace_back();
+  auto &initial_weight_map = weight_maps.back();
+
   for (node_id_type i = 0; i < num_nodes - 1; ++i)
-    weight_map[{i, i + 1}] = node_weights_generator(random_engine);
-  for (std::size_t i = 1; i < num_devices; ++i)
+    initial_weight_map[{i, i + 1}] = node_weights_generator(random_engine);
+
+  for (std::size_t k = 1; k < num_devices; ++k)
     {
-      weight_map[{0, num_nodes + (num_nodes - 2) * (i - 1)}] =
-        node_weights_generator(random_engine) / std::pow(2, i);
-      weight_map[{num_nodes + num_nodes - 3 + (num_nodes - 2) * (i - 1),
-                  num_nodes - 1}] =
-        node_weights_generator(random_engine) / std::pow(2, i);
+      weight_maps.emplace_back(weight_maps.front());
+      auto &tmp_map = weight_maps.back();
+      for (auto &edge : tmp_map)
+        edge.second /= std::pow(2, k);
     }
 
-  for (auto const &edge : weight_map)
+  std::vector<std::function<type_weight(edge_type const &)>> maps;
+
+  for (std::size_t i = 0; i < num_devices; ++i)
     {
-      if (edge.first.first == 0)
-        {
-          for (std::size_t i = 1; i < num_devices; ++i)
-            {
-              additional_weights[{edge.first.first,
-                                  edge.first.second + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2)}] =
-                weight_map[edge.first] / std::pow(2, i);
-            }
-        }
-      else if (edge.first.second == num_nodes - 1)
-        {
-          for (std::size_t i = 1; i < num_devices; ++i)
-            {
-              additional_weights[{edge.first.first + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2),
-                                  edge.first.second}] =
-                weight_map[edge.first] / std::pow(2, i);
-            }
-        }
-      if (edge.first.first != 0 && edge.first.second != num_nodes - 1)
-        {
-          for (std::size_t i = 1; i < num_devices; ++i)
-            {
-              additional_weights[{edge.first.first + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2),
-                                  edge.first.second + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2)}] =
-                weight_map[edge.first] / std::pow(2, i);
-            }
-        }
+      auto &weight_map = weight_maps[i];
+
+      maps.emplace_back([&weight_map](edge_type const &edge) {
+        return weight_map.find(edge)->second;
+      });
     }
-  weight_map.merge(std::move(additional_weights));
 
+  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+    transmission_fun =
+      [&](node_id_type const &input, std::size_t first, std::size_t second) {
+        auto in_device_id  = first;
+        auto out_device_id = second;
 
-  std::function<type_weight(edge_type const &)> weight_fun =
-    [&](edge_type const &edge) {
-      if (edge.first >= 0 &&
-          edge.first < num_nodes + (num_nodes - 2) * (num_devices - 1) &&
-          edge.second >= 0 &&
-          edge.second < num_nodes + (num_nodes - 2) * (num_devices - 1))
-        {
-          auto const it = weight_map.find(edge);
-          if (it != weight_map.cend())
-            return it->second;
-          else
-            return -1.;
-        }
-      else
-        return -1.;
-    };
+        if (in_device_id > out_device_id)
+          std::swap(in_device_id, out_device_id);
 
-  std::function<type_weight(edge_type const &)> transmission_fun =
-    [&](edge_type const &edge) {
-      auto const &graph = butcher.getGraph();
-      if (edge.first >= 0 &&
-          edge.first < num_nodes + (num_nodes - 2) * (num_devices - 1) &&
-          edge.second >= 0 &&
-          edge.second < num_nodes + (num_nodes - 2) * (num_devices - 1))
-        {
-          auto in_device_id =
-            edge.first < num_nodes ? 0 : (edge.first - 2) / (num_nodes - 2);
-          auto out_device_id =
-            edge.second < num_nodes ? 0 : (edge.second - 2) / (num_nodes - 2);
-
-          if (in_device_id > out_device_id)
-            std::swap(in_device_id, out_device_id);
-
-          if (out_device_id - in_device_id == 2)
-            return 10000.;
-          else if (out_device_id - in_device_id == 1)
-            {
-              if (out_device_id == 2)
-                return 7000.;
-              else
-                return 3000.;
-            }
-          else
-            return 0.;
-        }
-      else
-        return -1.;
-    };
+        if (out_device_id - in_device_id == 2)
+          return 1000.;
+        else if (out_device_id - in_device_id == 1)
+          {
+            if (out_device_id == 2)
+              return 700.;
+            else
+              return 300.;
+          }
+        else
+          return 0.;
+      };
 
   Chrono crono;
   crono.start();
-  auto const res = butcher.compute_k_shortest_paths_eppstein_linear(
-    weight_fun, transmission_fun, num_devices, num_nodes * 0.1);
+  auto const tres = butcher.compute_k_shortest_paths_eppstein_linear(
+    maps, transmission_fun, num_devices, num_nodes * 0.1);
   crono.stop();
-  crono.wallTime();
 
 
   Chrono crono2;
   crono2.start();
-  auto const res2 = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
-    weight_fun, transmission_fun, num_devices, num_nodes * 0.1);
+  auto const tres2 = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
+    maps, transmission_fun, num_devices, num_nodes * 0.1);
   crono2.stop();
   crono2.wallTime();
 
+  auto const &res  = tres.second;
+  auto const &res2 = tres2.second;
+
   for (auto i = 0; i < res.size(); ++i)
     for (auto j = 0; j < res2.size(); ++j)
-      if (i != j && !(res[i] < res2[j] || res2[j] < res[i]))
-        ASSERT_TRUE(!(res[i] < res2[j] || res2[j] < res[i]));
+      EXPECT_FALSE(i != j && !(res[i] < res2[j] || res2[j] < res[i]));
 
-  std::cout << std::endl;
+  std::cout << "Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
+            << std::endl;
+  std::cout << "Lazy eppstein: " << crono2.wallTime() / 1000 << " milliseconds"
+            << std::endl;
 }
-
 
 TEST(ButcherTest, compute_k_shortest_paths_test_network)
 {
   std::string path = "resnet18-v2-7-inferred.onnx";
 
-  type_collection_weights   weight_map;
   Butcher<graph_input_type> butcher(path);
 
   auto const &graph     = butcher.getGraph();
@@ -939,122 +657,79 @@ TEST(ButcherTest, compute_k_shortest_paths_test_network)
 
   std::random_device         rd;
   std::default_random_engine random_engine{rd()};
-  type_collection_weights    additional_weights;
 
   std::uniform_real_distribution node_weights_generator{5000., 10000.};
 
-  for (std::size_t i = 0; i < num_nodes; ++i)
-    for (auto const &out_node : graph.dependencies[i].second)
-      additional_weights[{i, out_node}] = node_weights_generator(random_engine);
+  std::vector<type_collection_weights> weight_maps;
+  weight_maps.reserve(num_devices);
 
+  weight_maps.emplace_back();
+  auto &initial_weight_map = weight_maps.back();
 
-  for (std::size_t i = 1; i < num_devices; ++i)
+  for (node_id_type i = 0; i < num_nodes - 1; ++i)
+    initial_weight_map[{i, i + 1}] = node_weights_generator(random_engine);
+
+  for (std::size_t k = 1; k < num_devices; ++k)
     {
-      weight_map[{0, num_nodes + (num_nodes - 2) * (i - 1)}] =
-        node_weights_generator(random_engine) / std::pow(2, i);
-      weight_map[{num_nodes + num_nodes - 3 + (num_nodes - 2) * (i - 1),
-                  num_nodes - 1}] =
-        node_weights_generator(random_engine) / std::pow(2, i);
+      weight_maps.emplace_back(weight_maps.front());
+      auto &tmp_map = weight_maps.back();
+      for (auto &edge : tmp_map)
+        edge.second /= std::pow(2, k);
     }
 
-  for (auto const &edge : weight_map)
+  std::vector<std::function<type_weight(edge_type const &)>> maps;
+
+  for (std::size_t i = 0; i < num_devices; ++i)
     {
-      if (edge.first.first == 0)
-        {
-          for (std::size_t i = 1; i < num_devices; ++i)
-            {
-              additional_weights[{edge.first.first,
-                                  edge.first.second + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2)}] =
-                weight_map[edge.first] / std::pow(2, i);
-            }
-        }
-      else if (edge.first.second == num_nodes - 1)
-        {
-          for (std::size_t i = 1; i < num_devices; ++i)
-            {
-              additional_weights[{edge.first.first + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2),
-                                  edge.first.second}] =
-                weight_map[edge.first] / std::pow(2, i);
-            }
-        }
-      if (edge.first.first != 0 && edge.first.second != num_nodes - 1)
-        {
-          for (std::size_t i = 1; i < num_devices; ++i)
-            {
-              additional_weights[{edge.first.first + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2),
-                                  edge.first.second + nodes.size() - 1 +
-                                    (i - 1) * (num_nodes - 2)}] =
-                weight_map[edge.first] / std::pow(2, i);
-            }
-        }
+      auto &weight_map = weight_maps[i];
+
+      maps.emplace_back([&weight_map](edge_type const &edge) {
+        return weight_map.find(edge)->second;
+      });
     }
-  weight_map.merge(std::move(additional_weights));
 
+  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+    transmission_fun =
+      [&](node_id_type const &input, std::size_t first, std::size_t second) {
+        auto in_device_id  = first;
+        auto out_device_id = second;
 
-  std::function<type_weight(edge_type const &)> weight_fun =
-    [&](edge_type const &edge) {
-      if (edge.first >= 0 &&
-          edge.first < num_nodes + (num_nodes - 2) * (num_devices - 1) &&
-          edge.second >= 0 &&
-          edge.second < num_nodes + (num_nodes - 2) * (num_devices - 1))
-        {
-          auto const it = weight_map.find(edge);
-          if (it != weight_map.cend())
-            return it->second;
-          else
-            return -1.;
-        }
-      else
-        return -1.;
-    };
+        if (in_device_id > out_device_id)
+          std::swap(in_device_id, out_device_id);
 
-  std::function<type_weight(edge_type const &)> transmission_fun =
-    [&](edge_type const &edge) {
-      auto const &graph = butcher.getGraph();
-      if (edge.first >= 0 &&
-          edge.first < num_nodes + (num_nodes - 2) * (num_devices - 1) &&
-          edge.second >= 0 &&
-          edge.second < num_nodes + (num_nodes - 2) * (num_devices - 1))
-        {
-          auto in_device_id =
-            edge.first < num_nodes ? 0 : (edge.first - 2) / (num_nodes - 2);
-          auto out_device_id =
-            edge.second < num_nodes ? 0 : (edge.second - 2) / (num_nodes - 2);
-
-          if (in_device_id > out_device_id)
-            std::swap(in_device_id, out_device_id);
-
-          if (out_device_id - in_device_id == 2)
-            return 10000.;
-          else if (out_device_id - in_device_id == 1)
-            {
-              if (out_device_id == 2)
-                return 7000.;
-              else
-                return 3000.;
-            }
-          else
-            return 0.;
-        }
-      else
-        return -1.;
-    };
+        if (out_device_id - in_device_id == 2)
+          return 1000.;
+        else if (out_device_id - in_device_id == 1)
+          {
+            if (out_device_id == 2)
+              return 700.;
+            else
+              return 300.;
+          }
+        else
+          return 0.;
+      };
 
 
   Chrono crono;
   crono.start();
-  auto const tmp_res = butcher.compute_k_shortest_paths_eppstein_linear(
-    weight_fun, transmission_fun, num_devices, num_nodes / 10);
+  auto const tmp_res = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
+    maps, transmission_fun, num_devices, num_nodes / 10);
   crono.stop();
-  crono.wallTime();
 
-  auto res = butcher.reconstruct_model(tmp_res.first, tmp_res.second.back());
+  std::cout << "Lazy Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
+            << std::endl;
+
+  crono.start();
+  auto res = butcher.reconstruct_model(tmp_res.first, tmp_res.second.front());
+  crono.stop();
+
+  std::cout << "Model reconstruction: " << crono.wallTime() / 1000
+            << " milliseconds" << std::endl;
 }
 
 
+/*
 TEST(ButcherTest, butcher_test_zone)
 {
   std::string const path       = "resnet18-v2-7-inferred.onnx";
@@ -1206,7 +881,6 @@ TEST(ButcherTest, butcher_test_zone)
 
   std::cout << std::endl;
 }
-
 void
 Analyze(const onnx::ValueInfoProto &info)
 {
@@ -1292,3 +966,4 @@ PrintInputOutput(const onnx::ModelProto &mod)
   for (auto &init : graph.initializer())
     std::cout << init.name() << std::endl;
 }
+*/
