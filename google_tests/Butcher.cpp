@@ -31,6 +31,9 @@ basic_butcher();
 std::vector<std::function<type_weight(edge_type const &)>>
 basic_weight(std::size_t, std::vector<type_collection_weights> &);
 
+std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+  basic_transmission(std::size_t, std::size_t);
+
 
 TEST(ButcherTest, compute_two_slice_brute_force_test)
 {
@@ -72,30 +75,10 @@ TEST(ButcherTest, compute_k_shortest_paths_eppstein_linear)
   auto const  num_nodes = graph.nodes.size();
 
 
-  std::vector<std::function<type_weight(edge_type const &)>> maps =
-    basic_weight(num_devices, weight_maps);
+  auto maps = basic_weight(num_devices, weight_maps);
 
-  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
-    transmission_fun =
-      [&](node_id_type const &input, std::size_t first, std::size_t second) {
-        auto in_device_id  = first;
-        auto out_device_id = second;
-
-        if (in_device_id > out_device_id)
-          std::swap(in_device_id, out_device_id);
-
-        if (out_device_id - in_device_id == 2)
-          return 1000.;
-        else if (out_device_id - in_device_id == 1)
-          {
-            if (out_device_id == 2)
-              return 700.;
-            else
-              return 300.;
-          }
-        else
-          return 0.;
-      };
+  auto transmission_fun =
+    basic_transmission(num_devices, butcher.getGraph().nodes.size());
 
 
   auto const tmp_res = butcher.compute_k_shortest_paths_eppstein_linear(
@@ -118,31 +101,10 @@ TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_linear)
   auto                                 butcher = basic_butcher();
   std::vector<type_collection_weights> weight_maps;
 
-  std::vector<std::function<type_weight(edge_type const &)>> maps =
-    basic_weight(num_devices, weight_maps);
+  auto maps = basic_weight(num_devices, weight_maps);
 
-
-  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
-    transmission_fun =
-      [&](node_id_type const &input, std::size_t first, std::size_t second) {
-        auto in_device_id  = first;
-        auto out_device_id = second;
-
-        if (in_device_id > out_device_id)
-          std::swap(in_device_id, out_device_id);
-
-        if (out_device_id - in_device_id == 2)
-          return 1000.;
-        else if (out_device_id - in_device_id == 1)
-          {
-            if (out_device_id == 2)
-              return 700.;
-            else
-              return 300.;
-          }
-        else
-          return 0.;
-      };
+  auto transmission_fun =
+    basic_transmission(num_devices, butcher.getGraph().nodes.size());
 
 
   auto const tmp_res = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
@@ -157,7 +119,6 @@ TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_linear)
 
   ASSERT_EQ(res.size(), 81);
 }
-
 
 
 TEST(ButcherTest, compute_k_shortest_paths_test_network)
@@ -305,6 +266,41 @@ basic_weight(std::size_t                           num_devices,
     }
 
   return maps;
+}
+
+std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+basic_transmission(std::size_t devices, std::size_t size)
+{
+  return
+    [devices,
+     size](node_id_type const &input, std::size_t first, std::size_t second) {
+      if (0 <= input && input < size && 0 <= first < devices && 0 <= second &&
+          second < devices)
+        {
+          auto in_device_id  = first;
+          auto out_device_id = second;
+
+          if (in_device_id > out_device_id)
+            std::swap(in_device_id, out_device_id);
+
+          if (out_device_id - in_device_id == 2)
+            return 1000.;
+          else if (out_device_id - in_device_id == 1)
+            {
+              if (out_device_id == 2)
+                return 700.;
+              else
+                return 300.;
+            }
+          else
+            return 0.;
+        }
+      else
+        {
+          std::cout << "Incorrect device id or input id" << std::endl;
+          return -1.;
+        }
+    };
 }
 
 /*
