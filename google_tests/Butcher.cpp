@@ -18,6 +18,9 @@ void
 PrintInputOutput(const onnx::ModelProto &);
 */
 
+Butcher<TestMemoryUsage<int>>
+basic_butcher();
+
 
 TEST(ButcherTest, compute_two_slice_brute_force_test)
 {
@@ -58,23 +61,7 @@ TEST(ButcherTest, compute_k_shortest_paths_eppstein_linear)
 
   std::size_t num_devices = 3;
 
-  std::map<io_id_type, Input> map;
-  std::vector<node_type>      nodes;
-
-  nodes.push_back(node_type(io_id_collection_type{}, {0}));
-  nodes.push_back(node_type(io_id_collection_type{0}, {1}));
-  nodes.push_back(node_type(io_id_collection_type{1}, {2}));
-  nodes.push_back(node_type(io_id_collection_type{1}, {3}));
-  nodes.push_back(node_type(io_id_collection_type{3}, {4}));
-  nodes.push_back(node_type(io_id_collection_type{2, 4}, {5}));
-  nodes.push_back(node_type(io_id_collection_type{5}, {6}));
-  nodes.push_back(node_type(io_id_collection_type{6}, {7}));
-
-  for (io_id_type i = 0; i < nodes.size(); ++i)
-    map[i] = i;
-
-  Graph<Input>   graph_cons(nodes, map);
-  Butcher<Input> butcher(std::move(graph_cons));
+  auto butcher = basic_butcher();
 
   std::vector<type_collection_weights> weight_maps;
   weight_maps.reserve(num_devices);
@@ -160,23 +147,7 @@ TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_linear)
 
   std::size_t num_devices = 3;
 
-  std::map<io_id_type, Input> map;
-  std::vector<node_type>      nodes;
-
-  nodes.push_back(node_type(io_id_collection_type{}, {0}));
-  nodes.push_back(node_type(io_id_collection_type{0}, {1}));
-  nodes.push_back(node_type(io_id_collection_type{1}, {2}));
-  nodes.push_back(node_type(io_id_collection_type{1}, {3}));
-  nodes.push_back(node_type(io_id_collection_type{3}, {4}));
-  nodes.push_back(node_type(io_id_collection_type{2, 4}, {5}));
-  nodes.push_back(node_type(io_id_collection_type{5}, {6}));
-  nodes.push_back(node_type(io_id_collection_type{6}, {7}));
-
-  for (io_id_type i = 0; i < nodes.size(); ++i)
-    map[i] = i;
-
-  Graph<Input>   graph_cons(nodes, map);
-  Butcher<Input> butcher(std::move(graph_cons));
+  auto butcher = basic_butcher();
 
   std::vector<type_collection_weights> weight_maps;
   weight_maps.reserve(num_devices);
@@ -340,6 +311,31 @@ TEST(ButcherTest, compute_k_shortest_paths_test_network)
             << " milliseconds" << std::endl;
 }
 
+
+Butcher<TestMemoryUsage<int>>
+basic_butcher()
+{
+  using basic_type = int;
+  using Input      = TestMemoryUsage<basic_type>;
+
+  std::map<io_id_type, Input> map;
+  std::vector<node_type>      nodes;
+
+  nodes.push_back(node_type(io_id_collection_type{}, {0}));
+  nodes.push_back(node_type(io_id_collection_type{0}, {1}));
+  nodes.push_back(node_type(io_id_collection_type{1}, {2}));
+  nodes.push_back(node_type(io_id_collection_type{1}, {3}));
+  nodes.push_back(node_type(io_id_collection_type{3}, {4}));
+  nodes.push_back(node_type(io_id_collection_type{2, 4}, {5}));
+  nodes.push_back(node_type(io_id_collection_type{5}, {6}));
+  nodes.push_back(node_type(io_id_collection_type{6}, {7}));
+
+  for (io_id_type i = 0; i < nodes.size(); ++i)
+    map[i] = i;
+
+  Graph<Input> graph_cons(nodes, map);
+  return Butcher<Input>(std::move(graph_cons));
+}
 
 /*
 TEST(ButcherTest, butcher_test_zone)
