@@ -18,8 +18,18 @@ void
 PrintInputOutput(const onnx::ModelProto &);
 */
 
-Butcher<TestMemoryUsage<int>>
+using type_weight = double;
+using type_collection_weights =
+  std::map<std::pair<node_id_type, node_id_type>, type_weight>;
+
+using basic_type = int;
+using Input      = TestMemoryUsage<int>;
+
+Butcher<Input>
 basic_butcher();
+
+std::vector<std::function<type_weight(edge_type const &)>>
+basic_weight(std::size_t, std::vector<type_collection_weights> &);
 
 
 TEST(ButcherTest, compute_two_slice_brute_force_test)
@@ -52,53 +62,18 @@ TEST(ButcherTest, compute_two_slice_memory_brute_force_test)
 
 TEST(ButcherTest, compute_k_shortest_paths_eppstein_linear)
 {
-  using basic_type = int;
-  using Input      = TestMemoryUsage<basic_type>;
-
-  using type_weight = double;
-  using type_collection_weights =
-    std::map<std::pair<node_id_type, node_id_type>, type_weight>;
-
   std::size_t num_devices = 3;
 
-  auto butcher = basic_butcher();
-
+  auto                                 butcher = basic_butcher();
   std::vector<type_collection_weights> weight_maps;
-  weight_maps.reserve(num_devices);
 
-  weight_maps.emplace_back();
-  auto &initial_map = weight_maps.back();
-
-  initial_map[{0, 1}] = 1000.;
-  initial_map[{1, 2}] = 1000.;
-  initial_map[{1, 3}] = 500.;
-  initial_map[{3, 4}] = 500.;
-  initial_map[{2, 5}] = 1000.;
-  initial_map[{4, 5}] = 1000.;
-  initial_map[{5, 6}] = 1000.;
-  initial_map[{6, 7}] = 0.;
-
-  for (std::size_t k = 1; k < num_devices; ++k)
-    {
-      weight_maps.emplace_back(weight_maps.front());
-      auto &tmp_map = weight_maps.back();
-      for (auto &edge : tmp_map)
-        edge.second /= std::pow(2, k);
-    }
 
   auto const &graph     = butcher.getGraph();
   auto const  num_nodes = graph.nodes.size();
 
-  std::vector<std::function<type_weight(edge_type const &)>> maps;
 
-  for (std::size_t i = 0; i < num_devices; ++i)
-    {
-      auto &weight_map = weight_maps[i];
-
-      maps.emplace_back([&weight_map](edge_type const &edge) {
-        return weight_map.find(edge)->second;
-      });
-    }
+  std::vector<std::function<type_weight(edge_type const &)>> maps =
+    basic_weight(num_devices, weight_maps);
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
     transmission_fun =
@@ -138,53 +113,14 @@ TEST(ButcherTest, compute_k_shortest_paths_eppstein_linear)
 
 TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_linear)
 {
-  using basic_type = int;
-  using Input      = TestMemoryUsage<basic_type>;
-
-  using type_weight = double;
-  using type_collection_weights =
-    std::map<std::pair<node_id_type, node_id_type>, type_weight>;
-
   std::size_t num_devices = 3;
 
-  auto butcher = basic_butcher();
-
+  auto                                 butcher = basic_butcher();
   std::vector<type_collection_weights> weight_maps;
-  weight_maps.reserve(num_devices);
 
-  weight_maps.emplace_back();
-  auto &initial_map = weight_maps.back();
+  std::vector<std::function<type_weight(edge_type const &)>> maps =
+    basic_weight(num_devices, weight_maps);
 
-  initial_map[{0, 1}] = 1000.;
-  initial_map[{1, 2}] = 1000.;
-  initial_map[{1, 3}] = 500.;
-  initial_map[{3, 4}] = 500.;
-  initial_map[{2, 5}] = 1000.;
-  initial_map[{4, 5}] = 1000.;
-  initial_map[{5, 6}] = 1000.;
-  initial_map[{6, 7}] = 0.;
-
-  for (std::size_t k = 1; k < num_devices; ++k)
-    {
-      weight_maps.emplace_back(weight_maps.front());
-      auto &tmp_map = weight_maps.back();
-      for (auto &edge : tmp_map)
-        edge.second /= std::pow(2, k);
-    }
-
-  auto const &graph     = butcher.getGraph();
-  auto const  num_nodes = graph.nodes.size();
-
-  std::vector<std::function<type_weight(edge_type const &)>> maps;
-
-  for (std::size_t i = 0; i < num_devices; ++i)
-    {
-      auto &weight_map = weight_maps[i];
-
-      maps.emplace_back([&weight_map](edge_type const &edge) {
-        return weight_map.find(edge)->second;
-      });
-    }
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
     transmission_fun =
@@ -221,8 +157,6 @@ TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_linear)
 
   ASSERT_EQ(res.size(), 81);
 }
-
-
 
 
 
@@ -312,12 +246,9 @@ TEST(ButcherTest, compute_k_shortest_paths_test_network)
 }
 
 
-Butcher<TestMemoryUsage<int>>
+Butcher<Input>
 basic_butcher()
 {
-  using basic_type = int;
-  using Input      = TestMemoryUsage<basic_type>;
-
   std::map<io_id_type, Input> map;
   std::vector<node_type>      nodes;
 
@@ -335,6 +266,45 @@ basic_butcher()
 
   Graph<Input> graph_cons(nodes, map);
   return Butcher<Input>(std::move(graph_cons));
+}
+
+std::vector<std::function<type_weight(edge_type const &)>>
+basic_weight(std::size_t                           num_devices,
+             std::vector<type_collection_weights> &weight_maps)
+{
+  std::vector<std::function<type_weight(edge_type const &)>> maps;
+  weight_maps.reserve(num_devices);
+
+  weight_maps.emplace_back();
+  auto &initial_map = weight_maps.back();
+
+  initial_map[{0, 1}] = 1000.;
+  initial_map[{1, 2}] = 1000.;
+  initial_map[{1, 3}] = 500.;
+  initial_map[{3, 4}] = 500.;
+  initial_map[{2, 5}] = 1000.;
+  initial_map[{4, 5}] = 1000.;
+  initial_map[{5, 6}] = 1000.;
+  initial_map[{6, 7}] = 0.;
+
+  for (std::size_t k = 1; k < num_devices; ++k)
+    {
+      weight_maps.emplace_back(weight_maps.front());
+      auto &tmp_map = weight_maps.back();
+      for (auto &edge : tmp_map)
+        edge.second /= std::pow(2, k);
+    }
+
+  for (std::size_t i = 0; i < num_devices; ++i)
+    {
+      auto &weight_map = weight_maps[i];
+
+      maps.emplace_back([&weight_map](edge_type const &edge) {
+        return weight_map.find(edge)->second;
+      });
+    }
+
+  return maps;
 }
 
 /*
