@@ -20,11 +20,17 @@ namespace butcher_benchmark_test_namespace
   using basic_type = int;
   using Input      = TestMemoryUsage<int>;
 
-  Butcher<TestMemoryUsage<int>>
+  Butcher<Input>
   basic_butcher(int);
+
+  std::vector<std::function<type_weight(edge_type const &)>>
+  basic_weight(std::size_t,
+               std::size_t,
+               std::vector<type_collection_weights> &);
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
     basic_transmission(std::size_t, std::size_t);
+
 
   TEST(ButcherBenchmarkTest, compute_k_shortest_paths_lazy_eppstein_random)
   {
@@ -35,61 +41,11 @@ namespace butcher_benchmark_test_namespace
     auto        butcher = basic_butcher(num_nodes);
     auto const &graph   = butcher.getGraph();
 
-    std::random_device         rd;
-    std::default_random_engine random_engine{rd()};
-
-    std::uniform_real_distribution node_weights_generator{5000., 10000.};
-
-
     std::vector<type_collection_weights> weight_maps;
-    weight_maps.reserve(num_devices);
+    auto maps = basic_weight(num_devices, num_nodes, weight_maps);
 
-    weight_maps.emplace_back();
-    auto &initial_weight_map = weight_maps.back();
-
-    for (node_id_type i = 0; i < num_nodes - 1; ++i)
-      initial_weight_map[{i, i + 1}] = node_weights_generator(random_engine);
-
-    for (std::size_t k = 1; k < num_devices; ++k)
-      {
-        weight_maps.emplace_back(weight_maps.front());
-        auto &tmp_map = weight_maps.back();
-        for (auto &edge : tmp_map)
-          edge.second /= std::pow(2, k);
-      }
-
-    std::vector<std::function<type_weight(edge_type const &)>> maps;
-
-    for (std::size_t i = 0; i < num_devices; ++i)
-      {
-        auto &weight_map = weight_maps[i];
-
-        maps.emplace_back([&weight_map](edge_type const &edge) {
-          return weight_map.find(edge)->second;
-        });
-      }
-
-    std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
-      transmission_fun =
-        [&](node_id_type const &input, std::size_t first, std::size_t second) {
-          auto in_device_id  = first;
-          auto out_device_id = second;
-
-          if (in_device_id > out_device_id)
-            std::swap(in_device_id, out_device_id);
-
-          if (out_device_id - in_device_id == 2)
-            return 1000.;
-          else if (out_device_id - in_device_id == 1)
-            {
-              if (out_device_id == 2)
-                return 700.;
-              else
-                return 300.;
-            }
-          else
-            return 0.;
-        };
+    auto transmission_fun =
+      basic_transmission(num_devices, butcher.getGraph().nodes.size());
 
     Chrono crono;
     crono.start();
@@ -113,66 +69,15 @@ namespace butcher_benchmark_test_namespace
     auto        butcher = basic_butcher(num_nodes);
     auto const &graph   = butcher.getGraph();
 
-    std::random_device             rd;
-    std::default_random_engine     random_engine{rd()};
-    std::uniform_real_distribution node_weights_generator{5000., 10000.};
-
     double total_time = .0;
 
     for (auto num_test = 0; num_test < number_of_tests; ++num_test)
       {
         std::vector<type_collection_weights> weight_maps;
-        weight_maps.reserve(num_devices);
+        auto maps = basic_weight(num_devices, num_nodes, weight_maps);
 
-        weight_maps.emplace_back();
-        auto &initial_weight_map = weight_maps.back();
-
-        for (node_id_type i = 0; i < num_nodes - 1; ++i)
-          initial_weight_map[{i, i + 1}] =
-            node_weights_generator(random_engine);
-
-        for (std::size_t k = 1; k < num_devices; ++k)
-          {
-            weight_maps.emplace_back(weight_maps.front());
-            auto &tmp_map = weight_maps.back();
-            for (auto &edge : tmp_map)
-              edge.second /= std::pow(2, k);
-          }
-
-        std::vector<std::function<type_weight(edge_type const &)>> maps;
-
-        for (std::size_t i = 0; i < num_devices; ++i)
-          {
-            auto &weight_map = weight_maps[i];
-
-            maps.emplace_back([&weight_map](edge_type const &edge) {
-              return weight_map.find(edge)->second;
-            });
-          }
-
-        std::function<
-          type_weight(node_id_type const &, std::size_t, std::size_t)>
-          transmission_fun = [&](node_id_type const &input,
-                                 std::size_t         first,
-                                 std::size_t         second) {
-            auto in_device_id  = first;
-            auto out_device_id = second;
-
-            if (in_device_id > out_device_id)
-              std::swap(in_device_id, out_device_id);
-
-            if (out_device_id - in_device_id == 2)
-              return 1000.;
-            else if (out_device_id - in_device_id == 1)
-              {
-                if (out_device_id == 2)
-                  return 700.;
-                else
-                  return 300.;
-              }
-            else
-              return 0.;
-          };
+        auto transmission_fun =
+          basic_transmission(num_devices, butcher.getGraph().nodes.size());
 
         Chrono crono;
         crono.start();
@@ -197,62 +102,11 @@ namespace butcher_benchmark_test_namespace
     auto        butcher = basic_butcher(num_nodes);
     auto const &graph   = butcher.getGraph();
 
-    std::random_device         rd;
-    std::default_random_engine random_engine{rd()};
-    type_collection_weights    additional_weights;
-
-    std::uniform_real_distribution node_weights_generator{5000., 10000.};
-
-
     std::vector<type_collection_weights> weight_maps;
-    weight_maps.reserve(num_devices);
+    auto maps = basic_weight(num_devices, num_nodes, weight_maps);
 
-    weight_maps.emplace_back();
-    auto &initial_weight_map = weight_maps.back();
-
-    for (node_id_type i = 0; i < num_nodes - 1; ++i)
-      initial_weight_map[{i, i + 1}] = node_weights_generator(random_engine);
-
-    for (std::size_t k = 1; k < num_devices; ++k)
-      {
-        weight_maps.emplace_back(weight_maps.front());
-        auto &tmp_map = weight_maps.back();
-        for (auto &edge : tmp_map)
-          edge.second /= std::pow(2, k);
-      }
-
-    std::vector<std::function<type_weight(edge_type const &)>> maps;
-
-    for (std::size_t i = 0; i < num_devices; ++i)
-      {
-        auto &weight_map = weight_maps[i];
-
-        maps.emplace_back([&weight_map](edge_type const &edge) {
-          return weight_map.find(edge)->second;
-        });
-      }
-
-    std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
-      transmission_fun =
-        [&](node_id_type const &input, std::size_t first, std::size_t second) {
-          auto in_device_id  = first;
-          auto out_device_id = second;
-
-          if (in_device_id > out_device_id)
-            std::swap(in_device_id, out_device_id);
-
-          if (out_device_id - in_device_id == 2)
-            return 1000.;
-          else if (out_device_id - in_device_id == 1)
-            {
-              if (out_device_id == 2)
-                return 700.;
-              else
-                return 300.;
-            }
-          else
-            return 0.;
-        };
+    auto transmission_fun =
+      basic_transmission(num_devices, butcher.getGraph().nodes.size());
 
     Chrono crono;
     crono.start();
@@ -278,61 +132,12 @@ namespace butcher_benchmark_test_namespace
     auto        butcher = basic_butcher(num_nodes);
     auto const &graph   = butcher.getGraph();
 
-    std::random_device         rd;
-    std::default_random_engine random_engine{rd()};
-    type_collection_weights    additional_weights;
-
-    std::uniform_real_distribution node_weights_generator{5000., 10000.};
 
     std::vector<type_collection_weights> weight_maps;
-    weight_maps.reserve(num_devices);
+    auto maps = basic_weight(num_devices, num_nodes, weight_maps);
 
-    weight_maps.emplace_back();
-    auto &initial_weight_map = weight_maps.back();
-
-    for (node_id_type i = 0; i < num_nodes - 1; ++i)
-      initial_weight_map[{i, i + 1}] = node_weights_generator(random_engine);
-
-    for (std::size_t k = 1; k < num_devices; ++k)
-      {
-        weight_maps.emplace_back(weight_maps.front());
-        auto &tmp_map = weight_maps.back();
-        for (auto &edge : tmp_map)
-          edge.second /= std::pow(2, k);
-      }
-
-    std::vector<std::function<type_weight(edge_type const &)>> maps;
-
-    for (std::size_t i = 0; i < num_devices; ++i)
-      {
-        auto &weight_map = weight_maps[i];
-
-        maps.emplace_back([&weight_map](edge_type const &edge) {
-          return weight_map.find(edge)->second;
-        });
-      }
-
-    std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
-      transmission_fun =
-        [&](node_id_type const &input, std::size_t first, std::size_t second) {
-          auto in_device_id  = first;
-          auto out_device_id = second;
-
-          if (in_device_id > out_device_id)
-            std::swap(in_device_id, out_device_id);
-
-          if (out_device_id - in_device_id == 2)
-            return 1000.;
-          else if (out_device_id - in_device_id == 1)
-            {
-              if (out_device_id == 2)
-                return 700.;
-              else
-                return 300.;
-            }
-          else
-            return 0.;
-        };
+    auto transmission_fun =
+      basic_transmission(num_devices, butcher.getGraph().nodes.size());
 
     Chrono crono;
     crono.start();
@@ -362,7 +167,7 @@ namespace butcher_benchmark_test_namespace
   }
 
 
-  Butcher<TestMemoryUsage<int>>
+  Butcher<Input>
   basic_butcher(int num_nodes)
   {
     std::vector<node_type>                     nodes;
@@ -376,6 +181,46 @@ namespace butcher_benchmark_test_namespace
     Graph<TestMemoryUsage<int>> graph_cons(nodes, map);
 
     return Butcher(std::move(graph_cons));
+  }
+
+  std::vector<std::function<type_weight(edge_type const &)>>
+  basic_weight(std::size_t                           num_devices,
+               std::size_t                           num_nodes,
+               std::vector<type_collection_weights> &weight_maps)
+  {
+    std::random_device         rd;
+    std::default_random_engine random_engine{rd()};
+
+    std::uniform_real_distribution node_weights_generator{5000., 10000.};
+
+    weight_maps.reserve(num_devices);
+
+    weight_maps.emplace_back();
+    auto &initial_weight_map = weight_maps.back();
+
+    for (node_id_type i = 0; i < num_nodes - 1; ++i)
+      initial_weight_map[{i, i + 1}] = node_weights_generator(random_engine);
+
+    for (std::size_t k = 1; k < num_devices; ++k)
+      {
+        weight_maps.emplace_back(weight_maps.front());
+        auto &tmp_map = weight_maps.back();
+        for (auto &edge : tmp_map)
+          edge.second /= std::pow(2, k);
+      }
+
+    std::vector<std::function<type_weight(edge_type const &)>> maps;
+
+    for (std::size_t i = 0; i < num_devices; ++i)
+      {
+        auto &weight_map = weight_maps[i];
+
+        maps.emplace_back([&weight_map](edge_type const &edge) {
+          return weight_map.find(edge)->second;
+        });
+      }
+
+    return maps;
   }
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
@@ -412,5 +257,4 @@ namespace butcher_benchmark_test_namespace
           }
       };
   }
-
 }; // namespace butcher_benchmark_test_namespace
