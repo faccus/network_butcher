@@ -31,7 +31,6 @@ protected:
     if (it == h_g.cend() || it->second.children.empty() ||
         (*it->second.children.begin())->heap.children.empty())
       {
-        std::cout << "KFinder: missing sidetrack edges" << std::endl;
         return {false, {{-1, -1}, std::numeric_limits<type_weight>::max()}};
       }
 

@@ -156,9 +156,16 @@ namespace butcher_benchmark_test_namespace
     auto const &res  = tres.second;
     auto const &res2 = tres2.second;
 
+    ASSERT_EQ(res.size(), res2.size());
+
     for (auto i = 0; i < res.size(); ++i)
-      for (auto j = 0; j < res2.size(); ++j)
-        EXPECT_FALSE(i != j && !(res[i] < res2[j] || res2[j] < res[i]));
+      {
+        auto const &first  = res[i];
+        auto const &second = res2[i];
+
+        EXPECT_EQ(first.path, second.path);
+        EXPECT_DOUBLE_EQ(first.length, second.length);
+      }
 
     std::cout << "Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
               << std::endl;
@@ -166,6 +173,60 @@ namespace butcher_benchmark_test_namespace
               << " milliseconds" << std::endl;
   }
 
+
+  TEST(ButcherBenchmarkTest, compute_k_shortest_paths_test_network)
+  {
+    std::string path = "resnet18-v2-7-inferred.onnx";
+
+    Butcher<graph_input_type> butcher(path);
+
+    auto const &graph     = butcher.getGraph();
+    auto const &nodes     = graph.nodes;
+    auto const  num_nodes = nodes.size();
+
+    std::size_t                          num_devices = 3;
+    std::vector<type_collection_weights> weight_maps;
+
+    auto maps             = basic_weight(num_devices, num_nodes, weight_maps);
+    auto transmission_fun = basic_transmission(num_devices, num_nodes);
+
+    Chrono crono;
+    crono.start();
+    auto const tmp_res = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
+      maps, transmission_fun, num_devices, num_nodes / 10);
+    crono.stop();
+
+    std::cout << "Lazy Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
+              << std::endl;
+
+    crono.start();
+    auto res = butcher.reconstruct_model(tmp_res.first, tmp_res.second.back());
+    crono.stop();
+
+    std::cout << "Model reconstruction: " << crono.wallTime() / 1000
+              << " milliseconds" << std::endl;
+  }
+
+
+  TEST(ButcherBenchmarkTest, correct_weight_generation)
+  {
+    std::vector<type_collection_weights> weight_maps;
+
+
+    std::size_t num_nodes   = 100;
+    std::size_t num_devices = 3;
+
+    auto maps = basic_weight(num_devices, num_nodes, weight_maps);
+
+    for (auto const &pair : weight_maps.front())
+      for (std::size_t k = 1; k < num_devices; ++k)
+        {
+          auto const second_value =
+            weight_maps[k].find(pair.first)->second * std::pow(2, k);
+
+          EXPECT_DOUBLE_EQ(pair.second, second_value);
+        }
+  }
 
   Butcher<Input>
   basic_butcher(int num_nodes)

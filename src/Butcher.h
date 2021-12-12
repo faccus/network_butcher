@@ -970,6 +970,42 @@ private:
     };
   }
 
+  std::size_t
+  get_num_devices(std::size_t const &original_graph_size,
+                  std::size_t const &new_graph_size) const
+  {
+    if (original_graph_size > 2)
+      return (new_graph_size - 2) / (original_graph_size - 2);
+    return 1;
+  }
+
+  std::size_t
+  get_device_id(node_id_type const &node_id, std::size_t const &num_devices)
+  {
+    return node_id == 0 ? 0 : (node_id - 1) % num_devices;
+  }
+
+  node_id_type
+  get_base_node_id(node_id_type const &current_node_id,
+                   std::size_t const  &device_id)
+  {
+    return current_node_id == 0 ? 0 : current_node_id - device_id;
+  }
+
+  node_id_type
+  get_previous_base_node_id(node_id_type const &current_base_node_id,
+                            std::size_t const  &num_devices)
+  {
+    if (current_base_node_id <= 0)
+      return -1;
+
+    if (current_base_node_id == 1)
+      return 0;
+
+    return current_base_node_id - num_devices;
+  }
+
+
 public:
   Butcher() = default;
   /// Move constructor
@@ -1130,27 +1166,28 @@ public:
     return reconstruct_model(output_shortest.first, output_shortest.second);
   }
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   std::vector<std::pair<onnx::ModelProto, std::size_t>>
   reconstruct_model(Graph<node_id_type, node_id_type> const &new_graph,
                     path_info const                         &path)
   {
     auto const &original_model = graph.original_model;
     auto const &path_nodes     = path.path;
-    std::vector<std::pair<onnx::ModelProto, std::size_t>> res;
-    auto const new_graph_size = new_graph.nodes.size();
+    auto const  new_graph_size = new_graph.nodes.size();
+    auto const  num_devices =
+      get_num_devices(path_nodes.size() - 2, new_graph_size);
+
 
     std::unordered_map<node_id_type, std::set<node_id_type>>
-      map; // New node -> Old nodes
+      new_node_to_old_nodes; // New node -> Old nodes
 
     for (auto const &node : new_graph.nodes_content)
-      map[node.second].insert(node.first);
+      new_node_to_old_nodes[node.second].insert(node.first);
 
     std::size_t current_model_device =
-      path_nodes.front() < new_graph_size ?
-        0 :
-        (path_nodes.front() - 2) / (new_graph_size - 2);
+      get_device_id(path_nodes.front(), num_devices);
 
+    std::vector<std::pair<onnx::ModelProto, std::size_t>> res;
     res.emplace_back(onnx::ModelProto(), current_model_device);
 
     std::function<void(onnx::ModelProto &)> prepare_new_model =
@@ -1170,8 +1207,9 @@ public:
 
     prepare_new_model(res.back().first);
 
-    auto        tmp_graph   = prepare_new_graph();
-    auto const &model_graph = original_model.graph();
+    auto        current_edited_graph = prepare_new_graph();
+    auto const &model_graph          = original_model.graph();
+
 
     std::function<google::protobuf::internal::RepeatedPtrIterator<
       const onnx::ValueInfoProto>(std::string const &)>
@@ -1204,44 +1242,43 @@ public:
 
 
     std::function<void(onnx::GraphProto *, onnx::NodeProto const *)>
-      add_to_graph = [&model_graph](onnx::GraphProto      *sup_graph,
-                                    onnx::NodeProto const *node) {
-        auto const &graph = model_graph;
+      add_node_ios_to_graph = [&model_graph](onnx::GraphProto      *sup_graph,
+                                             onnx::NodeProto const *node) {
         for (std::size_t i = 0; i < node->input_size(); ++i)
           {
             auto it =
-              std::find_if(graph.input().begin(),
-                           graph.input().end(),
+              std::find_if(model_graph.input().begin(),
+                           model_graph.input().end(),
                            [&node, &i](onnx::ValueInfoProto const &ref) {
                              return node->input(i) == ref.name();
                            });
 
-            if (it != graph.input().end())
+            if (it != model_graph.input().end())
               {
                 auto const tmp = sup_graph->add_input();
                 *tmp           = *it;
               }
             else
               {
-                it = std::find_if(graph.value_info().begin(),
-                                  graph.value_info().end(),
+                it = std::find_if(model_graph.value_info().begin(),
+                                  model_graph.value_info().end(),
                                   [&node, &i](onnx::ValueInfoProto const &ref) {
                                     return node->input(i) == ref.name();
                                   });
 
-                if (it != graph.value_info().end())
+                if (it != model_graph.value_info().end())
                   {
                     auto const tmp = sup_graph->add_value_info();
                     *tmp           = *it;
                   }
               }
 
-            auto init = std::find_if(graph.initializer().begin(),
-                                     graph.initializer().end(),
+            auto init = std::find_if(model_graph.initializer().begin(),
+                                     model_graph.initializer().end(),
                                      [&node, &i](onnx::TensorProto const &ref) {
                                        return node->input(i) == ref.name();
                                      });
-            if (init != graph.initializer().end())
+            if (init != model_graph.initializer().end())
               {
                 auto const tmp = sup_graph->add_initializer();
                 *tmp           = *init;
@@ -1252,37 +1289,41 @@ public:
 
     std::function<void(std::size_t const &)> add_nodes =
       [&](std::size_t const &id) {
-        for (auto const &original_id : map[id])
+        for (auto const &original_id : new_node_to_old_nodes[id])
           {
-            auto const tmp = tmp_graph->add_node();
+            auto const tmp = current_edited_graph->add_node();
             *tmp           = *graph.node_collection[original_id];
 
-            add_to_graph(tmp_graph, tmp);
+            add_node_ios_to_graph(current_edited_graph, tmp);
           }
       };
 
+
     for (std::size_t i = 0; i < path_nodes.size(); ++i)
       {
-        auto const ind = path_nodes[i];
-        auto const actual_id =
-          ind < new_graph_size ? ind : (ind - 2) % (new_graph_size - 2) + 1;
+        auto const  node_id_new_graph = path_nodes[i];
+        std::size_t device_id = get_device_id(node_id_new_graph, num_devices);
 
-        std::size_t device_id =
-          ind < new_graph_size ? 0 : (ind - 2) / (new_graph_size - 2);
+        auto const base_node_id_new_graph =
+          get_base_node_id(node_id_new_graph, device_id);
 
         if (device_id != current_model_device)
           {
-            auto tmp_last_graph = tmp_graph;
+            auto previous_edited_graph = current_edited_graph;
 
             current_model_device = device_id;
 
             res.emplace_back(onnx::ModelProto(), current_model_device);
             prepare_new_model(res.back().first);
 
-            auto tmp_new_graph = prepare_new_graph();
+            auto following_edited_graph = prepare_new_graph();
 
-            auto const out_nodes      = map[actual_id - 1];
-            auto const out_nodes_size = out_nodes.size();
+            auto const previous_base_id_new_graph =
+              get_previous_base_node_id(base_node_id_new_graph, num_devices);
+
+            auto const out_nodes =
+              new_node_to_old_nodes[previous_base_id_new_graph];
+
             std::vector<onnx::NodeProto const *> communication_nodes;
 
             auto const &out =
@@ -1295,8 +1336,8 @@ public:
 
             for (auto const &in_node : communication_nodes)
               {
-                auto tmp_out = tmp_last_graph->add_output();
-                auto tmp_in  = tmp_new_graph->add_input();
+                auto tmp_out = previous_edited_graph->add_output();
+                auto tmp_in  = following_edited_graph->add_input();
 
                 auto communication_node_name = *in_node->output().begin();
 
@@ -1314,36 +1355,45 @@ public:
                   }
               }
 
-            (++res.rbegin())->first.set_allocated_graph(tmp_last_graph);
-            tmp_graph = tmp_new_graph;
+            (++res.rbegin())->first.set_allocated_graph(previous_edited_graph);
+            current_edited_graph = following_edited_graph;
 
-            add_nodes(actual_id);
+            add_nodes(base_node_id_new_graph);
 
-            for (auto it = tmp_graph->mutable_node()->begin();
-                 it != tmp_graph->mutable_node()->end();
+            for (auto it = current_edited_graph->mutable_node()->begin();
+                 it != current_edited_graph->mutable_node()->end();
                  ++it)
               {
                 auto const &ins = it->input();
                 for (auto const &in : ins)
                   {
                     bool ok = false;
-                    for (std::size_t j = 0; j < tmp_graph->input_size() && !ok;
-                         ++j)
-                      if (tmp_graph->input(j).name() == in)
-                        ok = true;
 
-                    for (auto it2 = tmp_graph->mutable_node()->begin();
-                         it2 != it && !ok;
+                    for (std::size_t j = 0;
+                         j < current_edited_graph->input_size() && !ok;
+                         ++j)
+                      {
+                        if (current_edited_graph->input(j).name() == in)
+                          ok = true;
+                      }
+
+                    for (auto it2 =
+                           current_edited_graph->mutable_node()->begin();
+                         it2 != it;
                          ++it2)
                       {
+                        bool ok = false;
                         for (std::size_t j = 0; j < it2->output_size() && !ok;
                              ++j)
-                          if (it2->output(j) == in)
-                            ok = true;
+                          {
+                            if (it2->output(j) == in)
+                              ok = true;
+                          }
                       }
+
                     if (!ok)
                       {
-                        auto tmp_in  = tmp_graph->add_input();
+                        auto tmp_in  = current_edited_graph->add_input();
                         auto tmp_res = get_type(in);
 
                         tmp_in->set_name(in);
@@ -1355,15 +1405,15 @@ public:
               }
           }
         else
-          add_nodes(actual_id);
+          add_nodes(base_node_id_new_graph);
       }
 
     {
-      auto tmp = tmp_graph->add_output();
+      auto tmp = current_edited_graph->add_output();
       *tmp     = model_graph.output(model_graph.output_size() - 1);
     }
 
-    res.back().first.set_allocated_graph(tmp_graph);
+    res.back().first.set_allocated_graph(current_edited_graph);
 
     return res;
   }
