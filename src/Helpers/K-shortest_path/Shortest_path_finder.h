@@ -88,34 +88,34 @@ public:
 
         to_visit.erase(to_visit.begin()); // O(log(N))
 
-        for (auto j : extract_children(current_node.id, reversed))
+        for (auto head_node : extract_children(current_node.id, reversed))
           {
-            auto      &basic_dist = total_distance[j]; // O(1)
-            auto const ref        = reversed ? weights({j, current_node.id}) :
-                                               weights({current_node.id, j});
+            auto      &base_distance = total_distance[head_node]; // O(1)
+            auto const weight =
+              get_weight(current_node.id, head_node, weights, reversed);
 
-            if (ref < 0)
+            if (weight < 0)
               {
                 if (!reversed)
                   std::cout << "Error: missing weight (" << current_node.id
-                            << ", " << j << ")" << std::endl;
+                            << ", " << head_node << ")" << std::endl;
                 else
-                  std::cout << "Error: missing weight (" << j << ", "
+                  std::cout << "Error: missing weight (" << head_node << ", "
                             << current_node.id << ")" << std::endl;
                 return {predecessors, total_distance};
               }
 
-            auto const candidate_distance = start_distance + ref; // O(1)
-            if (candidate_distance < basic_dist)                  // O(1)
+            auto const candidate_distance = start_distance + weight; // O(1)
+            if (candidate_distance < base_distance)                  // O(1)
               {
-                auto it = to_visit.find({basic_dist, j});
+                auto it = to_visit.find({base_distance, head_node});
 
                 if (it != to_visit.end())
                   to_visit.erase(it); // O(log(N))
 
-                predecessors[j] = current_node.id;        // O(1)
-                basic_dist      = candidate_distance;     // O(1)
-                to_visit.insert({candidate_distance, j}); // O(log(N))
+                predecessors[head_node] = current_node.id;        // O(1)
+                base_distance           = candidate_distance;     // O(1)
+                to_visit.insert({candidate_distance, head_node}); // O(log(N))
               }
           }
       }
@@ -124,8 +124,8 @@ public:
   }
 
 
-  /// Executes dijkstra algorithm to compute the shortest paths from the root to
-  /// evert node for the given linear graph
+  /// (No longer maintained) Executes dijkstra algorithm to compute the shortest
+  /// paths from the root to evert node for the given linear graph
   /// \param weights The weight map of the edges
   /// \param root The starting vertex
   /// \param reversed Reverses the edge directions
@@ -151,8 +151,8 @@ public:
     return dijkstra_linear(weights, root, reversed, devices);
   }
 
-  /// Executes dijkstra algorithm to compute the shortest paths from the root to
-  /// evert node for the given linear graph
+  /// (No longer maintained) Executes dijkstra algorithm to compute the shortest
+  /// paths from the root to evert node for the given linear graph
   /// \param weights The weight map of the edges
   /// \param root The starting vertex
   /// \param reversed Reverses the edge directions
@@ -194,7 +194,8 @@ public:
         auto const &start_distance = total_distance[current_node.id];
         if (start_distance == std::numeric_limits<type_weight>::max())
           {
-            std::cout << "Error" << std::endl;
+            std::cout << "Dijkstra error: the current distance is +inf"
+                      << std::endl;
             return {predecessors, total_distance};
           }
 
@@ -214,10 +215,9 @@ public:
               auto tail = current_node.id;
 
               auto      &basic_dist = total_distance[head]; // O(1)
-              auto const ref =
-                reversed ? weights({head, tail}) : weights({tail, head});
+              auto const weight     = get_weight(tail, head, weights, reversed);
 
-              if (ref < 0)
+              if (weight < 0)
                 {
                   if (!reversed)
                     std::cout << "Error: missing weight (" << head << ", "
@@ -228,8 +228,9 @@ public:
                 }
               else
                 {
-                  auto const candidate_distance = start_distance + ref; // O(1)
-                  if (candidate_distance < basic_dist)                  // O(1)
+                  auto const candidate_distance =
+                    start_distance + weight;           // O(1)
+                  if (candidate_distance < basic_dist) // O(1)
                     {
                       auto it = to_visit.find({basic_dist, head});
 
@@ -267,8 +268,8 @@ public:
     return dijkstra(weights, graph.nodes.size() - 1, true);
   } // time: ((N+E)log(N)), space: O(N)
 
-  /// Computes through dijkstra the shortest path single destination tree for
-  /// the given linear graph
+  /// (No longer maintained) Computes through dijkstra the shortest path single
+  /// destination tree for the given linear graph
   /// \param weights The weight map of the edges
   /// \param devices The number of devices
   /// \return A pair: the first element is the collection of the successors
@@ -294,9 +295,8 @@ public:
     return dijkstra(weights, graph.nodes.size() - 1, true);
   } // time: ((N+E)log(N)), space: O(N)
 
-  /// Computes through dijkstra the shortest path single destination tree for
-  /// the given linear graph
-  /// \param weights The weight map of the edges
+  /// (No longer maintained) Computes through dijkstra the shortest path single
+  /// destination tree for the given linear graph/// \param weights The weight map of the edges
   /// \param devices The number of devices
   /// \return A pair: the first element is the collection of the successors
   /// (along the shortest path) of the different nodes while the second element
@@ -353,11 +353,31 @@ protected:
   }
 
 private:
+  /// Given a node_id, it will produce it's children in the current graph
+  /// \param node_id The node id
+  /// \param reversed If true, every edge is considered reversed
+  /// \return The children of the given node
   [[nodiscard]] std::set<node_id_type> const &
   extract_children(node_id_type const &node_id, bool const &reversed) const
   {
     return reversed ? graph.dependencies[node_id].first :
                       graph.dependencies[node_id].second;
+  }
+
+  /// Given the tail and the head of the edge, it will produce the associated
+  /// weight \param tail The tail node id \param head The head node id \param
+  /// weight_fun The weight function \param reversed If true, every edge is
+  /// considered reversed \return The corresponding weight
+  type_weight
+  get_weight(std::size_t                                    tail,
+             std::size_t                                    head,
+             std::function<type_weight(edge_type const &)> &weight_fun,
+             bool const                                    &reversed) const
+  {
+    edge_type edge =
+      reversed ? std::make_pair(head, tail) : std::make_pair(tail, head);
+
+    return weight_fun(edge);
   }
 };
 
