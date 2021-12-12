@@ -44,6 +44,7 @@ public:
         auto const it = weights.find(edge);
         if (it != weights.cend())
           return it->second;
+        std::cout << "Dijkstra: missing weight" << std::endl;
         return -1.;
       };
 
@@ -80,17 +81,14 @@ public:
         auto const &start_distance = total_distance[current_node.id];
         if (start_distance == std::numeric_limits<type_weight>::max())
           {
-            std::cout << "Error" << std::endl;
+            std::cout << "Dijkstra error: the current distance is +inf"
+                      << std::endl;
             return {predecessors, total_distance};
           }
 
         to_visit.erase(to_visit.begin()); // O(log(N))
 
-        auto const &exit_nodes = reversed ?
-                                   dependencies[current_node.id].first :
-                                   dependencies[current_node.id].second; // O(1)
-
-        for (auto j : exit_nodes)
+        for (auto j : extract_children(current_node.id, reversed))
           {
             auto      &basic_dist = total_distance[j]; // O(1)
             auto const ref        = reversed ? weights({j, current_node.id}) :
@@ -210,7 +208,7 @@ public:
         auto exit_nodes = reversed ? dependencies[tm_exit_nodes].first :
                                      dependencies[tm_exit_nodes].second;
 
-        for (auto j : exit_nodes) // O(E)
+        for (auto j : extract_children(tm_exit_nodes, reversed))
           {
             auto func = [&](node_id_type const &head) {
               auto tail = current_node.id;
@@ -352,6 +350,14 @@ protected:
     info.path.push_back(ind);
 
     return info;
+  }
+
+private:
+  [[nodiscard]] std::set<node_id_type> const &
+  extract_children(node_id_type const &node_id, bool const &reversed) const
+  {
+    return reversed ? graph.dependencies[node_id].first :
+                      graph.dependencies[node_id].second;
   }
 };
 
