@@ -122,6 +122,8 @@ public:
   explicit KFinder_Eppstein(Graph<T, id_content> const &g)
     : base(g){};
 
+  virtual ~KFinder_Eppstein() = default;
+
 private:
   /// It will construct a map associating every edge to its children
   /// \param h_gs The h_g map
@@ -342,7 +344,8 @@ private:
     auto const &successors = dij_res.first;
     auto const &graph      = base_shortest::graph;
 
-    auto const first_side_track_res = base::side_track(0, h_g);
+    auto const first_side_track_res =
+      base::extrack_first_sidetrack_edge(0, h_g);
     if (!first_side_track_res.first)
       return res;
     auto const &first_side_track = first_side_track_res.second;
@@ -372,7 +375,7 @@ private:
             continue;
           }
 
-        auto const f_res = base::side_track(e.second, h_g);
+        auto const f_res = base::extrack_first_sidetrack_edge(e.second, h_g);
 
         if (f_res.first)
           {

@@ -124,6 +124,8 @@ public:
   explicit KFinder_Lazy_Eppstein(Graph<T, id_content> const &g)
     : base(g){};
 
+  virtual ~KFinder_Lazy_Eppstein() = default;
+
 private:
   /// It will add to the h_out map the h_out associates to the current node
   /// \param h_out The h_out map
@@ -405,7 +407,8 @@ private:
     construct_partial_h_g(
       h_g, h_out, sidetrack_distances_res, successors, 0, edges_edges);
 
-    auto const first_side_track_res = base::side_track(0, h_g);
+    auto const first_side_track_res =
+      base::extrack_first_sidetrack_edge(0, h_g);
     if (!first_side_track_res.first)
       return res;
     auto const &first_side_track = first_side_track_res.second;
@@ -444,7 +447,7 @@ private:
                               edges_edges);
 
 
-        auto const f_res = base::side_track(e.second, h_g);
+        auto const f_res = base::extrack_first_sidetrack_edge(e.second, h_g);
 
         if (f_res.first)
           {
@@ -549,7 +552,8 @@ private:
     construct_partial_h_g_linear(
       h_g, h_out, sidetrack_distances_res, successors, 0, devices, edges_edges);
 
-    auto const first_side_track_res = base::side_track(0, h_g);
+    auto const first_side_track_res =
+      base::extrack_first_sidetrack_edge(0, h_g);
     if (!first_side_track_res.first)
       return res;
     auto const &first_side_track = first_side_track_res.second;
@@ -589,7 +593,7 @@ private:
                                      edges_edges);
 
 
-        auto const f_res = base::side_track(e.second, h_g);
+        auto const f_res = base::extrack_first_sidetrack_edge(e.second, h_g);
 
         if (f_res.first)
           {

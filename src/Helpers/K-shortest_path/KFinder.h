@@ -10,10 +10,12 @@ template <class T, typename id_content = io_id_type>
 class KFinder : public Shortest_path_finder<T, id_content>
 {
 public:
-  using base               = Shortest_path_finder<T, id_content>;
+  using base = Shortest_path_finder<T, id_content>;
 
   explicit KFinder(Graph<T, id_content> const &g)
     : base(g){};
+
+  virtual ~KFinder() = default;
 
 protected:
   /// It extracts the first sidetrack associated to the given node
@@ -22,13 +24,16 @@ protected:
   /// \return The pair: the operation completed successfully and the
   /// corresponding sidetrack edge
   [[nodiscard]] std::pair<bool, edge_info>
-  side_track(node_id_type const                &j,
-             std::map<node_id_type, H_g> const &h_g) const
+  extrack_first_sidetrack_edge(node_id_type const                &j,
+                               std::map<node_id_type, H_g> const &h_g) const
   {
     auto const it = h_g.find(j);
     if (it == h_g.cend() || it->second.children.empty() ||
         (*it->second.children.begin())->heap.children.empty())
-      return {false, {{-1, -1}, std::numeric_limits<type_weight>::max()}};
+      {
+        std::cout << "KFinder: missing sidetrack edges" << std::endl;
+        return {false, {{-1, -1}, std::numeric_limits<type_weight>::max()}};
+      }
 
     return {true, *(*it->second.children.begin())->heap.children.begin()};
   }
@@ -43,14 +48,13 @@ protected:
                       std::vector<type_weight> const &distances_from_sink) const
   {
     type_collection_weights res;
-    auto const             &graph     = base::graph;
-    auto const              num_nodes = graph.nodes.size();
 
-    for (std::size_t i = 0; i < num_nodes; ++i)
-      for (auto const &dep : graph.dependencies[i].second)
+    auto const &graph     = base::graph;
+    auto const  num_nodes = graph.nodes.size();
+
+    for (std::size_t tail = 0; tail < num_nodes; ++tail)
+      for (auto const &head : graph.dependencies[tail].second)
         {
-          auto const tail = i;
-          auto const head = dep;
           auto const edge = std::make_pair(tail, head);
 
           res.insert(res.cend(),
