@@ -306,6 +306,7 @@ public:
     return dijkstra_linear(weights, graph.nodes.size() - 1, true, devices);
   } // time: ((N+E)log(N)), space: O(N)
 
+  virtual ~Shortest_path_finder() = default;
 
 protected:
   Graph<T, id_content> const &graph;
