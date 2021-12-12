@@ -218,14 +218,11 @@ protected:
         std::size_t parent = (j - 1) / 2;
         if (j > 0 && parent != j)
           {
-            // for (auto i = 0; i <= parent; ++i)
-            {
-              auto const &parent_edge =
-                (*previous_steps[parent])->heap.children.cbegin()->edge;
-              auto const &child_edge = (*it)->heap.children.cbegin()->edge;
+            auto const &parent_edge =
+              (*previous_steps[parent])->heap.children.cbegin()->edge;
+            auto const &child_edge = (*it)->heap.children.cbegin()->edge;
 
-              edge_edges[parent_edge].insert(child_edge);
-            }
+            edge_edges[parent_edge].insert(child_edge);
           }
       }
   }
@@ -251,22 +248,22 @@ protected:
 
         auto const &sidetracks = implicit_path->sidetracks;
 
-        auto        it  = sidetracks.cbegin();
-        std::size_t ind = 0;
+        auto        it             = sidetracks.cbegin();
+        std::size_t node_to_insert = 0;
 
-        while (ind != graph.nodes.back().get_id())
+        while (node_to_insert != graph.nodes.back().get_id())
           {
-            info.path.push_back(ind);
-            if (it != sidetracks.cend() && it->first == ind)
+            info.path.push_back(node_to_insert);
+            if (it != sidetracks.cend() && it->first == node_to_insert)
               {
-                ind = it->second;
+                node_to_insert = it->second;
                 ++it;
               }
             else
-              ind = dij_res.first[ind];
+              node_to_insert = dij_res.first[node_to_insert];
           }
 
-        info.path.push_back(ind);
+        info.path.push_back(node_to_insert);
         res.emplace_back(std::move(info));
       }
 
