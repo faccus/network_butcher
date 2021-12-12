@@ -508,9 +508,7 @@ public:
   /// \param k The number of shortest paths to find
   /// \return The auxiliary graph and the k-shortest paths on the auxiliary
   /// graph
-  std::pair<Graph<node_id_type, node_id_type>,
-            std::vector<typename Shortest_path_finder<node_id_type,
-                                                      node_id_type>::path_info>>
+  std::pair<Graph<node_id_type, node_id_type>, std::vector<path_info>>
   compute_k_shortest_paths_eppstein_linear(
     std::vector<std::function<type_weight(edge_type const &)>> &weights,
     std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
@@ -543,9 +541,7 @@ public:
   /// \param k The number of shortest paths to find
   /// \return The auxiliary graph and the k-shortest paths on the auxiliary
   /// graph
-  std::pair<Graph<node_id_type, node_id_type>,
-            std::vector<typename Shortest_path_finder<node_id_type,
-                                                      node_id_type>::path_info>>
+  std::pair<Graph<node_id_type, node_id_type>, std::vector<path_info>>
   compute_k_shortest_paths_lazy_eppstein_linear(
     std::vector<std::function<type_weight(edge_type const &)>> &weights,
     std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
@@ -1070,9 +1066,7 @@ public:
   /// \param k The number of shortest paths to find
   /// \return The auxiliary graph and the k-shortest paths on the auxiliary
   /// graph
-  std::pair<Graph<node_id_type, node_id_type>,
-            std::vector<typename Shortest_path_finder<node_id_type,
-                                                      node_id_type>::path_info>>
+  std::pair<Graph<node_id_type, node_id_type>, std::vector<path_info>>
   compute_k_shortest_paths_eppstein_linear(
     std::vector<std::function<type_weight(edge_type const &)>> &weights,
     std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
@@ -1105,9 +1099,7 @@ public:
   /// \param k The number of shortest paths to find
   /// \return The auxiliary graph and the k-shortest paths on the auxiliary
   /// graph
-  std::pair<Graph<node_id_type, node_id_type>,
-            std::vector<typename Shortest_path_finder<node_id_type,
-                                                      node_id_type>::path_info>>
+  std::pair<Graph<node_id_type, node_id_type>, std::vector<path_info>>
   compute_k_shortest_paths_lazy_eppstein_linear(
     std::vector<std::function<type_weight(edge_type const &)>> &weights,
     std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
@@ -1132,19 +1124,16 @@ public:
 
 
   std::vector<std::pair<onnx::ModelProto, std::size_t>>
-  reconstruct_model(
-    std::pair<Graph<node_id_type, node_id_type>,
-              Shortest_path_finder<node_id_type, node_id_type>::path_info> const
-      &output_shortest)
+  reconstruct_model(std::pair<Graph<node_id_type, node_id_type>,
+                              path_info> const &output_shortest)
   {
     return reconstruct_model(output_shortest.first, output_shortest.second);
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   std::vector<std::pair<onnx::ModelProto, std::size_t>>
-  reconstruct_model(
-    Graph<node_id_type, node_id_type> const &new_graph,
-    Shortest_path_finder<node_id_type, node_id_type>::path_info const &path)
+  reconstruct_model(Graph<node_id_type, node_id_type> const &new_graph,
+                    path_info const                         &path)
   {
     auto const &original_model = graph.original_model;
     auto const &path_nodes     = path.path;

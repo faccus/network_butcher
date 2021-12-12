@@ -11,8 +11,6 @@ class KFinder : public Shortest_path_finder<T, id_content>
 {
 public:
   using base               = Shortest_path_finder<T, id_content>;
-  using path_info          = typename base::path_info;
-  using implicit_path_info = typename base::implicit_path_info;
   using dij_res_type       = typename base::dij_res_type;
 
   explicit KFinder(Graph<T, id_content> const &g)

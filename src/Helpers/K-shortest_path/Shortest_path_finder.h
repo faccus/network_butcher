@@ -8,6 +8,7 @@
 #include "../Traits/Graph_traits.h"
 
 #include "Heap_eppstein.h"
+#include "Path_info.h"
 
 #include <limits>
 #include <queue>
@@ -18,29 +19,6 @@ template <class T, typename id_content = io_id_type>
 class Shortest_path_finder
 {
 public:
-  struct path_info
-  {
-    type_weight               length;
-    std::vector<node_id_type> path;
-
-    constexpr bool
-    operator<(const path_info &rhs) const
-    {
-      return length < rhs.length || (length == rhs.length && path < rhs.path);
-    }
-  };
-  struct implicit_path_info
-  {
-    std::vector<edge_type> sidetracks;
-    type_weight            length;
-
-    constexpr bool
-    operator<(const implicit_path_info &rhs) const
-    {
-      return length < rhs.length ||
-             (length == rhs.length && sidetracks < rhs.sidetracks);
-    }
-  };
 
   using dij_res_type =
     std::pair<std::vector<node_id_type>, std::vector<type_weight>>;

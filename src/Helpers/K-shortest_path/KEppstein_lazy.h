@@ -14,8 +14,6 @@ public:
   using base          = KFinder<T, id_content>;
   using base_shortest = Shortest_path_finder<T, id_content>;
 
-  using path_info          = typename base::path_info;
-  using implicit_path_info = typename base::implicit_path_info;
   using dij_res_type       = typename base::dij_res_type;
 
   using H_out_map = std::map<node_id_type, H_out_pointer>;
