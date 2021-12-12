@@ -33,4 +33,20 @@ struct implicit_path_info
   }
 };
 
+/// A helper struct for the dijkstra algo
+struct dijkstra_helper_struct
+{
+  type_weight  weight;
+  node_id_type id;
+
+  constexpr bool
+  operator<(const dijkstra_helper_struct &rhs) const
+  {
+    return weight < rhs.weight || (weight == rhs.weight && id < rhs.id);
+  }
+};
+
+using dijkstra_result_type =
+  std::pair<std::vector<node_id_type>, std::vector<type_weight>>;
+
 #endif // NETWORK_BUTCHER_PATH_INFO_H

@@ -11,7 +11,6 @@ class KFinder : public Shortest_path_finder<T, id_content>
 {
 public:
   using base               = Shortest_path_finder<T, id_content>;
-  using dij_res_type       = typename base::dij_res_type;
 
   explicit KFinder(Graph<T, id_content> const &g)
     : base(g){};
@@ -233,7 +232,7 @@ protected:
   /// \param epp_res The result of basic_eppstein or basic_eppstein_linear
   /// \return The shortest paths
   [[nodiscard]] std::vector<path_info>
-  helper_eppstein(dij_res_type const                    &dij_res,
+  helper_eppstein(dijkstra_result_type const            &dij_res,
                   std::vector<implicit_path_info> const &epp_res)
   {
     std::vector<path_info> res;

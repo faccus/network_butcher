@@ -14,8 +14,6 @@ public:
   using base          = KFinder<T, id_content>;
   using base_shortest = Shortest_path_finder<T, id_content>;
 
-  using dij_res_type       = typename base::dij_res_type;
-
   using H_out_map = std::map<node_id_type, H_out_pointer>;
 
 
@@ -376,7 +374,7 @@ private:
   [[nodiscard]] std::vector<implicit_path_info>
   basic_lazy_eppstein(std::function<type_weight(edge_type const &)> &weights,
                       std::size_t                                    K,
-                      dij_res_type const                            &dij_res)
+                      dijkstra_result_type const                    &dij_res)
   {
     std::vector<implicit_path_info> res;
     res.push_back({{}, dij_res.second.front()}); // O(1)
@@ -519,7 +517,7 @@ private:
   basic_lazy_eppstein_linear(
     std::function<type_weight(edge_type const &)> &weights,
     std::size_t                                    K,
-    dij_res_type const                            &dij_res,
+    dijkstra_result_type const                    &dij_res,
     std::size_t                                    devices)
   {
     std::vector<implicit_path_info> res;

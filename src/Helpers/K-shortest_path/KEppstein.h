@@ -14,8 +14,6 @@ public:
   using base          = KFinder<T, id_content>;
   using base_shortest = Shortest_path_finder<T, id_content>;
 
-  using dij_res_type       = typename base::dij_res_type;
-
   using H_out_map = std::map<node_id_type, H_out_pointer>;
 
 
@@ -333,7 +331,7 @@ private:
   std::vector<implicit_path_info>
   base_path_selector_eppstein(
     std::size_t                                     K,
-    dij_res_type const                             &dij_res,
+    dijkstra_result_type const                     &dij_res,
     type_collection_weights const                  &sidetrack_distances_res,
     std::map<node_id_type, H_g> const              &h_g,
     std::map<edge_type, std::set<edge_type>> const &edges_edges) const
@@ -439,7 +437,7 @@ private:
   [[nodiscard]] std::vector<implicit_path_info>
   basic_eppstein(std::function<type_weight(edge_type const &)> &weights,
                  std::size_t                                    K,
-                 dij_res_type const                            &dij_res)
+                 dijkstra_result_type const                    &dij_res)
   {
     auto const &graph = base_shortest::graph;
 
@@ -482,7 +480,7 @@ private:
   basic_eppstein_linear(std::function<type_weight(edge_type const &)> &weights,
                         std::size_t                                    K,
                         std::size_t                                    devices,
-                        dij_res_type const                            &dij_res)
+                        dijkstra_result_type const                    &dij_res)
   {
     auto const &graph = base_shortest::graph;
 
