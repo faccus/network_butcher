@@ -63,62 +63,6 @@ public:
     return base::helper_eppstein(dij_res, epp_res);
   }
 
-
-  /// Applies the Eppstein algorithm to find the k-shortest paths on the given
-  /// linear graph, admitting different devices (from the first node to the last
-  /// one).
-  /// \param weights The weights associated to the different edges
-  /// \param K The number of shortest paths to find
-  /// \param devices The number of different devices
-  /// \return The shortest paths
-  [[nodiscard]] std::vector<path_info>
-  eppstein_linear(type_collection_weights const &weights,
-                  std::size_t                    K,
-                  std::size_t                    devices)
-  {
-    std::function<type_weight(edge_type const &)> weight_fun =
-      [&weights](edge_type const &edge) {
-        auto const it = weights.find(edge);
-        if (it != weights.cend())
-          return it->second;
-        return -1.;
-      };
-
-    return eppstein_linear(weight_fun, K, devices);
-  }
-
-
-  /// Applies the Eppstein algorithm to find the k-shortest paths on the given
-  /// linear graph, admitting different devices (from the first node to the last
-  /// one).
-  /// \param weights The weights associated to the different edges
-  /// \param K The number of shortest paths to find
-  /// \param devices The number of different devices
-  /// \return The shortest paths
-  [[nodiscard]] std::vector<path_info>
-  eppstein_linear(std::function<type_weight(edge_type const &)> &weights,
-                  std::size_t                                    K,
-                  std::size_t                                    devices)
-  {
-    auto const &graph = base_shortest::graph;
-
-    if (graph.nodes.empty() || K == 0 || devices == 0)
-      return {};
-    if (devices == 1)
-      return eppstein(weights, K);
-
-    auto const dij_res = base_shortest::shortest_path_tree_linear(
-      weights, devices); // time: ((N+E)log(N)), space: O(N)
-
-    if (K == 1)
-      return {base_shortest::shortest_path_finder(dij_res, 0)};
-
-
-    auto const epp_res = basic_eppstein_linear(weights, K, devices, dij_res);
-
-    return base::helper_eppstein(dij_res, epp_res);
-  }
-
   explicit KFinder_Eppstein(Graph<T, id_content> const &g)
     : base(g){};
 
@@ -132,6 +76,7 @@ private:
   get_edge_edges(std::map<node_id_type, H_g> const &h_gs) const
   {
     std::map<edge_type, std::set<edge_type>> res;
+
     for (auto it = h_gs.cbegin(); it != h_gs.cend(); ++it) // O(N)
       base::get_internal_edges(res, it->second);
     return res;
@@ -194,27 +139,6 @@ private:
     return helper_construct_h_out(successors,
                                   sidetrack_distances,
                                   base_shortest::graph.nodes.size());
-  }
-
-  /// Given the successors collection and the sidetrack distances, it will
-  /// construct the h_out map
-  /// \param successors The list of the successors of every node (the node
-  /// following the current one in the shortest path)
-  /// \param sidetrack_distances The collection of the sidetrack distances for
-  /// all the sidetrack edges
-  /// \param devices The number of devices
-  /// \return H_out map
-  [[nodiscard]] H_out_map
-  construct_h_out_linear(std::vector<node_id_type> const &successors,
-                         type_collection_weights const   &sidetrack_distances,
-                         std::size_t devices) const // O(N+E*log(N))
-  {
-    auto const num_nodes      = base_shortest::graph.nodes.size();
-    auto const real_num_nodes = num_nodes + (num_nodes - 2) * (devices - 1);
-
-    return helper_construct_h_out(successors,
-                                  sidetrack_distances,
-                                  real_num_nodes);
   }
 
 
@@ -302,23 +226,6 @@ private:
     return helper_construct_h_g(h_out,
                                 successors,
                                 base_shortest::graph.nodes.size());
-  }
-
-  /// It will produce the map associating every node to its corresponding H_g
-  /// map
-  /// \param h_out The collection of h_outs
-  /// \param successors The successors collection
-  /// \param devices The number of devices
-  /// \return The map associating every node to its corresponding H_g map
-  std::map<node_id_type, H_g>
-  construct_h_g_linear(std::map<node_id_type, H_out_pointer> const &h_out,
-                       std::vector<node_id_type> const             &successors,
-                       std::size_t devices) // O(N*log(N))
-  {
-    auto const num_nodes = base_shortest::graph.nodes.size();
-    return helper_construct_h_g(h_out,
-                                successors,
-                                num_nodes + (num_nodes - 2) * (devices - 1));
   }
 
 
@@ -461,52 +368,6 @@ private:
       construct_h_out(successors, sidetrack_distances_res); // O(N+E*log(N))
 
     auto const h_g         = construct_h_g(h_out, successors); // O(N*log(N))
-    auto       edges_edges = get_edge_edges(h_g);
-
-    return base_path_selector_eppstein(
-      K, dij_res, sidetrack_distances_res, h_g, edges_edges);
-  }
-
-  /// The basic function for the Eppstein linear algorithm
-  /// \param weights The weights of the edges
-  /// \param K The number of shortest paths
-  /// \param devices The number of devices (basically, the given graph is
-  /// linear. If devices >= 2, we add an extra graph constructed in such a way
-  /// that it has the same number of nodes and such that every node of the first
-  /// graph corresponds to a node in the second graph. The inputs and outputs of
-  /// the added nodes are the same of the corresponding node. Moreover, the
-  /// corresponding node adds as an input the corresponding nodes of its inputs
-  /// and the same thing for the outputs)
-  /// \param dij_res The result of dijkstra
-  /// \return The (implicit) k shortest paths
-  [[nodiscard]] std::vector<implicit_path_info>
-  basic_eppstein_linear(std::function<type_weight(edge_type const &)> &weights,
-                        std::size_t                                    K,
-                        std::size_t                                    devices,
-                        dijkstra_result_type const                    &dij_res)
-  {
-    auto const &graph = base_shortest::graph;
-
-    if (graph.nodes.empty() || devices == 0)
-      return {};
-    else if (K == 1)
-      return {{{}, dij_res.second.front()}};
-    else if (devices == 1)
-      return basic_eppstein(weights, K, dij_res);
-
-    auto const sidetrack_distances_res =
-      base::sidetrack_distances_linear(weights,
-                                       devices,
-                                       dij_res.second); // O(E)
-    auto const shortest_path =
-      base_shortest::shortest_path_finder(dij_res, 0); // O(N)
-
-    auto const &successors = dij_res.first;
-
-    auto const h_out =
-      construct_h_out_linear(successors, sidetrack_distances_res, devices);
-
-    auto const h_g         = construct_h_g_linear(h_out, successors, devices);
     auto       edges_edges = get_edge_edges(h_g);
 
     return base_path_selector_eppstein(

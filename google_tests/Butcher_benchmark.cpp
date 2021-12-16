@@ -126,7 +126,8 @@ namespace butcher_benchmark_test_namespace
     std::vector<node_type>      nodes;
 
     std::size_t       num_devices = 3;
-    std::size_t const num_nodes   = 1000;
+    std::size_t const num_nodes   = 30;
+    std::size_t       k           = 1000;
 
 
     auto        butcher = basic_butcher(num_nodes);
@@ -142,34 +143,100 @@ namespace butcher_benchmark_test_namespace
     Chrono crono;
     crono.start();
     auto const tres = butcher.compute_k_shortest_paths_eppstein_linear(
-      maps, transmission_fun, num_devices, num_nodes * 0.1);
+      maps, transmission_fun, num_devices, k);
     crono.stop();
 
 
     Chrono crono2;
     crono2.start();
     auto const tres2 = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
-      maps, transmission_fun, num_devices, num_nodes * 0.1);
+      maps, transmission_fun, num_devices, k);
     crono2.stop();
     crono2.wallTime();
 
+
+    std::cout << "Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
+              << std::endl;
+    std::cout << "Lazy eppstein: " << crono2.wallTime() / 1000
+              << " milliseconds" << std::endl;
+
+
     auto const &res  = tres.second;
     auto const &res2 = tres2.second;
+
 
     ASSERT_EQ(res.size(), res2.size());
 
     for (auto i = 0; i < res.size(); ++i)
       {
-        auto const &first  = res[i];
-        auto const &second = res2[i];
+        auto const &eppstein      = res[i];
+        auto const &lazy_eppstein = res2[i];
 
-        EXPECT_EQ(first.path, second.path);
-        EXPECT_DOUBLE_EQ(first.length, second.length);
+        EXPECT_EQ(eppstein.path, lazy_eppstein.path);
+        EXPECT_DOUBLE_EQ(eppstein.length, lazy_eppstein.length);
+      }
+  }
+
+  TEST(ButcherBenchmarkTest,
+       compute_k_shortest_paths_eppstein_vs_lazy_random_multiple)
+  {
+    std::map<io_id_type, Input> map;
+    std::vector<node_type>      nodes;
+
+    std::size_t       num_devices = 3;
+    std::size_t const num_nodes   = 30;
+
+    std::size_t k = 3;
+
+    std::size_t number_of_tests = 10000;
+
+
+    auto        butcher = basic_butcher(num_nodes);
+    auto const &graph   = butcher.getGraph();
+
+    double time_std  = .0;
+    double time_lazy = .0;
+
+    for (auto num_test = 0; num_test < number_of_tests; ++num_test)
+      {
+        std::vector<type_collection_weights> weight_maps;
+        auto maps = basic_weight(num_devices, num_nodes, weight_maps);
+
+        auto transmission_fun =
+          basic_transmission(num_devices, butcher.getGraph().nodes.size());
+
+        Chrono crono;
+        crono.start();
+        auto tres = butcher.compute_k_shortest_paths_eppstein_linear(
+          maps, transmission_fun, num_devices, k);
+        crono.stop();
+        time_std += crono.wallTime();
+
+        crono.start();
+        auto tres2 = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
+          maps, transmission_fun, num_devices, k);
+        crono.stop();
+        time_lazy += crono.wallTime();
+
+        auto const &res  = tres.second;
+        auto const &res2 = tres2.second;
+
+        ASSERT_EQ(res.size(), res2.size());
+
+        for (auto i = 0; i < res.size(); ++i)
+          {
+            auto const &first  = res[i];
+            auto const &second = res2[i];
+
+            ASSERT_EQ(first.path, second.path);
+            ASSERT_DOUBLE_EQ(first.length, second.length);
+          }
       }
 
-    std::cout << "Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
-              << std::endl;
-    std::cout << "Lazy eppstein: " << crono2.wallTime() / 1000
+    std::cout << "Lazy Eppstein: " << time_lazy / 1000 / number_of_tests
+              << " milliseconds" << std::endl;
+
+    std::cout << "Eppstein: " << time_std / 1000 / number_of_tests
               << " milliseconds" << std::endl;
   }
 
@@ -192,15 +259,47 @@ namespace butcher_benchmark_test_namespace
 
     Chrono crono;
     crono.start();
-    auto const tmp_res = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
-      maps, transmission_fun, num_devices, num_nodes / 10);
+    auto const lazy_eppstein_res =
+      butcher.compute_k_shortest_paths_lazy_eppstein_linear(maps,
+                                                            transmission_fun,
+                                                            num_devices,
+                                                            num_nodes);
     crono.stop();
 
     std::cout << "Lazy Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
               << std::endl;
 
     crono.start();
-    auto res = butcher.reconstruct_model(tmp_res.first, tmp_res.second.back());
+    auto const eppstein_res = butcher.compute_k_shortest_paths_eppstein_linear(
+      maps, transmission_fun, num_devices, num_nodes);
+    crono.stop();
+
+    std::cout << "Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
+              << std::endl;
+
+
+    ASSERT_EQ(lazy_eppstein_res.first.dependencies,
+              eppstein_res.first.dependencies);
+
+    auto const &res  = lazy_eppstein_res.second;
+    auto const &res2 = eppstein_res.second;
+
+    ASSERT_EQ(res.size(), res2.size());
+
+    for (auto i = 0; i < res.size(); ++i)
+      {
+        auto const &first  = res[i];
+        auto const &second = res2[i];
+
+        EXPECT_EQ(first.path, second.path);
+        EXPECT_DOUBLE_EQ(first.length, second.length);
+      }
+
+
+    crono.start();
+    auto model_decomp =
+      butcher.reconstruct_model(lazy_eppstein_res.first,
+                                lazy_eppstein_res.second.back());
     crono.stop();
 
     std::cout << "Model reconstruction: " << crono.wallTime() / 1000
@@ -252,7 +351,7 @@ namespace butcher_benchmark_test_namespace
     std::random_device         rd;
     std::default_random_engine random_engine{rd()};
 
-    std::uniform_real_distribution node_weights_generator{5000., 10000.};
+    std::uniform_int_distribution node_weights_generator{5000, 10000};
 
     weight_maps.reserve(num_devices);
 
@@ -300,13 +399,13 @@ namespace butcher_benchmark_test_namespace
               std::swap(in_device_id, out_device_id);
 
             if (out_device_id - in_device_id == 2)
-              return 1000.;
+              return .0; // return 1000.;
             else if (out_device_id - in_device_id == 1)
               {
                 if (out_device_id == 2)
-                  return 700.;
+                  return .0; // return 700.;
                 else
-                  return 300.;
+                  return .0; // return 300.;
               }
             else
               return 0.;

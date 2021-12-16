@@ -369,18 +369,22 @@ private:
       // paid serveral times.
       else if (outputs.size() == 1)
         {
-          type_weight res    = .0;
+          type_weight weight_cost        = .0;
+          type_weight transmission_costs = .0;
+
           auto const &output = *outputs.begin();
 
           // The inputs on the original graph of the output node have to
           // transmit their values to the output node
           for (auto const &input : graph.dependencies[output].first)
             {
-              res += transmission_weights(input, in_device_id, out_device_id);
-              res +=
+              transmission_costs +=
+                transmission_weights(input, in_device_id, out_device_id);
+              weight_cost +=
                 original_weights[out_device_id](std::make_pair(input, output));
             }
 
+          auto const res       = weight_cost + weight_cost;
           new_weight_map[edge] = res;
           return res;
         }
@@ -389,14 +393,17 @@ private:
       // only once.
       else if (inputs.size() == 1)
         {
-          type_weight res          = .0;
+          type_weight weight_costs      = .0;
+          type_weight transmission_cost = .0;
+
           auto const &input        = *inputs.begin();
           auto const &comm_outputs = graph.dependencies[*inputs.begin()].second;
 
           for (auto const &output : comm_outputs)
-            res +=
+            weight_costs +=
               original_weights[out_device_id](std::make_pair(input, output));
-          res += transmission_weights(input, in_device_id, out_device_id);
+          transmission_cost +=
+            transmission_weights(input, in_device_id, out_device_id);
 
           // Compute the total weight associated to the internal edges
           for (auto const &internal_input : outputs)
@@ -406,12 +413,13 @@ private:
                 {
                   if (outputs.find(internal_output) != outputs.cend())
                     {
-                      res += original_weights[out_device_id](
+                      weight_costs += original_weights[out_device_id](
                         std::make_pair(internal_input, internal_output));
                     }
                 }
             }
 
+          auto const res       = weight_costs + transmission_cost;
           new_weight_map[edge] = res;
           return res;
         }
@@ -528,6 +536,7 @@ public:
 
     auto const res = kFinder.eppstein(new_weights_fun, k);
 
+
     return {new_graph, res};
   }
 
@@ -560,6 +569,35 @@ public:
     KFinder_Lazy_Eppstein<node_id_type, node_id_type> kFinder(new_graph);
 
     auto const res = kFinder.lazy_eppstein(new_weights_fun, k);
+
+    {
+      std::ofstream out_file;
+      out_file.open("graph.txt");
+
+      auto const num_nodes      = new_graph.nodes.size();
+      auto const num_nodes_base = (num_nodes - 2) / num_of_devices;
+
+      auto print_weight_edge =
+        [&out_file](node_id_type tail, node_id_type head, type_weight weight) {
+          out_file << "a " << tail << " " << head << " " << weight << std::endl;
+        };
+
+      out_file << std::setprecision(17);
+
+      out_file << "n " << num_nodes << std::endl;
+      out_file << "m " << new_weight_map.size() << std::endl;
+
+      out_file << "s " << 1 << std::endl;
+      out_file << "t " << num_nodes << std::endl;
+
+      for (auto const &edge : new_weight_map)
+        if (edge.second >= 0)
+          print_weight_edge(edge.first.first + 1,
+                            edge.first.second + 1,
+                            edge.second);
+
+      out_file.close();
+    }
 
     return {new_graph, res};
   }
