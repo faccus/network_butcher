@@ -17,6 +17,7 @@ public:
   using children_type = std::set<T>;
 
   children_type children;
+  node_id_type  id;
 
 
   Heap() = default;

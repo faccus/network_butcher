@@ -72,10 +72,13 @@ private:
   /// It will construct a map associating every edge to its children
   /// \param h_gs The h_g map
   /// \return The map associating every edge to its children
-  [[nodiscard]] std::map<edge_pointer, std::set<edge_pointer>>
+  [[nodiscard]] std::map<std::pair<edge_pointer, node_id_type>,
+                         std::set<std::pair<edge_pointer, node_id_type>>>
   get_edge_edges(std::map<node_id_type, H_g> const &h_gs) const
   {
-    std::map<edge_pointer, std::set<edge_pointer>> res;
+    std::map<std::pair<edge_pointer, node_id_type>,
+             std::set<std::pair<edge_pointer, node_id_type>>>
+      res;
     for (auto it = h_gs.cbegin(); it != h_gs.cend(); ++it) // O(N)
       base::get_internal_edges(res, it->second);
     return res;
@@ -99,7 +102,11 @@ private:
     auto const  num_nodes = graph.nodes.size();
 
     for (auto i = 0; i < real_num_nodes; ++i)
-      h_out.insert(h_out.cend(), {i, std::make_shared<H_out<edge_info>>()});
+      {
+        auto it =
+          h_out.insert(h_out.cend(), {i, std::make_shared<H_out<edge_info>>()});
+        it->second->heap.id = i;
+      }
 
     for (auto const &edge_pair : sidetrack_distances) // O(E)
       {
@@ -161,7 +168,10 @@ private:
     sp_dependencies.resize(num_nodes);
 
     for (auto i = 0; i < num_nodes; ++i)
-      res.insert(res.cend(), {i, H_g()});
+      {
+        auto it       = res.insert(res.cend(), {i, H_g()});
+        it->second.id = i;
+      }
 
     for (auto i = 0; i < num_nodes; ++i) // O(N)
       {
@@ -240,7 +250,9 @@ private:
     dijkstra_result_type const        &dij_res,
     type_collection_weights const     &sidetrack_distances_res,
     std::map<node_id_type, H_g> const &h_g,
-    std::map<edge_pointer, std::set<edge_pointer>> const &edges_edges) const
+    std::map<std::pair<edge_pointer, node_id_type>,
+             std::set<std::pair<edge_pointer, node_id_type>>> const
+      &edges_edges) const
   {
     std::vector<implicit_path_info> res;
     res.push_back({{}, dij_res.second.front()});
@@ -257,10 +269,16 @@ private:
     std::set<implicit_path_info> Q;
 
     implicit_path_info first_path;
-    first_path.sidetracks = {first_side_track.edge};
+    first_path.sidetracks = {
+      {first_side_track.edge, first_side_track.edge->first}};
     first_path.length = first_side_track.delta_weight + dij_res.second.front();
 
     Q.insert(std::move(first_path));
+
+    auto print_missing_sidetrack_distance = [](edge_type const &e) {
+      std::cout << "Error: cannot find proper sidetrack distance for edge ("
+                << e.first << ", " << e.second << ")" << std::endl;
+    };
 
     for (int k = 2; k <= K && !Q.empty(); ++k)
       {
@@ -268,26 +286,26 @@ private:
         Q.erase(Q.begin());
         res.push_back(SK);
 
-        auto const e = SK.sidetracks.back();
+        auto const  e      = SK.sidetracks.back();
+        auto const &e_edge = *e.first;
 
-        auto const ot = sidetrack_distances_res.find(*e);
+        auto const ot = sidetrack_distances_res.find(e_edge);
 
         if (ot == sidetrack_distances_res.cend())
           {
-            std::cout
-              << "Error: cannot find proper sidetrack distance for edge ("
-              << e->first << ", " << e->second << ")" << std::endl;
+            print_missing_sidetrack_distance(e_edge);
             continue;
           }
 
-        auto const f_res = base::extrack_first_sidetrack_edge(e->second, h_g);
+        auto const f_res =
+          base::extrack_first_sidetrack_edge(e_edge.second, h_g);
 
         if (f_res.first)
           {
             auto const &f = f_res.second;
 
             auto mod_sk = SK;
-            mod_sk.sidetracks.push_back(f.edge);
+            mod_sk.sidetracks.push_back({f.edge, e.second});
             mod_sk.length += f.delta_weight;
             Q.insert(std::move(mod_sk));
           }
@@ -299,14 +317,13 @@ private:
 
             for (auto const &f : it->second)
               {
-                auto ut = sidetrack_distances_res.find(*f);
+                auto const &f_edge = *f.first;
+
+                auto ut = sidetrack_distances_res.find(f_edge);
 
                 if (ut == sidetrack_distances_res.cend())
                   {
-                    std::cout << "Error: cannot find proper sidetrack distance "
-                                 "for edge ("
-                              << f->first << ", " << f->second << ")"
-                              << std::endl;
+                    print_missing_sidetrack_distance(f_edge);
                     continue;
                   }
 
@@ -316,15 +333,15 @@ private:
 
                 if (!SK.sidetracks.empty())
                   {
-                    auto n =
-                      mod_sk.sidetracks[mod_sk.sidetracks.size() - 2]->second;
+                    auto n = mod_sk.sidetracks[mod_sk.sidetracks.size() - 2]
+                               .first->second;
                     while (n != graph.nodes.size() - 1 &&
-                           n != mod_sk.sidetracks.back()->first)
+                           n != mod_sk.sidetracks.back().first->first)
                       {
                         n = successors[n];
                       }
 
-                    if (n != mod_sk.sidetracks.back()->first)
+                    if (n != mod_sk.sidetracks.back().first->first)
                       continue;
                   }
 
