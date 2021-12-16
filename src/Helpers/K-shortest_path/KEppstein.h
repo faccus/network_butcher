@@ -72,11 +72,10 @@ private:
   /// It will construct a map associating every edge to its children
   /// \param h_gs The h_g map
   /// \return The map associating every edge to its children
-  [[nodiscard]] std::map<edge_type, std::set<edge_type>>
+  [[nodiscard]] std::map<edge_pointer, std::set<edge_pointer>>
   get_edge_edges(std::map<node_id_type, H_g> const &h_gs) const
   {
-    std::map<edge_type, std::set<edge_type>> res;
-
+    std::map<edge_pointer, std::set<edge_pointer>> res;
     for (auto it = h_gs.cbegin(); it != h_gs.cend(); ++it) // O(N)
       base::get_internal_edges(res, it->second);
     return res;
@@ -100,7 +99,7 @@ private:
     auto const  num_nodes = graph.nodes.size();
 
     for (auto i = 0; i < real_num_nodes; ++i)
-      h_out.insert(h_out.cend(), {i, std::make_shared<H_out>()});
+      h_out.insert(h_out.cend(), {i, std::make_shared<H_out<edge_info>>()});
 
     for (auto const &edge_pair : sidetrack_distances) // O(E)
       {
@@ -112,10 +111,8 @@ private:
 
         if (edge.second != succ)
           {
-            edge_info tmp;
-            tmp.edge         = edge;
-            tmp.delta_weight = sidetrack_distance;
-            auto &children   = h_out[tail]->heap.children;
+            edge_info tmp(edge, sidetrack_distance);
+            auto     &children = h_out[tail]->heap.children;
 
             children.insert(std::move(tmp)); // O(log(N))
           }
@@ -239,11 +236,11 @@ private:
   /// \return The (implicit) shortest paths
   std::vector<implicit_path_info>
   base_path_selector_eppstein(
-    std::size_t                                     K,
-    dijkstra_result_type const                     &dij_res,
-    type_collection_weights const                  &sidetrack_distances_res,
-    std::map<node_id_type, H_g> const              &h_g,
-    std::map<edge_type, std::set<edge_type>> const &edges_edges) const
+    std::size_t                        K,
+    dijkstra_result_type const        &dij_res,
+    type_collection_weights const     &sidetrack_distances_res,
+    std::map<node_id_type, H_g> const &h_g,
+    std::map<edge_pointer, std::set<edge_pointer>> const &edges_edges) const
   {
     std::vector<implicit_path_info> res;
     res.push_back({{}, dij_res.second.front()});
@@ -271,18 +268,19 @@ private:
         Q.erase(Q.begin());
         res.push_back(SK);
 
-        auto const e  = SK.sidetracks.back();
-        auto const ot = sidetrack_distances_res.find(e);
+        auto const e = SK.sidetracks.back();
+
+        auto const ot = sidetrack_distances_res.find(*e);
 
         if (ot == sidetrack_distances_res.cend())
           {
             std::cout
               << "Error: cannot find proper sidetrack distance for edge ("
-              << e.first << ", " << e.second << ")" << std::endl;
+              << e->first << ", " << e->second << ")" << std::endl;
             continue;
           }
 
-        auto const f_res = base::extrack_first_sidetrack_edge(e.second, h_g);
+        auto const f_res = base::extrack_first_sidetrack_edge(e->second, h_g);
 
         if (f_res.first)
           {
@@ -301,13 +299,13 @@ private:
 
             for (auto const &f : it->second)
               {
-                auto ut = sidetrack_distances_res.find(f);
+                auto ut = sidetrack_distances_res.find(*f);
 
                 if (ut == sidetrack_distances_res.cend())
                   {
                     std::cout << "Error: cannot find proper sidetrack distance "
                                  "for edge ("
-                              << f.first << ", " << f.second << ")"
+                              << f->first << ", " << f->second << ")"
                               << std::endl;
                     continue;
                   }
@@ -319,14 +317,14 @@ private:
                 if (!SK.sidetracks.empty())
                   {
                     auto n =
-                      mod_sk.sidetracks[mod_sk.sidetracks.size() - 2].second;
+                      mod_sk.sidetracks[mod_sk.sidetracks.size() - 2]->second;
                     while (n != graph.nodes.size() - 1 &&
-                           n != mod_sk.sidetracks.back().first)
+                           n != mod_sk.sidetracks.back()->first)
                       {
                         n = successors[n];
                       }
 
-                    if (n != mod_sk.sidetracks.back().first)
+                    if (n != mod_sk.sidetracks.back()->first)
                       continue;
                   }
 

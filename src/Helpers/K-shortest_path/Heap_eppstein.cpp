@@ -6,7 +6,7 @@
 
 
 bool
-operator<(std::shared_ptr<H_out> const &lhs, std::shared_ptr<H_out> const &rhs)
+operator<(H_out_pointer const &lhs, H_out_pointer const &rhs)
 {
   return *lhs < *rhs;
 };

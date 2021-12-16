@@ -70,8 +70,8 @@ protected:
   /// \param edge_edges The map of childrens of the given edge
   /// \param h_out H_out of a given node
   void
-  get_internal_edges(std::map<edge_type, std::set<edge_type>> &edge_edges,
-                     H_out_pointer const                      &h_out) const
+  get_internal_edges(std::map<edge_pointer, std::set<edge_pointer>> &edge_edges,
+                     H_out_pointer const &h_out) const
   {
     std::size_t                                      j = 0;
     std::vector<std::set<edge_info>::const_iterator> previous_steps;
@@ -100,8 +100,8 @@ protected:
   /// \param include_h_outs Calls get_internal_edges for all the encountered
   /// H_outs in H_g
   void
-  get_internal_edges(std::map<edge_type, std::set<edge_type>> &edge_edges,
-                     H_g const                                &h_g,
+  get_internal_edges(std::map<edge_pointer, std::set<edge_pointer>> &edge_edges,
+                     H_g const                                      &h_g,
                      bool include_h_outs = true) const
   {
     std::size_t                                          j = 0;
@@ -156,9 +156,9 @@ protected:
         while (node_to_insert != graph.nodes.back().get_id())
           {
             info.path.push_back(node_to_insert);
-            if (it != sidetracks.cend() && it->first == node_to_insert)
+            if (it != sidetracks.cend() && (*it)->first == node_to_insert)
               {
-                node_to_insert = it->second;
+                node_to_insert = (*it)->second;
                 ++it;
               }
             else

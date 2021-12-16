@@ -97,7 +97,7 @@ private:
 
     auto const &graph = base_shortest::graph;
 
-    auto       it   = h_out.emplace(node, std::make_shared<H_out>());
+    auto       it   = h_out.emplace(node, std::make_shared<H_out<edge_info>>());
     auto const succ = successors[node];
 
     for (auto const &exit : graph.dependencies[node].second)
@@ -111,10 +111,8 @@ private:
               continue;
             }
 
-          edge_info tmp;
-          tmp.edge         = edge;
-          tmp.delta_weight = it_dist->second;
-          auto &children   = h_out[node]->heap.children;
+          edge_info tmp(edge, it_dist->second);
+          auto     &children = h_out[node]->heap.children;
 
           children.insert(std::move(tmp)); // O(log(N))
         }
@@ -133,12 +131,13 @@ private:
   /// \param edge_edges The edge_edges map
   /// \return The iterator to the added element
   std::map<node_id_type, H_g>::iterator
-  construct_partial_h_g(std::map<node_id_type, H_g>           &h_g,
-                        std::map<node_id_type, H_out_pointer> &h_out,
-                        type_collection_weights const   &sidetrack_distances,
-                        std::vector<node_id_type> const &successors,
-                        node_id_type                     node,
-                        std::map<edge_type, std::set<edge_type>> &edge_edges)
+  construct_partial_h_g(
+    std::map<node_id_type, H_g>                    &h_g,
+    std::map<node_id_type, H_out_pointer>          &h_out,
+    type_collection_weights const                  &sidetrack_distances,
+    std::vector<node_id_type> const                &successors,
+    node_id_type                                    node,
+    std::map<edge_pointer, std::set<edge_pointer>> &edge_edges)
   {
     auto pair_iterator = find_h_g_in_map(h_g, node);
     if (pair_iterator.first)
@@ -218,7 +217,7 @@ private:
     H_out_map                   h_out;
     std::map<node_id_type, H_g> h_g;
 
-    auto edges_edges = std::map<edge_type, std::set<edge_type>>();
+    auto edges_edges = std::map<edge_pointer, std::set<edge_pointer>>();
 
 
     construct_partial_h_g(
@@ -239,6 +238,11 @@ private:
 
     Q.insert(std::move(first_path));
 
+    auto print_missing_sidetrack_distance = [](edge_pointer const &e) {
+      std::cout << "Error: cannot find proper sidetrack distance for edge ("
+                << e->first << ", " << e->second << ")" << std::endl;
+    };
+
     for (int k = 2; k <= K && !Q.empty(); ++k)
       {
         auto SK = *Q.begin();
@@ -246,13 +250,11 @@ private:
         res.push_back(SK);
 
         auto const e  = SK.sidetracks.back();
-        auto const ot = sidetrack_distances_res.find(e);
+        auto const ot = sidetrack_distances_res.find(*e);
 
         if (ot == sidetrack_distances_res.cend())
           {
-            std::cout
-              << "Error: cannot find proper sidetrack distance for edge ("
-              << e.first << ", " << e.second << ")" << std::endl;
+            print_missing_sidetrack_distance(e);
             continue;
           }
 
@@ -260,11 +262,11 @@ private:
                               h_out,
                               sidetrack_distances_res,
                               successors,
-                              e.second,
+                              e->second,
                               edges_edges);
 
 
-        auto const f_res = base::extrack_first_sidetrack_edge(e.second, h_g);
+        auto const f_res = base::extrack_first_sidetrack_edge(e->second, h_g);
 
         if (f_res.first)
           {
@@ -283,14 +285,11 @@ private:
 
             for (auto &f : it->second)
               {
-                auto ut = sidetrack_distances_res.find(f);
+                auto ut = sidetrack_distances_res.find(*f);
 
                 if (ut == sidetrack_distances_res.cend())
                   {
-                    std::cout << "Error: cannot find proper sidetrack distance "
-                                 "for edge ("
-                              << f.first << ", " << f.second << ")"
-                              << std::endl;
+                    print_missing_sidetrack_distance(f);
                     continue;
                   }
 
@@ -301,14 +300,14 @@ private:
                 if (!SK.sidetracks.empty())
                   {
                     auto n =
-                      mod_sk.sidetracks[mod_sk.sidetracks.size() - 2].second;
+                      mod_sk.sidetracks[mod_sk.sidetracks.size() - 2]->second;
                     while (n != graph.nodes.size() - 1 &&
-                           n != mod_sk.sidetracks.back().first)
+                           n != mod_sk.sidetracks.back()->first)
                       {
                         n = successors[n];
                       }
 
-                    if (n != mod_sk.sidetracks.back().first)
+                    if (n != mod_sk.sidetracks.back()->first)
                       continue;
                   }
 

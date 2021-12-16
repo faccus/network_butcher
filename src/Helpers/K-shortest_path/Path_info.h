@@ -8,6 +8,8 @@
 
 #include "../Traits/Graph_traits.h"
 
+using edge_pointer = std::shared_ptr<edge_type>;
+
 struct path_info
 {
   type_weight               length;
@@ -22,8 +24,8 @@ struct path_info
 
 struct implicit_path_info
 {
-  std::vector<edge_type> sidetracks;
-  type_weight            length;
+  std::vector<edge_pointer> sidetracks;
+  type_weight               length;
 
   constexpr bool
   operator<(const implicit_path_info &rhs) const

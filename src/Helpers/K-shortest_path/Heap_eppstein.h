@@ -13,26 +13,39 @@
 
 struct edge_info
 {
-  edge_type   edge;
-  type_weight delta_weight;
+  std::shared_ptr<edge_type> edge;
+  type_weight                delta_weight;
+
+  edge_info(edge_type const &in_edge, type_weight const &in_delta_weight)
+    : edge(std::make_shared<edge_type>(in_edge))
+    , delta_weight(in_delta_weight)
+  {}
+
+  edge_info(std::shared_ptr<edge_type> in_edge,
+            type_weight const         &in_delta_weight)
+    : edge(std::move(in_edge))
+    , delta_weight(in_delta_weight)
+  {}
+
   constexpr bool
   operator<(const edge_info &rhs) const
   {
     return delta_weight < rhs.delta_weight ||
-           (delta_weight == rhs.delta_weight && edge < rhs.edge);
+           (delta_weight == rhs.delta_weight && *edge < *rhs.edge);
   }
 
   constexpr bool
   operator>(const edge_info &rhs) const
   {
     return delta_weight > rhs.delta_weight ||
-           (delta_weight == rhs.delta_weight && edge > rhs.edge);
+           (delta_weight == rhs.delta_weight && *edge > *rhs.edge);
   }
 };
 
+template <class T>
 struct H_out
 {
-  Heap<edge_info> heap;
+  Heap<T> heap;
 
   bool
   operator<(const H_out &rhs) const
@@ -46,10 +59,10 @@ struct H_out
   }
 };
 
-using H_out_pointer = std::shared_ptr<H_out>;
+using H_out_pointer = std::shared_ptr<H_out<edge_info>>;
 
 bool
-operator<(std::shared_ptr<H_out> const &lhs, std::shared_ptr<H_out> const &rhs);
+operator<(H_out_pointer const &lhs, H_out_pointer const &rhs);
 
 using H_g         = Heap<H_out_pointer>;
 using H_g_pointer = std::shared_ptr<H_g>;
