@@ -73,13 +73,12 @@ protected:
   get_internal_edges(
     std::map<std::pair<edge_pointer, node_id_type>,
              std::set<std::pair<edge_pointer, node_id_type>>> &edge_edges,
-    H_out_pointer const                                       &h_out) const
+    H_out_pointer const                                       &h_out,
+    node_id_type                                               id) const
   {
     std::size_t                                      j = 0;
     std::vector<std::set<edge_info>::const_iterator> previous_steps;
     previous_steps.reserve(h_out->heap.children.size());
-
-    auto const id = h_out->heap.id;
 
     for (auto it = h_out->heap.children.cbegin();
          it != h_out->heap.children.cend();
@@ -123,7 +122,7 @@ protected:
         previous_steps.push_back(it);
 
         if (include_h_outs)
-          get_internal_edges(edge_edges, *it); // O(N)
+          get_internal_edges(edge_edges, *it, id); // O(N)
 
         std::size_t parent = (j - 1) / 2;
         if (j > 0 && parent != j)

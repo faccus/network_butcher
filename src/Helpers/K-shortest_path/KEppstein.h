@@ -305,7 +305,7 @@ private:
             auto const &f = f_res.second;
 
             auto mod_sk = SK;
-            mod_sk.sidetracks.push_back({f.edge, e.second});
+            mod_sk.sidetracks.push_back({f.edge, e_edge.second});
             mod_sk.length += f.delta_weight;
             Q.insert(std::move(mod_sk));
           }

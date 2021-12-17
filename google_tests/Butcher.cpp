@@ -127,8 +127,8 @@ namespace butcher_test_namespace
     std::map<io_id_type, Input> map;
     std::vector<node_type>      nodes;
 
-    std::size_t       num_devices = 3;
-    std::size_t const num_nodes   = 1000;
+    std::size_t num_devices = 3;
+    std::size_t k           = 1000;
 
 
     auto        butcher = basic_butcher();
@@ -144,29 +144,36 @@ namespace butcher_test_namespace
     Chrono crono;
     crono.start();
     auto const tres = butcher.compute_k_shortest_paths_eppstein_linear(
-      maps, transmission_fun, num_devices, num_nodes * 0.1);
+      maps, transmission_fun, num_devices, k);
     crono.stop();
 
 
     Chrono crono2;
     crono2.start();
     auto const tres2 = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
-      maps, transmission_fun, num_devices, num_nodes * 0.1);
+      maps, transmission_fun, num_devices, k);
     crono2.stop();
     crono2.wallTime();
 
-    auto const &res  = tres.second;
-    auto const &res2 = tres2.second;
+    ASSERT_EQ(tres.second.size(), tres2.second.size());
 
-    ASSERT_EQ(res.size(), res2.size());
+    std::set<path_info> eppstein_result;
+    eppstein_result.insert(tres.second.begin(), tres.second.end());
 
-    for (auto i = 0; i < res.size(); ++i)
+    std::set<path_info> lazy_eppstein_result;
+    lazy_eppstein_result.insert(tres2.second.begin(), tres2.second.end());
+
+
+    for (auto it1 = eppstein_result.cbegin(),
+              it2 = lazy_eppstein_result.cbegin();
+         it1 != eppstein_result.cend() && it2 != lazy_eppstein_result.cend();
+         ++it1, ++it2)
       {
-        auto const &first  = res[i];
-        auto const &second = res2[i];
+        auto const &eppstein      = *it1;
+        auto const &lazy_eppstein = *it2;
 
-        EXPECT_EQ(first.path, second.path);
-        EXPECT_DOUBLE_EQ(first.length, second.length);
+        EXPECT_EQ(eppstein.path, lazy_eppstein.path);
+        EXPECT_DOUBLE_EQ(eppstein.length, lazy_eppstein.length);
       }
 
     std::cout << "Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
