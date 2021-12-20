@@ -4,55 +4,60 @@
 
 #include "Computer_time.h"
 
+Computer_time::Computer_time()
+{
+  setup();
+}
+
 void
 Computer_time::setup() const
 {
-  auto &my_factory = get_factory();
+  auto &factory = get_factory();
 
-  my_factory.add("Relu",
-                 [](Graph<graph_input_type> const &graph,
-                    Node const                    &node,
-                    bool                           forward = true) {
-                   std::size_t res = 0;
-                   auto const  it =
-                     graph.nodes_content.find(*node.get_output().begin());
-                   if (it == graph.nodes_content.cend())
-                     return res;
+  factory.add("relu",
+              [](Graph<graph_input_type> const &graph,
+                 Node const                    &node,
+                 bool                           forward = true) {
+                std::size_t res = -1;
+                auto const  it =
+                  graph.nodes_content.find(*node.get_output().begin());
+                if (it == graph.nodes_content.cend())
+                  return res;
 
-                   std::size_t const C_out = it->second->get_shape()[1];
-                   res                     = forward ? 3 * C_out : 4 * C_out;
-
-                   return res;
-                 });
-
-  my_factory.add("Loss",
-                 [](Graph<graph_input_type> const &graph,
-                    Node const                    &node,
-                    bool                           forward = true) {
-                   std::size_t res = 0;
-                   auto const  it =
-                     graph.nodes_content.find(*node.get_output().begin());
-                   if (it == graph.nodes_content.cend())
-                     return res;
-
-                   std::size_t const C_out = it->second->get_shape()[1];
-                   res = forward ? 4 * C_out - 1 : C_out + 1;
+                std::size_t const C_out = it->second->get_shape()[1];
+                res                     = forward ? 3 * C_out : 4 * C_out;
 
                    return res;
                  });
 
-  my_factory.add("BatchNormalization",
-                 [](Graph<graph_input_type> const &graph,
-                    Node const                    &node,
-                    bool                           forward = true) {
-                   std::size_t res = 0;
-                   auto const  it =
-                     graph.nodes_content.find(*node.get_output().begin());
-                   if (it == graph.nodes_content.cend())
-                     return res;
+  factory.add("loss",
+              [](Graph<graph_input_type> const &graph,
+                 Node const                    &node,
+                 bool                           forward = true) {
+                std::size_t res = -1;
+                auto const  it =
+                  graph.nodes_content.find(*node.get_output().begin());
+                if (it == graph.nodes_content.cend())
+                  return res;
 
-                   auto const it2 =
-                     graph.nodes_content.find(*node.get_input().begin());
+                std::size_t const C_out = it->second->get_shape()[1];
+                res = forward ? 4 * C_out - 1 : C_out + 1;
+
+                   return res;
+                 });
+
+  factory.add("batchnormalization",
+              [](Graph<graph_input_type> const &graph,
+                 Node const                    &node,
+                 bool                           forward = true) {
+                std::size_t res = -1;
+                auto const  it =
+                  graph.nodes_content.find(*node.get_output().begin());
+                if (it == graph.nodes_content.cend())
+                  return res;
+
+                auto const it2 =
+                  graph.nodes_content.find(*node.get_input().begin());
                    if (it2 == graph.nodes_content.cend())
                      return res;
 
@@ -65,19 +70,32 @@ Computer_time::setup() const
 }
 
 time_type
-Computer_time::compute_time_usage(const Graph<graph_input_type> &graph,
-                                  const Node                    &node)
+Computer_time::compute_operation_time(const Graph<graph_input_type> &graph,
+                                      const Node                    &node,
+                                      const Hardware_specifications &hw)
 {
-  time_type res = .0;
+  time_type res = -1.;
 
+  auto const &operation_id = graph.nodes_operations[node.get_id()];
+  auto       &factory      = get_factory();
+  auto const &time_coeffs  = hw.get_regression_coefficients(operation_id);
+
+  if (factory.registered(operation_id) && time_coeffs.first >= 0 &&
+      time_coeffs.second >= 0)
+    {
+      auto       computer   = factory.get(operation_id);
+      auto const operations = computer(graph, node, true);
+      res = operations * time_coeffs.second + time_coeffs.first;
+    }
 
   return res;
 }
 
 
 time_type
-Computer_time::compute_time_usage(const Graph<graph_input_type> &graph,
-                                  node_id_type                   id)
+Computer_time::compute_operation_time(const Graph<graph_input_type> &graph,
+                                      node_id_type                   id,
+                                      const Hardware_specifications &hw)
 {
-  return compute_time_usage(graph, graph.nodes[id]);
+  return compute_operation_time(graph, graph.nodes[id], hw);
 }

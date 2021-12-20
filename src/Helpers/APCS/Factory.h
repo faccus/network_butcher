@@ -86,6 +86,9 @@ namespace GenericFactory
     //! Returns a list of registered rules.
     std::vector<Identifier>
     registered() const;
+    //! Returns true if the value is refistered
+    bool
+    registered(Identifier const &name) const;
     //! Unregister a rule.
     void
     unregister(Identifier const &name)
@@ -185,6 +188,14 @@ namespace GenericFactory
     for (auto const &i : _storage)
       tmp.push_back(i.first);
     return tmp;
+  }
+
+  template <typename AbstractProduct, typename Identifier, typename Builder>
+  bool
+  Factory<AbstractProduct, Identifier, Builder>::registered(
+    Identifier const &id) const
+  {
+    return _storage.find(id) != _storage.cend();
   }
 
 } // namespace GenericFactory

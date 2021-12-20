@@ -7,7 +7,7 @@
 
 #include "../../Network/Graph.h"
 #include "../APCS/Factory.h"
-#include "../Traits/Hardware_traits.h"
+#include "Hardware_specifications.h"
 
 class Computer_time
 {
@@ -23,14 +23,20 @@ class Computer_time
   }
 
 public:
+  Computer_time();
+
   void
   setup() const;
 
   [[nodiscard]] time_type
-  compute_time_usage(Graph<graph_input_type> const &graph, Node const &node);
+  compute_operation_time(Graph<graph_input_type> const &graph,
+                         Node const                    &node,
+                         const Hardware_specifications &hw);
 
   [[nodiscard]] inline time_type
-  compute_time_usage(Graph<graph_input_type> const &graph, node_id_type id);
+  compute_operation_time(Graph<graph_input_type> const &graph,
+                         node_id_type                   id,
+                         const Hardware_specifications &hw);
 };
 
 

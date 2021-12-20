@@ -3,11 +3,9 @@
 //
 #include "Hardware_specifications.h"
 
-
 Hardware_specifications::Hardware_specifications(hardware_id_type in_id)
   : id(in_id)
 {}
-
 
 const std::string &
 Hardware_specifications::getName() const

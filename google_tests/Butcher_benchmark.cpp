@@ -95,8 +95,8 @@ namespace butcher_benchmark_test_namespace
   TEST(ButcherBenchmarkTest, compute_k_shortest_paths_eppstein_random)
   {
     std::size_t       num_devices = 3;
-    std::size_t const num_nodes   = 1000;
-
+    std::size_t const num_nodes   = 100;
+    std::size_t       k           = 1000;
 
     auto        butcher = basic_butcher(num_nodes);
     auto const &graph   = butcher.getGraph();
@@ -110,7 +110,7 @@ namespace butcher_benchmark_test_namespace
     Chrono crono;
     crono.start();
     auto const res = butcher.compute_k_shortest_paths_eppstein_linear(
-      maps, transmission_fun, num_devices, num_nodes * 0.1);
+      maps, transmission_fun, num_devices, k);
     crono.stop();
 
     std::cout << "Time: " << crono.wallTime() << " micro-seconds" << std::endl;

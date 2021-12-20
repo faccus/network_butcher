@@ -334,6 +334,12 @@ public:
 
             nodes.push_back(std::move(new_entry));
             nodes_operations.emplace_back(node.op_type());
+
+            std::transform(nodes_operations.back().begin(),
+                           nodes_operations.back().end(),
+                           nodes_operations.back().begin(),
+                           ::tolower);
+
             node_collection.push_back(&node);
           }
       }
