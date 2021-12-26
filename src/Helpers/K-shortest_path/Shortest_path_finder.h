@@ -85,34 +85,39 @@ public:
 
         to_visit.erase(to_visit.begin()); // O(log(N))
 
-        for (auto head_node : extract_children(current_node.id, reversed))
+        auto const &children = extract_children(current_node.id, reversed);
+        if (!children.empty())
           {
-            auto      &base_distance = total_distance[head_node]; // O(1)
-            auto const weight =
-              get_weight(current_node.id, head_node, weights, reversed);
-
-            if (weight < 0)
+            for (auto const &head_node : children)
               {
-                if (!reversed)
-                  std::cout << "Error: missing weight (" << current_node.id
-                            << ", " << head_node << ")" << std::endl;
-                else
-                  std::cout << "Error: missing weight (" << head_node << ", "
-                            << current_node.id << ")" << std::endl;
-                return {predecessors, total_distance};
-              }
+                auto      &base_distance = total_distance[head_node]; // O(1)
+                auto const weight =
+                  get_weight(current_node.id, head_node, weights, reversed);
 
-            auto const candidate_distance = start_distance + weight; // O(1)
-            if (candidate_distance < base_distance)                  // O(1)
-              {
-                auto it = to_visit.find({base_distance, head_node});
+                if (weight < 0)
+                  {
+                    if (!reversed)
+                      std::cout << "Error: missing weight (" << current_node.id
+                                << ", " << head_node << ")" << std::endl;
+                    else
+                      std::cout << "Error: missing weight (" << head_node
+                                << ", " << current_node.id << ")" << std::endl;
+                    return {predecessors, total_distance};
+                  }
 
-                if (it != to_visit.end())
-                  to_visit.erase(it); // O(log(N))
+                auto const candidate_distance = start_distance + weight; // O(1)
+                if (candidate_distance < base_distance)                  // O(1)
+                  {
+                    auto it = to_visit.find({base_distance, head_node});
 
-                predecessors[head_node] = current_node.id;        // O(1)
-                base_distance           = candidate_distance;     // O(1)
-                to_visit.insert({candidate_distance, head_node}); // O(log(N))
+                    if (it != to_visit.end())
+                      to_visit.erase(it); // O(log(N))
+
+                    predecessors[head_node] = current_node.id;    // O(1)
+                    base_distance           = candidate_distance; // O(1)
+                    to_visit.insert(
+                      {candidate_distance, head_node}); // O(log(N))
+                  }
               }
           }
       }

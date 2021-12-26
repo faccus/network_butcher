@@ -30,9 +30,9 @@ private:
   compute_dependencies()
   {
     // Reset the dependency vector.
-    dependencies = std::vector<
-      std::pair<node_id_collection_type, node_id_collection_type>>();
-    dependencies.resize(nodes.size());
+    dependencies =
+      std::vector<std::pair<node_id_collection_type, node_id_collection_type>>(
+        nodes.size());
 
     // Compute appearances of inputs/outputs for a node
     std::unordered_map<io_id_type, node_id_collection_type> input_appearances;
@@ -71,7 +71,9 @@ public:
   std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
     dependencies;
 
-  Graph() = default;
+  Graph()              = default;
+  Graph(Graph const &) = default;
+  Graph(Graph &&)      = default;
 
   /// Construct the graph from the nodes and the map containing the relation
   /// between the id of the input/output with the content
@@ -222,7 +224,9 @@ public:
   ///
   std::vector<onnx::NodeProto const *> node_collection;
 
-  Graph() = default;
+  Graph()              = default;
+  Graph(Graph const &) = default;
+  Graph(Graph &&)      = default;
 
   /// Construct the graph from the nodes and the map containing the relation
   /// between the id of the input/output with the content
@@ -251,9 +255,6 @@ public:
     if (dependencies)
       compute_dependencies();
   }
-
-
-  Graph(Graph<graph_input_type> &&) = default;
 
   /// Construct a graph from a model
   /// \param model Protobuf model
