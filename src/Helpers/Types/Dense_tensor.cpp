@@ -6,7 +6,7 @@
 
 #include <utility>
 
-Dense_tensor::Dense_tensor(int in_type_id, std::vector<long> in_shape)
+Dense_tensor::Dense_tensor(type_info_id_type in_type_id, std::vector<shape_type> in_shape)
   : type_id(in_type_id)
   , shape(std::move(in_shape))
 {}
@@ -23,10 +23,10 @@ Dense_tensor::Dense_tensor(const onnx::ValueInfoProto & info)
     }
 }
 
-std::size_t
+memory_type
 Dense_tensor::compute_memory_usage() const
 {
-  std::size_t num_entries = 1;
+  memory_type num_entries = 1;
   for(auto & e : shape)
     num_entries *= e;
 

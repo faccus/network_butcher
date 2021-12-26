@@ -5,77 +5,64 @@
 #ifndef NETWORK_BUTCHER_NODE_H
 #define NETWORK_BUTCHER_NODE_H
 
-using size_t = std::size_t;
+#include "../Helpers/Traits/Basic_traits.h"
+#include <utility>
 
-// T is a type that has compute_memory_usage as a method (shared)
+
+template <class T, typename id_content>
+class Graph;
 
 /// A node of a graph
-/// \tparam T
-template <class T>
 class Node
 {
 private:
-  using io_type = std::vector<std::shared_ptr<T>>;
+  template <class T, typename id_content>
+  friend class Graph;
 
   /// Current node id
-  int id;
+  node_id_type id;
 
-  /// Collection of the inputs of the vector
-  io_type input;
-  /// Collection of the outputs of the vector
-  io_type    output;
+  /// Collection of the ids of inputs of the node
+  io_id_collection_type input;
+  /// Collection of the ids of outputs of the node
+  io_id_collection_type output;
+  /// Collection of the ids of parameters of the node
+  io_id_collection_type parameters;
 
-public:
 
   /// Basic constructor for a node
   /// \param starting_id Initial node id
   /// \param initial_input Initial set of inputs
   /// \param initial_output Initial set of outputs
-  Node(int                                    starting_id,
-       const io_type &initial_input,
-       const io_type &initial_output)
+  /// \param initial_output Initial set of parameters
+  Node(node_id_type          starting_id,
+       io_id_collection_type initial_input,
+       io_id_collection_type initial_output,
+       io_id_collection_type initial_parameters = {})
     : id(starting_id)
-    , input(initial_input)
-    , output(initial_output)
+    , input(std::move(initial_input))
+    , output(std::move(initial_output))
+    , parameters(std::move(initial_parameters))
   {}
 
-
-  /// Compute the memory size of the inputs of the node
-  /// \return Memory size of the inputs of the node
-  size_t
-  compute_memory_usage_input() const
-  {
-    size_t res = 0;
-    for(auto & a : input)
-      res += a->compute_memory_usage();
-    return res;
-  }
-
-
-  /// Compute the memory size of the outputs of the node
-  /// \return Memory size of the outputs of the node
-  size_t
-  compute_memory_usage_output() const
-  {
-    size_t res = 0;
-    for(auto & a : output)
-      res += a->compute_memory_usage();
-    return res;
-  }
-
-
-  /// Compute the total memory size of the node
-  /// \return Total memory size of the node
-  size_t
-  compute_memory_usage() const
-  {
-    return compute_memory_usage_input() + compute_memory_usage_output();
-  };
+public:
+  /// Basic constructor for a node
+  /// \param initial_input Initial set of inputs
+  /// \param initial_output Initial set of outputs
+  /// \param initial_output Initial set of parameters
+  Node(io_id_collection_type initial_input      = {},
+       io_id_collection_type initial_output     = {},
+       io_id_collection_type initial_parameters = {})
+    : id(std::numeric_limits<node_id_type>::max())
+    , input(std::move(initial_input))
+    , output(std::move(initial_output))
+    , parameters(std::move(initial_parameters))
+  {}
 
 
   /// Read-only getter for input
   /// \return Const reference to input
-  const io_type &
+  inline const io_id_collection_type &
   get_input() const
   {
     return input;
@@ -84,12 +71,26 @@ public:
 
   /// Read-only getter for output
   /// \return Const reference to output
-  const io_type &
+  inline const io_id_collection_type &
   get_output() const
   {
     return output;
   }
 
+
+  /// Read-only getter for the parameters
+  /// \return Const reference to the parameters
+  inline const io_id_collection_type &
+  get_parameters() const
+  {
+    return parameters;
+  }
+
+  inline node_id_type
+  get_id() const
+  {
+    return id;
+  }
 };
 
 #endif // NETWORK_BUTCHER_NODE_H

@@ -4,73 +4,79 @@
 
 #include <gtest/gtest.h>
 #include "../../src/Network/Graph.h"
+#include "../TestClass.h"
 
 TEST(GraphTests, ConstructorFromModel) {
-  using Layers = Node<Type_info>;
+  using Input = graph_input_type;
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   onnx::ModelProto model_test;
   const std::string model_path = "resnet18-v2-7-inferred.onnx";
   utilities::parse_onnx_file(model_test, model_path);
 
-  Graph<Layers> graph(model_test, true);
-  Graph<Layers> graph2(model_test);
+  Graph<Input> graph(model_test, true);
+  Graph<Input> graph2(model_test);
+
+  std::cout << std::endl;
 }
 
 TEST(GraphTests, ConstructorFromString) {
-  using Layers = Node<Type_info>;
+  using Input = graph_input_type;
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   const std::string model_path = "resnet18-v2-7-inferred.onnx";
 
-  Graph<Layers> graph(model_path, true);
-  Graph<Layers> graph2(model_path);
+  Graph<Input> graph(model_path, true);
+  Graph<Input> graph2(model_path);
+
+  std::cout << std::endl;
 }
 
-TEST(GraphTests, MemoryUsage) {
-  using Layers = Node<Type_info>;
+TEST(GraphTests, ConstructorFromGraph)
+{
+  using Input = graph_input_type;
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   const std::string model_path = "resnet18-v2-7-inferred.onnx";
-  Graph<Layers> graph(model_path, true);
 
-  auto memory_usage       = graph.compute_memory_usage();
-  auto nodes_memory_usage = graph.compute_nodes_memory_usage();
-  size_t tmp = 0;
-  for(auto & n : nodes_memory_usage)
-    tmp += n;
-
-  ASSERT_TRUE(tmp == memory_usage);
+  Graph<Input> graph(model_path, true);
+  Graph<Input> graph2(std::move(graph));
 }
 
-TEST(GraphTests, MemoryUsageInput) {
-  using Layers = Node<Type_info>;
-  GOOGLE_PROTOBUF_VERIFY_VERSION;
+TEST(GraphTests, DefaultConstructors)
+{
+  using basic_type = int;
+  using Input      = TestMemoryUsage<basic_type>;
 
-  const std::string model_path = "resnet18-v2-7-inferred.onnx";
-  Graph<Layers> graph(model_path, true);
-
-  auto memory_usage       = graph.compute_memory_usage_input();
-  auto nodes_memory_usage = graph.compute_nodes_memory_usage_input();
-  size_t tmp = 0;
-  for(auto & n : nodes_memory_usage)
-    tmp += n;
-
-  ASSERT_TRUE(tmp == memory_usage);
+  Graph<Input>            graph_empty;
+  Graph<graph_input_type> graph_empty2;
 }
 
-TEST(GraphTests, MemoryUsageOutput) {
-  using Layers = Node<Type_info>;
-  GOOGLE_PROTOBUF_VERIFY_VERSION;
+TEST(GraphTests, ConstructorFromCustomClass)
+{
+  using basic_type    = int;
+  using Input         = TestMemoryUsage<basic_type>;
+  int number_of_nodes = 10;
 
-  const std::string model_path = "resnet18-v2-7-inferred.onnx";
-  Graph<Layers> graph(model_path, true);
+  std::vector<node_type> nodes;
+  nodes.emplace_back(io_id_collection_type(),
+                     io_id_collection_type{{"Y", 0}},
+                     io_id_collection_type());
 
-  auto memory_usage       = graph.compute_memory_usage_output();
-  auto nodes_memory_usage = graph.compute_nodes_memory_usage_output();
-  size_t tmp = 0;
-  for(auto & n : nodes_memory_usage)
-    tmp += n;
+  for (int i = 1; i < number_of_nodes - 1; ++i)
+    nodes.emplace_back(io_id_collection_type{{"X", (i - 1) * 10}},
+                       io_id_collection_type{{"Y", i * 10}},
+                       io_id_collection_type{});
 
-  ASSERT_TRUE(tmp == memory_usage);
+  nodes.emplace_back(io_id_collection_type{{"X", (number_of_nodes - 2) * 10}},
+                     io_id_collection_type{},
+                     io_id_collection_type{});
+
+  std::map<io_id_type, Input> map;
+  for(io_id_type i = 0; i < 2 * number_of_nodes; ++i)
+    map[i*10] = Input(i+1);
+
+  Graph<Input> graph_cons(nodes, map);
+
+  std::cout << std::endl;
 }
