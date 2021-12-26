@@ -188,14 +188,14 @@ namespace butcher_test_namespace
     std::map<io_id_type, Input> map;
     std::vector<node_type>      nodes;
 
-    nodes.push_back(node_type(io_id_collection_type{}, {0}));
-    nodes.push_back(node_type(io_id_collection_type{0}, {1}));
-    nodes.push_back(node_type(io_id_collection_type{1}, {2}));
-    nodes.push_back(node_type(io_id_collection_type{1}, {3}));
-    nodes.push_back(node_type(io_id_collection_type{3}, {4}));
-    nodes.push_back(node_type(io_id_collection_type{2, 4}, {5}));
-    nodes.push_back(node_type(io_id_collection_type{5}, {6}));
-    nodes.push_back(node_type(io_id_collection_type{6}, {7}));
+    nodes.push_back(node_type(io_id_collection_type{}, {{"Y", 0}}));
+    nodes.push_back(node_type({{"X", 0}}, {{"Y", 1}}));
+    nodes.push_back(node_type({{"X", 1}}, {{"Y", 2}}));
+    nodes.push_back(node_type({{"X", 1}}, {{"Y", 3}}));
+    nodes.push_back(node_type({{"X", 3}}, {{"Y", 4}}));
+    nodes.push_back(node_type({{"X1", 2}, {"X2", 4}}, {{"Y", 5}}));
+    nodes.push_back(node_type({{"X", 5}}, {{"Y", 6}}));
+    nodes.push_back(node_type({{"X", 6}}, {{"Y", 7}}));
 
     for (io_id_type i = 0; i < nodes.size(); ++i)
       map[i] = i;

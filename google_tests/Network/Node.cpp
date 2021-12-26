@@ -7,6 +7,11 @@
 
 #include "../../src/Network/Node.h"
 
-TEST(NodeTests, ConctructorTest) {
-  Node node({1, 2, 3}, {3, 4, 5}, {6, 7, 8});
+TEST(NodeTests, ConctructorTest)
+{
+  io_id_collection_type map;
+  map["in"] = 10;
+
+
+  Node node(map, map, map);
 }

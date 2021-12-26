@@ -91,7 +91,7 @@ public:
 
     for (auto const &in : node.get_input())
       {
-        auto const p = graph.nodes_content.find(in);
+        auto const p = graph.nodes_content.find(in.second);
         if (p != graph.nodes_content.cend())
           res += compute_memory_usage(p->second);
       }
@@ -99,7 +99,7 @@ public:
     if (include_parameters)
       for (auto const &param : node.get_parameters())
         {
-          auto const p = graph.nodes_content.find(param);
+          auto const p = graph.nodes_content.find(param.second);
           if (p != graph.nodes_content.cend())
             res += compute_memory_usage(p->second);
         }

@@ -60,15 +60,15 @@ TEST(GraphTests, ConstructorFromCustomClass)
 
   std::vector<node_type> nodes;
   nodes.emplace_back(io_id_collection_type(),
-                     io_id_collection_type{0},
+                     io_id_collection_type{{"Y", 0}},
                      io_id_collection_type());
 
   for (int i = 1; i < number_of_nodes - 1; ++i)
-    nodes.emplace_back(io_id_collection_type{(i - 1) * 10},
-                       io_id_collection_type{i * 10},
+    nodes.emplace_back(io_id_collection_type{{"X", (i - 1) * 10}},
+                       io_id_collection_type{{"Y", i * 10}},
                        io_id_collection_type{});
 
-  nodes.emplace_back(io_id_collection_type{(number_of_nodes - 2) * 10},
+  nodes.emplace_back(io_id_collection_type{{"X", (number_of_nodes - 2) * 10}},
                      io_id_collection_type{},
                      io_id_collection_type{});
 

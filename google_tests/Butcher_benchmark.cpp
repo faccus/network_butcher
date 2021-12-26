@@ -392,10 +392,10 @@ namespace butcher_benchmark_test_namespace
     std::vector<node_type>                     nodes;
     std::map<io_id_type, TestMemoryUsage<int>> map;
 
-    nodes.push_back(node_type(io_id_collection_type{}, {0}));
+    nodes.push_back(node_type(io_id_collection_type{}, {{"Y", 0}}));
     for (int n = 1; n < num_nodes - 1; ++n)
-      nodes.push_back(node_type(io_id_collection_type{n - 1}, {n}));
-    nodes.push_back(node_type(io_id_collection_type{num_nodes - 2}, {0}));
+      nodes.push_back(node_type({{"X", n - 1}}, {{"Y", n}}));
+    nodes.push_back(node_type({{"X", num_nodes - 2}}, {{"Y", 0}}));
 
     Graph<TestMemoryUsage<int>> graph_cons(nodes, map);
 

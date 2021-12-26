@@ -20,15 +20,15 @@ Computer_time::setup() const
                  bool                           forward = true) {
                 std::size_t res = -1;
                 auto const  it =
-                  graph.nodes_content.find(*node.get_output().begin());
+                  graph.nodes_content.find(node.get_output().begin()->second);
                 if (it == graph.nodes_content.cend())
                   return res;
 
                 std::size_t const C_out = it->second->get_shape()[1];
                 res                     = forward ? 3 * C_out : 4 * C_out;
 
-                   return res;
-                 });
+                return res;
+              });
 
   factory.add("loss",
               [](Graph<graph_input_type> const &graph,
@@ -36,15 +36,15 @@ Computer_time::setup() const
                  bool                           forward = true) {
                 std::size_t res = -1;
                 auto const  it =
-                  graph.nodes_content.find(*node.get_output().begin());
+                  graph.nodes_content.find(node.get_output().begin()->second);
                 if (it == graph.nodes_content.cend())
                   return res;
 
                 std::size_t const C_out = it->second->get_shape()[1];
-                res = forward ? 4 * C_out - 1 : C_out + 1;
+                res                     = forward ? 4 * C_out - 1 : C_out + 1;
 
-                   return res;
-                 });
+                return res;
+              });
 
   factory.add("batchnormalization",
               [](Graph<graph_input_type> const &graph,
@@ -52,21 +52,21 @@ Computer_time::setup() const
                  bool                           forward = true) {
                 std::size_t res = -1;
                 auto const  it =
-                  graph.nodes_content.find(*node.get_output().begin());
+                  graph.nodes_content.find(node.get_output().begin()->second);
                 if (it == graph.nodes_content.cend())
                   return res;
 
                 auto const it2 =
-                  graph.nodes_content.find(*node.get_input().begin());
-                   if (it2 == graph.nodes_content.cend())
-                     return res;
+                  graph.nodes_content.find(node.get_input().begin()->second);
+                if (it2 == graph.nodes_content.cend())
+                  return res;
 
-                   std::size_t const C_in  = it2->second->get_shape()[1];
-                   std::size_t const C_out = it->second->get_shape()[1];
-                   res = forward ? 5 * C_out + C_in - 2 : 8 * C_out + C_in - 1;
+                std::size_t const C_in  = it2->second->get_shape()[1];
+                std::size_t const C_out = it->second->get_shape()[1];
+                res = forward ? 5 * C_out + C_in - 2 : 8 * C_out + C_in - 1;
 
-                   return res;
-                 });
+                return res;
+              });
 }
 
 time_type

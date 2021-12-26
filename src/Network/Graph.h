@@ -42,9 +42,9 @@ private:
     for (auto const &node : nodes)
       {
         for (auto &in : node.get_input())
-          input_appearances[in].insert(node.get_id());
+          input_appearances[in.second].insert(node.get_id());
         for (auto &out : node.get_output())
-          output_appearances[out].insert(node.get_id());
+          output_appearances[out.second].insert(node.get_id());
       }
 
     // Matched the input of a node to his outputs and viceversa
@@ -184,9 +184,9 @@ private:
     for (auto const &node : nodes)
       {
         for (auto &in : node.get_input())
-          input_appearances[in].insert(node.get_id());
+          input_appearances[in.second].insert(node.get_id());
         for (auto &out : node.get_output())
-          output_appearances[out].insert(node.get_id());
+          output_appearances[out.second].insert(node.get_id());
       }
 
     // Matched the input of a node to his outputs and viceversa
@@ -300,8 +300,8 @@ public:
     auto process_nodes =
       [&io_value_infos_graph, &parameters_id](
         const google::protobuf::RepeatedPtrField<std::basic_string<char>> &inp,
-        std::set<io_id_type>                                              &ing,
-        std::set<io_id_type> &params) {
+        io_id_collection_type                                             &ing,
+        io_id_collection_type &params) {
         for (auto const &in : inp)
           {
             auto p     = io_value_infos_graph.find(in);
@@ -310,9 +310,9 @@ public:
             if (valid)
               {
                 if (parameters_id.contains(p->second))
-                  params.insert(p->second);
+                  params.insert({in, p->second});
                 else
-                  ing.insert(p->second);
+                  ing.insert({in, p->second});
               }
           }
       };

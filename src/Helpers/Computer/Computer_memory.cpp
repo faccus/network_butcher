@@ -18,14 +18,14 @@ Computer_memory::compute_nodes_memory_usage(const Graph<graph_input_type> &graph
 
                    for (auto const &in : node.get_input())
                      {
-                       auto const p = graph.nodes_content.find(in);
+                       auto const p = graph.nodes_content.find(in.second);
                        if (p != graph.nodes_content.cend())
                          res += p->second->compute_memory_usage();
                      }
 
                    for (auto const &out : node.get_output())
                      {
-                       auto const p = graph.nodes_content.find(out);
+                       auto const p = graph.nodes_content.find(out.second);
                        if (p != graph.nodes_content.cend())
                          res += p->second->compute_memory_usage();
                      }
@@ -33,7 +33,7 @@ Computer_memory::compute_nodes_memory_usage(const Graph<graph_input_type> &graph
                    if (include_parameters)
                      for (auto const &param : node.get_parameters())
                        {
-                         auto const p = graph.nodes_content.find(param);
+                         auto const p = graph.nodes_content.find(param.second);
                          if (p != graph.nodes_content.cend())
                            res += p->second->compute_memory_usage();
                        }
@@ -59,7 +59,7 @@ Computer_memory::compute_nodes_memory_usage_input(const Graph<graph_input_type> 
 
                    for (auto const &in : node.get_input())
                      {
-                       auto const p = graph.nodes_content.find(in);
+                       auto const p = graph.nodes_content.find(in.second);
                        if (p != graph.nodes_content.cend())
                          res += p->second->compute_memory_usage();
                      }
@@ -67,7 +67,7 @@ Computer_memory::compute_nodes_memory_usage_input(const Graph<graph_input_type> 
                    if (include_parameters)
                      for (auto const &param : node.get_parameters())
                        {
-                         auto const p = graph.nodes_content.find(param);
+                         auto const p = graph.nodes_content.find(param.second);
                          if (p != graph.nodes_content.cend())
                            res += p->second->compute_memory_usage();
                        }
