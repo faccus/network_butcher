@@ -7,6 +7,7 @@
 #include <random>
 
 #include "../src/Butcher.h"
+#include "../src/Helpers/Computer/Computer_time.h"
 #include "../src/Helpers/APCS/chrono.h"
 #include "TestClass.h"
 
@@ -20,6 +21,7 @@ namespace butcher_benchmark_test_namespace
   using basic_type = int;
   using Input      = TestMemoryUsage<int>;
 
+
   Butcher<Input>
   basic_butcher(int);
 
@@ -30,6 +32,17 @@ namespace butcher_benchmark_test_namespace
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
     basic_transmission(std::size_t, std::size_t);
+
+
+  std::vector<Hardware_specifications> basic_hardware(std::size_t);
+
+  std::vector<std::function<type_weight(edge_type const &)>>
+  real_weight(std::size_t,
+              std::vector<type_collection_weights> &,
+              Butcher<graph_input_type> &);
+
+  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+    real_transmission(std::size_t, std::size_t);
 
 
   TEST(ButcherBenchmarkTest, compute_k_shortest_paths_lazy_eppstein_random)
@@ -202,9 +215,10 @@ namespace butcher_benchmark_test_namespace
 
   TEST(ButcherBenchmarkTest, compute_k_shortest_paths_test_network)
   {
-    std::string path = "resnet18-v2-7-inferred.onnx";
+    std::string path      = "resnet18-v2-7-inferred";
+    std::string extension = ".onnx";
 
-    Butcher<graph_input_type> butcher(path);
+    Butcher<graph_input_type> butcher(path + extension);
 
     auto const &graph     = butcher.getGraph();
     auto const &nodes     = graph.nodes;
@@ -386,6 +400,7 @@ namespace butcher_benchmark_test_namespace
               << " milliseconds" << std::endl;
   }
 
+
   Butcher<Input>
   basic_butcher(int num_nodes)
   {
@@ -476,4 +491,52 @@ namespace butcher_benchmark_test_namespace
           }
       };
   }
+
+
+  std::vector<Hardware_specifications>
+  basic_hardware(std::size_t num_devices)
+  {
+    std::vector<Hardware_specifications> res;
+
+    std::map<std::string, std::pair<time_type, time_type>> map;
+    map["conv"]               = {1.83E-1, 3.43E-10};
+    map["batchnormalization"] = {1.64E-2, 7.11E-9};
+    map["relu"]               = {8.91E-3, 1.17E-8};
+    map["maxpool"]            = {1.44E-2, 1.45E-8};
+
+    std::vector<std::string> names = {"NVIDIA Quadro M6000",
+                                      "NVIDIA Quadro M6001",
+                                      "NVIDIA Quadro M6002"};
+
+    for (std::size_t i = 0; i < num_devices; ++i)
+      {
+        res.emplace_back(names[i]);
+        for (auto const &pair : map)
+          {
+            auto to_insert = pair.second;
+            to_insert.first /= std::pow(10, 3 * i);
+            to_insert.second /= std::pow(10, 3 * i);
+
+            res.back().set_regression_coefficient(pair.first, to_insert);
+          }
+      }
+
+    return res;
+  }
+
+  std::vector<std::function<type_weight(edge_type const &)>>
+  real_weight(std::size_t                           num_devices,
+              std::vector<type_collection_weights> &weight_maps,
+              Butcher<graph_input_type>            &butcher)
+  {
+    std::vector<std::function<type_weight(edge_type const &)>> res;
+    auto &graph = butcher.getGraph();
+    weight_maps.reserve(num_devices);
+    weight_maps.emplace_back();
+
+
+    return res;
+  }
+
+
 }; // namespace butcher_benchmark_test_namespace
