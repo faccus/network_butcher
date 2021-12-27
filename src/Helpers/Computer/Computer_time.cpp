@@ -155,7 +155,7 @@ Computer_time::compute_operation_time(const Graph<graph_input_type> &graph,
                                       const Node                    &node,
                                       const Hardware_specifications &hw)
 {
-  time_type res = -1.;
+  time_type res = .0;
 
   auto const &operation_id = graph.nodes_operations[node.get_id()];
   auto       &factory      = get_factory();

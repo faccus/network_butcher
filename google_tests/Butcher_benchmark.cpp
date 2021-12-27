@@ -42,7 +42,7 @@ namespace butcher_benchmark_test_namespace
               Butcher<graph_input_type> &);
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
-    real_transmission(std::size_t, std::size_t);
+  real_transmission(std::size_t, Butcher<graph_input_type> &);
 
 
   TEST(ButcherBenchmarkTest, compute_k_shortest_paths_lazy_eppstein_random)
@@ -504,18 +504,18 @@ namespace butcher_benchmark_test_namespace
     map["relu"]               = {8.91E-3, 1.17E-8};
     map["maxpool"]            = {1.44E-2, 1.45E-8};
 
-    std::vector<std::string> names = {"NVIDIA Quadro M6000",
+    std::vector<std::string> names = {"NVIDIA Quadro M6002",
                                       "NVIDIA Quadro M6001",
-                                      "NVIDIA Quadro M6002"};
+                                      "NVIDIA Quadro M6000"};
 
-    for (std::size_t i = 0; i < num_devices; ++i)
+    for (std::size_t i = num_devices - 1; i >= 0; --i)
       {
         res.emplace_back(names[i]);
         for (auto const &pair : map)
           {
             auto to_insert = pair.second;
-            to_insert.first /= std::pow(10, 3 * i);
-            to_insert.second /= std::pow(10, 3 * i);
+            to_insert.first *= std::pow(10, i);
+            to_insert.second *= std::pow(10, i);
 
             res.back().set_regression_coefficient(pair.first, to_insert);
           }
@@ -525,17 +525,66 @@ namespace butcher_benchmark_test_namespace
   }
 
   std::vector<std::function<type_weight(edge_type const &)>>
-  real_weight(std::size_t                           num_devices,
-              std::vector<type_collection_weights> &weight_maps,
+  real_weight(std::vector<type_collection_weights> &weight_maps,
               Butcher<graph_input_type>            &butcher)
   {
     std::vector<std::function<type_weight(edge_type const &)>> res;
-    auto &graph = butcher.getGraph();
+    auto             &graph       = butcher.getGraph();
+    std::size_t const num_devices = 3;
     weight_maps.reserve(num_devices);
-    weight_maps.emplace_back();
 
+    auto          hws = basic_hardware(num_devices);
+    Computer_time cp;
+    cp.setup();
+
+
+    for (std::size_t i = 0; i < hws.size(); ++i)
+      {
+        weight_maps.emplace_back();
+        auto &map = weight_maps.back();
+        auto &hw  = hws[i];
+
+        for (std::size_t tail = 0; tail < graph.dependencies.size(); ++tail)
+          {
+            for (auto const &head : graph.dependencies[tail].second)
+              map[{tail, head}] = cp.compute_operation_time(graph, tail, hw);
+          }
+      }
+
+    for (std::size_t i = 0; i < weight_maps.size(); ++i)
+      {
+        auto &map = weight_maps[i];
+        res.emplace_back([&map](edge_type const &edge) { return map[edge]; });
+      }
 
     return res;
+  }
+
+  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+  real_transmission(Butcher<graph_input_type> &butcher)
+  {
+    auto const &graph = butcher.getGraph();
+    return [&graph](node_id_type const &node,
+                    std::size_t         from_device,
+                    std::size_t         to_device) {
+      Computer_memory cm;
+      auto const      mem_to_transmit =
+        cm.compute_memory_usage_output(graph, graph.nodes[node], false);
+
+      if (from_device == 0 && to_device == 1 ||
+          from_device == 1 && to_device == 0)
+        return mem_to_transmit * 18.88;
+      else if (from_device == 0 && to_device == 2)
+        return mem_to_transmit * (18.88 + 5.85);
+      else if (from_device == 1 && to_device == 2)
+        return mem_to_transmit * 5.85;
+      else if (from_device == 2 && to_device == 0)
+        return mem_to_transmit * (13.76 + 18.88);
+      else if (from_device == 2 && to_device == 1)
+        return mem_to_transmit * 13.76;
+      else
+        return .0;
+    };
   }
 
 
