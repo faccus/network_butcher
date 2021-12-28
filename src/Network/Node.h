@@ -6,7 +6,10 @@
 #define NETWORK_BUTCHER_NODE_H
 
 #include "../Helpers/Traits/Basic_traits.h"
+#include "../Helpers/Types/Dense_tensor.h"
+
 #include <utility>
+#include <memory>
 
 
 template <class T, typename id_content>
@@ -28,6 +31,8 @@ private:
   io_id_collection_type output;
   /// Collection of the ids of parameters of the node
   io_id_collection_type parameters;
+  /// Collection of the attributes of the node
+  std::unordered_map<std::string, std::vector<long>> attributes;
 
 
   /// Basic constructor for a node
@@ -44,6 +49,12 @@ private:
     , output(std::move(initial_output))
     , parameters(std::move(initial_parameters))
   {}
+
+  inline void
+  set_attribute(std::string const &name, std::vector<long> tensor)
+  {
+    attributes.emplace(name, tensor);
+  }
 
 public:
   /// Basic constructor for a node
@@ -90,6 +101,12 @@ public:
   get_id() const
   {
     return id;
+  }
+
+  inline std::unordered_map<std::string, std::vector<long>> const &
+  get_attributes() const
+  {
+    return attributes;
   }
 };
 

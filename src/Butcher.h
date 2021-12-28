@@ -573,6 +573,7 @@ public:
 
     auto const res = kFinder.lazy_eppstein(new_weights_fun, k);
 
+#if DEBUG
     {
       std::ofstream out_file;
       out_file.open("graph.txt");
@@ -601,6 +602,7 @@ public:
 
       out_file.close();
     }
+#endif
 
     return {new_graph, res};
   }
