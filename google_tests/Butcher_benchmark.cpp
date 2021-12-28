@@ -34,15 +34,15 @@ namespace butcher_benchmark_test_namespace
     basic_transmission(std::size_t, std::size_t);
 
 
-  std::vector<Hardware_specifications> basic_hardware(std::size_t);
+  std::vector<Hardware_specifications>
+  basic_hardware();
 
   std::vector<std::function<type_weight(edge_type const &)>>
-  real_weight(std::size_t,
-              std::vector<type_collection_weights> &,
+  real_weight(std::vector<type_collection_weights> &,
               Butcher<graph_input_type> &);
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
-  real_transmission(std::size_t, Butcher<graph_input_type> &);
+  real_transmission(Butcher<graph_input_type> &);
 
 
   TEST(ButcherBenchmarkTest, compute_k_shortest_paths_lazy_eppstein_random)
@@ -213,22 +213,24 @@ namespace butcher_benchmark_test_namespace
   }
 
 
-  TEST(ButcherBenchmarkTest, compute_k_shortest_paths_test_network)
+  TEST(ButcherBenchmarkTest,
+       compute_k_shortest_paths_test_network_basic_weights)
   {
     std::string path      = "resnet18-v2-7-inferred";
     std::string extension = ".onnx";
 
     Butcher<graph_input_type> butcher(path + extension);
 
-    auto const &graph     = butcher.getGraph();
-    auto const &nodes     = graph.nodes;
-    auto const  num_nodes = nodes.size();
+    auto const &graph = butcher.getGraph();
+    auto const &nodes = graph.nodes;
+    auto const  k     = 1000;
 
     std::size_t                          num_devices = 3;
     std::vector<type_collection_weights> weight_maps;
 
-    auto maps             = basic_weight(num_devices, num_nodes, weight_maps);
-    auto transmission_fun = basic_transmission(num_devices, num_nodes);
+
+    auto maps = basic_weight(num_devices, nodes.size(), weight_maps);
+    auto transmission_fun = basic_transmission(num_devices, nodes.size());
 
     Chrono crono;
     crono.start();
@@ -236,7 +238,7 @@ namespace butcher_benchmark_test_namespace
       butcher.compute_k_shortest_paths_lazy_eppstein_linear(maps,
                                                             transmission_fun,
                                                             num_devices,
-                                                            num_nodes);
+                                                            k);
     crono.stop();
 
     std::cout << "Lazy Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
@@ -244,7 +246,7 @@ namespace butcher_benchmark_test_namespace
 
     crono.start();
     auto const eppstein_res = butcher.compute_k_shortest_paths_eppstein_linear(
-      maps, transmission_fun, num_devices, num_nodes);
+      maps, transmission_fun, num_devices, k);
     crono.stop();
 
     std::cout << "Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
@@ -285,25 +287,86 @@ namespace butcher_benchmark_test_namespace
               << " milliseconds" << std::endl;
   }
 
-
-  TEST(ButcherBenchmarkTest, correct_weight_generation)
+  TEST(ButcherBenchmarkTest, compute_k_shortest_paths_test_network_real_weights)
   {
+    std::string path      = "resnet18-v2-7-inferred";
+    std::string extension = ".onnx";
+
+    Butcher<graph_input_type> butcher(path + extension);
+
+    auto const &graph = butcher.getGraph();
+    auto const &nodes = graph.nodes;
+    auto const  k     = 1000;
+
+    std::size_t                          num_devices = 3;
     std::vector<type_collection_weights> weight_maps;
 
+    auto maps             = real_weight(weight_maps, butcher);
+    auto transmission_fun = real_transmission(butcher);
 
-    std::size_t num_nodes   = 100;
-    std::size_t num_devices = 3;
+    Chrono crono;
+    crono.start();
+    auto const lazy_eppstein_res =
+      butcher.compute_k_shortest_paths_lazy_eppstein_linear(maps,
+                                                            transmission_fun,
+                                                            num_devices,
+                                                            k);
+    crono.stop();
 
-    auto maps = basic_weight(num_devices, num_nodes, weight_maps);
+    std::cout << "Lazy Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
+              << std::endl;
 
-    for (auto const &pair : weight_maps.front())
-      for (std::size_t k = 1; k < num_devices; ++k)
-        {
-          auto const second_value =
-            weight_maps[k].find(pair.first)->second * std::pow(2, k);
+    crono.start();
+    auto const eppstein_res = butcher.compute_k_shortest_paths_eppstein_linear(
+      maps, transmission_fun, num_devices, k);
+    crono.stop();
 
-          EXPECT_DOUBLE_EQ(pair.second, second_value);
-        }
+    std::cout << "Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
+              << std::endl;
+
+
+    ASSERT_EQ(eppstein_res.second.size(), lazy_eppstein_res.second.size());
+
+    std::set<path_info> eppstein_result;
+    eppstein_result.insert(eppstein_res.second.begin(),
+                           eppstein_res.second.end());
+
+    std::set<path_info> lazy_eppstein_result;
+    lazy_eppstein_result.insert(lazy_eppstein_res.second.begin(),
+                                lazy_eppstein_res.second.end());
+
+
+    for (auto it1 = eppstein_result.cbegin(),
+              it2 = lazy_eppstein_result.cbegin();
+         it1 != eppstein_result.cend() && it2 != lazy_eppstein_result.cend();
+         ++it1, ++it2)
+      {
+        auto const &eppstein      = *it1;
+        auto const &lazy_eppstein = *it2;
+
+        EXPECT_EQ(eppstein.path, lazy_eppstein.path);
+        EXPECT_DOUBLE_EQ(eppstein.length, lazy_eppstein.length);
+      }
+
+
+    crono.start();
+    auto model_decomp =
+      butcher.reconstruct_model(lazy_eppstein_res.first,
+                                lazy_eppstein_res.second.back());
+    crono.stop();
+
+    for (std::size_t i = 0; i < model_decomp.size(); ++i)
+      {
+        auto const &model    = model_decomp[i];
+        std::string out_path = path;
+        out_path += "-dev" + std::to_string(model.second) + "-" +
+                    std::to_string(i) + extension;
+
+        utilities::output_onnx_file(model.first, out_path);
+      }
+
+    std::cout << "Model reconstruction: " << crono.wallTime() / 1000
+              << " milliseconds" << std::endl;
   }
 
   TEST(ButcherBenchmarkTest,
@@ -401,6 +464,48 @@ namespace butcher_benchmark_test_namespace
   }
 
 
+  TEST(ButcherBenchmarkTest, correct_basic_weight_generation)
+  {
+    std::vector<type_collection_weights> weight_maps;
+
+
+    std::size_t num_nodes   = 100;
+    std::size_t num_devices = 3;
+
+    auto maps = basic_weight(num_devices, num_nodes, weight_maps);
+
+    for (auto const &pair : weight_maps.front())
+      for (std::size_t k = 1; k < num_devices; ++k)
+        {
+          auto const second_value =
+            weight_maps[k].find(pair.first)->second * std::pow(2, k);
+
+          EXPECT_DOUBLE_EQ(pair.second, second_value);
+        }
+  }
+
+  TEST(ButcherBenchmarkTest, correct_real_weight_generation)
+  {
+    std::vector<type_collection_weights> basic_weight_maps;
+    std::vector<type_collection_weights> real_weight_maps;
+
+    std::string path      = "resnet18-v2-7-inferred";
+    std::string extension = ".onnx";
+
+    Butcher<graph_input_type> butcher(path + extension);
+    std::size_t const         num_devices = 3;
+    std::size_t const         num_nodes   = butcher.getGraph().nodes.size();
+
+
+    basic_weight(num_devices, num_nodes, basic_weight_maps);
+    real_weight(real_weight_maps, butcher);
+
+    for (auto const &pair : basic_weight_maps.front())
+      for (std::size_t k = 1; k < num_devices; ++k)
+        {}
+  }
+
+
   Butcher<Input>
   basic_butcher(int num_nodes)
   {
@@ -494,9 +599,10 @@ namespace butcher_benchmark_test_namespace
 
 
   std::vector<Hardware_specifications>
-  basic_hardware(std::size_t num_devices)
+  basic_hardware()
   {
     std::vector<Hardware_specifications> res;
+    std::size_t const                    num_devices = 3;
 
     std::map<std::string, std::pair<time_type, time_type>> map;
     map["conv"]               = {1.83E-1, 3.43E-10};
@@ -508,7 +614,7 @@ namespace butcher_benchmark_test_namespace
                                       "NVIDIA Quadro M6001",
                                       "NVIDIA Quadro M6000"};
 
-    for (std::size_t i = num_devices - 1; i >= 0; --i)
+    for (int i = num_devices - 1; i >= 0; --i)
       {
         res.emplace_back(names[i]);
         for (auto const &pair : map)
@@ -533,9 +639,8 @@ namespace butcher_benchmark_test_namespace
     std::size_t const num_devices = 3;
     weight_maps.reserve(num_devices);
 
-    auto          hws = basic_hardware(num_devices);
+    auto          hws = basic_hardware();
     Computer_time cp;
-    cp.setup();
 
 
     for (std::size_t i = 0; i < hws.size(); ++i)
@@ -564,24 +669,28 @@ namespace butcher_benchmark_test_namespace
   real_transmission(Butcher<graph_input_type> &butcher)
   {
     auto const &graph = butcher.getGraph();
-    return [&graph](node_id_type const &node,
-                    std::size_t         from_device,
-                    std::size_t         to_device) {
+    auto const  mbps  = 1000. / 8;
+
+
+    return [&graph, mbps](node_id_type const &node,
+                          std::size_t         from_device,
+                          std::size_t         to_device) {
       Computer_memory cm;
       auto const      mem_to_transmit =
         cm.compute_memory_usage_output(graph, graph.nodes[node], false);
 
+
       if (from_device == 0 && to_device == 1 ||
           from_device == 1 && to_device == 0)
-        return mem_to_transmit * 18.88;
+        return mem_to_transmit * 18.88 * mbps;
       else if (from_device == 0 && to_device == 2)
-        return mem_to_transmit * (18.88 + 5.85);
+        return mem_to_transmit * (18.88 + 5.85) * mbps;
       else if (from_device == 1 && to_device == 2)
-        return mem_to_transmit * 5.85;
+        return mem_to_transmit * 5.85 * mbps;
       else if (from_device == 2 && to_device == 0)
-        return mem_to_transmit * (13.76 + 18.88);
+        return mem_to_transmit * (13.76 + 18.88) * mbps;
       else if (from_device == 2 && to_device == 1)
-        return mem_to_transmit * 13.76;
+        return mem_to_transmit * 13.76 * mbps;
       else
         return .0;
     };

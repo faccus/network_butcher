@@ -109,7 +109,7 @@ namespace ComputerTimeTests
     Computer_time           computer;
     Hardware_specifications test_hw("test_device");
 
-    test_hw.set_regression_coefficient("batchnormalization", {1., 0.5});
+    test_hw.set_regression_coefficient("batchnormalization", {1., .5});
     auto       graph = basic_graph();
     auto const time =
       computer.compute_operation_time(graph, graph.nodes.front(), test_hw);
