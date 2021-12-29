@@ -1265,6 +1265,36 @@ public:
 
     auto const res = kFinder.lazy_eppstein(new_weights_fun, k);
 
+
+    {
+      std::ofstream out_file;
+      out_file.open("graph.txt");
+
+      auto const num_nodes      = new_graph.nodes.size();
+      auto const num_nodes_base = (num_nodes - 2) / num_of_devices;
+
+      auto print_weight_edge =
+        [&out_file](node_id_type tail, node_id_type head, type_weight weight) {
+          out_file << "a " << tail << " " << head << " " << weight << std::endl;
+        };
+
+      out_file << std::setprecision(17);
+
+      out_file << "n " << num_nodes << std::endl;
+      out_file << "m " << new_weight_map.size() << std::endl;
+
+      out_file << "s " << 1 << std::endl;
+      out_file << "t " << num_nodes << std::endl;
+
+      for (auto const &edge : new_weight_map)
+        if (edge.second >= 0)
+          print_weight_edge(edge.first.first + 1,
+                            edge.first.second + 1,
+                            edge.second);
+
+      out_file.close();
+    }
+
     return {new_graph, res};
   }
 
@@ -1316,7 +1346,7 @@ public:
       };
 
 
-    auto const &model_graph          = original_model.graph();
+    auto const &model_graph = original_model.graph();
 
 
     std::function<google::protobuf::internal::RepeatedPtrIterator<

@@ -234,7 +234,7 @@ namespace butcher_benchmark_test_namespace
 
     Chrono crono;
     crono.start();
-    auto const lazy_eppstein_res =
+    auto lazy_eppstein_res =
       butcher.compute_k_shortest_paths_lazy_eppstein_linear(maps,
                                                             transmission_fun,
                                                             num_devices,
@@ -245,12 +245,33 @@ namespace butcher_benchmark_test_namespace
               << std::endl;
 
     crono.start();
-    auto const eppstein_res = butcher.compute_k_shortest_paths_eppstein_linear(
+    auto eppstein_res = butcher.compute_k_shortest_paths_eppstein_linear(
       maps, transmission_fun, num_devices, k);
     crono.stop();
 
     std::cout << "Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
               << std::endl;
+
+
+    auto const last_weight_epp = eppstein_res.second.back().length;
+    ASSERT_EQ(last_weight_epp, lazy_eppstein_res.second.back().length);
+
+    auto tmp_it  = --eppstein_res.second.end();
+    auto tmp_it2 = --lazy_eppstein_res.second.end();
+
+    for (; tmp_it != eppstein_res.second.begin() &&
+           tmp_it2 != lazy_eppstein_res.second.begin();
+         --tmp_it, --tmp_it2)
+      {
+        if (tmp_it->length != last_weight_epp)
+          break;
+      }
+
+    ++tmp_it;
+    ++tmp_it2;
+
+    eppstein_res.second.erase(tmp_it, eppstein_res.second.end());
+    lazy_eppstein_res.second.erase(tmp_it2, lazy_eppstein_res.second.end());
 
 
     ASSERT_EQ(eppstein_res.second.size(), lazy_eppstein_res.second.size());
@@ -282,6 +303,18 @@ namespace butcher_benchmark_test_namespace
       butcher.reconstruct_model(lazy_eppstein_res.first,
                                 lazy_eppstein_res.second.back());
     crono.stop();
+
+
+    for (std::size_t i = 0; i < model_decomp.size(); ++i)
+      {
+        auto const &model    = model_decomp[i];
+        std::string out_path = path;
+        out_path += "-" + std::to_string(i) + "-dev" +
+                    std::to_string(model.second) + extension;
+
+        utilities::output_onnx_file(model.first, out_path);
+      }
+
 
     std::cout << "Model reconstruction: " << crono.wallTime() / 1000
               << " milliseconds" << std::endl;
@@ -306,7 +339,7 @@ namespace butcher_benchmark_test_namespace
 
     Chrono crono;
     crono.start();
-    auto const lazy_eppstein_res =
+    auto lazy_eppstein_res =
       butcher.compute_k_shortest_paths_lazy_eppstein_linear(maps,
                                                             transmission_fun,
                                                             num_devices,
@@ -317,12 +350,33 @@ namespace butcher_benchmark_test_namespace
               << std::endl;
 
     crono.start();
-    auto const eppstein_res = butcher.compute_k_shortest_paths_eppstein_linear(
+    auto eppstein_res = butcher.compute_k_shortest_paths_eppstein_linear(
       maps, transmission_fun, num_devices, k);
     crono.stop();
 
     std::cout << "Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
               << std::endl;
+
+
+    auto const last_weight_epp = eppstein_res.second.back().length;
+    ASSERT_EQ(last_weight_epp, lazy_eppstein_res.second.back().length);
+
+    auto tmp_it  = --eppstein_res.second.end();
+    auto tmp_it2 = --lazy_eppstein_res.second.end();
+
+    for (; tmp_it != eppstein_res.second.begin() &&
+           tmp_it2 != lazy_eppstein_res.second.begin();
+         --tmp_it, --tmp_it2)
+      {
+        if (tmp_it->length != last_weight_epp)
+          break;
+      }
+
+    ++tmp_it;
+    ++tmp_it2;
+
+    eppstein_res.second.erase(tmp_it, eppstein_res.second.end());
+    lazy_eppstein_res.second.erase(tmp_it2, lazy_eppstein_res.second.end());
 
 
     ASSERT_EQ(eppstein_res.second.size(), lazy_eppstein_res.second.size());
@@ -355,15 +409,17 @@ namespace butcher_benchmark_test_namespace
                                 lazy_eppstein_res.second.back());
     crono.stop();
 
-    for (std::size_t i = 0; i < model_decomp.size(); ++i)
-      {
-        auto const &model    = model_decomp[i];
-        std::string out_path = path;
-        out_path += "-dev" + std::to_string(model.second) + "-" +
-                    std::to_string(i) + extension;
+    /*
+        for (std::size_t i = 0; i < model_decomp.size(); ++i)
+          {
+            auto const &model    = model_decomp[i];
+            std::string out_path = path;
+            out_path += "-" + std::to_string(i) +"-dev" +
+  std::to_string(model.second) +  extension;
 
-        utilities::output_onnx_file(model.first, out_path);
-      }
+    utilities::output_onnx_file(model.first, out_path);
+  }
+  */
 
     std::cout << "Model reconstruction: " << crono.wallTime() / 1000
               << " milliseconds" << std::endl;
@@ -682,15 +738,15 @@ namespace butcher_benchmark_test_namespace
 
       if (from_device == 0 && to_device == 1 ||
           from_device == 1 && to_device == 0)
-        return mem_to_transmit * 18.88 * mbps;
+        return mem_to_transmit / (18.88 * mbps);
       else if (from_device == 0 && to_device == 2)
-        return mem_to_transmit * (18.88 + 5.85) * mbps;
+        return mem_to_transmit / ((18.88 + 5.85) * mbps);
       else if (from_device == 1 && to_device == 2)
-        return mem_to_transmit * 5.85 * mbps;
+        return mem_to_transmit / (5.85 * mbps);
       else if (from_device == 2 && to_device == 0)
-        return mem_to_transmit * (13.76 + 18.88) * mbps;
+        return mem_to_transmit / ((13.76 + 18.88) * mbps);
       else if (from_device == 2 && to_device == 1)
-        return mem_to_transmit * 13.76 * mbps;
+        return mem_to_transmit / (13.76 * mbps);
       else
         return .0;
     };
