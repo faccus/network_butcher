@@ -127,14 +127,14 @@ namespace butcher_test_namespace
 
     Chrono crono;
     crono.start();
-    auto const eppstein_res = butcher.compute_k_shortest_paths_eppstein_linear(
+    auto eppstein_res = butcher.compute_k_shortest_paths_eppstein_linear(
       maps, transmission_fun, num_devices, k);
     crono.stop();
 
 
     Chrono crono2;
     crono2.start();
-    auto const lazy_eppstein_res =
+    auto lazy_eppstein_res =
       butcher.compute_k_shortest_paths_lazy_eppstein_linear(maps,
                                                             transmission_fun,
                                                             num_devices,
