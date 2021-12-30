@@ -142,6 +142,29 @@ namespace butcher_test_namespace
     crono2.stop();
     crono2.wallTime();
 
+    ASSERT_EQ(eppstein_res.size(), lazy_eppstein_res.size());
+
+    auto const last_weight_epp = eppstein_res.back().second;
+    ASSERT_EQ(last_weight_epp, lazy_eppstein_res.back().second);
+
+    auto tmp_it  = --eppstein_res.end();
+    auto tmp_it2 = --lazy_eppstein_res.end();
+
+    for (;
+         tmp_it != eppstein_res.begin() && tmp_it2 != lazy_eppstein_res.begin();
+         --tmp_it, --tmp_it2)
+      {
+        if (tmp_it->second != last_weight_epp)
+          break;
+      }
+
+    ++tmp_it;
+    ++tmp_it2;
+
+    eppstein_res.erase(tmp_it, eppstein_res.end());
+    lazy_eppstein_res.erase(tmp_it2, lazy_eppstein_res.end());
+
+
     std::set<std::pair<std::vector<std::pair<size_t, std::set<node_id_type>>>,
                        type_weight>>
       eppstein;
