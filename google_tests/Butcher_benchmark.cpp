@@ -30,6 +30,11 @@ namespace butcher_benchmark_test_namespace
                std::size_t,
                std::vector<type_collection_weights> &);
 
+  std::vector<std::function<type_weight(edge_type const &)>>
+  basic_weight(Graph<graph_input_type> const &,
+               std::size_t,
+               std::vector<type_collection_weights> &);
+
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
     basic_transmission(std::size_t, std::size_t);
 
@@ -104,6 +109,7 @@ namespace butcher_benchmark_test_namespace
     std::cout << "Average time per test: " << total_time / number_of_tests
               << " micro-seconds" << std::endl;
   }
+
 
   TEST(ButcherBenchmarkTest, compute_k_shortest_paths_eppstein_random)
   {
@@ -229,7 +235,7 @@ namespace butcher_benchmark_test_namespace
     std::vector<type_collection_weights> weight_maps;
 
 
-    auto maps = basic_weight(num_devices, nodes.size(), weight_maps);
+    auto maps             = basic_weight(graph, num_devices, weight_maps);
     auto transmission_fun = basic_transmission(num_devices, nodes.size());
 
     Chrono crono;
@@ -304,17 +310,17 @@ namespace butcher_benchmark_test_namespace
                                 lazy_eppstein_res.second.back());
     crono.stop();
 
+    /*
+        for (std::size_t i = 0; i < model_decomp.size(); ++i)
+          {
+            auto const &model    = model_decomp[i];
+            std::string out_path = path;
+            out_path += "-" + std::to_string(i) + "-dev" +
+                        std::to_string(model.second) + extension;
 
-    for (std::size_t i = 0; i < model_decomp.size(); ++i)
-      {
-        auto const &model    = model_decomp[i];
-        std::string out_path = path;
-        out_path += "-" + std::to_string(i) + "-dev" +
-                    std::to_string(model.second) + extension;
-
-        utilities::output_onnx_file(model.first, out_path);
-      }
-
+            utilities::output_onnx_file(model.first, out_path);
+          }
+    */
 
     std::cout << "Model reconstruction: " << crono.wallTime() / 1000
               << " milliseconds" << std::endl;
@@ -618,6 +624,50 @@ namespace butcher_benchmark_test_namespace
     return maps;
   }
 
+  std::vector<std::function<type_weight(edge_type const &)>>
+  basic_weight(Graph<graph_input_type> const        &graph,
+               std::size_t                           num_devices,
+               std::vector<type_collection_weights> &weight_maps)
+  {
+    std::random_device         rd;
+    std::default_random_engine random_engine{rd()};
+
+    auto const num_nodes = graph.nodes.size();
+
+    std::uniform_int_distribution node_weights_generator{5000, 10000};
+
+    weight_maps.reserve(num_devices);
+
+    weight_maps.emplace_back();
+    auto &initial_weight_map = weight_maps.back();
+
+    for (std::size_t tail = 0; tail < graph.nodes.size(); ++tail)
+      for (auto const &head : graph.dependencies[tail].second)
+        initial_weight_map[{tail, head}] =
+          node_weights_generator(random_engine);
+
+    for (std::size_t k = 1; k < num_devices; ++k)
+      {
+        weight_maps.emplace_back(weight_maps.front());
+        auto &tmp_map = weight_maps.back();
+        for (auto &edge : tmp_map)
+          edge.second /= std::pow(2, k);
+      }
+
+    std::vector<std::function<type_weight(edge_type const &)>> maps;
+
+    for (std::size_t i = 0; i < num_devices; ++i)
+      {
+        auto &weight_map = weight_maps[i];
+
+        maps.emplace_back([&weight_map](edge_type const &edge) {
+          return weight_map.find(edge)->second;
+        });
+      }
+
+    return maps;
+  }
+
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
   basic_transmission(std::size_t devices, std::size_t size)
   {
@@ -634,13 +684,13 @@ namespace butcher_benchmark_test_namespace
               std::swap(in_device_id, out_device_id);
 
             if (out_device_id - in_device_id == 2)
-              return .0; // return 1000.;
+              return 1000.; // return 1000.;
             else if (out_device_id - in_device_id == 1)
               {
                 if (out_device_id == 2)
-                  return .0; // return 700.;
+                  return 700.; // return 700.;
                 else
-                  return .0; // return 300.;
+                  return 300.; // return 300.;
               }
             else
               return 0.;
@@ -735,16 +785,17 @@ namespace butcher_benchmark_test_namespace
       auto const      mem_to_transmit =
         cm.compute_memory_usage_output(graph, graph.nodes[node], false);
 
-
       if (from_device == 0 && to_device == 1 ||
           from_device == 1 && to_device == 0)
         return mem_to_transmit / (18.88 * mbps);
       else if (from_device == 0 && to_device == 2)
-        return mem_to_transmit / ((18.88 + 5.85) * mbps);
+        return mem_to_transmit / (5.85 * mbps) +
+               mem_to_transmit / (18.88 * mbps);
       else if (from_device == 1 && to_device == 2)
         return mem_to_transmit / (5.85 * mbps);
       else if (from_device == 2 && to_device == 0)
-        return mem_to_transmit / ((13.76 + 18.88) * mbps);
+        return mem_to_transmit / (18.88 * mbps) +
+               mem_to_transmit / (13.76 * mbps);
       else if (from_device == 2 && to_device == 1)
         return mem_to_transmit / (13.76 * mbps);
       else
