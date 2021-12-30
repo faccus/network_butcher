@@ -5,6 +5,9 @@
 #ifndef NETWORK_BUTCHER_BUTCHER_H
 #define NETWORK_BUTCHER_BUTCHER_H
 
+#include <algorithm>
+
+
 #include "Helpers/Traits/Graph_traits.h"
 #include "Helpers/Traits/Hardware_traits.h"
 
@@ -21,12 +24,16 @@
 #include "Helpers/Utilities.h"
 
 
+using real_path = std::vector<std::pair<std::size_t, std::set<node_id_type>>>;
+using weighted_real_path = std::vector<std::pair<real_path, type_weight>>;
+
 /// Butcher butchers a given graph into slices
 template <class T>
 class Butcher
 {
 private:
   using network = Graph<T>;
+
   network graph;
 
   /// Compute the minimal connected graphs (with dependencies) containing every
@@ -428,6 +435,125 @@ private:
     };
   }
 
+  [[nodiscard]] std::size_t
+  get_num_devices(std::size_t const &original_graph_size,
+                  std::size_t const &new_graph_size) const
+  {
+    if (original_graph_size > 2)
+      return (new_graph_size - 2) / (original_graph_size - 2);
+    return 1;
+  }
+
+  [[nodiscard]] std::size_t
+  get_device_id(node_id_type const &node_id,
+                std::size_t const  &num_devices) const
+  {
+    return node_id == 0 ? 0 : (node_id - 1) % num_devices;
+  }
+
+  [[nodiscard]] node_id_type
+  get_base_node_id(node_id_type const &current_node_id,
+                   std::size_t const  &device_id) const
+  {
+    return current_node_id == 0 ? 0 : current_node_id - device_id;
+  }
+
+  [[nodiscard]] std::unordered_map<node_id_type, std::set<node_id_type>>
+  get_new_node_to_old_nodes_map(
+    Graph<node_id_type, node_id_type> const &new_graph) const
+  {
+    std::unordered_map<node_id_type, std::set<node_id_type>>
+      new_node_to_old_nodes; // New node -> Old nodes
+
+    for (auto const &node : new_graph.nodes_content)
+      new_node_to_old_nodes[node.second].insert(node.first);
+
+    return new_node_to_old_nodes;
+  }
+
+  [[nodiscard]] real_path
+  get_network_slices(path_info const                         &new_path,
+                     Graph<node_id_type, node_id_type> const &new_graph) const
+  {
+    real_path   res;
+    std::size_t current_model_device = 0;
+
+    res.emplace_back(current_model_device, std::set<node_id_type>());
+
+    auto const  new_graph_size = new_graph.nodes.size();
+    auto const &path_nodes     = new_path.path;
+
+    auto const map = get_new_node_to_old_nodes_map(new_graph);
+
+    auto const num_devices =
+      get_num_devices(path_nodes.size() - 2, new_graph_size);
+
+    for (std::size_t i = 0; i < path_nodes.size(); ++i)
+      {
+        auto const  node_id_new_graph = path_nodes[i];
+        std::size_t device_id = get_device_id(node_id_new_graph, num_devices);
+
+        auto const base_node_id_new_graph =
+          get_base_node_id(node_id_new_graph, device_id);
+
+        if (device_id != current_model_device)
+          {
+            current_model_device = device_id;
+            res.emplace_back(current_model_device, std::set<node_id_type>());
+          }
+
+        auto it_nodes = map.find(base_node_id_new_graph);
+        res.back().second.insert(it_nodes->second.begin(),
+                                 it_nodes->second.end());
+      }
+
+    return res;
+  }
+
+  [[nodiscard]] std::vector<real_path>
+  get_network_slices(std::vector<path_info> const            &new_paths,
+                     Graph<node_id_type, node_id_type> const &new_graph) const
+  {
+    std::vector<real_path> res(new_paths.size());
+
+    std::transform(new_paths.begin(),
+                   new_paths.end(),
+                   res.begin(),
+                   [&new_graph, this](path_info const &path) {
+                     return get_network_slices(path, new_graph);
+                   });
+
+    return res;
+  }
+
+  [[nodiscard]] weighted_real_path
+  get_weighted_network_slice(
+    std::vector<path_info> const            &new_paths,
+    Graph<node_id_type, node_id_type> const &new_graph) const
+  {
+    auto               network_slice = get_network_slices(new_paths, new_graph);
+    weighted_real_path final_res;
+
+    final_res.reserve(network_slice.size());
+
+    for (std::size_t i = 0; i < network_slice.size(); ++i)
+      final_res.emplace_back(std::move(network_slice[i]), new_paths[i].length);
+    return final_res;
+  }
+
+  [[nodiscard]] weighted_real_path
+  get_weighted_network_slice(
+    std::vector<path_info> const &new_paths,
+    std::vector<std::vector<std::pair<size_t, std::set<node_id_type>>>> const
+      &network_slice) const
+  {
+    weighted_real_path final_res;
+    final_res.reserve(network_slice.size());
+    for (std::size_t i = 0; i < network_slice.size(); ++i)
+      final_res.emplace_back(network_slice[i], new_paths[i].length);
+    return final_res;
+  }
+
 public:
   Butcher() = default;
   /// Move constructor
@@ -449,7 +575,7 @@ public:
   /// \param memory_first_slice Total memory usage allowed to the first slice
   /// \return a collection of all the admissible partitions (and the nodes
   /// contained in the first partition)
-  std::vector<slice_type>
+  [[nodiscard]] std::vector<slice_type>
   compute_two_slice_memory_brute_force(memory_type memory_first_slice) const
   {
     Computer_memory computer;
@@ -471,7 +597,7 @@ public:
   /// It will try to compute every 2-slice partition of a graph
   /// \return A vector containing every possibile 2-slice partition of the graph
   /// (taking into account dependencies)
-  std::vector<slice_type>
+  [[nodiscard]] std::vector<slice_type>
   compute_two_slice_brute_force() const
   {
     std::vector<slice_type> res;
@@ -510,13 +636,11 @@ public:
   /// It will prodice the k-shortest paths for the linearized block graph
   /// associated with the original one
   /// \param weights The vector of weight map function, that associates to every
-  /// edge (also the "fake" ones) the corresponding weight for the corresponding
-  /// device
+  /// edge the corresponding weight for the corresponding device
   /// \param num_of_devices The number of devices
   /// \param k The number of shortest paths to find
-  /// \return The auxiliary graph and the k-shortest paths on the auxiliary
-  /// graph
-  std::pair<Graph<node_id_type, node_id_type>, std::vector<path_info>>
+  /// \return The k-shortest paths on the graph (with the lenghts and devices)
+  weighted_real_path
   compute_k_shortest_paths_eppstein_linear(
     std::vector<std::function<type_weight(edge_type const &)>> &weights,
     std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
@@ -536,39 +660,7 @@ public:
 
     auto const res = kFinder.eppstein(new_weights_fun, k);
 
-
-    return {new_graph, res};
-  }
-
-
-  /// It will prodice the k-shortest paths for the linearized block graph
-  /// associated with the original one
-  /// \param weights The vector of weight map function, that associates to every
-  /// edge (also the "fake" ones) the corresponding weight for the corresponding
-  /// device
-  /// \param num_of_devices The number of devices
-  /// \param k The number of shortest paths to find
-  /// \return The auxiliary graph and the k-shortest paths on the auxiliary
-  /// graph
-  std::pair<Graph<node_id_type, node_id_type>, std::vector<path_info>>
-  compute_k_shortest_paths_lazy_eppstein_linear(
-    std::vector<std::function<type_weight(edge_type const &)>> &weights,
-    std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
-               &transmission_weights,
-    std::size_t num_of_devices,
-    std::size_t k) const
-  {
-    auto const              new_graph = block_graph(num_of_devices);
-    type_collection_weights new_weight_map;
-
-    auto new_weights_fun = block_graph_weights(new_weight_map,
-                                               weights,
-                                               transmission_weights,
-                                               new_graph);
-
-    KFinder_Lazy_Eppstein<node_id_type, node_id_type> kFinder(new_graph);
-
-    auto const res = kFinder.lazy_eppstein(new_weights_fun, k);
+    /*
 
     {
       std::ofstream out_file;
@@ -599,7 +691,70 @@ public:
       out_file.close();
     }
 
-    return {new_graph, res};
+    */
+
+    return get_weighted_network_slice(res, new_graph);
+  }
+
+
+  /// It will prodice the k-shortest paths for the linearized block graph
+  /// associated with the original one
+  /// \param weights The vector of weight map function, that associates to every
+  /// edge the corresponding weight for the corresponding device
+  /// \param num_of_devices The number of devices
+  /// \param k The number of shortest paths to find
+  /// \return The k-shortest paths on the graph (with the lenghts and devices)
+  weighted_real_path
+  compute_k_shortest_paths_lazy_eppstein_linear(
+    std::vector<std::function<type_weight(edge_type const &)>> &weights,
+    std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+               &transmission_weights,
+    std::size_t num_of_devices,
+    std::size_t k) const
+  {
+    auto const              new_graph = block_graph(num_of_devices);
+    type_collection_weights new_weight_map;
+
+    auto new_weights_fun = block_graph_weights(new_weight_map,
+                                               weights,
+                                               transmission_weights,
+                                               new_graph);
+
+    KFinder_Lazy_Eppstein<node_id_type, node_id_type> kFinder(new_graph);
+
+    auto const res = kFinder.lazy_eppstein(new_weights_fun, k);
+
+
+    {
+      std::ofstream out_file;
+      out_file.open("graph.txt");
+
+      auto const num_nodes      = new_graph.nodes.size();
+      auto const num_nodes_base = (num_nodes - 2) / num_of_devices;
+
+      auto print_weight_edge =
+        [&out_file](node_id_type tail, node_id_type head, type_weight weight) {
+          out_file << "a " << tail << " " << head << " " << weight << std::endl;
+        };
+
+      out_file << std::setprecision(17);
+
+      out_file << "n " << num_nodes << std::endl;
+      out_file << "m " << new_weight_map.size() << std::endl;
+
+      out_file << "s " << 1 << std::endl;
+      out_file << "t " << num_nodes << std::endl;
+
+      for (auto const &edge : new_weight_map)
+        if (edge.second >= 0)
+          print_weight_edge(edge.first.first + 1,
+                            edge.first.second + 1,
+                            edge.second);
+
+      out_file.close();
+    }
+
+    return get_weighted_network_slice(res, new_graph);
   }
 };
 
@@ -1008,41 +1163,123 @@ private:
     };
   }
 
-  std::size_t
+
+  [[nodiscard]] static std::size_t
   get_num_devices(std::size_t const &original_graph_size,
-                  std::size_t const &new_graph_size) const
+                  std::size_t const &new_graph_size)
   {
     if (original_graph_size > 2)
       return (new_graph_size - 2) / (original_graph_size - 2);
     return 1;
   }
 
-  std::size_t
+  [[nodiscard]] static std::size_t
   get_device_id(node_id_type const &node_id, std::size_t const &num_devices)
   {
     return node_id == 0 ? 0 : (node_id - 1) % num_devices;
   }
 
-  node_id_type
+  [[nodiscard]] static node_id_type
   get_base_node_id(node_id_type const &current_node_id,
                    std::size_t const  &device_id)
   {
     return current_node_id == 0 ? 0 : current_node_id - device_id;
   }
 
-  node_id_type
-  get_previous_base_node_id(node_id_type const &current_base_node_id,
-                            std::size_t const  &num_devices)
+  [[nodiscard]] static std::unordered_map<node_id_type, std::set<node_id_type>>
+  get_new_node_to_old_nodes_map(
+    Graph<node_id_type, node_id_type> const &new_graph)
   {
-    if (current_base_node_id <= 0)
-      return -1;
+    std::unordered_map<node_id_type, std::set<node_id_type>>
+      new_node_to_old_nodes; // New node -> Old nodes
 
-    if (current_base_node_id == 1)
-      return 0;
+    for (auto const &node : new_graph.nodes_content)
+      new_node_to_old_nodes[node.second].insert(node.first);
 
-    return current_base_node_id - num_devices;
+    return new_node_to_old_nodes;
   }
 
+  [[nodiscard]] static real_path
+  get_network_slices(path_info const                         &new_path,
+                     Graph<node_id_type, node_id_type> const &new_graph)
+  {
+    real_path   res;
+    std::size_t current_model_device = 0;
+
+    res.emplace_back(current_model_device, std::set<node_id_type>());
+
+    auto const  new_graph_size = new_graph.nodes.size();
+    auto const &path_nodes     = new_path.path;
+
+    auto const map = get_new_node_to_old_nodes_map(new_graph);
+
+    auto const num_devices =
+      get_num_devices(path_nodes.size() - 2, new_graph_size);
+
+    for (auto const &node_id_new_graph : path_nodes)
+      {
+        std::size_t device_id = get_device_id(node_id_new_graph, num_devices);
+
+        auto const base_node_id_new_graph =
+          get_base_node_id(node_id_new_graph, device_id);
+
+        if (device_id != current_model_device)
+          {
+            current_model_device = device_id;
+            res.emplace_back(current_model_device, std::set<node_id_type>());
+          }
+
+        auto it_nodes = map.find(base_node_id_new_graph);
+        res.back().second.insert(it_nodes->second.begin(),
+                                 it_nodes->second.end());
+      }
+
+    return res;
+  }
+
+  [[nodiscard]] std::vector<real_path>
+  get_network_slices(std::vector<path_info> const            &new_paths,
+                     Graph<node_id_type, node_id_type> const &new_graph) const
+  {
+    std::vector<real_path> res(new_paths.size());
+
+    std::transform(new_paths.begin(),
+                   new_paths.end(),
+                   res.begin(),
+                   [&new_graph, this](path_info const &path) {
+                     return get_network_slices(path, new_graph);
+                   });
+
+    return res;
+  }
+
+  [[nodiscard]] weighted_real_path
+  get_weighted_network_slice(
+    std::vector<path_info> const            &new_paths,
+    Graph<node_id_type, node_id_type> const &new_graph) const
+  {
+    auto               network_slice = get_network_slices(new_paths, new_graph);
+    weighted_real_path final_res;
+
+    final_res.reserve(network_slice.size());
+
+    for (std::size_t i = 0; i < network_slice.size(); ++i)
+      final_res.emplace_back(std::move(network_slice[i]), new_paths[i].length);
+    return final_res;
+  }
+
+  [[nodiscard]] static weighted_real_path
+  get_weighted_network_slice(
+    std::vector<path_info> const &new_paths,
+    std::vector<std::vector<std::pair<size_t, std::set<node_id_type>>>> const
+      &network_slice)
+  {
+    weighted_real_path final_res;
+    final_res.reserve(network_slice.size());
+    for (std::size_t i = 0; i < network_slice.size(); ++i)
+      final_res.emplace_back(network_slice[i], new_paths[i].length);
+    return final_res;
+  }
 
 public:
   Butcher() = default;
@@ -1063,7 +1300,7 @@ public:
   /// \param p Full path to the .onnx file model
   /// \param ignore_parameters Allows to choose if graph should ignore already
   /// initialized inputs/outputs (parameters)
-  Butcher(const std::string &p, bool ignore_parameters = false)
+  explicit Butcher(const std::string &p, bool ignore_parameters = false)
     : graph(p, ignore_parameters){};
 
 
@@ -1134,13 +1371,11 @@ public:
   /// It will prodice the k-shortest paths for the linearized block graph
   /// associated with the original one
   /// \param weights The vector of weight map function, that associates to every
-  /// edge (also the "fake" ones) the corresponding weight for the corresponding
-  /// device
+  /// edge the corresponding weight for the corresponding device
   /// \param num_of_devices The number of devices
   /// \param k The number of shortest paths to find
-  /// \return The auxiliary graph and the k-shortest paths on the auxiliary
-  /// graph
-  std::pair<Graph<node_id_type, node_id_type>, std::vector<path_info>>
+  /// \return The k-shortest paths on the graph (with the lenghts and devices)
+  weighted_real_path
   compute_k_shortest_paths_eppstein_linear(
     std::vector<std::function<type_weight(edge_type const &)>> &weights,
     std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
@@ -1160,20 +1395,51 @@ public:
 
     auto const res = kFinder.eppstein(new_weights_fun, k);
 
-    return {new_graph, res};
+    /*
+
+    {
+      std::ofstream out_file;
+      out_file.open("graph.txt");
+
+      auto const num_nodes      = new_graph.nodes.size();
+      auto const num_nodes_base = (num_nodes - 2) / num_of_devices;
+
+      auto print_weight_edge =
+        [&out_file](node_id_type tail, node_id_type head, type_weight weight) {
+          out_file << "a " << tail << " " << head << " " << weight << std::endl;
+        };
+
+      out_file << std::setprecision(17);
+
+      out_file << "n " << num_nodes << std::endl;
+      out_file << "m " << new_weight_map.size() << std::endl;
+
+      out_file << "s " << 1 << std::endl;
+      out_file << "t " << num_nodes << std::endl;
+
+      for (auto const &edge : new_weight_map)
+        if (edge.second >= 0)
+          print_weight_edge(edge.first.first + 1,
+                            edge.first.second + 1,
+                            edge.second);
+
+      out_file.close();
+    }
+
+    */
+
+    return get_weighted_network_slice(res, new_graph);
   }
 
 
   /// It will prodice the k-shortest paths for the linearized block graph
   /// associated with the original one
   /// \param weights The vector of weight map function, that associates to every
-  /// edge (also the "fake" ones) the corresponding weight for the corresponding
-  /// device
+  /// edge the corresponding weight for the corresponding device
   /// \param num_of_devices The number of devices
   /// \param k The number of shortest paths to find
-  /// \return The auxiliary graph and the k-shortest paths on the auxiliary
-  /// graph
-  std::pair<Graph<node_id_type, node_id_type>, std::vector<path_info>>
+  /// \return The k-shortest paths on the graph (with the lenghts and devices)
+  weighted_real_path
   compute_k_shortest_paths_lazy_eppstein_linear(
     std::vector<std::function<type_weight(edge_type const &)>> &weights,
     std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
@@ -1193,7 +1459,37 @@ public:
 
     auto const res = kFinder.lazy_eppstein(new_weights_fun, k);
 
-    return {new_graph, res};
+
+    {
+      std::ofstream out_file;
+      out_file.open("graph.txt");
+
+      auto const num_nodes      = new_graph.nodes.size();
+      auto const num_nodes_base = (num_nodes - 2) / num_of_devices;
+
+      auto print_weight_edge =
+        [&out_file](node_id_type tail, node_id_type head, type_weight weight) {
+          out_file << "a " << tail << " " << head << " " << weight << std::endl;
+        };
+
+      out_file << std::setprecision(17);
+
+      out_file << "n " << num_nodes << std::endl;
+      out_file << "m " << new_weight_map.size() << std::endl;
+
+      out_file << "s " << 1 << std::endl;
+      out_file << "t " << num_nodes << std::endl;
+
+      for (auto const &edge : new_weight_map)
+        if (edge.second >= 0)
+          print_weight_edge(edge.first.first + 1,
+                            edge.first.second + 1,
+                            edge.second);
+
+      out_file.close();
+    }
+
+    return get_weighted_network_slice(res, new_graph);
   }
 
 
@@ -1209,24 +1505,22 @@ public:
   reconstruct_model(Graph<node_id_type, node_id_type> const &new_graph,
                     path_info const                         &path)
   {
+    return reconstruct_model(get_network_slices(path, new_graph));
+  }
+
+  std::vector<std::pair<onnx::ModelProto, std::size_t>>
+  reconstruct_model(real_path const &partitions)
+  {
     auto const &original_model = graph.original_model;
-    auto const &path_nodes     = path.path;
-    auto const  new_graph_size = new_graph.nodes.size();
     auto const  num_devices =
-      get_num_devices(path_nodes.size() - 2, new_graph_size);
-
-
-    std::unordered_map<node_id_type, std::set<node_id_type>>
-      new_node_to_old_nodes; // New node -> Old nodes
-
-    for (auto const &node : new_graph.nodes_content)
-      new_node_to_old_nodes[node.second].insert(node.first);
-
-    std::size_t current_model_device =
-      get_device_id(path_nodes.front(), num_devices);
+      std::max_element(partitions.cbegin(),
+                       partitions.cend(),
+                       [](auto const &left_pair, auto const &right_pair) {
+                         return left_pair.first < right_pair.first;
+                       })
+        ->first;
 
     std::vector<std::pair<onnx::ModelProto, std::size_t>> res;
-    res.emplace_back(onnx::ModelProto(), current_model_device);
 
     std::function<void(onnx::ModelProto &)> prepare_new_model =
       [&original_model](onnx::ModelProto &new_model) {
@@ -1243,10 +1537,8 @@ public:
         return new_graph_pointer;
       };
 
-    prepare_new_model(res.back().first);
 
-    auto        current_edited_graph = prepare_new_graph();
-    auto const &model_graph          = original_model.graph();
+    auto const &model_graph = original_model.graph();
 
 
     std::function<google::protobuf::internal::RepeatedPtrIterator<
@@ -1278,11 +1570,10 @@ public:
         return tmp_res;
       };
 
-
     std::function<void(onnx::GraphProto *, onnx::NodeProto const *)>
       add_node_ios_to_graph = [&model_graph](onnx::GraphProto      *sup_graph,
                                              onnx::NodeProto const *node) {
-        for (std::size_t i = 0; i < node->input_size(); ++i)
+        for (int i = 0; i < node->input_size(); ++i)
           {
             auto it =
               std::find_if(model_graph.input().begin(),
@@ -1324,134 +1615,128 @@ public:
           }
       };
 
-
-    std::function<void(std::size_t const &)> add_nodes =
-      [&](std::size_t const &id) {
-        for (auto const &original_id : new_node_to_old_nodes[id])
+    std::function<void(std::set<node_id_type> const &, onnx::GraphProto *)>
+      add_nodes = [&](std::set<node_id_type> const &nodes,
+                      onnx::GraphProto             *current_edited_graph) {
+        for (auto const &node : nodes)
           {
             auto const tmp = current_edited_graph->add_node();
-            *tmp           = *graph.node_collection[original_id];
+            *tmp           = *graph.node_collection[node];
 
             add_node_ios_to_graph(current_edited_graph, tmp);
           }
       };
 
-
-    for (std::size_t i = 0; i < path_nodes.size(); ++i)
-      {
-        auto const  node_id_new_graph = path_nodes[i];
-        std::size_t device_id = get_device_id(node_id_new_graph, num_devices);
-
-        auto const base_node_id_new_graph =
-          get_base_node_id(node_id_new_graph, device_id);
-
-        if (device_id != current_model_device)
+    std::function<void(std::set<node_id_type> const &, onnx::GraphProto *)>
+      add_missing_inputs = [&](std::set<node_id_type> const &nodes,
+                               onnx::GraphProto *current_edited_graph) {
+        for (auto it = current_edited_graph->mutable_node()->begin();
+             it != current_edited_graph->mutable_node()->end();
+             ++it)
           {
-            auto previous_edited_graph = current_edited_graph;
-
-            current_model_device = device_id;
-
-            res.emplace_back(onnx::ModelProto(), current_model_device);
-            prepare_new_model(res.back().first);
-
-            auto following_edited_graph = prepare_new_graph();
-
-            auto const previous_base_id_new_graph =
-              get_previous_base_node_id(base_node_id_new_graph, num_devices);
-
-            auto const out_nodes =
-              new_node_to_old_nodes[previous_base_id_new_graph];
-
-            std::vector<onnx::NodeProto const *> communication_nodes;
-
-            auto const &out =
-              *graph.dependencies[*out_nodes.rbegin()].second.begin();
-
-            for (auto set_it = out_nodes.rbegin(); set_it != out_nodes.rend();
-                 ++set_it)
-              if (graph.dependencies[*set_it].second.contains(out))
-                communication_nodes.push_back(graph.node_collection[*set_it]);
-
-            for (auto const &in_node : communication_nodes)
+            auto const &ins = it->input();
+            for (auto const &in : ins)
               {
-                auto tmp_out = previous_edited_graph->add_output();
-                auto tmp_in  = following_edited_graph->add_input();
+                bool ok = false;
 
-                auto communication_node_name = *in_node->output().begin();
-
-                tmp_out->set_name(communication_node_name);
-                tmp_in->set_name(communication_node_name);
-
-                auto tmp_res = get_type(communication_node_name);
-
-                if (tmp_res != original_model.graph().input().end())
+                // Cycle throught the inputs of the graph
+                for (int j = 0; j < current_edited_graph->input_size() && !ok;
+                     ++j)
                   {
-                    tmp_out->set_allocated_type(
-                      new onnx::TypeProto(tmp_res->type()));
-                    tmp_in->set_allocated_type(
-                      new onnx::TypeProto(tmp_res->type()));
+                    if (current_edited_graph->input(j).name() == in)
+                      ok = true;
                   }
-              }
 
-            (++res.rbegin())->first.set_allocated_graph(previous_edited_graph);
-            current_edited_graph = following_edited_graph;
-
-            add_nodes(base_node_id_new_graph);
-
-            for (auto it = current_edited_graph->mutable_node()->begin();
-                 it != current_edited_graph->mutable_node()->end();
-                 ++it)
-              {
-                auto const &ins = it->input();
-                for (auto const &in : ins)
+                // Cycle throught the nodes of the graph
+                for (auto it2 = current_edited_graph->mutable_node()->begin();
+                     it2 != it;
+                     ++it2)
                   {
-                    bool ok = false;
-
-                    for (std::size_t j = 0;
-                         j < current_edited_graph->input_size() && !ok;
-                         ++j)
+                    for (int j = 0; j < it2->output_size() && !ok; ++j)
                       {
-                        if (current_edited_graph->input(j).name() == in)
+                        if (it2->output(j) == in)
                           ok = true;
                       }
+                  }
 
-                    for (auto it2 =
-                           current_edited_graph->mutable_node()->begin();
-                         it2 != it;
-                         ++it2)
-                      {
-                        bool ok = false;
-                        for (std::size_t j = 0; j < it2->output_size() && !ok;
-                             ++j)
-                          {
-                            if (it2->output(j) == in)
-                              ok = true;
-                          }
-                      }
+                // If the input didn't appear, then let's add it!
+                if (!ok)
+                  {
+                    auto tmp_in  = current_edited_graph->add_input();
+                    auto tmp_res = get_type(in);
 
-                    if (!ok)
-                      {
-                        auto tmp_in  = current_edited_graph->add_input();
-                        auto tmp_res = get_type(in);
-
-                        tmp_in->set_name(in);
-                        if (tmp_res != original_model.graph().input().end())
-                          tmp_in->set_allocated_type(
-                            new onnx::TypeProto(tmp_res->type()));
-                      }
+                    tmp_in->set_name(in);
+                    if (tmp_res != original_model.graph().input().end())
+                      tmp_in->set_allocated_type(
+                        new onnx::TypeProto(tmp_res->type()));
                   }
               }
           }
-        else
-          add_nodes(base_node_id_new_graph);
+      };
+
+    std::function<void(std::set<node_id_type> const &, onnx::GraphProto *)>
+      add_missing_outputs = [&](std::set<node_id_type> const &nodes,
+                                onnx::GraphProto *current_edited_graph) {
+        for (auto it = current_edited_graph->mutable_node()->rbegin();
+             it != current_edited_graph->mutable_node()->rend();
+             ++it)
+          {
+            auto const &outs = it->output();
+            for (auto const &out : outs)
+              {
+                bool ok = false;
+
+                // Cycle throught the outputs of the graph
+                for (int j = 0; j < current_edited_graph->output_size() && !ok;
+                     ++j)
+                  {
+                    if (current_edited_graph->output(j).name() == out)
+                      ok = true;
+                  }
+
+                // Cycle throught the nodes of the graph
+                for (auto it2 = current_edited_graph->mutable_node()->rbegin();
+                     it2 != it;
+                     ++it2)
+                  {
+                    for (int j = 0; j < it2->input_size() && !ok; ++j)
+                      {
+                        if (it2->input(j) == out)
+                          ok = true;
+                      }
+                  }
+
+                // If the output didn't appear, then let's add it!
+                if (!ok)
+                  {
+                    auto tmp_out = current_edited_graph->add_output();
+                    auto tmp_res = get_type(out);
+
+                    tmp_out->set_name(out);
+                    if (tmp_res != original_model.graph().output().end())
+                      tmp_out->set_allocated_type(
+                        new onnx::TypeProto(tmp_res->type()));
+                  }
+              }
+          }
+      };
+
+    for (const auto &partition : partitions)
+      {
+        auto const &device_id = partition.first;
+        auto const &node_ids  = partition.second;
+
+        res.emplace_back(onnx::ModelProto(), device_id);
+        prepare_new_model(res.back().first);
+        auto current_edited_graph = prepare_new_graph();
+
+        add_nodes(node_ids, current_edited_graph);
+
+        add_missing_inputs(node_ids, current_edited_graph);
+        add_missing_outputs(node_ids, current_edited_graph);
+
+        res.back().first.set_allocated_graph(current_edited_graph);
       }
-
-    {
-      auto tmp = current_edited_graph->add_output();
-      *tmp     = model_graph.output(model_graph.output_size() - 1);
-    }
-
-    res.back().first.set_allocated_graph(current_edited_graph);
 
     return res;
   }

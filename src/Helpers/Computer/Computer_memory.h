@@ -107,6 +107,31 @@ public:
     return res;
   }
 
+  template <class T>
+  memory_type
+  compute_memory_usage_output(const Graph<T>  &graph,
+                              const node_type &node,
+                              bool             include_parameters) const
+  {
+    memory_type res = 0;
+
+    for (auto const &in : node.get_output())
+      {
+        auto const p = graph.nodes_content.find(in.second);
+        if (p != graph.nodes_content.cend())
+          res += compute_memory_usage(p->second);
+      }
+
+    if (include_parameters)
+      for (auto const &param : node.get_parameters())
+        {
+          auto const p = graph.nodes_content.find(param.second);
+          if (p != graph.nodes_content.cend())
+            res += compute_memory_usage(p->second);
+        }
+
+    return res;
+  }
 
   template <class T>
   std::vector<memory_type>
@@ -154,10 +179,34 @@ public:
     return memory_usages;
   }
 
+  template <class T>
+  std::vector<memory_type>
+  compute_nodes_memory_usage_output(Graph<T> const &graph,
+                                    bool include_parameters = true) const
+  {
+    std::vector<memory_type> memory_usages;
+    memory_usages.resize(graph.nodes.size());
+
+    std::transform(graph.nodes.cbegin(),
+                   graph.nodes.cend(),
+                   memory_usages.begin(),
+                   [&](node_type const &node) {
+                     return compute_memory_usage_output(graph,
+                                                        node,
+                                                        include_parameters);
+                   });
+
+    return memory_usages;
+  }
+
 
   [[nodiscard]] static std::vector<memory_type>
   compute_nodes_memory_usage_input(Graph<graph_input_type> const &graph,
                                    bool include_parameters = true);
+
+  [[nodiscard]] static std::vector<memory_type>
+  compute_nodes_memory_usage_output(Graph<graph_input_type> const &graph,
+                                    bool include_parameters = true);
 
 
   template <class T>
@@ -183,6 +232,20 @@ public:
     memory_type res = 0;
     auto        nodes_memory_usage =
       compute_nodes_memory_usage_input(graph, include_parameters);
+
+    res = std::reduce(nodes_memory_usage.cbegin(), nodes_memory_usage.cend());
+
+    return res;
+  }
+
+  template <class T>
+  memory_type
+  compute_memory_usage_output(Graph<T> const &graph,
+                              bool            include_parameters = true) const
+  {
+    memory_type res = 0;
+    auto        nodes_memory_usage =
+      compute_nodes_memory_usage_output(graph, include_parameters);
 
     res = std::reduce(nodes_memory_usage.cbegin(), nodes_memory_usage.cend());
 

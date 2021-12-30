@@ -128,7 +128,8 @@ private:
     const google::protobuf::RepeatedPtrField<onnx::ValueInfoProto> &in,
     std::unordered_set<std::string> const                          &parameters,
     std::unordered_set<io_id_type> &parameters_id,
-    bool                            ignore_parameters = false)
+    bool                            ignore_parameters = false,
+    bool                            unique_pointers   = false)
   {
     for (const auto &param : in)
       {
@@ -332,6 +333,19 @@ public:
         if (!input.empty())
           {
             Node new_entry(++node_index, input, output, parameters);
+
+            for (auto const &attribute : node.attribute())
+              {
+                if (attribute.name() == "kernel_shape")
+                  {
+                    std::vector<long> add;
+                    for (auto it = attribute.ints().begin();
+                         it != attribute.ints().end();
+                         ++it)
+                      add.push_back(*it);
+                    new_entry.set_attribute(attribute.name(), add);
+                  }
+              }
 
             nodes.push_back(std::move(new_entry));
             nodes_operations.emplace_back(node.op_type());

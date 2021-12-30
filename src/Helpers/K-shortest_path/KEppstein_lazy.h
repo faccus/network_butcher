@@ -293,6 +293,7 @@ private:
           }
 
         auto const it = edges_edges.find(e);
+
         if (it != edges_edges.cend())
           {
             SK.sidetracks.pop_back();

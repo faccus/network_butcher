@@ -22,21 +22,25 @@ class Computer_time
     return factory::Instance();
   }
 
+  void
+  setup() const;
+
 public:
   Computer_time();
 
-  void
-  setup() const;
 
   [[nodiscard]] time_type
   compute_operation_time(Graph<graph_input_type> const &graph,
                          Node const                    &node,
-                         const Hardware_specifications &hw);
+                         Hardware_specifications const &hw);
 
   [[nodiscard]] inline time_type
   compute_operation_time(Graph<graph_input_type> const &graph,
-                         node_id_type                   id,
-                         const Hardware_specifications &hw);
+                         node_id_type const            &id,
+                         Hardware_specifications const &hw)
+  {
+    return compute_operation_time(graph, graph.nodes[id], hw);
+  };
 };
 
 
