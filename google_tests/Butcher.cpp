@@ -60,8 +60,6 @@ namespace butcher_test_namespace
     Butcher<Input> butcher(std::move(graph));
 
     auto tot = butcher.compute_two_slice_memory_brute_force(half_size);
-
-    std::cout << std::endl;
   }
 
 
@@ -83,15 +81,8 @@ namespace butcher_test_namespace
       basic_transmission(num_devices, butcher.getGraph().nodes.size());
 
 
-    auto const tmp_res = butcher.compute_k_shortest_paths_eppstein_linear(
+    auto const res = butcher.compute_k_shortest_paths_eppstein_linear(
       maps, transmission_fun, num_devices, 1000);
-
-    auto const &res = tmp_res.second;
-
-    for (auto i = 0; i < res.size(); ++i)
-      for (auto j = 0; j < res.size(); ++j)
-        if (i != j && !(res[i] < res[j] || res[j] < res[i]))
-          ASSERT_TRUE(!(res[i] < res[j] || res[j] < res[i]));
 
     ASSERT_EQ(res.size(), 81);
   }
@@ -109,15 +100,8 @@ namespace butcher_test_namespace
       basic_transmission(num_devices, butcher.getGraph().nodes.size());
 
 
-    auto const tmp_res = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
+    auto const res = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
       maps, transmission_fun, num_devices, 1000);
-
-    auto const &res = tmp_res.second;
-
-    for (auto i = 0; i < res.size(); ++i)
-      for (auto j = 0; j < res.size(); ++j)
-        if (i != j && !(res[i] < res[j] || res[j] < res[i]))
-          ASSERT_TRUE(!(res[i] < res[j] || res[j] < res[i]));
 
     ASSERT_EQ(res.size(), 81);
   }
@@ -143,44 +127,40 @@ namespace butcher_test_namespace
 
     Chrono crono;
     crono.start();
-    auto const tres = butcher.compute_k_shortest_paths_eppstein_linear(
+    auto const eppstein_res = butcher.compute_k_shortest_paths_eppstein_linear(
       maps, transmission_fun, num_devices, k);
     crono.stop();
 
 
     Chrono crono2;
     crono2.start();
-    auto const tres2 = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
-      maps, transmission_fun, num_devices, k);
+    auto const lazy_eppstein_res =
+      butcher.compute_k_shortest_paths_lazy_eppstein_linear(maps,
+                                                            transmission_fun,
+                                                            num_devices,
+                                                            k);
     crono2.stop();
     crono2.wallTime();
 
-    ASSERT_EQ(tres.second.size(), tres2.second.size());
+    std::set<std::pair<std::vector<std::pair<size_t, std::set<node_id_type>>>,
+                       type_weight>>
+      eppstein;
+    eppstein.insert(eppstein_res.begin(), eppstein_res.end());
 
-    std::set<path_info> eppstein_result;
-    eppstein_result.insert(tres.second.begin(), tres.second.end());
+    std::set<std::pair<std::vector<std::pair<size_t, std::set<node_id_type>>>,
+                       type_weight>>
+      lazy_eppstein;
+    lazy_eppstein.insert(lazy_eppstein_res.begin(), lazy_eppstein_res.end());
 
-    std::set<path_info> lazy_eppstein_result;
-    lazy_eppstein_result.insert(tres2.second.begin(), tres2.second.end());
+    ASSERT_EQ(eppstein, lazy_eppstein);
 
-
-    for (auto it1 = eppstein_result.cbegin(),
-              it2 = lazy_eppstein_result.cbegin();
-         it1 != eppstein_result.cend() && it2 != lazy_eppstein_result.cend();
-         ++it1, ++it2)
-      {
-        auto const &eppstein      = *it1;
-        auto const &lazy_eppstein = *it2;
-
-        EXPECT_EQ(eppstein.path, lazy_eppstein.path);
-        EXPECT_DOUBLE_EQ(eppstein.length, lazy_eppstein.length);
-      }
 
     std::cout << "Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
               << std::endl;
     std::cout << "Lazy eppstein: " << crono2.wallTime() / 1000
               << " milliseconds" << std::endl;
   }
+
 
   Butcher<Input>
   basic_butcher()
