@@ -6,13 +6,13 @@
 #define NETWORK_BUTCHER_KFINDER_H
 
 #include "Shortest_path_finder.h"
-template <class T, typename id_content = io_id_type>
-class KFinder : public Shortest_path_finder<T, id_content>
+template <class T>
+class KFinder : public Shortest_path_finder<T>
 {
 public:
-  using base = Shortest_path_finder<T, id_content>;
+  using base = Shortest_path_finder<T>;
 
-  explicit KFinder(Graph<T, id_content> const &g)
+  explicit KFinder(Graph<T> const &g)
     : base(g){};
 
   virtual ~KFinder() = default;
@@ -43,22 +43,21 @@ protected:
   /// the sink (the last node of the graph)
   /// \return The collection of sidetrack distances for the different edges
   [[nodiscard]] collection_weights_type
-  sidetrack_distances(std::function<weight_type(edge_type const &)> &weights,
-                      std::vector<weight_type> const &distances_from_sink) const
+  sidetrack_distances(std::vector<weight_type> const &distances_from_sink) const
   {
     collection_weights_type res;
 
     auto const &graph     = base::graph;
-    auto const  num_nodes = graph.nodes.size();
+    auto const  num_nodes = graph.get_nodes().size();
 
     for (std::size_t tail = 0; tail < num_nodes; ++tail)
-      for (auto const &head : graph.dependencies[tail].second)
+      for (auto const &head : graph.get_dependencies()[tail].second)
         {
           auto const edge = std::make_pair(tail, head);
 
           res.insert(res.cend(),
                      {edge,
-                      weights(edge) + distances_from_sink[head] -
+                      graph.weigth_map[edge] + distances_from_sink[head] -
                         distances_from_sink[tail]}); // O(1)
         }
 

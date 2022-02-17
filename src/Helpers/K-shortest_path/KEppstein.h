@@ -7,12 +7,12 @@
 
 #include "KFinder.h"
 
-template <class T, typename id_content = io_id_type>
-class KFinder_Eppstein : public KFinder<T, id_content>
+template <class T>
+class KFinder_Eppstein : public KFinder<T>
 {
 public:
-  using base          = KFinder<T, id_content>;
-  using base_shortest = Shortest_path_finder<T, id_content>;
+  using base          = KFinder<T>;
+  using base_shortest = Shortest_path_finder<T>;
 
   using H_out_map = std::map<node_id_type, H_out_pointer>;
 
@@ -48,7 +48,7 @@ public:
   {
     auto const &graph = base_shortest::graph;
 
-    if (graph.nodes.empty() || K == 0)
+    if (graph.get_nodes().empty() || K == 0)
       return {};
 
     auto const dij_res = base_shortest::shortest_path_tree(
@@ -63,7 +63,7 @@ public:
     return base::helper_eppstein(dij_res, epp_res);
   }
 
-  explicit KFinder_Eppstein(Graph<T, id_content> const &g)
+  explicit KFinder_Eppstein(Graph<T> const &g)
     : base(g){};
 
   virtual ~KFinder_Eppstein() = default;
@@ -99,7 +99,7 @@ private:
   {
     H_out_map   h_out;
     auto const &graph     = base_shortest::graph;
-    auto const  num_nodes = graph.nodes.size();
+    auto const  num_nodes = graph.get_nodes().size();
 
     for (auto i = 0; i < real_num_nodes; ++i)
       {
@@ -142,7 +142,7 @@ private:
   {
     return helper_construct_h_out(successors,
                                   sidetrack_distances,
-                                  base_shortest::graph.nodes.size());
+                                  base_shortest::graph.get_nodes().size());
   }
 
 
@@ -161,7 +161,7 @@ private:
     std::map<node_id_type, H_g> res;
 
     auto const &graph = base_shortest::graph;
-    auto const &nodes = graph.nodes;
+    auto const &nodes = graph.get_nodes();
 
 
     std::vector<std::set<node_id_type>> sp_dependencies;
@@ -232,7 +232,7 @@ private:
   {
     return helper_construct_h_g(h_out,
                                 successors,
-                                base_shortest::graph.nodes.size());
+                                base_shortest::graph.get_nodes().size());
   }
 
 
@@ -335,7 +335,7 @@ private:
                   {
                     auto n = mod_sk.sidetracks[mod_sk.sidetracks.size() - 2]
                                .first->second;
-                    while (n != graph.nodes.size() - 1 &&
+                    while (n != graph.get_nodes().size() - 1 &&
                            n != mod_sk.sidetracks.back().first->first)
                       {
                         n = successors[n];
@@ -366,7 +366,7 @@ private:
   {
     auto const &graph = base_shortest::graph;
 
-    if (graph.nodes.empty())
+    if (graph.get_nodes().empty())
       return {};
     if (K == 1)
       return {{{}, dij_res.second.front()}};
@@ -388,7 +388,6 @@ private:
     return base_path_selector_eppstein(
       K, dij_res, sidetrack_distances_res, h_g, edges_edges);
   }
-
 };
 
 

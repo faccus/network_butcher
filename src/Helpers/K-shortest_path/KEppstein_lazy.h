@@ -7,12 +7,12 @@
 
 #include "KEppstein.h"
 
-template <class T, typename id_content = io_id_type>
-class KFinder_Lazy_Eppstein : public KFinder<T, id_content>
+template <class T>
+class KFinder_Lazy_Eppstein : public KFinder<T>
 {
 public:
-  using base          = KFinder<T, id_content>;
-  using base_shortest = Shortest_path_finder<T, id_content>;
+  using base          = KFinder<T>;
+  using base_shortest = Shortest_path_finder<T>;
 
   using H_out_map = std::map<node_id_type, H_out_pointer>;
 
@@ -48,7 +48,7 @@ public:
   {
     auto const &graph = base_shortest::graph;
 
-    if (graph.nodes.empty() || K == 0)
+    if (graph.get_nodes().empty() || K == 0)
       return {};
 
     auto const dij_res = base_shortest::shortest_path_tree(
@@ -63,7 +63,7 @@ public:
     return base::helper_eppstein(dij_res, epp_res);
   }
 
-  explicit KFinder_Lazy_Eppstein(Graph<T, id_content> const &g)
+  explicit KFinder_Lazy_Eppstein(Graph<T> const &g)
     : base(g){};
 
   virtual ~KFinder_Lazy_Eppstein() = default;
@@ -102,7 +102,7 @@ private:
 
     auto const succ = successors[node];
 
-    for (auto const &exit : graph.dependencies[node].second)
+    for (auto const &exit : graph.get_dependencies()[node].second)
       if (exit != succ)
         {
           auto const edge    = std::make_pair(node, exit);
@@ -149,7 +149,7 @@ private:
     auto const &graph = base_shortest::graph;
 
 
-    if (node == graph.nodes.size() - 1)
+    if (node == graph.get_nodes().size() - 1)
       {
         auto inserted_h_g = h_g.emplace(node, H_g()).first;
 
@@ -207,7 +207,7 @@ private:
 
     auto const &graph = base_shortest::graph;
 
-    if (graph.nodes.empty())
+    if (graph.get_nodes().empty())
       return {};
     if (K == 1)
       return res;
@@ -317,7 +317,7 @@ private:
                   {
                     auto n = mod_sk.sidetracks[mod_sk.sidetracks.size() - 2]
                                .first->second;
-                    while (n != graph.nodes.size() - 1 &&
+                    while (n != graph.get_nodes().size() - 1 &&
                            n != mod_sk.sidetracks.back().first->first)
                       {
                         n = successors[n];
