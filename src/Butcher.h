@@ -32,7 +32,8 @@ template <class T>
 class Butcher
 {
 private:
-  using network = Graph<T>;
+  using network     = Graph<T>;
+  using new_network = Graph<node_id_collection_type>;
 
   network graph;
 
@@ -93,11 +94,13 @@ private:
 
   /// It will produce a linearized version of the current graph (with multiple
   /// devices)
-  /// \return The linearized graph (with multiple devices)
-  [[nodiscard]] Graph<node_id_type, node_id_type>
+  /// \return The linearized graph (with multiple devices) and the map that
+  /// associated every node id of the original graph to the respective node id
+  /// of the "new" graph
+  [[nodiscard]] std::pair<new_network, std::map<node_id_type, node_id_type>>
   block_graph(std::size_t num_of_devices = 1) const
   {
-    std::vector<node_type>               new_nodes;
+    std::vector<Node<node_id_collection_type>> new_nodes;
     std::map<node_id_type, node_id_type> new_content; // Old node -> New node
     std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
       new_dependencies;
@@ -108,15 +111,19 @@ private:
                   graph.dependencies.front().first.size() - 1;
 
     // Id of the node to be inserted
-    std::size_t id = 0;
+    node_id_type id = 0;
 
+    // Add the source node with content equal to the id of the first node in the
+    // original graph
     new_nodes.reserve(graph.nodes.size());
     new_nodes.emplace_back();
-    id++;
-    new_content[0] = 0;
+    ++id;
+    new_nodes.back().content = node_id_collection_type{0};
 
+    // Cycle through all the nodes of the graph
     for (auto it = ++graph.nodes.begin(); it != graph.nodes.end(); ++it)
       {
+        // Node of the all graph
         auto const &node          = *it;
         auto const &dep           = graph.dependencies[node.get_id()];
         int const   local_counter = dep.second.size() - dep.first.size();
@@ -125,6 +132,8 @@ private:
         if (local_counter <= 0 && counter == 0)
           {
             new_nodes.emplace_back();
+            new_nodes.back().content.insert(new_nodes.back().content.end(), id);
+
             new_content[node.get_id()] = id;
 
             ++id;
@@ -133,6 +142,7 @@ private:
         else if (local_counter > 0 && counter == 0)
           {
             new_nodes.emplace_back();
+            new_nodes.back().content.insert(new_nodes.back().content.end(), id);
             new_content[node.get_id()] = id;
 
             new_nodes.emplace_back();
@@ -145,6 +155,7 @@ private:
                   local_counter > 0 && dep.first.size() <= 1) &&
                  counter > 0)
           {
+            new_nodes.back().content.insert(new_nodes.back().content.end(), id);
             new_content[node.get_id()] = id;
           }
         else if (counter > 0 && ((local_counter >= 0 && dep.first.size() > 1) ||
@@ -157,6 +168,8 @@ private:
               {
                 new_nodes.emplace_back();
                 new_content[node.get_id()] = ++id;
+                new_nodes.back().content.insert(new_nodes.back().content.end(),
+                                                id);
 
                 // Do we have to add another master node?
                 if (local_counter >= 0)
@@ -170,6 +183,8 @@ private:
             else
               {
                 new_content[node.get_id()] = id;
+                new_nodes.back().content.insert(new_nodes.back().content.end(),
+                                                id);
               }
 
             counter += (dep.second.size() - 1);
@@ -183,6 +198,7 @@ private:
     auto const basic_size = new_nodes.size();
     auto const supp_size  = basic_size - 2;
 
+    // Adjusting the indices
     for (auto &el : new_content)
       if (el.second >= 2)
         el.second = el.second * num_of_devices - (num_of_devices - 1);
@@ -190,6 +206,8 @@ private:
     new_nodes.reserve(2 + supp_size * num_of_devices);
     new_dependencies.reserve(2 + supp_size * num_of_devices);
 
+    // Add the other nodes. Their content is not needed since it can be
+    // recovered from the nodes of the first device
     for (std::size_t k = 1; k < num_of_devices; ++k)
       for (std::size_t i = 1; i < basic_size - 1; ++i)
         {
@@ -266,63 +284,51 @@ private:
         in.insert(in.end(), new_dependencies.size() - 1 - num_of_devices + k);
     }
 
-    return Graph(new_nodes, new_content, new_dependencies, false);
+    return {Graph(new_nodes, new_dependencies), new_content};
   }
 
 
   /// Given the current graph and the original weight function, it will produce
   /// a new weight function for the linearized graph
-  /// \param new_weight_map The new weight map will look for the value of the
-  /// weight firstly in this map. If it cannot find it, it will store the proper
-  /// weight into the map (to make everything faster)
   /// \param original_weights The weight function for the original graph and for
   /// the different devices
   /// \param transmission_weights Used when we are switching from a device to
   /// another. The node is the source while the two size_t are the input and
   /// output device ids
   /// \param new_graph The lineatized graph (result of block_graph)
-  /// \return The new weight function
-  [[nodiscard]] std::function<weight_type(edge_type const &)>
+  [[nodiscard]] void
   block_graph_weights(
-    collection_weights_type &new_weight_map,
     std::vector<std::function<weight_type(edge_type const &)>>
       &original_weights,
     std::function<weight_type(node_id_type const &, std::size_t, std::size_t)>
-                                            &transmission_weights,
-    Graph<node_id_type, node_id_type> const &new_graph) const
+                &transmission_weights,
+    new_network &new_graph) const
   {
-    std::unordered_map<node_id_type, std::set<node_id_type>>
-      map; // New node -> Old nodes
-
-    for (auto const &node : new_graph.nodes_content)
-      map[node.second].insert(node.first);
-
-    return [&new_graph,
+    return [&transmission_weights,
             &original_weights,
-            &new_weight_map,
-            &transmission_weights,
-            &graph = graph,
-            map](edge_type const &edge) {
+            &new_graph,
+            &graph = graph](edge_type const &edge) {
+      auto &new_weight_map = new_graph.weigth_map;
       // If a weight was created, return it
       auto const candidate_sol = new_weight_map.find(edge);
       if (candidate_sol != new_weight_map.cend())
         return candidate_sol->second;
 
       auto const num_devices = original_weights.size();
-      auto const size        = (new_graph.nodes.size() - 2) / num_devices + 2;
+      auto const size = (new_graph.get_nodes().size() - 2) / num_devices + 2;
 
       // The index of the input node on the linearized graph
-      auto const first_index =
+      auto const input_index =
         edge.first == 0 ? 0 : edge.first - (edge.first - 1) % num_devices;
 
       // The index of the output node on the linearized graph
-      auto const second_index =
+      auto const output_index =
         edge.second == 0 ? 0 : edge.second - (edge.second - 1) % num_devices;
 
 
-      if (first_index >= second_index ||
-          first_index == 0 && second_index != 1 ||
-          first_index != 0 && second_index - first_index != num_devices)
+      if (input_index >= output_index ||
+          input_index == 0 && output_index != 1 ||
+          input_index != 0 && output_index - input_index != num_devices)
         {
           std::cout
             << "Requested an invalid edge: check if the graph is correct!"
@@ -340,19 +346,21 @@ private:
 
       // Look for the nodes of the original graph that are represented by the
       // output node (in the linearized graph)
-      auto const it_out = map.find(second_index);
+      auto const &output_node_rep = new_graph.get_nodes()[output_index];
 
-      if (it_out == map.cend() || it_out->second.size() == 0)
+      if (output_node_rep.content.empty())
         return -1.;
 
       // Look for the nodes of the original graph that are represented by the
       // input node (in the linearized graph)
-      auto const it_in = map.find(first_index);
-      if (it_in == map.cend() || it_in->second.size() == 0)
+      auto const &input_node_rep = new_graph.get_nodes()[input_index];
+      if (input_node_rep.content.empty())
         return -1.;
 
-      auto const &inputs  = it_in->second;
-      auto const &outputs = it_out->second;
+      auto const &inputs  = input_node_rep.content;
+      auto const &outputs = output_node_rep.content;
+
+      double final_cost = -1.;
 
       // 1-1 correspondence
       if (outputs.size() == 1 && inputs.size() == 1)
@@ -366,10 +374,8 @@ private:
             transmission_weights(input, in_device_id, out_device_id);
           auto const weight = original_weights[out_device_id](tmp_edge);
 
-          auto const total_cost = transmission_weight + weight;
-          new_weight_map[edge]  = total_cost;
-
-          return total_cost;
+          final_cost                 = transmission_weight + weight;
+          new_graph.weigth_map[edge] = final_cost;
         }
       // (2+)-1 correspondence. The idea is that the input nodes must transmit
       // to the output node the different values. Thus, the transmission cost is
@@ -391,9 +397,8 @@ private:
                 original_weights[out_device_id](std::make_pair(input, output));
             }
 
-          auto const res       = weight_cost + weight_cost;
-          new_weight_map[edge] = res;
-          return res;
+          final_cost                 = weight_cost + weight_cost;
+          new_graph.weigth_map[edge] = final_cost;
         }
       // 1-(2+). In this case, the input is sent to the device of the output
       // nodes a single time. Thus, this transmission cost is taken into account
@@ -426,12 +431,11 @@ private:
                 }
             }
 
-          auto const res       = weight_costs + transmission_cost;
-          new_weight_map[edge] = res;
-          return res;
+          final_cost                 = weight_costs + transmission_cost;
+          new_graph.weigth_map[edge] = final_cost;
         }
-      else
-        return -1.;
+
+      return final_cost;
     };
   }
 
@@ -458,32 +462,17 @@ private:
     return current_node_id == 0 ? 0 : current_node_id - device_id;
   }
 
-  [[nodiscard]] std::unordered_map<node_id_type, std::set<node_id_type>>
-  get_new_node_to_old_nodes_map(
-    Graph<node_id_type, node_id_type> const &new_graph) const
-  {
-    std::unordered_map<node_id_type, std::set<node_id_type>>
-      new_node_to_old_nodes; // New node -> Old nodes
-
-    for (auto const &node : new_graph.nodes_content)
-      new_node_to_old_nodes[node.second].insert(node.first);
-
-    return new_node_to_old_nodes;
-  }
-
   [[nodiscard]] real_path
-  get_network_slices(path_info const                         &new_path,
-                     Graph<node_id_type, node_id_type> const &new_graph) const
+  get_network_slices(path_info const   &new_path,
+                     new_network const &new_graph) const
   {
     real_path   res;
     std::size_t current_model_device = 0;
 
     res.emplace_back(current_model_device, std::set<node_id_type>());
 
-    auto const  new_graph_size = new_graph.nodes.size();
+    auto const  new_graph_size = new_graph.get_nodes().size();
     auto const &path_nodes     = new_path.path;
-
-    auto const map = get_new_node_to_old_nodes_map(new_graph);
 
     auto const num_devices =
       get_num_devices(path_nodes.size() - 2, new_graph_size);
@@ -502,17 +491,17 @@ private:
             res.emplace_back(current_model_device, std::set<node_id_type>());
           }
 
-        auto it_nodes = map.find(base_node_id_new_graph);
-        res.back().second.insert(it_nodes->second.begin(),
-                                 it_nodes->second.end());
+        auto it_nodes = new_graph.get_nodes()[base_node_id_new_graph];
+        res.back().second.insert(it_nodes.content.begin(),
+                                 it_nodes.content.end());
       }
 
     return res;
   }
 
   [[nodiscard]] std::vector<real_path>
-  get_network_slices(std::vector<path_info> const            &new_paths,
-                     Graph<node_id_type, node_id_type> const &new_graph) const
+  get_network_slices(std::vector<path_info> const &new_paths,
+                     new_network const            &new_graph) const
   {
     std::vector<real_path> res(new_paths.size());
 
@@ -527,9 +516,8 @@ private:
   }
 
   [[nodiscard]] weighted_real_path
-  get_weighted_network_slice(
-    std::vector<path_info> const            &new_paths,
-    Graph<node_id_type, node_id_type> const &new_graph) const
+  get_weighted_network_slice(std::vector<path_info> const &new_paths,
+                             new_network const            &new_graph) const
   {
     auto               network_slice = get_network_slices(new_paths, new_graph);
     weighted_real_path final_res;
@@ -648,17 +636,12 @@ public:
     std::size_t num_of_devices,
     std::size_t k) const
   {
-    auto const              new_graph = block_graph(num_of_devices);
-    collection_weights_type new_weight_map;
+    auto const new_graph = block_graph(num_of_devices);
 
-    auto new_weights_fun = block_graph_weights(new_weight_map,
-                                               weights,
-                                               transmission_weights,
-                                               new_graph);
+    block_graph_weights(weights, transmission_weights, new_graph);
 
-    KFinder_Eppstein<node_id_type, node_id_type> kFinder(new_graph);
-
-    auto const res = kFinder.eppstein(new_weights_fun, k);
+    KFinder_Eppstein<io_id_collection_type> kFinder(new_graph);
+    auto const                              res = kFinder.eppstein(k);
 
     /*
 
@@ -713,18 +696,14 @@ public:
     std::size_t k) const
   {
     auto const              new_graph = block_graph(num_of_devices);
-    collection_weights_type new_weight_map;
 
-    auto new_weights_fun = block_graph_weights(new_weight_map,
-                                               weights,
-                                               transmission_weights,
-                                               new_graph);
+    block_graph_weights(weights, transmission_weights, new_graph);
 
     KFinder_Lazy_Eppstein<node_id_type, node_id_type> kFinder(new_graph);
 
-    auto const res = kFinder.lazy_eppstein(new_weights_fun, k);
+    auto const res = kFinder.lazy_eppstein(k);
 
-
+    /*
     {
       std::ofstream out_file;
       out_file.open("graph.txt");
@@ -753,12 +732,14 @@ public:
 
       out_file.close();
     }
+    */
 
     return get_weighted_network_slice(res, new_graph);
   }
 };
 
 
+/*
 /// Butcher butchers a given graph into slices
 template <>
 class Butcher<graph_input_type>
@@ -1395,38 +1376,6 @@ public:
 
     auto const res = kFinder.eppstein(new_weights_fun, k);
 
-    /*
-
-    {
-      std::ofstream out_file;
-      out_file.open("graph.txt");
-
-      auto const num_nodes      = new_graph.nodes.size();
-      auto const num_nodes_base = (num_nodes - 2) / num_of_devices;
-
-      auto print_weight_edge =
-        [&out_file](node_id_type tail, node_id_type head, type_weight weight) {
-          out_file << "a " << tail << " " << head << " " << weight << std::endl;
-        };
-
-      out_file << std::setprecision(17);
-
-      out_file << "n " << num_nodes << std::endl;
-      out_file << "m " << new_weight_map.size() << std::endl;
-
-      out_file << "s " << 1 << std::endl;
-      out_file << "t " << num_nodes << std::endl;
-
-      for (auto const &edge : new_weight_map)
-        if (edge.second >= 0)
-          print_weight_edge(edge.first.first + 1,
-                            edge.first.second + 1,
-                            edge.second);
-
-      out_file.close();
-    }
-
-    */
 
     return get_weighted_network_slice(res, new_graph);
   }
@@ -1741,6 +1690,6 @@ public:
     return res;
   }
 };
-
+*/
 
 #endif // NETWORK_BUTCHER_BUTCHER_H

@@ -25,8 +25,6 @@ private:
   /// Current node id
   node_id_type id;
 
-  /// Node content
-  T content;
 
   /// Basic constructor for a node
   /// \param starting_id Initial node id
@@ -38,6 +36,10 @@ private:
 
 
 public:
+  /// Node content
+  T content;
+
+
   /// Basic constructor for a node
   /// \param initial_input Initial set of inputs
   /// \param initial_output Initial set of outputs
@@ -47,14 +49,6 @@ public:
     , content(std::move(starting_content))
   {}
 
-
-  /// Read-only getter for input
-  /// \return Const reference to input
-  inline const T &
-  get_content() const
-  {
-    return content;
-  }
 
   /// Getter for the node id
   inline node_id_type

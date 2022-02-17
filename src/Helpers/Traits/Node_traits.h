@@ -16,6 +16,6 @@ using node_id_collection_type = std::set<node_id_type>;
 
 using edge_type               = std::pair<node_id_type, node_id_type>;
 using weight_type             = double;
-using collection_weights_type = std::map<edge_type, weight_type>;
+using collection_weights_type = std::unordered_map<edge_type, weight_type>;
 
 #endif // NETWORK_BUTCHER_NODE_TRAITS_H

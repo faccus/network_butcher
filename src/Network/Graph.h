@@ -32,7 +32,7 @@ class Graph
     dependencies;
 
 public:
-  std::unordered_map<edge_type, weight_type> weigth_map;
+  collection_weights_type weigth_map;
 
   Graph()              = default;
   Graph(Graph const &) = default;
