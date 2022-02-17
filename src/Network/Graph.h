@@ -12,64 +12,27 @@
 #include <utility>
 #include <vector>
 
+#include "../Onnx_model/onnx.pb.h"
 
 #include "../Helpers/Traits/Node_traits.h"
-#include "../Helpers/Types/Dense_tensor.h"
-#include "../Helpers/Types/Type_info.h"
-#include "../Onnx_model/onnx.pb.h"
 #include "Node.h"
+#include "Content.h"
 
 /// Just another graph class...
 /// \tparam T Type of the content of the node
-template <class T, typename id_content = io_id_type>
+template <class T>
 class Graph
 {
-private:
-  /// Compute node dependencies
-  void
-  compute_dependencies()
-  {
-    // Reset the dependency vector.
-    dependencies =
-      std::vector<std::pair<node_id_collection_type, node_id_collection_type>>(
-        nodes.size());
-
-    // Compute appearances of inputs/outputs for a node
-    std::unordered_map<io_id_type, node_id_collection_type> input_appearances;
-    std::unordered_map<io_id_type, node_id_collection_type> output_appearances;
-
-    // Check which node has which input/output
-    for (auto const &node : nodes)
-      {
-        for (auto &in : node.get_input())
-          input_appearances[in.second].insert(node.get_id());
-        for (auto &out : node.get_output())
-          output_appearances[out.second].insert(node.get_id());
-      }
-
-    // Matched the input of a node to his outputs and viceversa
-    for (auto const &appearance : input_appearances)
-      {
-        auto const &neib = output_appearances[appearance.first];
-        for (auto node_id : appearance.second)
-          dependencies[node_id].first.insert(neib.cbegin(), neib.cend());
-        for (auto node_id : neib)
-          dependencies[node_id].second.insert(appearance.second.cbegin(),
-                                              appearance.second.cend());
-      }
-  }
-
-public:
   /// Vector of all the nodes
-  std::vector<node_type> nodes;
-
-  /// Relation between the id of the input/output with the content
-  std::map<id_content, T> nodes_content;
+  std::vector<Node<T>> nodes;
 
   /// Vector that contains all the neighbours of every node (first input, then
   /// output)
   std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
     dependencies;
+
+public:
+  std::unordered_map<edge_type, weight_type> weigth_map;
 
   Graph()              = default;
   Graph(Graph const &) = default;
@@ -80,30 +43,33 @@ public:
   /// \param v The collection of nodes ordered in an ascending order based on
   /// the id. To work with butcher, the nodes must be sorted in
   /// topological order, according to the Onnx IR specifications.
-  /// \param content The map that associated the id of the given node content
-  /// (it's different from the id of the node, since multiple nodes can have the
-  /// same input) with the content itself (default: {}) \param dep The
-  /// dependencies (edges) of each node (default: {}) \param dependencies Enable
-  /// automatic computation of the edges (default: true)
+  /// \param dependencies Node dependencies (input and outputs of every node)
   explicit Graph(
-    std::vector<node_type>         v,
-    const std::map<id_content, T> &content = {},
+    std::vector<Node<T>> v,
     std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
-         dep          = {},
-    bool dependencies = true)
+      dep = {})
     : nodes(std::move(v))
-    , nodes_content(content)
     , dependencies(std::move(dep))
   {
     for (node_id_type i = 0; i < nodes.size(); ++i)
       nodes[i].id = i;
+  }
 
-    if (dependencies)
-      compute_dependencies();
+  const std::vector<Node<T>> &
+  get_nodes() const
+  {
+    return nodes;
+  }
+
+  const std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
+    &
+    get_dependencies() const
+  {
+    return dependencies;
   }
 };
 
-
+/*
 template <>
 class Graph<graph_input_type>
 {
@@ -112,6 +78,7 @@ private:
   using Map_Node_Content = std::map<io_id_type, graph_input_type>;
 
   friend class Node;
+
 
 
   /// From a ValueInfoProto (type of an input/output/value_info of the graph)
@@ -370,6 +337,6 @@ public:
     : Graph(utilities::parse_onnx_file(path), ignore_parameters)
   {}
 };
-
+*/
 
 #endif // NETWORK_BUTCHER_GRAPH_H

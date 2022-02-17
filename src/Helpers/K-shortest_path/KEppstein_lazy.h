@@ -23,9 +23,9 @@ public:
   /// \param K The number of shortest paths to find
   /// \return The shortest paths
   [[nodiscard]] std::vector<path_info>
-  lazy_eppstein(type_collection_weights const &weights, std::size_t K)
+  lazy_eppstein(collection_weights_type const &weights, std::size_t K)
   {
-    std::function<type_weight(edge_type const &)> weights_fun =
+    std::function<weight_type(edge_type const &)> weights_fun =
       [&weights](edge_type const &edge) {
         auto const it = weights.find(edge);
         if (it != weights.cend())
@@ -43,7 +43,7 @@ public:
   /// \param K The number of shortest paths to find
   /// \return The shortest paths
   [[nodiscard]] std::vector<path_info>
-  lazy_eppstein(std::function<type_weight(edge_type const &)> &weights,
+  lazy_eppstein(std::function<weight_type(edge_type const &)> &weights,
                 std::size_t                                    K)
   {
     auto const &graph = base_shortest::graph;
@@ -85,7 +85,7 @@ private:
   /// \return The iterator of the added h_out
   H_out_map::iterator
   construct_partial_h_out(H_out_map                       &h_out,
-                          type_collection_weights const   &sidetrack_distances,
+                          collection_weights_type const   &sidetrack_distances,
                           std::vector<node_id_type> const &successors,
                           node_id_type                     node) const
   {
@@ -136,7 +136,7 @@ private:
   construct_partial_h_g(
     std::map<node_id_type, H_g>           &h_g,
     std::map<node_id_type, H_out_pointer> &h_out,
-    type_collection_weights const         &sidetrack_distances,
+    collection_weights_type const         &sidetrack_distances,
     std::vector<node_id_type> const       &successors,
     node_id_type                           node,
     std::map<std::pair<edge_pointer, node_id_type>,
@@ -198,7 +198,7 @@ private:
   /// \param dij_res The result of dijkstra
   /// \return The (implicit) k shortest paths
   [[nodiscard]] std::vector<implicit_path_info>
-  basic_lazy_eppstein(std::function<type_weight(edge_type const &)> &weights,
+  basic_lazy_eppstein(std::function<weight_type(edge_type const &)> &weights,
                       std::size_t                                    K,
                       dijkstra_result_type const                    &dij_res)
   {

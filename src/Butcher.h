@@ -25,7 +25,7 @@
 
 
 using real_path = std::vector<std::pair<std::size_t, std::set<node_id_type>>>;
-using weighted_real_path = std::vector<std::pair<real_path, type_weight>>;
+using weighted_real_path = std::vector<std::pair<real_path, weight_type>>;
 
 /// Butcher butchers a given graph into slices
 template <class T>
@@ -282,12 +282,12 @@ private:
   /// output device ids
   /// \param new_graph The lineatized graph (result of block_graph)
   /// \return The new weight function
-  [[nodiscard]] std::function<type_weight(edge_type const &)>
+  [[nodiscard]] std::function<weight_type(edge_type const &)>
   block_graph_weights(
-    type_collection_weights &new_weight_map,
-    std::vector<std::function<type_weight(edge_type const &)>>
+    collection_weights_type &new_weight_map,
+    std::vector<std::function<weight_type(edge_type const &)>>
       &original_weights,
-    std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+    std::function<weight_type(node_id_type const &, std::size_t, std::size_t)>
                                             &transmission_weights,
     Graph<node_id_type, node_id_type> const &new_graph) const
   {
@@ -376,8 +376,8 @@ private:
       // paid serveral times.
       else if (outputs.size() == 1)
         {
-          type_weight weight_cost        = .0;
-          type_weight transmission_costs = .0;
+          weight_type weight_cost        = .0;
+          weight_type transmission_costs = .0;
 
           auto const &output = *outputs.begin();
 
@@ -400,8 +400,8 @@ private:
       // only once.
       else if (inputs.size() == 1)
         {
-          type_weight weight_costs      = .0;
-          type_weight transmission_cost = .0;
+          weight_type weight_costs      = .0;
+          weight_type transmission_cost = .0;
 
           auto const &input        = *inputs.begin();
           auto const &comm_outputs = graph.dependencies[*inputs.begin()].second;
@@ -642,14 +642,14 @@ public:
   /// \return The k-shortest paths on the graph (with the lenghts and devices)
   weighted_real_path
   compute_k_shortest_paths_eppstein_linear(
-    std::vector<std::function<type_weight(edge_type const &)>> &weights,
-    std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+    std::vector<std::function<weight_type(edge_type const &)>> &weights,
+    std::function<weight_type(node_id_type const &, std::size_t, std::size_t)>
                &transmission_weights,
     std::size_t num_of_devices,
     std::size_t k) const
   {
     auto const              new_graph = block_graph(num_of_devices);
-    type_collection_weights new_weight_map;
+    collection_weights_type new_weight_map;
 
     auto new_weights_fun = block_graph_weights(new_weight_map,
                                                weights,
@@ -706,14 +706,14 @@ public:
   /// \return The k-shortest paths on the graph (with the lenghts and devices)
   weighted_real_path
   compute_k_shortest_paths_lazy_eppstein_linear(
-    std::vector<std::function<type_weight(edge_type const &)>> &weights,
-    std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+    std::vector<std::function<weight_type(edge_type const &)>> &weights,
+    std::function<weight_type(node_id_type const &, std::size_t, std::size_t)>
                &transmission_weights,
     std::size_t num_of_devices,
     std::size_t k) const
   {
     auto const              new_graph = block_graph(num_of_devices);
-    type_collection_weights new_weight_map;
+    collection_weights_type new_weight_map;
 
     auto new_weights_fun = block_graph_weights(new_weight_map,
                                                weights,
@@ -733,7 +733,7 @@ public:
       auto const num_nodes_base = (num_nodes - 2) / num_of_devices;
 
       auto print_weight_edge =
-        [&out_file](node_id_type tail, node_id_type head, type_weight weight) {
+        [&out_file](node_id_type tail, node_id_type head, weight_type weight) {
           out_file << "a " << tail << " " << head << " " << weight << std::endl;
         };
 
@@ -1018,12 +1018,12 @@ private:
   /// output device ids
   /// \param new_graph The lineatized graph (result of block_graph)
   /// \return The new weight function
-  [[nodiscard]] std::function<type_weight(edge_type const &)>
+  [[nodiscard]] std::function<weight_type(edge_type const &)>
   block_graph_weights(
-    type_collection_weights &new_weight_map,
-    std::vector<std::function<type_weight(edge_type const &)>>
+    collection_weights_type &new_weight_map,
+    std::vector<std::function<weight_type(edge_type const &)>>
       &original_weights,
-    std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+    std::function<weight_type(node_id_type const &, std::size_t, std::size_t)>
                                             &transmission_weights,
     Graph<node_id_type, node_id_type> const &new_graph) const
   {
@@ -1112,7 +1112,7 @@ private:
       // paid serveral times.
       else if (outputs.size() == 1)
         {
-          type_weight res    = .0;
+          weight_type res    = .0;
           auto const &output = *outputs.begin();
 
           // The inputs on the original graph of the output node have to
@@ -1132,7 +1132,7 @@ private:
       // only once.
       else if (inputs.size() == 1)
         {
-          type_weight res          = .0;
+          weight_type res          = .0;
           auto const &input        = *inputs.begin();
           auto const &comm_outputs = graph.dependencies[*inputs.begin()].second;
 
@@ -1377,14 +1377,14 @@ public:
   /// \return The k-shortest paths on the graph (with the lenghts and devices)
   weighted_real_path
   compute_k_shortest_paths_eppstein_linear(
-    std::vector<std::function<type_weight(edge_type const &)>> &weights,
-    std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+    std::vector<std::function<weight_type(edge_type const &)>> &weights,
+    std::function<weight_type(node_id_type const &, std::size_t, std::size_t)>
                &transmission_weights,
     std::size_t num_of_devices,
     std::size_t k) const
   {
     auto const              new_graph = block_graph(num_of_devices);
-    type_collection_weights new_weight_map;
+    collection_weights_type new_weight_map;
 
     auto new_weights_fun = block_graph_weights(new_weight_map,
                                                weights,
@@ -1441,14 +1441,14 @@ public:
   /// \return The k-shortest paths on the graph (with the lenghts and devices)
   weighted_real_path
   compute_k_shortest_paths_lazy_eppstein_linear(
-    std::vector<std::function<type_weight(edge_type const &)>> &weights,
-    std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+    std::vector<std::function<weight_type(edge_type const &)>> &weights,
+    std::function<weight_type(node_id_type const &, std::size_t, std::size_t)>
                &transmission_weights,
     std::size_t num_of_devices,
     std::size_t k) const
   {
     auto const              new_graph = block_graph(num_of_devices);
-    type_collection_weights new_weight_map;
+    collection_weights_type new_weight_map;
 
     auto new_weights_fun = block_graph_weights(new_weight_map,
                                                weights,
@@ -1468,7 +1468,7 @@ public:
       auto const num_nodes_base = (num_nodes - 2) / num_of_devices;
 
       auto print_weight_edge =
-        [&out_file](node_id_type tail, node_id_type head, type_weight weight) {
+        [&out_file](node_id_type tail, node_id_type head, weight_type weight) {
           out_file << "a " << tail << " " << head << " " << weight << std::endl;
         };
 

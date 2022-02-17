@@ -31,7 +31,7 @@ protected:
     if (it == h_g.cend() || it->second.children.empty() ||
         (*it->second.children.begin())->heap.children.empty())
       {
-        return {false, {{-1, -1}, std::numeric_limits<type_weight>::max()}};
+        return {false, {{-1, -1}, std::numeric_limits<weight_type>::max()}};
       }
 
     return {true, *(*it->second.children.begin())->heap.children.begin()};
@@ -42,11 +42,11 @@ protected:
   /// \param distances_from_sink The shortest distance from the given node to
   /// the sink (the last node of the graph)
   /// \return The collection of sidetrack distances for the different edges
-  [[nodiscard]] type_collection_weights
-  sidetrack_distances(std::function<type_weight(edge_type const &)> &weights,
-                      std::vector<type_weight> const &distances_from_sink) const
+  [[nodiscard]] collection_weights_type
+  sidetrack_distances(std::function<weight_type(edge_type const &)> &weights,
+                      std::vector<weight_type> const &distances_from_sink) const
   {
-    type_collection_weights res;
+    collection_weights_type res;
 
     auto const &graph     = base::graph;
     auto const  num_nodes = graph.nodes.size();

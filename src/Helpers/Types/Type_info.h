@@ -8,7 +8,6 @@
 #include <string>
 #include <vector>
 
-#include "../Traits/Basic_traits.h"
 #include "../Traits/Hardware_traits.h"
 #include "../Traits/Type_info_traits.h"
 

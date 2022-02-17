@@ -40,7 +40,7 @@ public:
   /// Read-only getter for input
   /// \return Const reference to input
   inline const io_id_collection_type &
-  get_input()
+  get_input() const
   {
     return input;
   }
@@ -48,7 +48,7 @@ public:
   /// Read-only getter for output
   /// \return Const reference to output
   inline const io_id_collection_type &
-  get_output()
+  get_output() const
   {
     return output;
   }
@@ -56,7 +56,7 @@ public:
   /// Read-only getter for parameters
   /// \return Const reference to parameters
   inline const io_id_collection_type &
-  get_parameters()
+  get_parameters() const
   {
     return parameters;
   }

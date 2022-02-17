@@ -23,9 +23,9 @@ public:
   /// \param K The number of shortest paths to find
   /// \return The shortest paths
   [[nodiscard]] std::vector<path_info>
-  eppstein(type_collection_weights const &weights, std::size_t K)
+  eppstein(collection_weights_type const &weights, std::size_t K)
   {
-    std::function<type_weight(edge_type const &)> weight_fun =
+    std::function<weight_type(edge_type const &)> weight_fun =
       [&weights](edge_type const &edge) {
         auto const it = weights.find(edge);
         if (it != weights.cend())
@@ -43,7 +43,7 @@ public:
   /// \param K The number of shortest paths to find
   /// \return The shortest paths
   [[nodiscard]] std::vector<path_info>
-  eppstein(std::function<type_weight(edge_type const &)> &weights,
+  eppstein(std::function<weight_type(edge_type const &)> &weights,
            std::size_t                                    K)
   {
     auto const &graph = base_shortest::graph;
@@ -94,7 +94,7 @@ private:
   /// \return H_out map
   [[nodiscard]] H_out_map
   helper_construct_h_out(std::vector<node_id_type> const &successors,
-                         type_collection_weights const   &sidetrack_distances,
+                         collection_weights_type const   &sidetrack_distances,
                          std::size_t const                real_num_nodes) const
   {
     H_out_map   h_out;
@@ -138,7 +138,7 @@ private:
   [[nodiscard]] H_out_map
   construct_h_out(
     std::vector<node_id_type> const &successors,
-    type_collection_weights const   &sidetrack_distances) const // O(N+E*log(N))
+    collection_weights_type const   &sidetrack_distances) const // O(N+E*log(N))
   {
     return helper_construct_h_out(successors,
                                   sidetrack_distances,
@@ -248,7 +248,7 @@ private:
   base_path_selector_eppstein(
     std::size_t                        K,
     dijkstra_result_type const        &dij_res,
-    type_collection_weights const     &sidetrack_distances_res,
+    collection_weights_type const     &sidetrack_distances_res,
     std::map<node_id_type, H_g> const &h_g,
     std::map<std::pair<edge_pointer, node_id_type>,
              std::set<std::pair<edge_pointer, node_id_type>>> const
@@ -360,7 +360,7 @@ private:
   /// \param dij_res The result of dijkstra
   /// \return The (implicit) k shortest paths
   [[nodiscard]] std::vector<implicit_path_info>
-  basic_eppstein(std::function<type_weight(edge_type const &)> &weights,
+  basic_eppstein(std::function<weight_type(edge_type const &)> &weights,
                  std::size_t                                    K,
                  dijkstra_result_type const                    &dij_res)
   {

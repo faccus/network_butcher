@@ -14,15 +14,15 @@
 struct edge_info
 {
   std::shared_ptr<edge_type> edge;
-  type_weight                delta_weight;
+  weight_type                delta_weight;
 
-  edge_info(edge_type const &in_edge, type_weight const &in_delta_weight)
+  edge_info(edge_type const &in_edge, weight_type const &in_delta_weight)
     : edge(std::make_shared<edge_type>(in_edge))
     , delta_weight(in_delta_weight)
   {}
 
   edge_info(std::shared_ptr<edge_type> in_edge,
-            type_weight const         &in_delta_weight)
+            weight_type const         &in_delta_weight)
     : edge(std::move(in_edge))
     , delta_weight(in_delta_weight)
   {}

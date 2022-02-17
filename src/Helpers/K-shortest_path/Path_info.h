@@ -12,7 +12,7 @@ using edge_pointer = std::shared_ptr<edge_type>;
 
 struct path_info
 {
-  type_weight               length;
+  weight_type               length;
   std::vector<node_id_type> path;
 
   constexpr bool
@@ -25,7 +25,7 @@ struct path_info
 struct implicit_path_info
 {
   std::vector<std::pair<edge_pointer, node_id_type>> sidetracks;
-  type_weight                                        length;
+  weight_type                                        length;
 
   constexpr bool
   operator<(const implicit_path_info &rhs) const
@@ -38,7 +38,7 @@ struct implicit_path_info
 /// A helper struct for the dijkstra algo
 struct dijkstra_helper_struct
 {
-  type_weight  weight;
+  weight_type  weight;
   node_id_type id;
 
   constexpr bool
@@ -49,6 +49,6 @@ struct dijkstra_helper_struct
 };
 
 using dijkstra_result_type =
-  std::pair<std::vector<node_id_type>, std::vector<type_weight>>;
+  std::pair<std::vector<node_id_type>, std::vector<weight_type>>;
 
 #endif // NETWORK_BUTCHER_PATH_INFO_H

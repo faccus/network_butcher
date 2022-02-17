@@ -7,28 +7,26 @@
 
 #include "../Helpers/Traits/Basic_traits.h"
 #include "../Helpers/Types/Dense_tensor.h"
-#include "../Helpers/Traits/Node_traits.h"
 
 #include <utility>
 #include <memory>
 
 
-template <class PPP, typename id_content>
+template <class T>
 class Graph;
 
 /// A node of a graph
-template class<T> class Node
+template <class T>
+class Node
 {
 private:
-  // template <class T, typename id_content>
-  friend class Graph<PPP, id_content>;
+  friend class Graph<T>;
 
   /// Current node id
   node_id_type id;
 
   /// Node content
   T content;
-
 
   /// Basic constructor for a node
   /// \param starting_id Initial node id

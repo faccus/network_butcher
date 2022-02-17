@@ -32,11 +32,11 @@ public:
   /// (along the shortest path) of the different nodes while the second element
   /// is the shortest path length
   [[nodiscard]] dijkstra_result_type
-  dijkstra(type_collection_weights const &weights,
+  dijkstra(collection_weights_type const &weights,
            node_id_type                   root = 0,
            bool reversed = false) const // time: ((N+E)log(N)), space: O(N)
   {
-    std::function<type_weight(edge_type const &)> weight_fun =
+    std::function<weight_type(edge_type const &)> weight_fun =
       [&weights](edge_type const &edge) {
         auto const it = weights.find(edge);
         if (it != weights.cend())
@@ -56,14 +56,14 @@ public:
   /// (along the shortest path) of the different nodes while the second element
   /// is the shortest path length
   [[nodiscard]] dijkstra_result_type
-  dijkstra(std::function<type_weight(edge_type const &)> &weights,
+  dijkstra(std::function<weight_type(edge_type const &)> &weights,
            node_id_type                                   root = 0,
            bool reversed = false) const // time: ((N+E)log(N)), space: O(N)
   {
     if (graph.nodes.empty())
       return {{}, {}};
 
-    std::vector<type_weight> total_distance(graph.nodes.size(),
+    std::vector<weight_type> total_distance(graph.nodes.size(),
                                             std::numeric_limits<double>::max());
     total_distance[root] = 0;
 
@@ -76,7 +76,7 @@ public:
         auto current_node = *to_visit.begin(); // O(1)
 
         auto const &start_distance = total_distance[current_node.id];
-        if (start_distance == std::numeric_limits<type_weight>::max())
+        if (start_distance == std::numeric_limits<weight_type>::max())
           {
             std::cout << "Dijkstra error: the current distance is +inf"
                       << std::endl;
@@ -136,13 +136,13 @@ public:
   /// (along the shortest path) of the different nodes while the second element
   /// is the shortest path length
   [[nodiscard]] dijkstra_result_type
-  dijkstra_linear(type_collection_weights const &weights,
+  dijkstra_linear(collection_weights_type const &weights,
                   node_id_type                   root,
                   bool                           reversed,
                   std::size_t                    devices)
     const // time: (devices * (N+E)log(devices * N)), space: O(N)
   {
-    std::function<type_weight(edge_type const &)> weight_fun =
+    std::function<weight_type(edge_type const &)> weight_fun =
       [&weights](edge_type const &edge) {
         auto const it = weights.find(edge);
         if (it != weights.cend())
@@ -163,7 +163,7 @@ public:
   /// (along the shortest path) of the different nodes while the second element
   /// is the shortest path length
   [[nodiscard]] dijkstra_result_type
-  dijkstra_linear(std::function<type_weight(edge_type const &)> &weights,
+  dijkstra_linear(std::function<weight_type(edge_type const &)> &weights,
                   node_id_type                                   root,
                   bool                                           reversed,
                   std::size_t                                    devices)
@@ -176,7 +176,7 @@ public:
       return {{}, {}};
 
 
-    std::vector<type_weight> total_distance(graph.nodes.size() +
+    std::vector<weight_type> total_distance(graph.nodes.size() +
                                               (graph.nodes.size() - 2) *
                                                 (devices - 1),
                                             std::numeric_limits<double>::max());
@@ -194,7 +194,7 @@ public:
         auto current_node = *to_visit.begin(); // O(1)
 
         auto const &start_distance = total_distance[current_node.id];
-        if (start_distance == std::numeric_limits<type_weight>::max())
+        if (start_distance == std::numeric_limits<weight_type>::max())
           {
             std::cout << "Dijkstra error: the current distance is +inf"
                       << std::endl;
@@ -265,7 +265,7 @@ public:
   /// (along the shortest path) of the different nodes while the second element
   /// is the shortest path length
   [[nodiscard]] dijkstra_result_type
-  shortest_path_tree(type_collection_weights const &weights) const
+  shortest_path_tree(collection_weights_type const &weights) const
   {
     return dijkstra(weights, graph.nodes.size() - 1, true);
   } // time: ((N+E)log(N)), space: O(N)
@@ -278,7 +278,7 @@ public:
   /// (along the shortest path) of the different nodes while the second element
   /// is the shortest path length
   [[nodiscard]] dijkstra_result_type
-  shortest_path_tree_linear(type_collection_weights const &weights,
+  shortest_path_tree_linear(collection_weights_type const &weights,
                             std::size_t                    devices) const
   {
     return dijkstra_linear(weights, graph.nodes.size() - 1, true, devices);
@@ -292,7 +292,7 @@ public:
   /// is the shortest path length
   [[nodiscard]] dijkstra_result_type
   shortest_path_tree(
-    std::function<type_weight(edge_type const &)> &weights) const
+    std::function<weight_type(edge_type const &)> &weights) const
   {
     return dijkstra(weights, graph.nodes.size() - 1, true);
   } // time: ((N+E)log(N)), space: O(N)
@@ -305,7 +305,7 @@ public:
   /// length
   [[nodiscard]] dijkstra_result_type
   shortest_path_tree_linear(
-    std::function<type_weight(edge_type const &)> &weights,
+    std::function<weight_type(edge_type const &)> &weights,
     std::size_t                                    devices) const
   {
     return dijkstra_linear(weights, graph.nodes.size() - 1, true, devices);
@@ -324,7 +324,7 @@ protected:
   /// \return The shortest path
   path_info
   shortest_path_finder(std::pair<std::vector<node_id_type>,
-                                 std::vector<type_weight>> const &dij_res,
+                                 std::vector<weight_type>> const &dij_res,
                        node_id_type                               root) const
   {
     path_info info;
@@ -358,10 +358,10 @@ private:
   /// weight \param tail The tail node id \param head The head node id \param
   /// weight_fun The weight function \param reversed If true, every edge is
   /// considered reversed \return The corresponding weight
-  type_weight
+  weight_type
   get_weight(std::size_t                                    tail,
              std::size_t                                    head,
-             std::function<type_weight(edge_type const &)> &weight_fun,
+             std::function<weight_type(edge_type const &)> &weight_fun,
              bool const                                    &reversed) const
   {
     edge_type edge =

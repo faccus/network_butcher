@@ -7,7 +7,7 @@
 
 #include "../../Network/Graph.h"
 
-using layer_type = Graph<node_type>;
+// using layer_type = Graph<node_type>;
 using slice_type = std::set<node_id_type>;
 
 #endif // NETWORK_BUTCHER_GRAPH_TRAITS_H
