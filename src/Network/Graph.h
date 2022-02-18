@@ -32,7 +32,7 @@ class Graph
     dependencies;
 
 public:
-  collection_weights_type weigth_map;
+  weights_collection_type weigth_map;
 
   Graph()              = default;
   Graph(Graph const &) = default;

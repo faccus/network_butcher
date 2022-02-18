@@ -6,13 +6,15 @@
 #define NETWORK_BUTCHER_KFINDER_H
 
 #include "Shortest_path_finder.h"
-template <class T>
-class KFinder : public Shortest_path_finder<T>
+
+
+template <class Graph_type>
+class KFinder : public Shortest_path_finder<Graph_type>
 {
 public:
-  using base = Shortest_path_finder<T>;
+  using base = Shortest_path_finder<Graph_type>;
 
-  explicit KFinder(Graph<T> const &g)
+  explicit KFinder(Graph_type const &g)
     : base(g){};
 
   virtual ~KFinder() = default;
@@ -42,10 +44,10 @@ protected:
   /// \param distances_from_sink The shortest distance from the given node to
   /// the sink (the last node of the graph)
   /// \return The collection of sidetrack distances for the different edges
-  [[nodiscard]] collection_weights_type
+  [[nodiscard]] weights_collection_type
   sidetrack_distances(std::vector<weight_type> const &distances_from_sink) const
   {
-    collection_weights_type res;
+    weights_collection_type res;
 
     auto const &graph     = base::graph;
     auto const  num_nodes = graph.get_nodes().size();
@@ -150,16 +152,18 @@ protected:
     for (auto implicit_path = epp_res.cbegin(); implicit_path != epp_res.cend();
          ++implicit_path)
       {
+        auto const &nodes = graph.get_nodes();
+
         path_info info;
         info.length = implicit_path->length;
-        info.path.reserve(graph.nodes.size());
+        info.path.reserve(graph.get_nodes().size());
 
         auto const &sidetracks = implicit_path->sidetracks;
 
         auto        it             = sidetracks.cbegin();
         std::size_t node_to_insert = 0;
 
-        while (node_to_insert != graph.nodes.back().get_id())
+        while (node_to_insert != nodes.back().get_id())
           {
             info.path.push_back(node_to_insert);
             if (it != sidetracks.cend() && it->first->first == node_to_insert)

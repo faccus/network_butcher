@@ -7,12 +7,12 @@
 
 #include "KEppstein.h"
 
-template <class T>
-class KFinder_Lazy_Eppstein : public KFinder<T>
+template <class Graph_type>
+class KFinder_Lazy_Eppstein : public KFinder<Graph_type>
 {
 public:
-  using base          = KFinder<T>;
-  using base_shortest = Shortest_path_finder<T>;
+  using base          = KFinder<Graph_type>;
+  using base_shortest = Shortest_path_finder<Graph_type>;
 
   using H_out_map = std::map<node_id_type, H_out_pointer>;
 
@@ -23,47 +23,26 @@ public:
   /// \param K The number of shortest paths to find
   /// \return The shortest paths
   [[nodiscard]] std::vector<path_info>
-  lazy_eppstein(collection_weights_type const &weights, std::size_t K)
-  {
-    std::function<weight_type(edge_type const &)> weights_fun =
-      [&weights](edge_type const &edge) {
-        auto const it = weights.find(edge);
-        if (it != weights.cend())
-          return it->second;
-        return -1.;
-      };
-
-    return lazy_eppstein(weights_fun, K);
-  }
-
-
-  /// Applies the lazy Eppstein algorithm to find the k-shortest paths on the
-  /// given graph (from the first node to the last one)
-  /// \param weights The weights associated to the different edges
-  /// \param K The number of shortest paths to find
-  /// \return The shortest paths
-  [[nodiscard]] std::vector<path_info>
-  lazy_eppstein(std::function<weight_type(edge_type const &)> &weights,
-                std::size_t                                    K)
+  lazy_eppstein(std::size_t K)
   {
     auto const &graph = base_shortest::graph;
 
     if (graph.get_nodes().empty() || K == 0)
       return {};
 
-    auto const dij_res = base_shortest::shortest_path_tree(
-      weights); // time: ((N+E)log(N)), space: O(N)
+    auto const dij_res =
+      base_shortest::shortest_path_tree(); // time: ((N+E)log(N)), space: O(N)
 
     if (K == 1)
       return {base_shortest::shortest_path_finder(dij_res, 0)};
 
 
-    auto const epp_res = basic_lazy_eppstein(weights, K, dij_res);
+    auto const epp_res = basic_lazy_eppstein(K, dij_res);
 
     return base::helper_eppstein(dij_res, epp_res);
   }
 
-  explicit KFinder_Lazy_Eppstein(Graph<T> const &g)
+  explicit KFinder_Lazy_Eppstein(Graph_type const &g)
     : base(g){};
 
   virtual ~KFinder_Lazy_Eppstein() = default;
@@ -85,7 +64,7 @@ private:
   /// \return The iterator of the added h_out
   H_out_map::iterator
   construct_partial_h_out(H_out_map                       &h_out,
-                          collection_weights_type const   &sidetrack_distances,
+                          weights_collection_type const   &sidetrack_distances,
                           std::vector<node_id_type> const &successors,
                           node_id_type                     node) const
   {
@@ -136,7 +115,7 @@ private:
   construct_partial_h_g(
     std::map<node_id_type, H_g>           &h_g,
     std::map<node_id_type, H_out_pointer> &h_out,
-    collection_weights_type const         &sidetrack_distances,
+    weights_collection_type const         &sidetrack_distances,
     std::vector<node_id_type> const       &successors,
     node_id_type                           node,
     std::map<std::pair<edge_pointer, node_id_type>,
@@ -198,16 +177,15 @@ private:
   /// \param dij_res The result of dijkstra
   /// \return The (implicit) k shortest paths
   [[nodiscard]] std::vector<implicit_path_info>
-  basic_lazy_eppstein(std::function<weight_type(edge_type const &)> &weights,
-                      std::size_t                                    K,
-                      dijkstra_result_type const                    &dij_res)
+  basic_lazy_eppstein(std::size_t K, dijkstra_result_type const &dij_res)
   {
     std::vector<implicit_path_info> res;
     res.push_back({{}, dij_res.second.front()}); // O(1)
 
     auto const &graph = base_shortest::graph;
+    auto const &nodes = graph.get_nodes();
 
-    if (graph.get_nodes().empty())
+    if (nodes.empty())
       return {};
     if (K == 1)
       return res;
@@ -215,7 +193,7 @@ private:
 
 
     auto const sidetrack_distances_res =
-      base::sidetrack_distances(weights, dij_res.second); // O(E)
+      base::sidetrack_distances(dij_res.second); // O(E)
     auto const shortest_path =
       base_shortest::shortest_path_finder(dij_res, 0); // O(N)
 
@@ -317,7 +295,7 @@ private:
                   {
                     auto n = mod_sk.sidetracks[mod_sk.sidetracks.size() - 2]
                                .first->second;
-                    while (n != graph.get_nodes().size() - 1 &&
+                    while (n != nodes.size() - 1 &&
                            n != mod_sk.sidetracks.back().first->first)
                       {
                         n = successors[n];

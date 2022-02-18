@@ -31,7 +31,10 @@ if ( BUILD_TESTS )
 
     # Add model for tests
     FILE(COPY ${CMAKE_SOURCE_DIR}/src/Models/resnet18-v2-7-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR})
-endif()
+endif ()
+
+find_package(Boost REQUIRED)
+
 
 set(TMP_LIBRARIES_LOCATION ${PROTOBUF_LIBRARY_LOCATION})
 set(RUN_LIBRARIES_LOCATION ${TMP_LIBRARIES_LOCATION} PARENT_SCOPE)

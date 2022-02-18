@@ -15,11 +15,11 @@
 #include <vector>
 
 
-template <class T>
+template <class Graph_type>
 class Shortest_path_finder
 {
 public:
-  explicit Shortest_path_finder(Graph<T> const &g)
+  explicit Shortest_path_finder(Graph_type const &g)
     : graph(g){};
 
   /// Executes dijkstra algorithm to compute the shortest paths from the root to
@@ -33,16 +33,18 @@ public:
   dijkstra(node_id_type root = 0,
            bool reversed     = false) const // time: ((N+E)log(N)), space: O(N)
   {
-    if (graph.nodes.empty())
+    auto const &nodes = graph.get_nodes();
+
+    if (nodes.empty())
       return {{}, {}};
 
-    std::vector<weight_type> total_distance(graph.nodes.size(),
+    std::vector<weight_type> total_distance(nodes.size(),
                                             std::numeric_limits<double>::max());
     total_distance[root] = 0;
 
-    std::vector<node_id_type>        predecessors(graph.nodes.size(), root);
+    std::vector<node_id_type>        predecessors(nodes.size(), root);
     std::set<dijkstra_helper_struct> to_visit{{0, root}};
-    auto const                      &dependencies = graph.dependencies;
+    auto const                      &dependencies = graph.get_dependencies();
 
     while (!to_visit.empty()) // O(N)
       {
@@ -108,14 +110,13 @@ public:
   [[nodiscard]] dijkstra_result_type
   shortest_path_tree() const
   {
-    return dijkstra(graph.nodes.size() - 1, true);
+    return dijkstra(graph.get_nodes().size() - 1, true);
   } // time: ((N+E)log(N)), space: O(N)
 
   virtual ~Shortest_path_finder() = default;
 
 protected:
-  Graph<T> const &graph;
-
+  Graph_type const &graph;
 
   /// Given the result of the dijkstra algorithm, it will return the shortest
   /// path from the root to the final node
@@ -129,10 +130,10 @@ protected:
   {
     path_info info;
     info.length = dij_res.second[root];
-    info.path.reserve(graph.nodes.size());
+    info.path.reserve(graph.get_nodes().size());
 
     auto ind = root;
-    while (ind != graph.nodes.back().get_id())
+    while (ind != graph.get_nodes().back().get_id())
       {
         info.path.push_back(ind);
         ind = dij_res.first[ind];
@@ -164,7 +165,7 @@ private:
   weight_type
   get_weight(std::size_t                    tail,
              std::size_t                    head,
-             collection_weights_type const &weight_map,
+             weights_collection_type const &weight_map,
              bool const                    &reversed) const
   {
     edge_type edge =
