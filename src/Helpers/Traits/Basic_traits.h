@@ -13,11 +13,11 @@
 
 
 using type_info_pointer = std::shared_ptr<Type_info>;
-using graph_input_type  = type_info_pointer;
+
+template <class T = type_info_pointer>
+using io_collection_type = std::map<std::string, T>;
 
 using node_id_type          = std::size_t;
-using io_id_type            = ulong;
-using io_id_collection_type = std::map<std::string, Type_info>;
 using operation_id_type     = std::string;
 
 

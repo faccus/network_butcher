@@ -296,7 +296,7 @@ private:
   /// another. The node is the source while the two size_t are the input and
   /// output device ids
   /// \param new_graph The lineatized graph (result of block_graph)
-  [[nodiscard]] void
+  void
   block_graph_weights(
     std::vector<std::function<weight_type(edge_type const &)>>
       &original_weights,
@@ -640,8 +640,8 @@ public:
 
     block_graph_weights(weights, transmission_weights, new_graph);
 
-    KFinder_Eppstein<io_id_collection_type> kFinder(new_graph);
-    auto const                              res = kFinder.eppstein(k);
+    KFinder_Eppstein kFinder(new_graph);
+    auto const       res = kFinder.eppstein(k);
 
     return get_weighted_network_slice(res, new_graph);
   }
@@ -666,7 +666,7 @@ public:
 
     block_graph_weights(weights, transmission_weights, new_graph);
 
-    KFinder_Lazy_Eppstein<Graph<node_id_collection_type>> kFinder(new_graph);
+    KFinder_Lazy_Eppstein kFinder(new_graph);
 
     auto const res = kFinder.lazy_eppstein(k);
 

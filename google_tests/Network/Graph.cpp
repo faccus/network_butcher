@@ -4,9 +4,10 @@
 
 #include <gtest/gtest.h>
 #include "../../src/Network/Graph.h"
+#include "../../src/Helpers/IO_Manager.h"
 #include "../TestClass.h"
 
-TEST(GraphTests, ConstructorFromModel) {
+TEST(GraphTests, Constructor) {
   using Input = graph_input_type;
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -14,20 +15,8 @@ TEST(GraphTests, ConstructorFromModel) {
   const std::string model_path = "resnet18-v2-7-inferred.onnx";
   utilities::parse_onnx_file(model_test, model_path);
 
-  Graph<Input> graph(model_test, true);
-  Graph<Input> graph2(model_test);
 
-  std::cout << std::endl;
-}
-
-TEST(GraphTests, ConstructorFromString) {
-  using Input = graph_input_type;
-  GOOGLE_PROTOBUF_VERIFY_VERSION;
-
-  const std::string model_path = "resnet18-v2-7-inferred.onnx";
-
-  Graph<Input> graph(model_path, true);
-  Graph<Input> graph2(model_path);
+  Graph graph = IO_Manager::import_from_onnx(model_path).first;
 
   std::cout << std::endl;
 }
@@ -39,7 +28,7 @@ TEST(GraphTests, ConstructorFromGraph)
 
   const std::string model_path = "resnet18-v2-7-inferred.onnx";
 
-  Graph<Input> graph(model_path, true);
+  Graph        graph = IO_Manager::import_from_onnx(model_path).first;
   Graph<Input> graph2(std::move(graph));
 }
 
@@ -56,27 +45,32 @@ TEST(GraphTests, ConstructorFromCustomClass)
 {
   using basic_type    = int;
   using Input         = TestMemoryUsage<basic_type>;
+  using IO_collection = io_collection_type<Input>;
+  using Node_type     = Node<Content<Input>>;
+
   int number_of_nodes = 10;
 
-  std::vector<node_type> nodes;
-  nodes.emplace_back(io_id_collection_type(),
-                     io_id_collection_type{{"Y", 0}},
-                     io_id_collection_type());
+  std::vector<Node_type> nodes;
+  Content content(IO_collection(), IO_collection{{"Y", 0}}, IO_collection());
+
+  nodes.emplace_back(std::move(content));
 
   for (int i = 1; i < number_of_nodes - 1; ++i)
-    nodes.emplace_back(io_id_collection_type{{"X", (i - 1) * 10}},
-                       io_id_collection_type{{"Y", i * 10}},
-                       io_id_collection_type{});
+    {
+      content = Content(IO_collection{{"X", (i - 1) * 10}},
+                        IO_collection{{"Y", i * 10}},
+                        IO_collection{});
 
-  nodes.emplace_back(io_id_collection_type{{"X", (number_of_nodes - 2) * 10}},
-                     io_id_collection_type{},
-                     io_id_collection_type{});
+      nodes.emplace_back(std::move(content));
+    }
 
-  std::map<io_id_type, Input> map;
-  for(io_id_type i = 0; i < 2 * number_of_nodes; ++i)
-    map[i*10] = Input(i+1);
+  content = Content(IO_collection{{"X", (number_of_nodes - 2) * 10}},
+                    IO_collection{},
+                    IO_collection{});
 
-  Graph<Input> graph_cons(nodes, map);
+  nodes.emplace_back(std::move(content));
+
+  Graph<Content<Input>> graph(nodes);
 
   std::cout << std::endl;
 }

@@ -39,12 +39,8 @@ public:
   /// Node content
   T content;
 
-
-  /// Basic constructor for a node
-  /// \param initial_input Initial set of inputs
-  /// \param initial_output Initial set of outputs
-  /// \param initial_output Initial set of parameters
-  Node(T starting_content)
+  /// Basic move constructor for a node
+  Node(T && starting_content)
     : id(std::numeric_limits<node_id_type>::max())
     , content(std::move(starting_content))
   {}

@@ -16,7 +16,7 @@
 
 #include "../Helpers/Traits/Node_traits.h"
 #include "Node.h"
-#include "Content.h"
+#include "../Helpers/Types/Content.h"
 
 /// Just another graph class...
 /// \tparam T Type of the content of the node
@@ -69,73 +69,19 @@ public:
   }
 };
 
-/*
-template <>
-class Graph<graph_input_type>
+template <class T>
+class Graph<Content<T>>
 {
 private:
-  using Map_IO           = std::unordered_map<std::string, io_id_type>;
-  using Map_Node_Content = std::map<io_id_type, graph_input_type>;
+  using Node_Type = Node<Content<T>>;
 
-  friend class Node;
+  /// Vector of all the nodes
+  std::vector<Node_Type> nodes;
 
-
-
-  /// From a ValueInfoProto (type of an input/output/value_info of the graph)
-  /// collection of elements, it will add to the given map the association
-  /// between the name of the ValueInfoProto with the respective id, while the
-  /// respective type is inserted into nodes_content
-  /// \param in Collection of ValueInfoProto
-  /// \param parameters The names of the parameters
-  /// \param parameters_id The function will add to this set the ids of the
-  /// parameters
-  void
-  onnx_parameters_reader(
-    Map_IO                                                         &input_map,
-    const google::protobuf::RepeatedPtrField<onnx::ValueInfoProto> &in,
-    std::unordered_set<std::string> const                          &parameters,
-    std::unordered_set<io_id_type> &parameters_id,
-    bool                            ignore_parameters = false,
-    bool                            unique_pointers   = false)
-  {
-    for (const auto &param : in)
-      {
-        if (param.IsInitialized())
-          {
-            const auto &type = param.type();
-            if (type.has_map_type())
-              {}
-
-            if (type.has_optional_type())
-              {}
-
-            if (type.has_sequence_type())
-              {}
-
-            if (type.has_tensor_type())
-              {
-                auto &obj   = type.tensor_type();
-                auto  index = nodes_content.size();
-
-                if (parameters.contains(param.name()))
-                  {
-                    if (ignore_parameters)
-                      continue;
-                    parameters_id.insert(index);
-                  }
-
-                nodes_content[index]    = std::make_shared<Dense_tensor>(param);
-                input_map[param.name()] = index;
-              }
-
-            if (type.has_sparse_tensor_type())
-              {}
-          }
-        else
-          {}
-      }
-  }
-
+  /// Vector that contains all the neighbours of every node (first input, then
+  /// output)
+  std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
+    dependencies;
 
   /// Compute node dependencies
   void
@@ -147,16 +93,17 @@ private:
     dependencies.resize(nodes.size());
 
     // Compute appearances of inputs/outputs for a node
-    std::unordered_map<io_id_type, node_id_collection_type> input_appearances;
-    std::unordered_map<io_id_type, node_id_collection_type> output_appearances;
+    std::unordered_map<std::string, node_id_collection_type> input_appearances;
+    std::unordered_map<std::string, node_id_collection_type> output_appearances;
 
     // Check which node has which input/output
     for (auto const &node : nodes)
       {
-        for (auto &in : node.get_input())
-          input_appearances[in.second].insert(node.get_id());
-        for (auto &out : node.get_output())
-          output_appearances[out.second].insert(node.get_id());
+        auto const &content = node.content;
+        for (auto &in : content.get_input())
+          input_appearances[in.first].insert(node.get_id());
+        for (auto &out : content.get_output())
+          output_appearances[out.first].insert(node.get_id());
       }
 
     // Matched the input of a node to his outputs and viceversa
@@ -172,25 +119,7 @@ private:
   }
 
 public:
-  /// A vector containing, ordered by id, the different type_infos
-  Map_Node_Content nodes_content;
-
-  /// Collection of nodes
-  std::vector<node_type> nodes;
-
-  /// Vector that contains all the neighbours of every node (first input, then
-  /// output)
-  std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
-    dependencies;
-
-  onnx::ModelProto original_model;
-
-  /// A vector containing, ordered by id, the different operations taking place
-  /// in the nodes
-  std::vector<operation_id_type> nodes_operations;
-
-  ///
-  std::vector<onnx::NodeProto const *> node_collection;
+  weights_collection_type weigth_map;
 
   Graph()              = default;
   Graph(Graph const &) = default;
@@ -199,144 +128,47 @@ public:
   /// Construct the graph from the nodes and the map containing the relation
   /// between the id of the input/output with the content
   /// \param v The collection of nodes ordered in an ascending order based on
-  /// the id. To work with butcher, the nodes must be sorted in topological
-  /// order, according to the Onnx IR specifications.
-  /// \param content The map that associated the id of the given node content
-  /// (it's different from the id of the node, since multiple nodes can have the
-  /// same input) with the content itself (default: {})
-  /// \param dep The dependencies (edges) of each node (default: {})
-  /// \param dependencies Enable automatic computation of the edges (default:
-  /// true)
+  /// the id. To work with butcher, the nodes must be sorted in
+  /// topological order, according to the Onnx IR specifications.
+  /// \param dependencies Node dependencies (input and outputs of every node)
   explicit Graph(
-    std::vector<node_type> v,
-    Map_Node_Content       content = {},
+    std::vector<Node_Type> v,
     std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
-         dep          = {},
-    bool dependencies = true)
+      dep)
     : nodes(std::move(v))
-    , nodes_content(std::move(content))
     , dependencies(std::move(dep))
   {
     for (node_id_type i = 0; i < nodes.size(); ++i)
       nodes[i].id = i;
-
-    if (dependencies)
-      compute_dependencies();
   }
 
-  /// Construct a graph from a model
-  /// \param model Protobuf model
-  /// \param ignore_parameters Ignore the inputs/outputs already initialized
-  explicit Graph(const onnx::ModelProto &model, bool ignore_parameters = false)
+  /// Construct the graph from the nodes and the map containing the relation
+  /// between the id of the input/output with the content
+  /// \param v The collection of nodes ordered in an ascending order based on
+  /// the id. To work with butcher, the nodes must be sorted in
+  /// topological order, according to the Onnx IR specifications.
+  explicit Graph(
+    std::vector<Node_Type> v)
+    : nodes(std::move(v))
   {
-    original_model.CopyFrom(model);
-    const auto &in_graph = original_model.graph();
-
-    Map_IO                         io_value_infos_graph;
-    std::unordered_set<io_id_type> parameters_id;
-
-    {
-      std::unordered_set<std::string> parameters;
-
-      for (auto &p : in_graph.initializer())
-        if (p.IsInitialized())
-          parameters.insert(p.name());
-
-      onnx_parameters_reader(io_value_infos_graph,
-                             in_graph.input(),
-                             parameters,
-                             parameters_id);
-
-      onnx_parameters_reader(io_value_infos_graph,
-                             in_graph.output(),
-                             parameters,
-                             parameters_id);
-
-      onnx_parameters_reader(io_value_infos_graph,
-                             in_graph.value_info(),
-                             parameters,
-                             parameters_id);
-    }
-
-    // Vector of nodes of the graph
-    const auto &in_graph_nodes = in_graph.node();
-
-    nodes.reserve(in_graph_nodes.size());
-    nodes_operations.reserve(in_graph_nodes.size());
-
-    // Base on the names of the input/output, it will produce the associated
-    // type id
-    auto process_nodes =
-      [&io_value_infos_graph, &parameters_id](
-        const google::protobuf::RepeatedPtrField<std::basic_string<char>> &inp,
-        io_id_collection_type                                             &ing,
-        io_id_collection_type &params) {
-        for (auto const &in : inp)
-          {
-            auto p     = io_value_infos_graph.find(in);
-            bool valid = p != io_value_infos_graph.cend();
-
-            if (valid)
-              {
-                if (parameters_id.contains(p->second))
-                  params.insert({in, p->second});
-                else
-                  ing.insert({in, p->second});
-              }
-          }
-      };
-
-    node_id_type node_index = -1;
-
-    for (const auto &node : in_graph_nodes)
-      {
-        io_id_collection_type input;
-        io_id_collection_type output;
-        io_id_collection_type parameters;
-
-        process_nodes(node.input(), input, parameters);
-        process_nodes(node.output(), output, parameters);
-
-        if (!input.empty())
-          {
-            Node new_entry(++node_index, input, output, parameters);
-
-            for (auto const &attribute : node.attribute())
-              {
-                if (attribute.name() == "kernel_shape")
-                  {
-                    std::vector<long> add;
-                    for (auto it = attribute.ints().begin();
-                         it != attribute.ints().end();
-                         ++it)
-                      add.push_back(*it);
-                    new_entry.set_attribute(attribute.name(), add);
-                  }
-              }
-
-            nodes.push_back(std::move(new_entry));
-            nodes_operations.emplace_back(node.op_type());
-
-            std::transform(nodes_operations.back().begin(),
-                           nodes_operations.back().end(),
-                           nodes_operations.back().begin(),
-                           ::tolower);
-
-            node_collection.push_back(&node);
-          }
-      }
+    for (node_id_type i = 0; i < nodes.size(); ++i)
+      nodes[i].id = i;
 
     compute_dependencies();
   }
 
+  const std::vector<Node_Type> &
+  get_nodes() const
+  {
+    return nodes;
+  }
 
-  /// Construct a graph from a Protobuf Model stored at the specified path
-  /// \param path The absolute/relative path of the .onnx model
-  /// \param ignore_parameters Ignore the inputs/outputs already initialized
-  explicit Graph(const std::string &path, bool ignore_parameters = false)
-    : Graph(utilities::parse_onnx_file(path), ignore_parameters)
-  {}
+  const std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
+    &
+    get_dependencies() const
+  {
+    return dependencies;
+  }
 };
-*/
 
 #endif // NETWORK_BUTCHER_GRAPH_H

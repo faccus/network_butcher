@@ -37,10 +37,9 @@ namespace KspTestNamespace
 
 
     Graph<Input>                                            basic_graph;
-    std::map<std::pair<node_id_type, node_id_type>, double> weight;
 
     Shortest_path_finder kFinder(basic_graph);
-    auto                 res = kFinder.dijkstra(weight);
+    auto                 res = kFinder.dijkstra();
 
     ASSERT_EQ(res.first.size(), 0);
   }
@@ -51,7 +50,7 @@ namespace KspTestNamespace
     auto const graph = basic_graph();
 
     Shortest_path_finder kfinder(graph);
-    auto                 res = kfinder.dijkstra(basic_weights());
+    auto                 res = kfinder.dijkstra();
 
     std::vector<node_id_type> theoretical_res = {0, 2, 0, 1, 3, 2, 5};
 

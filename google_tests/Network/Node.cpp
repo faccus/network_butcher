@@ -9,9 +9,5 @@
 
 TEST(NodeTests, ConctructorTest)
 {
-  io_id_collection_type map;
-  map["in"] = 10;
-
-
-  Node node(map, map, map);
+  Node node(1);
 }

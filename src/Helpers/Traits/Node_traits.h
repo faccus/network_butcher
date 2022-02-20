@@ -8,11 +8,12 @@
 #include <boost/functional/hash.hpp>
 #include <memory>
 
-#include "../../Network/Content.h"
 #include "../../Network/Node.h"
+#include "../Types/Content.h"
 #include "../Types/Type_info.h"
 
-using node_type               = Node<Content>;
+using graph_input_type  = Content<type_info_pointer>;
+using node_type               = Node<graph_input_type>;
 using node_id_collection_type = std::set<node_id_type>;
 
 using edge_type   = std::pair<node_id_type, node_id_type>;
