@@ -102,6 +102,7 @@ private:
   {
     std::vector<Node<node_id_collection_type>> new_nodes;
     std::map<node_id_type, node_id_type> old_to_new; // Old node -> New node
+
     std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
       new_dependencies;
 
@@ -135,7 +136,7 @@ private:
         if (local_counter <= 0 && counter == 0)
           {
             new_nodes.emplace_back(node_id_collection_type{});
-            new_nodes.back().content.insert(new_nodes.back().content.end(), id);
+            new_nodes.back().content.insert(new_nodes.back().content.end(), node.get_id());
 
             old_to_new[node.get_id()] = id;
 
@@ -145,7 +146,7 @@ private:
         else if (local_counter > 0 && counter == 0)
           {
             new_nodes.emplace_back(node_id_collection_type{});
-            new_nodes.back().content.insert(new_nodes.back().content.end(), id);
+            new_nodes.back().content.insert(new_nodes.back().content.end(), node.get_id());
             old_to_new[node.get_id()] = id;
 
             new_nodes.emplace_back(node_id_collection_type{});
@@ -158,7 +159,7 @@ private:
                   local_counter > 0 && dep.first.size() <= 1) &&
                  counter > 0)
           {
-            new_nodes.back().content.insert(new_nodes.back().content.end(), id);
+            new_nodes.back().content.insert(new_nodes.back().content.end(), node.get_id());
             old_to_new[node.get_id()] = id;
           }
         else if (counter > 0 && ((local_counter >= 0 && dep.first.size() > 1) ||
@@ -172,7 +173,7 @@ private:
                 new_nodes.emplace_back(node_id_collection_type{});
                 old_to_new[node.get_id()] = ++id;
                 new_nodes.back().content.insert(new_nodes.back().content.end(),
-                                                id);
+                                                node.get_id());
 
                 // Do we have to add another master node?
                 if (local_counter >= 0)
@@ -187,7 +188,7 @@ private:
               {
                 old_to_new[node.get_id()] = id;
                 new_nodes.back().content.insert(new_nodes.back().content.end(),
-                                                id);
+                                                node.get_id());
               }
 
             counter += (dep.second.size() - 1);
@@ -217,6 +218,13 @@ private:
           new_nodes.emplace_back(node_id_collection_type{});
           id++;
         }
+
+    // Move the content of the first nodes to their appropriate final position
+    for(std::size_t i = basic_size - 2; i > 1; --i)
+      {
+        new_nodes[1 + num_of_devices * (i - 1)].content =
+          std::move(new_nodes[i].content);
+      }
 
     {
       new_dependencies.emplace_back(
@@ -420,10 +428,6 @@ private:
                   }
 
                 final_cost = weight_costs + transmission_cost;
-              }
-            else
-              {
-                std::cout;
               }
 
             new_graph.set_weigth(edge, final_cost);
