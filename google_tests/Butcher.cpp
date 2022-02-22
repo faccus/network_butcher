@@ -6,6 +6,7 @@
 #include <random>
 
 #include "../src/Butcher.h"
+#include "../src/Helpers/IO_Manager.h"
 #include "../src/Helpers/APCS/chrono.h"
 #include "TestClass.h"
 
@@ -26,8 +27,10 @@ namespace butcher_test_namespace
 
   using basic_type = int;
   using Input      = TestMemoryUsage<int>;
+  using Content_type = Content<Input>;
+  using Node_type = Node<Content_type>;
 
-  Butcher<Input>
+  Butcher<Content_type>
   basic_butcher();
 
   std::vector<std::function<type_weight(edge_type const &)>>
@@ -39,25 +42,26 @@ namespace butcher_test_namespace
 
   TEST(ButcherTest, compute_two_slice_brute_force_test)
   {
-    using Input = graph_input_type;
+    using Content_type = graph_input_type;
 
     const std::string model_path = "resnet18-v2-7-inferred.onnx";
-    Butcher<Input>    butcher(model_path);
-    auto              res = butcher.compute_two_slice_brute_force();
+
+    Butcher<Content_type> butcher(IO_Manager::import_from_onnx(model_path).first);
+    auto           res = butcher.compute_two_slice_brute_force();
   }
 
   TEST(ButcherTest, compute_two_slice_memory_brute_force_test)
   {
-    using Input = graph_input_type;
+    using Content_type = graph_input_type;
 
     const std::string model_path = "resnet18-v2-7-inferred.onnx";
 
-    Graph<Input>          graph(model_path, true);
+    Graph<Content_type> graph = IO_Manager::import_from_onnx(model_path).first;
     const Computer_memory computer{};
 
     size_t half_size = computer.compute_memory_usage_input(graph) / 2;
 
-    Butcher<Input> butcher(std::move(graph));
+    Butcher<Content_type> butcher(std::move(graph));
 
     auto tot = butcher.compute_two_slice_memory_brute_force(half_size);
   }
@@ -70,16 +74,11 @@ namespace butcher_test_namespace
     auto                                 butcher = basic_butcher();
     std::vector<type_collection_weights> weight_maps;
 
-
-    auto const &graph     = butcher.getGraph();
-    auto const  num_nodes = graph.nodes.size();
-
+    auto const &graph     = butcher.get_graph();
+    auto const  num_nodes = graph.get_nodes().size();
 
     auto maps = basic_weight(num_devices, weight_maps);
-
-    auto transmission_fun =
-      basic_transmission(num_devices, butcher.getGraph().nodes.size());
-
+    auto transmission_fun = basic_transmission(num_devices, num_nodes);
 
     auto const res = butcher.compute_k_shortest_paths_eppstein_linear(
       maps, transmission_fun, num_devices, 1000);
@@ -95,10 +94,10 @@ namespace butcher_test_namespace
     std::vector<type_collection_weights> weight_maps;
 
     auto maps = basic_weight(num_devices, weight_maps);
+    auto const &graph     = butcher.get_graph();
+    auto const  num_nodes = graph.get_nodes().size();
 
-    auto transmission_fun =
-      basic_transmission(num_devices, butcher.getGraph().nodes.size());
-
+    auto transmission_fun = basic_transmission(num_devices, num_nodes);
 
     auto const res = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
       maps, transmission_fun, num_devices, 1000);
@@ -108,22 +107,19 @@ namespace butcher_test_namespace
 
   TEST(ButcherTest, compute_k_shortest_paths_eppstein_vs_lazy_random)
   {
-    std::map<io_id_type, Input> map;
-    std::vector<node_type>      nodes;
-
     std::size_t num_devices = 3;
     std::size_t k           = 1000;
 
 
     auto        butcher = basic_butcher();
-    auto const &graph   = butcher.getGraph();
-
+    auto const &graph   = butcher.get_graph();
+    auto const &nodes = graph.get_nodes();
 
     std::vector<type_collection_weights> weight_maps;
     auto maps = basic_weight(num_devices, weight_maps);
 
     auto transmission_fun =
-      basic_transmission(num_devices, butcher.getGraph().nodes.size());
+      basic_transmission(num_devices, nodes.size());
 
     Chrono crono;
     crono.start();
@@ -185,26 +181,22 @@ namespace butcher_test_namespace
   }
 
 
-  Butcher<Input>
+  Butcher<Content_type>
   basic_butcher()
   {
-    std::map<io_id_type, Input> map;
-    std::vector<node_type>      nodes;
+    std::vector<Node_type>      nodes;
 
-    nodes.push_back(node_type(io_id_collection_type{}, {{"Y", 0}}));
-    nodes.push_back(node_type({{"X", 0}}, {{"Y", 1}}));
-    nodes.push_back(node_type({{"X", 1}}, {{"Y", 2}}));
-    nodes.push_back(node_type({{"X", 1}}, {{"Y", 3}}));
-    nodes.push_back(node_type({{"X", 3}}, {{"Y", 4}}));
-    nodes.push_back(node_type({{"X1", 2}, {"X2", 4}}, {{"Y", 5}}));
-    nodes.push_back(node_type({{"X", 5}}, {{"Y", 6}}));
-    nodes.push_back(node_type({{"X", 6}}, {{"Y", 7}}));
+    nodes.emplace_back(Content_type({}, {{"X0", 0}}));
+    nodes.emplace_back(Content_type({{"X0", 0}}, {{"X1", 1}}));
+    nodes.emplace_back(Content_type({{"X1", 1}}, {{"X2", 2}}));
+    nodes.emplace_back(Content_type({{"X1", 1}}, {{"X3", 3}}));
+    nodes.emplace_back(Content_type({{"X3", 3}}, {{"X4", 4}}));
+    nodes.emplace_back(Content_type({{"X2", 2}, {"X4", 4}}, {{"X5", 5}}));
+    nodes.emplace_back(Content_type({{"X5", 5}}, {{"X6", 6}}));
+    nodes.emplace_back(Content_type({{"X6", 6}}, {{"X7", 7}}));
 
-    for (io_id_type i = 0; i < nodes.size(); ++i)
-      map[i] = i;
-
-    Graph<Input> graph_cons(nodes, map);
-    return Butcher<Input>(std::move(graph_cons));
+    Graph graph_cons(std::move(nodes));
+    return Butcher(std::move(graph_cons));
   }
 
   std::vector<std::function<type_weight(edge_type const &)>>

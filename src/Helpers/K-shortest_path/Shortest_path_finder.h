@@ -68,7 +68,6 @@ public:
                 auto      &base_distance = total_distance[head_node]; // O(1)
                 auto const weight        = get_weight(current_node.id,
                                                head_node,
-                                               graph.weigth_map,
                                                reversed);
 
                 if (weight < 0)
@@ -151,8 +150,9 @@ private:
   [[nodiscard]] std::set<node_id_type> const &
   extract_children(node_id_type const &node_id, bool const &reversed) const
   {
-    return reversed ? graph.dependencies[node_id].first :
-                      graph.dependencies[node_id].second;
+    auto const &dependencies = graph.get_dependencies();
+    return reversed ? dependencies[node_id].first :
+                      dependencies[node_id].second;
   }
 
   /// Given the tail and the head of the edge, it will produce the associated
@@ -165,15 +165,12 @@ private:
   weight_type
   get_weight(std::size_t                    tail,
              std::size_t                    head,
-             weights_collection_type const &weight_map,
              bool const                    &reversed) const
   {
     edge_type edge =
       reversed ? std::make_pair(head, tail) : std::make_pair(tail, head);
 
-    auto const it = weight_map.find(edge);
-
-    return it == weight_map.cend() ? -1. : it->second;
+    return graph.get_weigth(edge);
   }
 };
 

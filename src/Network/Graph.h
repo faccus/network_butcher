@@ -32,7 +32,24 @@ class Graph
     dependencies;
 
 public:
+  /// Weigth map
   weights_collection_type weigth_map;
+
+  weight_type
+  get_weigth(edge_type const &edge) const
+  {
+    auto const p = weigth_map.find(edge);
+    if (p == weigth_map.cend())
+      return -1.;
+    else
+      return p->second;
+  }
+
+  void
+  set_weigth(edge_type const &edge, weight_type weight)
+  {
+    weigth_map[edge] = weight;
+  }
 
   Graph()              = default;
   Graph(Graph const &) = default;
@@ -55,13 +72,13 @@ public:
       nodes[i].id = i;
   }
 
-  const std::vector<Node<T>> &
+  inline const std::vector<Node<T>> &
   get_nodes() const
   {
     return nodes;
   }
 
-  const std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
+  inline const std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
     &
     get_dependencies() const
   {
@@ -82,6 +99,7 @@ private:
   /// output)
   std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
     dependencies;
+
 
   /// Compute node dependencies
   void
@@ -119,7 +137,24 @@ private:
   }
 
 public:
+  /// Weigth map
   weights_collection_type weigth_map;
+
+  weight_type
+  get_weigth(edge_type const &edge) const
+  {
+    auto const p = weigth_map.find(edge);
+    if (p == weigth_map.cend())
+      return -1.;
+    else
+      return p->second;
+  }
+
+  void
+  set_weigth(edge_type const &edge, weight_type weight)
+  {
+    weigth_map[edge] = weight;
+  }
 
   Graph()              = default;
   Graph(Graph const &) = default;
@@ -147,8 +182,21 @@ public:
   /// \param v The collection of nodes ordered in an ascending order based on
   /// the id. To work with butcher, the nodes must be sorted in
   /// topological order, according to the Onnx IR specifications.
-  explicit Graph(
-    std::vector<Node_Type> v)
+  explicit Graph(std::vector<Node_Type> const &v)
+    : nodes(v)
+  {
+    for (node_id_type i = 0; i < nodes.size(); ++i)
+      nodes[i].id = i;
+
+    compute_dependencies();
+  }
+
+  /// Construct the graph from the nodes and the map containing the relation
+  /// between the id of the input/output with the content
+  /// \param v The collection of nodes ordered in an ascending order based on
+  /// the id. To work with butcher, the nodes must be sorted in
+  /// topological order, according to the Onnx IR specifications.
+  explicit Graph(std::vector<Node_Type> &&v)
     : nodes(std::move(v))
   {
     for (node_id_type i = 0; i < nodes.size(); ++i)
@@ -157,13 +205,13 @@ public:
     compute_dependencies();
   }
 
-  const std::vector<Node_Type> &
+  inline const std::vector<Node_Type> &
   get_nodes() const
   {
     return nodes;
   }
 
-  const std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
+  inline const std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
     &
     get_dependencies() const
   {

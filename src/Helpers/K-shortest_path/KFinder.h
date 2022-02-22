@@ -59,7 +59,7 @@ protected:
 
           res.insert(res.cend(),
                      {edge,
-                      graph.weigth_map[edge] + distances_from_sink[head] -
+                      graph.get_weigth(edge) + distances_from_sink[head] -
                         distances_from_sink[tail]}); // O(1)
         }
 
