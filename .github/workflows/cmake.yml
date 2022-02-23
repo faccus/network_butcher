@@ -37,7 +37,7 @@ jobs:
       uses: actions/cache@v2
       with:
        path: '${{env.GITHUB_WORKSPACE}}/boost/boost'
-       key: 'boost-${{steps.boost_info.outputs.version}}-${{steps.boost_info.outputs.toolset}}'
+       key: 'boost-${{steps.boost_info.outputs.version}}'
 
     - name: Download and install Boost
     # You may pin to the exact commit or the version.
