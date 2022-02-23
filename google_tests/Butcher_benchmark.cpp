@@ -9,6 +9,7 @@
 #include "../src/Butcher.h"
 #include "../src/Helpers/Computer/Computer_time.h"
 #include "../src/Helpers/APCS/chrono.h"
+#include "../src/Helpers/IO_Manager.h"
 #include "TestClass.h"
 
 namespace butcher_benchmark_test_namespace
@@ -20,9 +21,11 @@ namespace butcher_benchmark_test_namespace
 
   using basic_type = int;
   using Input      = TestMemoryUsage<int>;
+  using Content_type = Content<Input>;
+  using Node_type = Node<Content_type>;
 
 
-  Butcher<Input>
+  Butcher<Content_type>
   basic_butcher(int);
 
   std::vector<std::function<type_weight(edge_type const &)>>
@@ -59,7 +62,7 @@ namespace butcher_benchmark_test_namespace
     std::size_t const number_of_tests = 100;
 
     auto        butcher = basic_butcher(num_nodes);
-    auto const &graph   = butcher.getGraph();
+    auto const &graph   = butcher.get_graph();
 
     double total_time = .0;
 
@@ -69,7 +72,7 @@ namespace butcher_benchmark_test_namespace
         auto maps = basic_weight(num_devices, num_nodes, weight_maps);
 
         auto transmission_fun =
-          basic_transmission(num_devices, butcher.getGraph().nodes.size());
+          basic_transmission(num_devices, graph.get_nodes().size());
 
         Chrono crono;
         crono.start();
@@ -92,7 +95,7 @@ namespace butcher_benchmark_test_namespace
     std::size_t const number_of_tests = 100;
 
     auto        butcher = basic_butcher(num_nodes);
-    auto const &graph   = butcher.getGraph();
+    auto const &graph   = butcher.get_graph();
 
     double total_time = .0;
 
@@ -102,7 +105,7 @@ namespace butcher_benchmark_test_namespace
         auto maps = basic_weight(num_devices, num_nodes, weight_maps);
 
         auto transmission_fun =
-          basic_transmission(num_devices, butcher.getGraph().nodes.size());
+          basic_transmission(num_devices, graph.get_nodes().size());
 
         Chrono crono;
         crono.start();
@@ -121,7 +124,6 @@ namespace butcher_benchmark_test_namespace
   TEST(ButcherBenchmarkTest,
        compute_k_shortest_paths_eppstein_vs_lazy_random_multiple)
   {
-    std::map<io_id_type, Input> map;
     std::vector<node_type>      nodes;
 
     std::size_t       num_devices = 3;
@@ -129,11 +131,11 @@ namespace butcher_benchmark_test_namespace
 
     std::size_t k = 1000;
 
-    std::size_t number_of_tests = 1000;
+    std::size_t number_of_tests = 100;
 
 
     auto        butcher = basic_butcher(num_nodes);
-    auto const &graph   = butcher.getGraph();
+    auto const &graph   = butcher.get_graph();
 
     double time_std  = .0;
     double time_lazy = .0;
@@ -144,7 +146,7 @@ namespace butcher_benchmark_test_namespace
         auto maps = basic_weight(num_devices, num_nodes, weight_maps);
 
         auto transmission_fun =
-          basic_transmission(num_devices, butcher.getGraph().nodes.size());
+          basic_transmission(num_devices, graph.get_nodes().size());
 
         Chrono crono;
         crono.start();
@@ -212,10 +214,11 @@ namespace butcher_benchmark_test_namespace
     std::string path      = "resnet18-v2-7-inferred";
     std::string extension = ".onnx";
 
-    Butcher<graph_input_type> butcher(path + extension);
+    Butcher<graph_input_type> butcher(
+      IO_Manager::import_from_onnx(path + extension).first);
 
-    auto const &graph = butcher.getGraph();
-    auto const &nodes = graph.nodes;
+    auto const &graph = butcher.get_graph();
+    auto const &nodes = graph.get_nodes();
     auto const  k     = 1000;
 
     std::size_t                          num_devices = 3;
@@ -282,6 +285,7 @@ namespace butcher_benchmark_test_namespace
     ASSERT_EQ(eppstein, lazy_eppstein);
 
 
+        /*
     crono.start();
     auto model_decomp =
       butcher.reconstruct_model(lazy_eppstein_res.back().first);
@@ -290,7 +294,6 @@ namespace butcher_benchmark_test_namespace
     std::cout << "Model reconstruction: " << crono.wallTime() / 1000
               << " milliseconds" << std::endl;
 
-    /*
     crono.start();
     for (std::size_t i = 0; i < model_decomp.size(); ++i)
       {
@@ -312,10 +315,11 @@ namespace butcher_benchmark_test_namespace
     std::string path      = "resnet18-v2-7-inferred";
     std::string extension = ".onnx";
 
-    Butcher<graph_input_type> butcher(path + extension);
+    Butcher<graph_input_type> butcher(
+      IO_Manager::import_from_onnx(path + extension).first);
 
-    auto const &graph = butcher.getGraph();
-    auto const &nodes = graph.nodes;
+    auto const &graph = butcher.get_graph();
+    auto const &nodes = graph.get_nodes();
     auto const  k     = 1000;
 
     std::size_t                          num_devices = 3;
@@ -381,6 +385,7 @@ namespace butcher_benchmark_test_namespace
     ASSERT_EQ(eppstein, lazy_eppstein);
 
 
+        /*
     crono.start();
     auto model_decomp =
       butcher.reconstruct_model(lazy_eppstein_res.back().first);
@@ -389,7 +394,6 @@ namespace butcher_benchmark_test_namespace
     std::cout << "Model reconstruction: " << crono.wallTime() / 1000
               << " milliseconds" << std::endl;
 
-    /*
     crono.start();
     for (std::size_t i = 0; i < model_decomp.size(); ++i)
       {
@@ -405,7 +409,6 @@ namespace butcher_benchmark_test_namespace
               << std::endl;
     */
   }
-
 
 
 
@@ -429,40 +432,20 @@ namespace butcher_benchmark_test_namespace
         }
   }
 
-  TEST(ButcherBenchmarkTest, correct_real_weight_generation)
-  {
-    std::vector<type_collection_weights> basic_weight_maps;
-    std::vector<type_collection_weights> real_weight_maps;
 
-    std::string path      = "resnet18-v2-7-inferred";
-    std::string extension = ".onnx";
-
-    Butcher<graph_input_type> butcher(path + extension);
-    std::size_t const         num_devices = 3;
-    std::size_t const         num_nodes   = butcher.getGraph().nodes.size();
-
-
-    basic_weight(num_devices, num_nodes, basic_weight_maps);
-    real_weight(real_weight_maps, butcher);
-
-    for (auto const &pair : basic_weight_maps.front())
-      for (std::size_t k = 1; k < num_devices; ++k)
-        {}
-  }
-
-
-  Butcher<Input>
+  Butcher<Content_type>
   basic_butcher(int num_nodes)
   {
-    std::vector<node_type>                     nodes;
-    std::map<io_id_type, TestMemoryUsage<int>> map;
+    std::vector<Node_type> nodes;
 
-    nodes.push_back(node_type(io_id_collection_type{}, {{"Y", 0}}));
+    nodes.emplace_back(Content_type({}, {{"X0", 0}}));
     for (int n = 1; n < num_nodes - 1; ++n)
-      nodes.push_back(node_type({{"X", n - 1}}, {{"Y", n}}));
-    nodes.push_back(node_type({{"X", num_nodes - 2}}, {{"Y", 0}}));
+      nodes.emplace_back(Content_type({{"X" + std::to_string(n - 1), n - 1}},
+                                      {{"X" + std::to_string(n), n}}));
+    nodes.emplace_back(
+      Content_type({{"X" + std::to_string(num_nodes - 2), num_nodes - 2}}, {}));
 
-    Graph<TestMemoryUsage<int>> graph_cons(nodes, map);
+    Graph graph_cons(nodes);
 
     return Butcher(std::move(graph_cons));
   }
@@ -515,7 +498,7 @@ namespace butcher_benchmark_test_namespace
     std::random_device         rd;
     std::default_random_engine random_engine{rd()};
 
-    auto const num_nodes = graph.nodes.size();
+    auto const num_nodes = graph.get_nodes().size();
 
     std::uniform_int_distribution node_weights_generator{5000, 10000};
 
@@ -524,8 +507,8 @@ namespace butcher_benchmark_test_namespace
     weight_maps.emplace_back();
     auto &initial_weight_map = weight_maps.back();
 
-    for (std::size_t tail = 0; tail < graph.nodes.size(); ++tail)
-      for (auto const &head : graph.dependencies[tail].second)
+    for (std::size_t tail = 0; tail < num_nodes; ++tail)
+      for (auto const &head : graph.get_dependencies()[tail].second)
         initial_weight_map[{tail, head}] =
           node_weights_generator(random_engine);
 
@@ -624,7 +607,9 @@ namespace butcher_benchmark_test_namespace
               Butcher<graph_input_type>            &butcher)
   {
     std::vector<std::function<type_weight(edge_type const &)>> res;
-    auto             &graph       = butcher.getGraph();
+    auto             &graph       = butcher.get_graph();
+    auto const & dependencies = graph.get_dependencies();
+
     std::size_t const num_devices = 3;
     weight_maps.reserve(num_devices);
 
@@ -638,9 +623,9 @@ namespace butcher_benchmark_test_namespace
         auto &map = weight_maps.back();
         auto &hw  = hws[i];
 
-        for (std::size_t tail = 0; tail < graph.dependencies.size(); ++tail)
+        for (std::size_t tail = 0; tail < dependencies.size(); ++tail)
           {
-            for (auto const &head : graph.dependencies[tail].second)
+            for (auto const &head : dependencies[tail].second)
               map[{tail, head}] = cp.compute_operation_time(graph, tail, hw);
           }
       }
@@ -657,7 +642,7 @@ namespace butcher_benchmark_test_namespace
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
   real_transmission(Butcher<graph_input_type> &butcher)
   {
-    auto const &graph = butcher.getGraph();
+    auto const &graph = butcher.get_graph();
     auto const  mbps  = 1000. / 8;
 
 
@@ -666,7 +651,7 @@ namespace butcher_benchmark_test_namespace
                           std::size_t         to_device) {
       Computer_memory cm;
       auto const      mem_to_transmit =
-        cm.compute_memory_usage_output(graph, graph.nodes[node], false);
+        cm.compute_memory_usage_output(graph.get_nodes()[node]);
 
       if (from_device == 0 && to_device == 1 ||
           from_device == 1 && to_device == 0)
