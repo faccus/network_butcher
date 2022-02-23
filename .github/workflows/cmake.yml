@@ -32,6 +32,19 @@ jobs:
         echo "::set-output name=toolset::$BOOST_TOOLSET"
         echo "::set-output name=path::$BOOST_PATH"
       shell: bash
+      
+    - name: Cache Boost
+      uses: actions/cache@v2
+      with:
+       path: '${{env.GITHUB_WORKSPACE}}/boost/boost'
+       key: 'boost-${{steps.boost_info.outputs.version}}-${{steps.boost_info.outputs.toolset}}'
+
+    - name: Build Boost
+      id: boost
+      uses: egor-tensin/build-boost@v1
+      with:
+        version: '${{steps.boost_info.outputs.version}}'
+        libraries: math_c99 math_c99f math_c99l math_tr1 math_tr1f math_tr1l
     
     - name: Cache boost
       uses: actions/cache@v2
