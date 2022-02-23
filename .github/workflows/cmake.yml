@@ -17,8 +17,6 @@ jobs:
     # cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: ubuntu-latest
-    env:
-      BOOST_VERSION: 1.78.0
 
     steps:
     - uses: actions/checkout@v2
@@ -28,7 +26,6 @@ jobs:
       run: |
         echo "::set-output name=version::$BOOST_VERSION"
         echo "::set-output name=toolset::$BOOST_TOOLSET"
-        echo "::set-output name=path::$BOOST_PATH"
       shell: bash
     
     # Cache boost
@@ -36,7 +33,6 @@ jobs:
       uses: actions/cache@v2
       id: cache-boost
       with:
-        path: ${{steps.boost_info.outputs.path}}
         key: boost-${{steps.boost_info.outputs.version}}-${{steps.boost_info.outputs.toolset}}
 
     # Download and install boost
