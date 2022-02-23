@@ -20,7 +20,7 @@ jobs:
 
     env:
       BOOST_VERSION: 1.78.0
-      BOOST_TOOLSET: g++
+      BOOST_TOOLSET: gcc
 
     steps:
     - uses: actions/checkout@v2
