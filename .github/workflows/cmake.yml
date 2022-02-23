@@ -43,7 +43,7 @@ jobs:
     # Download and install boost
     - name: Install boost
       if: steps.cache-boost.outputs.cache-hit != 'true'
-      uses: MarkusJx/install-boost@v1.0
+      uses: MarkusJx/install-boost@v2.1.0
       id: install-boost
       with:
         boost_version: ${{steps.boost_info.outputs.version}}
