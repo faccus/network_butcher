@@ -26,7 +26,7 @@ jobs:
       uses: MarkusJx/install-boost@v2.1.0
       with:
       # The boost version to install, e.g. "1.73.0"
-        boost_version: "1.78.0"
+        boost_version: latest
       # The toolset used to compile boost, e.g. "msvc"
         #toolset: # optional, default is 
         # The platform version boost was compiled on, e.g. "18.04"
@@ -38,6 +38,8 @@ jobs:
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      env:
+        BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
 
     - name: Build
       # Build your program with the given configuration
