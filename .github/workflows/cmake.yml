@@ -21,7 +21,6 @@ jobs:
     env:
       BOOST_VERSION: 1.78.0
       BOOST_TOOLSET: g++
-      BOOST_PATH: ${{env.GITHUB_WORKSPACE}}/boost/boost
 
     steps:
     - uses: actions/checkout@v2
@@ -38,7 +37,7 @@ jobs:
       uses: actions/cache@v2
       id: cache-boost
       with:
-        path: ${{steps.boost_info.outputs.path}}
+        path: ${{env.GITHUB_WORKSPACE}}/boost/boost
         key: boost-${{steps.boost_info.outputs.version}}-${{steps.boost_info.outputs.toolset}}
 
     # Download and install boost
