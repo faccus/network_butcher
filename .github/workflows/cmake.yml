@@ -33,21 +33,18 @@ jobs:
         echo "::set-output name=path::$BOOST_PATH"
       shell: bash
       
-    - name: Cache boost
+    - name: Cache Boost
       uses: actions/cache@v2
-      id: cache-boost
       with:
-        path: ${{env.GITHUB_WORKSPACE}}/boost/boost
-        key: boost-${{steps.boost_info.outputs.version}}-${{steps.boost_info.outputs.toolset}}
+       path: '${{env.GITHUB_WORKSPACE}}/boost/boost'
+       key: 'boost-${{steps.boost_info.outputs.version}}-${{steps.boost_info.outputs.toolset}}'
 
-    # Download and install boost
-    - name: Download and install boost
-      if: steps.cache-boost.outputs.cache-hit != 'true'
-      uses: MarkusJx/install-boost@v2.1.0
-      id: install-boost
+    - name: Build Boost
+      id: boost
+      uses: egor-tensin/build-boost@v1
       with:
-        boost_version: ${{steps.boost_info.outputs.version}}
-        toolset: ${{steps.boost_info.outputs.toolset}}
+        version: '${{steps.boost_info.outputs.version}}'
+        libraries: math
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
