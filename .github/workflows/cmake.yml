@@ -11,7 +11,7 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  build:
+  Build:
     # The CMake configure and build commands are platform agnostic and should work equally
     # well on Windows or Mac.  You can convert this to a matrix build if you need
     # cross-platform coverage.
@@ -26,7 +26,7 @@ jobs:
       uses: MarkusJx/install-boost@v2.1.0
       with:
       # The boost version to install, e.g. "1.73.0"
-        boost_version: latest
+        boost_version: 1.78.0
       # The toolset used to compile boost, e.g. "msvc"
         #toolset: # optional, default is 
         # The platform version boost was compiled on, e.g. "18.04"
