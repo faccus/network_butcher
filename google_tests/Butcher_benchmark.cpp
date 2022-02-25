@@ -356,7 +356,7 @@ namespace butcher_benchmark_test_namespace
 
     std::size_t k = 1000;
 
-    std::size_t number_of_tests = 10000;
+    std::size_t number_of_tests = 1000;
 
 
     auto        butcher = basic_butcher(num_nodes);
@@ -569,7 +569,6 @@ namespace butcher_benchmark_test_namespace
           }
       };
   }
-
 
   std::vector<Hardware_specifications>
   basic_hardware()

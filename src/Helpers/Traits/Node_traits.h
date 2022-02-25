@@ -16,10 +16,7 @@ using graph_input_type  = Content<type_info_pointer>;
 using node_type               = Node<graph_input_type>;
 using node_id_collection_type = std::set<node_id_type>;
 
-
 using edge_type   = std::pair<node_id_type, node_id_type>;
-
-
 
 using weight_type = double;
 using weights_collection_type =
