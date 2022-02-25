@@ -66,7 +66,6 @@ namespace butcher_test_namespace
     auto tot = butcher.compute_two_slice_memory_brute_force(half_size);
   }
 
-
   TEST(ButcherTest, compute_k_shortest_paths_eppstein_linear)
   {
     std::size_t num_devices = 3;

@@ -1,7 +1,7 @@
 set(BASE_SOURCE
         src/Onnx_model/onnx.pb.h src/Onnx_model/onnx.pb.cc
         src/Network/Node.h src/Network/Graph.h
-        src/Butcher.cpp src/Butcher.h
+        src/Butcher.h
         src/Helpers/Computer/Computer_memory.h src/Helpers/Computer/Computer_memory.cpp src/Helpers/Computer/Hardware_specifications.h src/Helpers/Computer/Hardware_specifications.cpp src/Helpers/Computer/Computer_time.h src/Helpers/Computer/Computer_time.cpp
         src/Helpers/Types/Type_info.h src/Helpers/Types/Dense_tensor.cpp src/Helpers/Types/Dense_tensor.h src/Helpers/Types/Content.h
         src/Helpers/Utilities.h src/Helpers/Utilities.cpp src/Helpers/IO_Manager.h src/Helpers/IO_Manager.cpp
