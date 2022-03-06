@@ -84,7 +84,8 @@ namespace butcher_test_namespace
 
     ASSERT_EQ(res.size(), 81);
   }
-/*
+
+
   TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_linear)
   {
     std::size_t num_devices = 3;
@@ -178,7 +179,7 @@ namespace butcher_test_namespace
     std::cout << "Lazy eppstein: " << crono2.wallTime() / 1000
               << " milliseconds" << std::endl;
   }
-  */
+
 
 
   Butcher<Content_type>

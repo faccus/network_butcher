@@ -245,8 +245,10 @@ private:
       return res;
     auto const &first_side_track = first_side_track_res.second;
 
-    auto const h_out_edge_edges = get_h_out_edge_edges(h_out);
-    std::map<std::size_t,
+    std::map<node_id_type,
+             std::map<edge_pointer, std::forward_list<edge_pointer>>>
+      h_out_edge_edges;
+    std::map<node_id_type,
              std::map<edge_pointer, std::forward_list<edge_pointer>>>
       h_g_edge_edges;
 

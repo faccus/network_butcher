@@ -74,7 +74,7 @@ namespace butcher_benchmark_test_namespace
         }
   }
 
-  /*
+
   TEST(ButcherBenchmarkTest,
        compute_k_shortest_paths_lazy_eppstein_multiple_random)
   {
@@ -109,7 +109,7 @@ namespace butcher_benchmark_test_namespace
               << std::endl;
   }
 
-    */
+
   TEST(ButcherBenchmarkTest, compute_k_shortest_paths_eppstein_multiple_random)
   {
     std::size_t       num_devices     = 3;
@@ -142,7 +142,8 @@ namespace butcher_benchmark_test_namespace
               << total_time / number_of_tests / 1000 << " milli-seconds"
               << std::endl;
   }
-/*
+
+
   TEST(ButcherBenchmarkTest,
        compute_k_shortest_paths_test_network_basic_weights)
   {
@@ -222,6 +223,7 @@ namespace butcher_benchmark_test_namespace
 
   }
 
+
   TEST(ButcherBenchmarkTest, compute_k_shortest_paths_test_network_real_weights)
   {
     std::string path      = "resnet18-v2-7-inferred";
@@ -298,9 +300,9 @@ namespace butcher_benchmark_test_namespace
 
 
   }
-*/
 
-/*
+
+
   TEST(ButcherBenchmarkTest,
        compute_k_shortest_paths_eppstein_vs_lazy_random_multiple)
   {
@@ -387,7 +389,7 @@ namespace butcher_benchmark_test_namespace
               << " milliseconds" << std::endl;
   }
 
-*/
+
 
   Butcher<Content_type>
   basic_butcher(int num_nodes)

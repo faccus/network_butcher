@@ -104,14 +104,14 @@ protected:
   std::forward_list<edge_pointer>
   get_alternatives(
     H_g const &h_g,
-    std::map<std::size_t,
+    std::map<node_id_type,
              std::map<edge_pointer, std::forward_list<edge_pointer>>>
       &h_g_edge_edges,
-    std::vector<std::map<edge_pointer, std::forward_list<edge_pointer>>>
-                       const &h_out_edge_edges,
+    std::map<node_id_type,
+             std::map<edge_pointer, std::forward_list<edge_pointer>>>
+                       &h_out_edge_edges,
     edge_pointer const &edge) const
   {
-
     {
       auto const tmp_it = h_g_edge_edges.find(h_g.id);
 
@@ -129,8 +129,17 @@ protected:
         previous_steps.push_back(it);
 
         auto const associated_h_out = (*it)->heap.id;
-        h_g_map.insert(h_out_edge_edges[associated_h_out].cbegin(),
-                       h_out_edge_edges[associated_h_out].cend());
+        auto h_out_edge_edges_it    = h_out_edge_edges.find(associated_h_out);
+
+        if (h_out_edge_edges_it == h_out_edge_edges.cend())
+          {
+            auto tmp = h_out_edge_edges.insert(
+              {associated_h_out, get_internal_edges(*it)});
+            h_out_edge_edges_it = tmp.first;
+          }
+
+        h_g_map.insert(h_out_edge_edges_it->second.cbegin(),
+                       h_out_edge_edges_it->second.cend());
 
         std::size_t parent = (j - 1) / 2;
         if (parent != j && j > 0)
