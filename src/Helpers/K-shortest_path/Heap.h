@@ -25,8 +25,11 @@ public:
   explicit Heap(children_type children)
     : children{std::move(children)}
   {
-    std::sort(children.begin(), children.end());
   }
+
+  explicit Heap(std::vector<T> const children)
+    : children{std::move(children)}
+  {}
 };
 
 

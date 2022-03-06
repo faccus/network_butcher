@@ -47,20 +47,24 @@ public:
   virtual ~KFinder_Eppstein() = default;
 
 private:
-  /// It will construct a map associating every edge to its children
-  /// \param h_gs The h_g map
-  /// \return The map associating every edge to its children
-  [[nodiscard]] std::map<std::pair<edge_pointer, node_id_type>,
-                         std::set<std::pair<edge_pointer, node_id_type>>>
-  get_edge_edges(std::map<node_id_type, H_g> const &h_gs) const
+
+
+  /// It will construct for every h_out a map associating every edge to its
+  /// children
+  /// \param h_outs The h_out collections
+  /// \return The vector of maps  associating every edge to its children
+  [[nodiscard]] std::vector<std::map<edge_pointer, std::forward_list<edge_pointer>>>
+  get_h_out_edge_edges(H_out_map const &h_outs) const
   {
-    std::map<std::pair<edge_pointer, node_id_type>,
-             std::set<std::pair<edge_pointer, node_id_type>>>
-      res;
-    for (auto it = h_gs.cbegin(); it != h_gs.cend(); ++it) // O(N)
-      base::get_internal_edges(res, it->second);
+    std::vector<std::map<edge_pointer, std::forward_list<edge_pointer>>> res;
+    res.reserve(h_outs.size());
+
+    for (auto const &h_out : h_outs)
+      res.push_back(base::get_internal_edges(h_out.second));
+
     return res;
   }
+
 
   /// Helper function in the construction of the H_outs
   /// \param successors The list of the successors of every node (the node
@@ -77,9 +81,8 @@ private:
   {
     H_out_map   h_out;
     auto const &graph     = base_shortest::graph;
-    auto const  num_nodes = graph.get_nodes().size();
 
-    for (auto i = 0; i < real_num_nodes; ++i)
+    for (auto i = 0; i < real_num_nodes; ++i) // O(N)
       {
         auto it =
           h_out.insert(h_out.cend(), {i, std::make_shared<H_out<edge_info>>()});
@@ -89,13 +92,13 @@ private:
     for (auto const &edge_pair : sidetrack_distances) // O(E)
       {
         auto const &edge               = edge_pair.first;
-        auto const &sidetrack_distance = edge_pair.second;
 
         auto const &tail = edge.first;
         auto const &succ = successors[tail];
 
         if (edge.second != succ)
           {
+            auto const &sidetrack_distance = edge_pair.second;
             edge_info tmp(edge, sidetrack_distance);
             auto     &children = h_out[tail]->heap.children;
 
@@ -220,17 +223,15 @@ private:
   /// \param dij_res The result of the dijkstra algorithm
   /// \param sidetrack_distances_res The sidetrack distances of every edge
   /// \param h_g The h_g map
-  /// \param edges_edges The edge_edges map
+  /// \param edge_edges The edge_edges map
   /// \return The (implicit) shortest paths
   std::vector<implicit_path_info>
   base_path_selector_eppstein(
-    std::size_t                        K,
-    dijkstra_result_type const        &dij_res,
-    weights_collection_type const     &sidetrack_distances_res,
-    std::map<node_id_type, H_g> const &h_g,
-    std::map<std::pair<edge_pointer, node_id_type>,
-             std::set<std::pair<edge_pointer, node_id_type>>> const
-      &edges_edges) const
+    std::size_t                                  K,
+    dijkstra_result_type const                  &dij_res,
+    weights_collection_type const               &sidetrack_distances_res,
+    std::map<node_id_type, H_g> const           &h_g,
+    std::map<node_id_type, H_out_pointer> const &h_out) const
   {
     std::vector<implicit_path_info> res;
     res.push_back({{}, dij_res.second.front()});
@@ -244,11 +245,15 @@ private:
       return res;
     auto const &first_side_track = first_side_track_res.second;
 
+    auto const h_out_edge_edges = get_h_out_edge_edges(h_out);
+    std::map<std::size_t,
+             std::map<edge_pointer, std::forward_list<edge_pointer>>>
+      h_g_edge_edges;
+
     std::set<implicit_path_info> Q;
 
     implicit_path_info first_path;
-    first_path.sidetracks = {
-      {first_side_track.edge, first_side_track.edge->first}};
+    first_path.sidetracks = {first_side_track.edge};
     first_path.length = first_side_track.delta_weight + dij_res.second.front();
 
     Q.insert(std::move(first_path));
@@ -265,7 +270,7 @@ private:
         res.push_back(SK);
 
         auto const  e      = SK.sidetracks.back();
-        auto const &e_edge = *e.first;
+        auto const &e_edge = *e;
 
         auto const ot = sidetrack_distances_res.find(e_edge);
 
@@ -283,19 +288,31 @@ private:
             auto const &f = f_res.second;
 
             auto mod_sk = SK;
-            mod_sk.sidetracks.push_back({f.edge, e_edge.second});
+            mod_sk.sidetracks.push_back(f.edge);
             mod_sk.length += f.delta_weight;
             Q.insert(std::move(mod_sk));
           }
 
-        auto const it = edges_edges.find(e);
-        if (it != edges_edges.cend())
+        node_id_type h_g_search;
+
+        if (SK.sidetracks.size() == 1)
+          h_g_search = 0;
+        else
+          {
+            auto const tmp_it = ++SK.sidetracks.crbegin();
+            h_g_search        = (*tmp_it)->second;
+          }
+
+        auto const alternatives = base::get_alternatives(
+          h_g.find(h_g_search)->second, h_g_edge_edges, h_out_edge_edges, e);
+
+        if (!alternatives.empty())
           {
             SK.sidetracks.pop_back();
 
-            for (auto const &f : it->second)
+            for (auto const &f : alternatives)
               {
-                auto const &f_edge = *f.first;
+                auto const &f_edge = *f;
 
                 auto ut = sidetrack_distances_res.find(f_edge);
 
@@ -308,20 +325,6 @@ private:
                 auto mod_sk = SK;
                 mod_sk.sidetracks.push_back(f);
                 mod_sk.length += (ut->second - ot->second);
-
-                if (!SK.sidetracks.empty())
-                  {
-                    auto n = mod_sk.sidetracks[mod_sk.sidetracks.size() - 2]
-                               .first->second;
-                    while (n != graph.get_nodes().size() - 1 &&
-                           n != mod_sk.sidetracks.back().first->first)
-                      {
-                        n = successors[n];
-                      }
-
-                    if (n != mod_sk.sidetracks.back().first->first)
-                      continue;
-                  }
 
                 Q.insert(std::move(mod_sk));
               }
@@ -359,10 +362,9 @@ private:
       construct_h_out(successors, sidetrack_distances_res); // O(N+E*log(N))
 
     auto const h_g         = construct_h_g(h_out, successors); // O(N*log(N))
-    auto       edges_edges = get_edge_edges(h_g);
 
     return base_path_selector_eppstein(
-      K, dij_res, sidetrack_distances_res, h_g, edges_edges);
+      K, dij_res, sidetrack_distances_res, h_g, h_out);
   }
 };
 

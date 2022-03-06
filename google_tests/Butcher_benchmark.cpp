@@ -53,7 +53,28 @@ namespace butcher_benchmark_test_namespace
   real_transmission(Butcher<graph_input_type> &);
 
 
-/*
+
+  TEST(ButcherBenchmarkTest, correct_basic_weight_generation)
+  {
+    std::vector<type_collection_weights> weight_maps;
+
+
+    std::size_t num_nodes   = 100;
+    std::size_t num_devices = 3;
+
+    auto maps = basic_weight(num_devices, num_nodes, weight_maps);
+
+    for (auto const &pair : weight_maps.front())
+      for (std::size_t k = 1; k < num_devices; ++k)
+        {
+          auto const second_value =
+            weight_maps[k].find(pair.first)->second * std::pow(2, k);
+
+          EXPECT_DOUBLE_EQ(pair.second, second_value);
+        }
+  }
+
+  /*
   TEST(ButcherBenchmarkTest,
        compute_k_shortest_paths_lazy_eppstein_multiple_random)
   {
@@ -88,11 +109,12 @@ namespace butcher_benchmark_test_namespace
               << std::endl;
   }
 
+    */
   TEST(ButcherBenchmarkTest, compute_k_shortest_paths_eppstein_multiple_random)
   {
     std::size_t       num_devices     = 3;
     std::size_t const num_nodes       = 100;
-    std::size_t const number_of_tests = 10000;
+    std::size_t const number_of_tests = 1000;
 
     auto        butcher = basic_butcher(num_nodes);
     auto const &graph   = butcher.get_graph();
@@ -120,8 +142,7 @@ namespace butcher_benchmark_test_namespace
               << total_time / number_of_tests / 1000 << " milli-seconds"
               << std::endl;
   }
-*/
-
+/*
   TEST(ButcherBenchmarkTest,
        compute_k_shortest_paths_test_network_basic_weights)
   {
@@ -199,29 +220,6 @@ namespace butcher_benchmark_test_namespace
     ASSERT_EQ(eppstein, lazy_eppstein);
 
 
-        /*
-    crono.start();
-    auto model_decomp =
-      butcher.reconstruct_model(lazy_eppstein_res.back().first);
-    crono.stop();
-
-    std::cout << "Model reconstruction: " << crono.wallTime() / 1000
-              << " milliseconds" << std::endl;
-
-    crono.start();
-    for (std::size_t i = 0; i < model_decomp.size(); ++i)
-      {
-        auto const &model    = model_decomp[i];
-        std::string out_path = path;
-        out_path += "-" + std::to_string(i) + "-dev" +
-                    std::to_string(model.second) + extension;
-
-        utilities::output_onnx_file(model.first, out_path);
-      }
-    crono.stop();
-    std::cout << "Model output: " << crono.wallTime() / 1000 << " milliseconds"
-              << std::endl;
-    */
   }
 
   TEST(ButcherBenchmarkTest, compute_k_shortest_paths_test_network_real_weights)
@@ -299,53 +297,10 @@ namespace butcher_benchmark_test_namespace
     ASSERT_EQ(eppstein, lazy_eppstein);
 
 
-        /*
-    crono.start();
-    auto model_decomp =
-      butcher.reconstruct_model(lazy_eppstein_res.back().first);
-    crono.stop();
-
-    std::cout << "Model reconstruction: " << crono.wallTime() / 1000
-              << " milliseconds" << std::endl;
-
-    crono.start();
-    for (std::size_t i = 0; i < model_decomp.size(); ++i)
-      {
-        auto const &model    = model_decomp[i];
-        std::string out_path = path;
-        out_path += "-" + std::to_string(i) + "-dev" +
-                    std::to_string(model.second) + extension;
-
-        utilities::output_onnx_file(model.first, out_path);
-      }
-    crono.stop();
-    std::cout << "Model output: " << crono.wallTime() / 1000 << " milliseconds"
-              << std::endl;
-    */
   }
+*/
 
-
-  TEST(ButcherBenchmarkTest, correct_basic_weight_generation)
-  {
-    std::vector<type_collection_weights> weight_maps;
-
-
-    std::size_t num_nodes   = 100;
-    std::size_t num_devices = 3;
-
-    auto maps = basic_weight(num_devices, num_nodes, weight_maps);
-
-    for (auto const &pair : weight_maps.front())
-      for (std::size_t k = 1; k < num_devices; ++k)
-        {
-          auto const second_value =
-            weight_maps[k].find(pair.first)->second * std::pow(2, k);
-
-          EXPECT_DOUBLE_EQ(pair.second, second_value);
-        }
-  }
-
-
+/*
   TEST(ButcherBenchmarkTest,
        compute_k_shortest_paths_eppstein_vs_lazy_random_multiple)
   {
@@ -432,7 +387,7 @@ namespace butcher_benchmark_test_namespace
               << " milliseconds" << std::endl;
   }
 
-
+*/
 
   Butcher<Content_type>
   basic_butcher(int num_nodes)

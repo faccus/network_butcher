@@ -239,7 +239,7 @@ private:
         res.push_back(SK);
 
         auto const  e      = SK.sidetracks.back();
-        auto const &e_edge = *e.first;
+        auto const &e_edge = *e;
 
         auto const ot = sidetrack_distances_res.find(e_edge);
 

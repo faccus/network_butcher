@@ -3,7 +3,7 @@
 //
 
 #include "../../../src/Helpers/K-shortest_path/KEppstein.h"
-#include "../../../src/Helpers/K-shortest_path/KEppstein_lazy.h"
+//#include "../../../src/Helpers/K-shortest_path/KEppstein_lazy.h"
 #include "../../TestClass.h"
 #include <gtest/gtest.h>
 
@@ -93,7 +93,7 @@ namespace KspTestNamespace
 
     ASSERT_EQ(path_lengths, real_path_lengths);
   }
-
+/*
   TEST(KspTests, LazyEppsteinOriginalNetwork)
   {
     auto const            graph = eppstein_graph();
@@ -119,7 +119,7 @@ namespace KspTestNamespace
 
     ASSERT_EQ(path_lengths, real_path_lengths);
   }
-
+*/
 
   Graph<Content_input>
   basic_graph()

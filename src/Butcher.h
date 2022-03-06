@@ -17,7 +17,7 @@
 #include "Network/Node.h"
 
 #include "Helpers/K-shortest_path/KEppstein.h"
-#include "Helpers/K-shortest_path/KEppstein_lazy.h"
+//#include "Helpers/K-shortest_path/KEppstein_lazy.h"
 
 #include "Helpers/Types/Type_info.h"
 
@@ -644,7 +644,7 @@ public:
     return get_weighted_network_slice(res, new_graph.first);
   }
 
-
+/*
   /// It will prodice the k-shortest paths for the linearized block graph
   /// associated with the original one
   /// \param weights The vector of weight map function, that associates to every
@@ -670,6 +670,7 @@ public:
 
     return get_weighted_network_slice(res, new_graph.first);
   }
+  */
 };
 
 #endif // NETWORK_BUTCHER_BUTCHER_H
