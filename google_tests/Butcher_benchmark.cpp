@@ -31,12 +31,14 @@ namespace butcher_benchmark_test_namespace
   std::vector<std::function<type_weight(edge_type const &)>>
   basic_weight(std::size_t,
                std::size_t,
-               std::vector<type_collection_weights> &);
+               std::vector<type_collection_weights> &,
+               bool = false);
 
   std::vector<std::function<type_weight(edge_type const &)>>
   basic_weight(Graph<graph_input_type> const &,
                std::size_t,
-               std::vector<type_collection_weights> &);
+               std::vector<type_collection_weights> &,
+               bool = false);
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
     basic_transmission(std::size_t, std::size_t);
@@ -80,7 +82,7 @@ namespace butcher_benchmark_test_namespace
   {
     std::size_t       num_devices     = 3;
     std::size_t const num_nodes       = 100;
-    std::size_t const number_of_tests = 10000;
+    std::size_t const number_of_tests = 1000;
 
     auto        butcher = basic_butcher(num_nodes);
     auto const &graph   = butcher.get_graph();
@@ -90,7 +92,7 @@ namespace butcher_benchmark_test_namespace
     for (auto num_test = 0; num_test < number_of_tests; ++num_test)
       {
         std::vector<type_collection_weights> weight_maps;
-        auto maps = basic_weight(num_devices, num_nodes, weight_maps);
+        auto maps = basic_weight(num_devices, num_nodes, weight_maps, true);
 
         auto transmission_fun =
           basic_transmission(num_devices, graph.get_nodes().size());
@@ -124,7 +126,7 @@ namespace butcher_benchmark_test_namespace
     for (auto num_test = 0; num_test < number_of_tests; ++num_test)
       {
         std::vector<type_collection_weights> weight_maps;
-        auto maps = basic_weight(num_devices, num_nodes, weight_maps);
+        auto maps = basic_weight(num_devices, num_nodes, weight_maps, true);
 
         auto transmission_fun =
           basic_transmission(num_devices, graph.get_nodes().size());
@@ -304,12 +306,12 @@ namespace butcher_benchmark_test_namespace
 
 
   TEST(ButcherBenchmarkTest,
-       compute_k_shortest_paths_eppstein_vs_lazy_random_multiple)
+       compute_k_shortest_paths_eppstein_vs_lazy_deterministic_multiple)
   {
     std::vector<node_type> nodes;
 
     std::size_t       num_devices = 3;
-    std::size_t const num_nodes   = 1000;
+    std::size_t const num_nodes   = 100;
 
     std::size_t k = 1000;
 
@@ -380,6 +382,8 @@ namespace butcher_benchmark_test_namespace
                              lazy_eppstein_res.end());
 
         ASSERT_EQ(eppstein, lazy_eppstein);
+
+        std::cout << "Test number #" << num_test << std::endl;
       }
 
     std::cout << "Lazy Eppstein: " << time_lazy / 1000 / number_of_tests
@@ -411,10 +415,22 @@ namespace butcher_benchmark_test_namespace
   std::vector<std::function<type_weight(edge_type const &)>>
   basic_weight(std::size_t                           num_devices,
                std::size_t                           num_nodes,
-               std::vector<type_collection_weights> &weight_maps)
+               std::vector<type_collection_weights> &weight_maps,
+               bool                                  fully_random)
   {
-    std::random_device         rd;
-    std::default_random_engine random_engine{rd()};
+    std::size_t seed;
+
+    if (fully_random)
+      {
+        std::random_device rd;
+        seed = rd();
+      }
+    else
+      {
+        seed = 0;
+      }
+
+    std::default_random_engine random_engine{seed};
 
     std::uniform_int_distribution node_weights_generator{5000, 10000};
 
@@ -451,10 +467,21 @@ namespace butcher_benchmark_test_namespace
   std::vector<std::function<type_weight(edge_type const &)>>
   basic_weight(Graph<graph_input_type> const        &graph,
                std::size_t                           num_devices,
-               std::vector<type_collection_weights> &weight_maps)
+               std::vector<type_collection_weights> &weight_maps,
+               bool                                  fully_random)
   {
-    std::random_device         rd;
-    std::default_random_engine random_engine{rd()};
+    std::size_t seed;
+
+    if (fully_random)
+      {
+        std::random_device rd;
+        seed = rd();
+      }
+    else
+      {
+        seed = 0;
+      }
+    std::default_random_engine random_engine{seed};
 
     auto const num_nodes = graph.get_nodes().size();
 

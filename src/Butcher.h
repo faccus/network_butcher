@@ -6,7 +6,7 @@
 #define NETWORK_BUTCHER_BUTCHER_H
 
 #include <algorithm>
-
+#include <forward_list>
 
 #include "Helpers/Traits/Graph_traits.h"
 #include "Helpers/Traits/Hardware_traits.h"
@@ -435,14 +435,6 @@ private:
       });
   }
 
-  [[nodiscard]] std::size_t
-  get_num_devices(std::size_t const &original_graph_size,
-                  std::size_t const &new_graph_size) const
-  {
-    if (original_graph_size > 2)
-      return (new_graph_size - 2) / (original_graph_size - 2);
-    return 1;
-  }
 
   [[nodiscard]] std::size_t
   get_device_id(node_id_type const &node_id,
@@ -460,7 +452,8 @@ private:
 
   [[nodiscard]] real_path
   get_network_slices(path_info const   &new_path,
-                     new_network const &new_graph) const
+                     new_network const &new_graph,
+                     std::size_t num_devices) const
   {
     real_path   res;
     std::size_t current_model_device = 0;
@@ -469,9 +462,6 @@ private:
 
     auto const  new_graph_size = new_graph.get_nodes().size();
     auto const &path_nodes     = new_path.path;
-
-    auto const num_devices =
-      get_num_devices(path_nodes.size() - 2, new_graph_size);
 
     for (std::size_t i = 0; i < path_nodes.size(); ++i)
       {
@@ -497,15 +487,16 @@ private:
 
   [[nodiscard]] std::vector<real_path>
   get_network_slices(std::vector<path_info> const &new_paths,
-                     new_network const            &new_graph) const
+                     new_network const            &new_graph,
+                     std::size_t num_of_devices) const
   {
     std::vector<real_path> res(new_paths.size());
 
     std::transform(new_paths.begin(),
                    new_paths.end(),
                    res.begin(),
-                   [&new_graph, this](path_info const &path) {
-                     return get_network_slices(path, new_graph);
+                   [&new_graph, &num_of_devices, this](path_info const &path) {
+                     return get_network_slices(path, new_graph, num_of_devices);
                    });
 
     return res;
@@ -513,9 +504,11 @@ private:
 
   [[nodiscard]] weighted_real_path
   get_weighted_network_slice(std::vector<path_info> const &new_paths,
-                             new_network const            &new_graph) const
+                             new_network const            &new_graph,
+                             std::size_t num_of_devices) const
   {
-    auto               network_slice = get_network_slices(new_paths, new_graph);
+    auto network_slice =
+      get_network_slices(new_paths, new_graph, num_of_devices);
     weighted_real_path final_res;
 
     final_res.reserve(network_slice.size());
@@ -641,7 +634,7 @@ public:
     KFinder_Eppstein kFinder(new_graph.first);
     auto const       res = kFinder.eppstein(k);
 
-    return get_weighted_network_slice(res, new_graph.first);
+    return get_weighted_network_slice(res, new_graph.first, num_of_devices);
   }
 
 
@@ -667,7 +660,7 @@ public:
     KFinder_Lazy_Eppstein kFinder(new_graph.first);
     auto const res = kFinder.lazy_eppstein(k);
 
-    return get_weighted_network_slice(res, new_graph.first);
+    return get_weighted_network_slice(res, new_graph.first, num_of_devices);
   }
 
 };
