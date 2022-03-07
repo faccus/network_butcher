@@ -47,8 +47,8 @@ public:
   virtual ~KFinder_Lazy_Eppstein() = default;
 
 private:
-  std::pair<bool, H_g_map::iterator>
-  find_h_g_in_map(H_g_map &h_g, node_id_type node)
+  std::pair<bool, H_g_collection::iterator>
+  find_h_g_in_map(H_g_collection &h_g, node_id_type node)
   {
     auto it = h_g.find(node);
     return {it != h_g.end(), it};
@@ -61,8 +61,8 @@ private:
   /// \param successors The successor collection
   /// \param node The node associated to the h_out to construct
   /// \return The iterator of the added h_out
-  H_out_map::iterator
-  construct_partial_h_out(H_out_map                       &h_out,
+  H_out_collection::iterator
+  construct_partial_h_out(H_out_collection                &h_out,
                           weights_collection_type const   &sidetrack_distances,
                           std::vector<node_id_type> const &successors,
                           node_id_type                     node) const
@@ -108,11 +108,12 @@ private:
   /// \param sidetrack_distances The sidetrack distances
   /// \param successors The successor collection
   /// \param node The node associated to the h_out to construct
-  /// \param edge_edges The edge_edges map
+  /// \param edge_edges
+  /// The edge_edges map
   /// \return The iterator to the added element
-  H_g_map::iterator
-  construct_partial_h_g(H_g_map                         &h_g,
-                        H_out_map                       &h_out,
+  H_g_collection::iterator
+  construct_partial_h_g(H_g_collection                  &h_g,
+                        H_out_collection                &h_out,
                         weights_collection_type const   &sidetrack_distances,
                         std::vector<node_id_type> const &successors,
                         node_id_type                     node)
@@ -186,8 +187,8 @@ private:
     auto const &successors          = dij_res.first;
     auto const &shortest_paths_cost = dij_res.second;
 
-    H_out_map                   h_out;
-    H_g_map h_g;
+    H_out_collection h_out;
+    H_g_collection   h_g;
 
     edge_edges_type h_out_edge_edges;
     edge_edges_type h_g_edge_edges;

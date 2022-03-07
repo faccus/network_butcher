@@ -47,24 +47,6 @@ public:
 
 private:
 
-
-  /// It will construct for every h_out a map associating every edge to its
-  /// children
-  /// \param h_outs The h_out collections
-  /// \return The vector of maps  associating every edge to its children
-  [[nodiscard]] std::vector<std::map<edge_pointer, std::forward_list<edge_pointer>>>
-  get_h_out_edge_edges(H_out_map const &h_outs) const
-  {
-    std::vector<std::map<edge_pointer, std::forward_list<edge_pointer>>> res;
-    res.reserve(h_outs.size());
-
-    for (auto const &h_out : h_outs)
-      res.push_back(base::get_internal_edges(h_out.second));
-
-    return res;
-  }
-
-
   /// Helper function in the construction of the H_outs
   /// \param successors The list of the successors of every node (the node
   /// following the current one in the shortest path)
@@ -73,12 +55,12 @@ private:
   /// \param real_num_nodes The real number of nodes (that is the number of
   /// nodes taking into account the multiple devices)
   /// \return H_out map
-  [[nodiscard]] H_out_map
+  [[nodiscard]] H_out_collection
   helper_construct_h_out(std::vector<node_id_type> const &successors,
                          weights_collection_type const   &sidetrack_distances,
                          std::size_t const                real_num_nodes) const
   {
-    H_out_map   h_out;
+    H_out_collection h_out;
     auto const &graph     = base_shortest::graph;
 
     for (auto i = 0; i < real_num_nodes; ++i) // O(N)
@@ -108,6 +90,7 @@ private:
     return h_out;
   }
 
+
   /// Given the successors collection and the sidetrack distances, it will
   /// construct the h_out map
   /// \param successors The list of the successors of every node (the node
@@ -115,7 +98,7 @@ private:
   /// \param sidetrack_distances The collection of the sidetrack distances for
   /// all the sidetrack edges
   /// \return H_out map
-  [[nodiscard]] H_out_map
+  [[nodiscard]] H_out_collection
   construct_h_out(
     std::vector<node_id_type> const &successors,
     weights_collection_type const   &sidetrack_distances) const // O(N+E*log(N))
@@ -133,12 +116,12 @@ private:
   /// following the current one in the shortest path)
   /// \param num_nodes The number of nodes
   /// \return The h_g map
-  [[nodiscard]] H_g_map
-  helper_construct_h_g(H_out_map const &h_out,
+  [[nodiscard]] H_g_collection
+  helper_construct_h_g(H_out_collection const &h_out,
                        std::vector<node_id_type> const             &successors,
                        std::size_t const &num_nodes) const // O(N*log(N))
   {
-    H_g_map res;
+    H_g_collection res;
 
     auto const &graph = base_shortest::graph;
     auto const &nodes = graph.get_nodes();
@@ -201,12 +184,13 @@ private:
     return res;
   }
 
+
   /// It will produce the map associating every node to its corresponding H_g
   /// map \param h_out The collection of h_outs \param successors The successors
   /// list \return The map associating every node to its corresponding H_g map
-  [[nodiscard]] H_g_map
+  [[nodiscard]] H_g_collection
   construct_h_g(
-    H_out_map const &h_out,
+    H_out_collection const &h_out,
     std::vector<node_id_type> const &successors) const // O(N*log(N))
   {
     return helper_construct_h_g(h_out,
@@ -228,8 +212,8 @@ private:
     std::size_t                    K,
     dijkstra_result_type const    &dij_res,
     weights_collection_type const &sidetrack_distances_res,
-    H_g_map const                 &h_g,
-    H_out_map const               &h_out) const
+    H_g_collection const                 &h_g,
+    H_out_collection const               &h_out) const
   {
     std::vector<implicit_path_info> res;
     res.push_back({{}, dij_res.second.front()});

@@ -29,7 +29,7 @@ protected:
   /// corresponding sidetrack edge
   [[nodiscard]] std::pair<bool, edge_info>
   extrack_first_sidetrack_edge(node_id_type const                &j,
-                               std::map<node_id_type, H_g> const &h_g) const
+                               H_g_collection const &h_g) const
   {
     auto const it = h_g.find(j);
     if (it == h_g.cend() || it->second.children.empty() ||

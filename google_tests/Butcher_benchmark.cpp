@@ -32,13 +32,13 @@ namespace butcher_benchmark_test_namespace
   basic_weight(std::size_t,
                std::size_t,
                std::vector<type_collection_weights> &,
-               bool = false);
+               bool);
 
   std::vector<std::function<type_weight(edge_type const &)>>
   basic_weight(Graph<graph_input_type> const &,
                std::size_t,
                std::vector<type_collection_weights> &,
-               bool = false);
+               bool);
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
     basic_transmission(std::size_t, std::size_t);
@@ -66,7 +66,7 @@ namespace butcher_benchmark_test_namespace
     std::size_t num_nodes   = 100;
     std::size_t num_devices = 3;
 
-    auto maps = basic_weight(num_devices, num_nodes, weight_maps);
+    auto maps = basic_weight(num_devices, num_nodes, weight_maps, true);
 
     for (auto const &pair : weight_maps.front())
       for (std::size_t k = 1; k < num_devices; ++k)
@@ -96,7 +96,7 @@ namespace butcher_benchmark_test_namespace
     std::vector<type_collection_weights> weight_maps;
 
 
-    auto maps             = basic_weight(graph, num_devices, weight_maps);
+    auto maps             = basic_weight(graph, num_devices, weight_maps, true);
     auto transmission_fun = basic_transmission(num_devices, nodes.size());
 
     Chrono crono;
@@ -259,7 +259,7 @@ namespace butcher_benchmark_test_namespace
     for (auto num_test = 0; num_test < number_of_tests; ++num_test)
       {
         std::vector<type_collection_weights> weight_maps;
-        auto maps = basic_weight(num_devices, num_nodes, weight_maps);
+        auto maps = basic_weight(num_devices, num_nodes, weight_maps, false);
 
         auto transmission_fun =
           basic_transmission(num_devices, graph.get_nodes().size());
@@ -317,7 +317,7 @@ namespace butcher_benchmark_test_namespace
 
         ASSERT_EQ(eppstein, lazy_eppstein);
 
-        std::cout << "Test number #" << num_test
+        std::cout << "Test number #" << (num_test + 1)
                   << ", Lazy: " << time_instance_lazy / 1000
                   << " ms, Epp: " << time_instance_std / 1000 << " ms"
                   << std::endl;
