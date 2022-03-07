@@ -243,11 +243,11 @@ namespace butcher_benchmark_test_namespace
     std::vector<node_type> nodes;
 
     std::size_t       num_devices = 3;
-    std::size_t const num_nodes   = 100;
+    std::size_t const num_nodes   = 1000;
 
     std::size_t k = 1000;
 
-    std::size_t number_of_tests = 100;
+    std::size_t number_of_tests = 1000;
 
 
     auto        butcher = basic_butcher(num_nodes);
