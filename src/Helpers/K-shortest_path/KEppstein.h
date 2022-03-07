@@ -15,8 +15,6 @@ public:
   using base          = KFinder<Graph_type>;
   using base_shortest = Shortest_path_finder<Graph_type>;
 
-  using H_out_map = std::map<node_id_type, H_out_pointer>;
-
 
   /// Applies the Eppstein algorithm to find the k-shortest paths on the given
   /// graph (from the first node to the last one)
@@ -135,16 +133,15 @@ private:
   /// following the current one in the shortest path)
   /// \param num_nodes The number of nodes
   /// \return The h_g map
-  [[nodiscard]] std::map<node_id_type, H_g>
-  helper_construct_h_g(std::map<node_id_type, H_out_pointer> const &h_out,
+  [[nodiscard]] H_g_map
+  helper_construct_h_g(H_out_map const &h_out,
                        std::vector<node_id_type> const             &successors,
                        std::size_t const &num_nodes) const // O(N*log(N))
   {
-    std::map<node_id_type, H_g> res;
+    H_g_map res;
 
     auto const &graph = base_shortest::graph;
     auto const &nodes = graph.get_nodes();
-
 
     std::vector<std::set<node_id_type>> sp_dependencies;
     sp_dependencies.resize(num_nodes);
@@ -207,9 +204,9 @@ private:
   /// It will produce the map associating every node to its corresponding H_g
   /// map \param h_out The collection of h_outs \param successors The successors
   /// list \return The map associating every node to its corresponding H_g map
-  [[nodiscard]] std::map<node_id_type, H_g>
+  [[nodiscard]] H_g_map
   construct_h_g(
-    std::map<node_id_type, H_out_pointer> const &h_out,
+    H_out_map const &h_out,
     std::vector<node_id_type> const &successors) const // O(N*log(N))
   {
     return helper_construct_h_g(h_out,
@@ -228,11 +225,11 @@ private:
   /// \return The (implicit) shortest paths
   std::vector<implicit_path_info>
   base_path_selector_eppstein(
-    std::size_t                                  K,
-    dijkstra_result_type const                  &dij_res,
-    weights_collection_type const               &sidetrack_distances_res,
-    std::map<node_id_type, H_g> const           &h_g,
-    std::map<node_id_type, H_out_pointer> const &h_out) const
+    std::size_t                    K,
+    dijkstra_result_type const    &dij_res,
+    weights_collection_type const &sidetrack_distances_res,
+    H_g_map const                 &h_g,
+    H_out_map const               &h_out) const
   {
     std::vector<implicit_path_info> res;
     res.push_back({{}, dij_res.second.front()});

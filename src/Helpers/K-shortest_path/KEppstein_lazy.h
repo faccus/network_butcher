@@ -15,8 +15,6 @@ public:
   using base          = KFinder<Graph_type>;
   using base_shortest = Shortest_path_finder<Graph_type>;
 
-  using H_out_map = std::map<node_id_type, H_out_pointer>;
-
 
   /// Applies the lazy Eppstein algorithm to find the k-shortest paths on the
   /// given graph (from the first node to the last one)
@@ -49,8 +47,8 @@ public:
   virtual ~KFinder_Lazy_Eppstein() = default;
 
 private:
-  std::pair<bool, std::map<node_id_type, H_g>::iterator>
-  find_h_g_in_map(std::map<node_id_type, H_g> &h_g, node_id_type node)
+  std::pair<bool, H_g_map::iterator>
+  find_h_g_in_map(H_g_map &h_g, node_id_type node)
   {
     auto it = h_g.find(node);
     return {it != h_g.end(), it};
@@ -112,13 +110,12 @@ private:
   /// \param node The node associated to the h_out to construct
   /// \param edge_edges The edge_edges map
   /// \return The iterator to the added element
-  std::map<node_id_type, H_g>::iterator
-  construct_partial_h_g(
-    std::map<node_id_type, H_g>           &h_g,
-    std::map<node_id_type, H_out_pointer> &h_out,
-    weights_collection_type const         &sidetrack_distances,
-    std::vector<node_id_type> const       &successors,
-    node_id_type                           node)
+  H_g_map::iterator
+  construct_partial_h_g(H_g_map                         &h_g,
+                        H_out_map                       &h_out,
+                        weights_collection_type const   &sidetrack_distances,
+                        std::vector<node_id_type> const &successors,
+                        node_id_type                     node)
   {
     auto pair_iterator = find_h_g_in_map(h_g, node);
     if (pair_iterator.first)
@@ -190,7 +187,7 @@ private:
     auto const &shortest_paths_cost = dij_res.second;
 
     H_out_map                   h_out;
-    std::map<node_id_type, H_g> h_g;
+    H_g_map h_g;
 
     edge_edges_type h_out_edge_edges;
     edge_edges_type h_g_edge_edges;
