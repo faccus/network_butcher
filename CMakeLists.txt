@@ -21,7 +21,7 @@ add_subdirectory(src)
 
 add_subdirectory(google_tests)
 
-add_executable(network_butcher_run main.cpp ${BASE_SOURCE} src/Helpers/IO_Manager.cpp src/Helpers/IO_Manager.h)
+add_executable(network_butcher_run main.cpp ${BASE_SOURCE} src/Helpers/IO_Manager.cpp src/Helpers/IO_Manager.h src/Helpers/Traits/Heap_traits.h)
 
 target_link_libraries(network_butcher_run  ${RUN_LIBRARIES_LOCATION})
 

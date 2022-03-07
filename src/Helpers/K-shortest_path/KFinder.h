@@ -6,8 +6,7 @@
 #define NETWORK_BUTCHER_KFINDER_H
 
 #include "Shortest_path_finder.h"
-
-#include <forward_list>
+#include "../Traits/Heap_traits.h"
 
 
 template <class Graph_type>
@@ -15,6 +14,7 @@ class KFinder : public Shortest_path_finder<Graph_type>
 {
 public:
   using base = Shortest_path_finder<Graph_type>;
+
 
   explicit KFinder(Graph_type const &g)
     : base(g){};
@@ -72,13 +72,14 @@ protected:
   /// It will return edge_edges with the parent-child relationships in h_out
   /// \param h_out H_out of a given node
   /// \return edge_edges The map of childrens for a given edge in h_out
-  [[nodiscard]] std::map<edge_pointer, std::forward_list<edge_pointer>>
+  [[nodiscard]] h_edge_edges_type
   get_internal_edges(H_out_pointer const &h_out) const
   {
-    std::map<edge_pointer, std::forward_list<edge_pointer>> edge_edges;
+    h_edge_edges_type edge_edges;
 
     std::size_t                                      j = 0;
-    std::vector<std::set<edge_info>::const_iterator> previous_steps;
+    std::vector<H_out<edge_info>::container_type::const_iterator>
+      previous_steps;
     previous_steps.reserve(h_out->heap.children.size());
 
     for (auto it = h_out->heap.children.cbegin();
@@ -93,7 +94,7 @@ protected:
             auto const &parent_edge  = previous_steps[parent]->edge;
             auto const &current_edge = it->edge;
 
-            edge_edges[parent_edge].push_front(current_edge);
+            edge_edges[parent_edge].push_back(current_edge);
           }
       }
 
@@ -101,16 +102,11 @@ protected:
   }
 
 
-  std::forward_list<edge_pointer>
-  get_alternatives(
-    H_g const &h_g,
-    std::map<node_id_type,
-             std::map<edge_pointer, std::forward_list<edge_pointer>>>
-      &h_g_edge_edges,
-    std::map<node_id_type,
-             std::map<edge_pointer, std::forward_list<edge_pointer>>>
-                       &h_out_edge_edges,
-    edge_pointer const &edge) const
+  edge_sequence
+  get_alternatives(H_g const          &h_g,
+                   edge_edges_type    &h_g_edge_edges,
+                   edge_edges_type    &h_out_edge_edges,
+                   edge_pointer const &edge) const
   {
     {
       auto const tmp_it = h_g_edge_edges.find(h_g.id);
@@ -119,9 +115,9 @@ protected:
         return (tmp_it->second)[edge];
     }
 
-    auto &h_g_map = h_g_edge_edges[h_g.id];
-    std::size_t                                          j = 0;
-    std::vector<std::set<H_out_pointer>::const_iterator> previous_steps;
+    auto       &h_g_map = h_g_edge_edges[h_g.id];
+    std::size_t j       = 0;
+    std::vector<H_g::container_type::const_iterator> previous_steps;
     previous_steps.reserve(h_g.children.size());
 
     for (auto it = h_g.children.cbegin(); it != h_g.children.cend(); ++it, ++j)
@@ -148,7 +144,7 @@ protected:
               (*previous_steps[parent])->heap.children.begin()->edge;
             auto const &current_edge = (*it)->heap.children.begin()->edge;
 
-            h_g_map[parent_edge].push_front(current_edge);
+            h_g_map[parent_edge].push_back(current_edge);
           }
       }
 
@@ -166,6 +162,8 @@ protected:
                   std::vector<implicit_path_info> const &epp_res)
   {
     std::vector<path_info> res;
+    res.reserve(epp_res.size());
+
     auto const            &graph = base::graph;
 
     for (auto implicit_path = epp_res.cbegin(); implicit_path != epp_res.cend();

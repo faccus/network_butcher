@@ -5,7 +5,8 @@
 #ifndef NETWORK_BUTCHER_KEPPSTEIN_LAZY_H
 #define NETWORK_BUTCHER_KEPPSTEIN_LAZY_H
 
-#include "KEppstein.h"
+#include "KFinder.h"
+#include "../Traits/Heap_traits.h"
 
 template <class Graph_type>
 class KFinder_Lazy_Eppstein : public KFinder<Graph_type>
@@ -177,8 +178,8 @@ private:
       return {};
     if (K == 1)
       return res;
-    res.reserve(K);
 
+    res.reserve(K);
 
     auto const sidetrack_distances_res =
       base::sidetrack_distances(dij_res.second); // O(E)
@@ -191,12 +192,8 @@ private:
     H_out_map                   h_out;
     std::map<node_id_type, H_g> h_g;
 
-    std::map<node_id_type,
-             std::map<edge_pointer, std::forward_list<edge_pointer>>>
-      h_out_edge_edges;
-    std::map<node_id_type,
-             std::map<edge_pointer, std::forward_list<edge_pointer>>>
-      h_g_edge_edges;
+    edge_edges_type h_out_edge_edges;
+    edge_edges_type h_g_edge_edges;
 
     construct_partial_h_g(
       h_g, h_out, sidetrack_distances_res, successors, 0);

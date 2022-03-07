@@ -6,7 +6,8 @@
 
 
 bool
-operator<(H_out_pointer const &lhs, H_out_pointer const &rhs)
+operator<(std::shared_ptr<H_out<edge_info>> const &lhs,
+          std::shared_ptr<H_out<edge_info>> const &rhs)
 {
   return *lhs < *rhs;
 };

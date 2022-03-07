@@ -6,6 +6,7 @@
 #define NETWORK_BUTCHER_KEPPSTEIN_H
 
 #include "KFinder.h"
+#include "../Traits/Heap_traits.h"
 
 template <class Graph_type>
 class KFinder_Eppstein : public KFinder<Graph_type>
@@ -243,14 +244,13 @@ private:
       base::extrack_first_sidetrack_edge(0, h_g);
     if (!first_side_track_res.first)
       return res;
+
+    res.reserve(K);
+
     auto const &first_side_track = first_side_track_res.second;
 
-    std::map<node_id_type,
-             std::map<edge_pointer, std::forward_list<edge_pointer>>>
-      h_out_edge_edges;
-    std::map<node_id_type,
-             std::map<edge_pointer, std::forward_list<edge_pointer>>>
-      h_g_edge_edges;
+    edge_edges_type h_out_edge_edges;
+    edge_edges_type h_g_edge_edges;
 
     std::set<implicit_path_info> Q;
 
@@ -296,7 +296,6 @@ private:
           }
 
         node_id_type h_g_search;
-
         if (SK.sidetracks.size() == 1)
           h_g_search = 0;
         else

@@ -319,7 +319,8 @@ namespace butcher_benchmark_test_namespace
 
         std::cout << "Test number #" << num_test
                   << ", Lazy: " << time_instance_lazy / 1000
-                  << "ms, Epp: " << time_instance_std / 1000 << std::endl;
+                  << " ms, Epp: " << time_instance_std / 1000 << " ms"
+                  << std::endl;
       }
 
     std::cout << "Lazy Eppstein: " << time_lazy / 1000 / number_of_tests
