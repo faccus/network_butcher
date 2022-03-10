@@ -3,7 +3,7 @@
 //
 
 #include "../../../src/Helpers/K-shortest_path/KEppstein.h"
-//#include "../../../src/Helpers/K-shortest_path/KEppstein_lazy.h"
+#include "../../../src/Helpers/K-shortest_path/KEppstein_lazy.h"
 #include "../../TestClass.h"
 #include <gtest/gtest.h>
 
