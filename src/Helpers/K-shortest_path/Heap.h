@@ -17,19 +17,14 @@ class Heap
 public:
   using container_type = std::set<T>;
 
+  node_id_type   id;
   container_type children;
-  node_id_type  id;
-
 
   Heap() = default;
 
-  explicit Heap(container_type children)
-    : children{std::move(children)}
-  {
-  }
-
-  explicit Heap(std::vector<T> const children)
-    : children{std::move(children)}
+  explicit Heap(node_id_type id, container_type children)
+    : id(id)
+    , children{std::move(children)}
   {}
 };
 

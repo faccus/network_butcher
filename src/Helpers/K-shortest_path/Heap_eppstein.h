@@ -53,12 +53,11 @@ public:
   bool
   operator<(const H_out &rhs) const
   {
-    if (!heap.children.empty() && !rhs.heap.children.empty())
-      return *heap.children.cbegin() < *rhs.heap.children.cbegin();
-    else if (heap.children.empty() && rhs.heap.children.empty())
+    if(heap.children.empty())
       return true;
-    else
-      return heap.children.empty();
+    if(rhs.heap.children.empty())
+      return false;
+    return *heap.children.cbegin() < *rhs.heap.children.cbegin();
   }
 };
 
