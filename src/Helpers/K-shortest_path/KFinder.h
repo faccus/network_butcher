@@ -6,6 +6,7 @@
 #define NETWORK_BUTCHER_KFINDER_H
 
 #include "Shortest_path_finder.h"
+#include "../Traits/Heap_traits.h"
 
 
 template <class Graph_type>
@@ -13,6 +14,7 @@ class KFinder : public Shortest_path_finder<Graph_type>
 {
 public:
   using base = Shortest_path_finder<Graph_type>;
+
 
   explicit KFinder(Graph_type const &g)
     : base(g){};
@@ -27,7 +29,7 @@ protected:
   /// corresponding sidetrack edge
   [[nodiscard]] std::pair<bool, edge_info>
   extrack_first_sidetrack_edge(node_id_type const                &j,
-                               std::map<node_id_type, H_g> const &h_g) const
+                               H_g_collection const &h_g) const
   {
     auto const it = h_g.find(j);
     if (it == h_g.cend() || it->second.children.empty() ||
@@ -67,18 +69,17 @@ protected:
   }
 
 
-  /// It will update edge_edges with the parent-child relationships in h_out
-  /// \param edge_edges The map of childrens of the given edge
+  /// It will return edge_edges with the parent-child relationships in h_out
   /// \param h_out H_out of a given node
-  void
-  get_internal_edges(
-    std::map<std::pair<edge_pointer, node_id_type>,
-             std::set<std::pair<edge_pointer, node_id_type>>> &edge_edges,
-    H_out_pointer const                                       &h_out,
-    node_id_type                                               id) const
+  /// \return edge_edges The map of childrens for a given edge in h_out
+  [[nodiscard]] h_edge_edges_type
+  get_internal_edges(H_out_pointer const &h_out) const
   {
+    h_edge_edges_type edge_edges;
+
     std::size_t                                      j = 0;
-    std::vector<std::set<edge_info>::const_iterator> previous_steps;
+    std::vector<H_out<edge_info>::container_type::const_iterator>
+      previous_steps;
     previous_steps.reserve(h_out->heap.children.size());
 
     for (auto it = h_out->heap.children.cbegin();
@@ -93,49 +94,63 @@ protected:
             auto const &parent_edge  = previous_steps[parent]->edge;
             auto const &current_edge = it->edge;
 
-            edge_edges[{parent_edge, id}].insert({current_edge, id});
+            edge_edges[parent_edge].push_back(current_edge);
           }
       }
+
+    return edge_edges;
   }
 
-  /// It will update edge_edges with the parent-child relationships in h_g
-  /// \param edge_edges The map of childrens of the given edge
-  /// \param h_g H_g of a given node
-  /// \param include_h_outs Calls get_internal_edges for all the encountered
-  /// H_outs in H_g
-  void
-  get_internal_edges(
-    std::map<std::pair<edge_pointer, node_id_type>,
-             std::set<std::pair<edge_pointer, node_id_type>>> &edge_edges,
-    H_g const                                                 &h_g,
-    bool include_h_outs = true) const
+
+  edge_sequence
+  get_alternatives(H_g const          &h_g,
+                   edge_edges_type    &h_g_edge_edges,
+                   edge_edges_type    &h_out_edge_edges,
+                   edge_pointer const &edge) const
   {
-    std::size_t                                          j = 0;
-    std::vector<std::set<H_out_pointer>::const_iterator> previous_steps;
+    {
+      auto const tmp_it = h_g_edge_edges.find(h_g.id);
+
+      if (tmp_it != h_g_edge_edges.cend())
+        return (tmp_it->second)[edge];
+    }
+
+    auto       &h_g_map = h_g_edge_edges[h_g.id];
+    std::size_t j       = 0;
+    std::vector<H_g::container_type::const_iterator> previous_steps;
     previous_steps.reserve(h_g.children.size());
-    const auto &graph = base::graph;
 
-    auto const id = h_g.id;
-
-    for (auto it = h_g.children.cbegin(); it != h_g.children.cend();
-         ++it, ++j) // O(N)
+    for (auto it = h_g.children.cbegin(); it != h_g.children.cend(); ++it, ++j)
       {
         previous_steps.push_back(it);
 
-        if (include_h_outs)
-          get_internal_edges(edge_edges, *it, id); // O(N)
+        auto const associated_h_out = (*it)->heap.id;
+        auto h_out_edge_edges_it    = h_out_edge_edges.find(associated_h_out);
+
+        if (h_out_edge_edges_it == h_out_edge_edges.cend())
+          {
+            auto tmp = h_out_edge_edges.insert(
+              {associated_h_out, get_internal_edges(*it)});
+            h_out_edge_edges_it = tmp.first;
+          }
+
+        h_g_map.insert(h_out_edge_edges_it->second.cbegin(),
+                       h_out_edge_edges_it->second.cend());
 
         std::size_t parent = (j - 1) / 2;
-        if (j > 0 && parent != j)
+        if (parent != j && j > 0)
           {
             auto const &parent_edge =
-              (*previous_steps[parent])->heap.children.cbegin()->edge;
-            auto const &child_edge = (*it)->heap.children.cbegin()->edge;
+              (*previous_steps[parent])->heap.children.begin()->edge;
+            auto const &current_edge = (*it)->heap.children.begin()->edge;
 
-            edge_edges[{parent_edge, id}].insert({child_edge, id});
+            h_g_map[parent_edge].push_back(current_edge);
           }
       }
+
+    return h_g_map[edge];
   }
+
 
   /// Helper function for the Eppstein algorithm. It converts a vector of
   /// implicit paths to a vector of explicit paths
@@ -147,6 +162,8 @@ protected:
                   std::vector<implicit_path_info> const &epp_res)
   {
     std::vector<path_info> res;
+    res.reserve(epp_res.size());
+
     auto const            &graph = base::graph;
 
     for (auto implicit_path = epp_res.cbegin(); implicit_path != epp_res.cend();
@@ -166,9 +183,9 @@ protected:
         while (node_to_insert != nodes.back().get_id())
           {
             info.path.push_back(node_to_insert);
-            if (it != sidetracks.cend() && it->first->first == node_to_insert)
+            if (it != sidetracks.cend() && (*it)->first == node_to_insert)
               {
-                node_to_insert = it->first->second;
+                node_to_insert = (*it)->second;
                 ++it;
               }
             else

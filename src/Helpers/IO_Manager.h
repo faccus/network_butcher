@@ -29,8 +29,13 @@ public:
   static std::pair<graph_type, onnx::ModelProto>
   import_from_onnx(std::string const &path);
 
-  static void
-  export_to_onnx(std::pair<graph_type, onnx::ModelProto> const &);
+  static inline void
+  export_to_onnx(onnx::ModelProto const &model, std::string path)
+  {
+    utilities::output_onnx_file(model, path);
+  };
+
+
 };
 
 

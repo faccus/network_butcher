@@ -66,6 +66,8 @@ namespace butcher_test_namespace
     auto tot = butcher.compute_two_slice_memory_brute_force(half_size);
   }
 
+
+
   TEST(ButcherTest, compute_k_shortest_paths_eppstein_linear)
   {
     std::size_t num_devices = 3;
@@ -104,7 +106,7 @@ namespace butcher_test_namespace
     ASSERT_EQ(res.size(), 81);
   }
 
-  TEST(ButcherTest, compute_k_shortest_paths_eppstein_vs_lazy_random)
+  TEST(ButcherTest, compute_k_shortest_paths_eppstein_vs_lazy_linear)
   {
     std::size_t num_devices = 3;
     std::size_t k           = 1000;
@@ -178,6 +180,7 @@ namespace butcher_test_namespace
     std::cout << "Lazy eppstein: " << crono2.wallTime() / 1000
               << " milliseconds" << std::endl;
   }
+
 
 
   Butcher<Content_type>

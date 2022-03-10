@@ -24,7 +24,7 @@ struct path_info
 
 struct implicit_path_info
 {
-  std::vector<std::pair<edge_pointer, node_id_type>> sidetracks;
+  std::vector<edge_pointer> sidetracks;
   weight_type                                        length;
 
   constexpr bool

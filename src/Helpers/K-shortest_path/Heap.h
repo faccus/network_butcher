@@ -7,6 +7,7 @@
 
 #include "../Traits/Basic_traits.h"
 #include "../Traits/Node_traits.h"
+
 #include <utility>
 #include <vector>
 
@@ -14,19 +15,17 @@ template <class T>
 class Heap
 {
 public:
-  using children_type = std::set<T>;
+  using container_type = std::set<T>;
 
-  children_type children;
-  node_id_type  id;
-
+  node_id_type   id;
+  container_type children;
 
   Heap() = default;
 
-  explicit Heap(children_type children)
-    : children{std::move(children)}
-  {
-    std::sort(children.begin(), children.end());
-  }
+  explicit Heap(node_id_type id, container_type children)
+    : id(id)
+    , children{std::move(children)}
+  {}
 };
 
 
