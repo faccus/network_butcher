@@ -4,6 +4,7 @@
 
 #include "../../../src/Helpers/K-shortest_path/KEppstein.h"
 #include "../../../src/Helpers/K-shortest_path/KEppstein_lazy.h"
+
 #include "../../TestClass.h"
 #include <gtest/gtest.h>
 
@@ -93,13 +94,13 @@ namespace KspTestNamespace
 
     ASSERT_EQ(path_lengths, real_path_lengths);
   }
-/*
+
   TEST(KspTests, LazyEppsteinOriginalNetwork)
   {
     auto const            graph = eppstein_graph();
     KFinder_Lazy_Eppstein kfinder(graph);
 
-    int k = 100;
+    int k = 100; // Up to 10
 
     std::vector<type_weight> real_sol = {
       55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
@@ -119,7 +120,7 @@ namespace KspTestNamespace
 
     ASSERT_EQ(path_lengths, real_path_lengths);
   }
-*/
+
 
   Graph<Content_input>
   basic_graph()
