@@ -13,6 +13,8 @@ template <class T>
 class Content
 {
 private:
+  friend class IO_Manager;
+
   /// Collection of the ids of inputs of the node
   io_collection_type<T> input;
   /// Collection of the ids of outputs of the node
@@ -46,7 +48,7 @@ public:
 
   /// Read-only getter for input
   /// \return Const reference to input
-  inline const std::map<std::string, T> &
+  inline const io_collection_type<T> &
   get_input() const
   {
     return input;
@@ -54,7 +56,7 @@ public:
 
   /// Read-only getter for output
   /// \return Const reference to output
-  inline const std::map<std::string, T> &
+  inline const io_collection_type<T> &
   get_output() const
   {
     return output;
@@ -62,7 +64,7 @@ public:
 
   /// Read-only getter for parameters
   /// \return Const reference to parameters
-  inline const std::map<std::string, T> &
+  inline const io_collection_type<T> &
   get_parameters() const
   {
     return parameters;

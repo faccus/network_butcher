@@ -6,7 +6,7 @@
 
 
 std::pair<graph_type, onnx::ModelProto>
-IO_Manager::import_from_onnx(const std::string &path)
+IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
 {
   onnx::ModelProto model = utilities::parse_onnx_file(path);
   auto const &onnx_graph = model.graph();
@@ -27,22 +27,28 @@ IO_Manager::import_from_onnx(const std::string &path)
     onnx_io_read(value_infos, onnx_graph.value_info(), initialized);
   }
 
-  auto const &onnx_nodes = onnx_graph.node();
+  auto const            &onnx_nodes = onnx_graph.node();
   std::vector<node_type> nodes;
-  nodes.reserve(onnx_nodes.size());
+  nodes.reserve(onnx_nodes.size() + 2);
 
-  for(auto const & node : onnx_nodes)
+  if (add_padding_nodes)
+    {
+      io_collection_type<type_info_pointer> tt;
+      tt["__fake__input__"];
+      nodes.emplace_back(Content({}, tt));
+    }
+
+  for (auto const &node : onnx_nodes)
     {
       io_collection_type<type_info_pointer> inputs;
       io_collection_type<type_info_pointer> parameters;
       onnx_process_node(node.input(), inputs, parameters, value_infos);
-/*
-      if(inputs.empty())
-        continue;*/
+      /*
+            if(inputs.empty())
+              continue;*/
 
       io_collection_type<type_info_pointer> outputs;
       onnx_process_node(node.output(), outputs, parameters, value_infos);
-
 
 
       std::unordered_map<std::string, std::vector<std::size_t>> attributes;
@@ -69,6 +75,16 @@ IO_Manager::import_from_onnx(const std::string &path)
         inputs, outputs, parameters, attributes, operation_type);
 
       nodes.emplace_back(std::move(content));
+    }
+
+  if (add_padding_nodes)
+    {
+      io_collection_type<type_info_pointer> tt;
+      tt["__fake__output__"];
+      nodes.emplace_back(Content(tt, {}));
+
+      (++nodes.begin())->content.input["__fake__input__"];
+      (++nodes.rbegin())->content.output["__fake__output__"];
     }
 
   return {Graph(nodes), model};
