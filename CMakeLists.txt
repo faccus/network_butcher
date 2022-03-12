@@ -5,11 +5,11 @@ set(CMAKE_CXX_STANDARD 20)
 
 
 
-option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" OFF)
+option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
 message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
 
 
-option(BUILD_DOC "Build documentation" ON)
+option(BUILD_DOC "Build documentation" OFF)
 message(STATUS "Build documentation: ${BUILD_DOC}")
 
 option(BUILD_DOC_GRAPH "Build documentation graphs" ON)

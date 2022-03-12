@@ -25,7 +25,9 @@
 
 
 using real_path = std::vector<std::pair<std::size_t, std::set<node_id_type>>>;
-using weighted_real_path = std::vector<std::pair<real_path, weight_type>>;
+using weighted_real_path = std::pair<weight_type, real_path>;
+using weighted_real_paths = std::vector<weighted_real_path>;
+
 
 /// Butcher butchers a given graph into slices
 template <class T>
@@ -121,8 +123,10 @@ private:
     // original graph
     new_nodes.reserve(old_nodes.size());
     new_nodes.emplace_back(node_id_collection_type{});
-    ++id;
     new_nodes.back().content = node_id_collection_type{0};
+
+    old_to_new[old_nodes.begin()->get_id()] = id;
+    ++id;
 
     // Cycle through all the nodes of the graph
     for (auto it = ++old_nodes.begin(); it != old_nodes.end(); ++it)
@@ -193,10 +197,6 @@ private:
 
             counter += (dep.second.size() - 1);
           }
-        else
-          {
-            std::cout << std::endl;
-          }
       }
 
     auto const basic_size = new_nodes.size();
@@ -216,11 +216,11 @@ private:
       for (std::size_t i = 1; i < basic_size - 1; ++i)
         {
           new_nodes.emplace_back(node_id_collection_type{});
-          id++;
+          ++id;
         }
 
     // Move the content of the first nodes to their appropriate final position
-    for(std::size_t i = basic_size - 2; i > 1; --i)
+    for(std::size_t i = basic_size - 1; i > 1; --i)
       {
         new_nodes[1 + num_of_devices * (i - 1)].content =
           std::move(new_nodes[i].content);
@@ -502,32 +502,32 @@ private:
     return res;
   }
 
-  [[nodiscard]] weighted_real_path
+  [[nodiscard]] weighted_real_paths
   get_weighted_network_slice(std::vector<path_info> const &new_paths,
                              new_network const            &new_graph,
                              std::size_t num_of_devices) const
   {
     auto network_slice =
       get_network_slices(new_paths, new_graph, num_of_devices);
-    weighted_real_path final_res;
+    weighted_real_paths final_res;
 
     final_res.reserve(network_slice.size());
 
     for (std::size_t i = 0; i < network_slice.size(); ++i)
-      final_res.emplace_back(std::move(network_slice[i]), new_paths[i].length);
+      final_res.emplace_back(new_paths[i].length, std::move(network_slice[i]));
     return final_res;
   }
 
-  [[nodiscard]] weighted_real_path
+  [[nodiscard]] weighted_real_paths
   get_weighted_network_slice(
     std::vector<path_info> const &new_paths,
     std::vector<std::vector<std::pair<size_t, std::set<node_id_type>>>> const
       &network_slice) const
   {
-    weighted_real_path final_res;
+    weighted_real_paths final_res;
     final_res.reserve(network_slice.size());
     for (std::size_t i = 0; i < network_slice.size(); ++i)
-      final_res.emplace_back(network_slice[i], new_paths[i].length);
+      final_res.emplace_back(new_paths[i].length, network_slice[i]);
     return final_res;
   }
 
@@ -619,7 +619,7 @@ public:
   /// \param num_of_devices The number of devices
   /// \param k The number of shortest paths to find
   /// \return The k-shortest paths on the graph (with the lenghts and devices)
-  weighted_real_path
+  weighted_real_paths
   compute_k_shortest_paths_eppstein_linear(
     std::vector<std::function<weight_type(edge_type const &)>> &weights,
     std::function<weight_type(node_id_type const &, std::size_t, std::size_t)>
@@ -645,7 +645,7 @@ public:
   /// \param num_of_devices The number of devices
   /// \param k The number of shortest paths to find
   /// \return The k-shortest paths on the graph (with the lenghts and devices)
-  weighted_real_path
+  weighted_real_paths
   compute_k_shortest_paths_lazy_eppstein_linear(
     std::vector<std::function<weight_type(edge_type const &)>> &weights,
     std::function<weight_type(node_id_type const &, std::size_t, std::size_t)>

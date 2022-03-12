@@ -143,14 +143,10 @@ namespace butcher_benchmark_test_namespace
     lazy_eppstein_res.erase(tmp_it2, lazy_eppstein_res.end());
 
 
-    std::set<std::pair<std::vector<std::pair<size_t, std::set<node_id_type>>>,
-                       type_weight>>
-      eppstein;
+    std::set<weighted_real_path> eppstein;
     eppstein.insert(eppstein_res.begin(), eppstein_res.end());
 
-    std::set<std::pair<std::vector<std::pair<size_t, std::set<node_id_type>>>,
-                       type_weight>>
-      lazy_eppstein;
+    std::set<weighted_real_path> lazy_eppstein;
     lazy_eppstein.insert(lazy_eppstein_res.begin(), lazy_eppstein_res.end());
 
     ASSERT_EQ(eppstein, lazy_eppstein);
@@ -221,19 +217,13 @@ namespace butcher_benchmark_test_namespace
     lazy_eppstein_res.erase(tmp_it2, lazy_eppstein_res.end());
 
 
-    std::set<std::pair<std::vector<std::pair<size_t, std::set<node_id_type>>>,
-                       type_weight>>
-      eppstein;
+    std::set<weighted_real_path> eppstein;
     eppstein.insert(eppstein_res.begin(), eppstein_res.end());
 
-    std::set<std::pair<std::vector<std::pair<size_t, std::set<node_id_type>>>,
-                       type_weight>>
-      lazy_eppstein;
+    std::set<weighted_real_path> lazy_eppstein;
     lazy_eppstein.insert(lazy_eppstein_res.begin(), lazy_eppstein_res.end());
 
     ASSERT_EQ(eppstein, lazy_eppstein);
-
-
   }
 
 
@@ -302,16 +292,10 @@ namespace butcher_benchmark_test_namespace
         eppstein_res.erase(tmp_it, eppstein_res.end());
         lazy_eppstein_res.erase(tmp_it2, lazy_eppstein_res.end());
 
-        std::set<
-          std::pair<std::vector<std::pair<size_t, std::set<node_id_type>>>,
-                    type_weight>>
-          eppstein;
+        std::set<weighted_real_path> eppstein;
         eppstein.insert(eppstein_res.begin(), eppstein_res.end());
 
-        std::set<
-          std::pair<std::vector<std::pair<size_t, std::set<node_id_type>>>,
-                    type_weight>>
-          lazy_eppstein;
+        std::set<weighted_real_path> lazy_eppstein;
         lazy_eppstein.insert(lazy_eppstein_res.begin(),
                              lazy_eppstein_res.end());
 
