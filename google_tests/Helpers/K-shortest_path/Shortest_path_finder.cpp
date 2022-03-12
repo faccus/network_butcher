@@ -86,7 +86,9 @@ namespace KspTestNamespace
     path_lengths.reserve(k);
     real_path_lengths.reserve(k);
 
-    for (auto i = 0; i < k && i < res.size(); ++i)
+    EXPECT_EQ(real_sol.size(), res.size());
+
+    for (auto i = 0; i < real_sol.size(); ++i)
       {
         path_lengths.push_back(res[i].length);
         real_path_lengths.push_back(real_sol[i]);
@@ -111,6 +113,8 @@ namespace KspTestNamespace
 
     path_lengths.reserve(k);
     real_path_lengths.reserve(k);
+
+    EXPECT_EQ(real_sol.size(), res.size());
 
     for (auto i = 0; i < k && i < res.size(); ++i)
       {

@@ -1,25 +1,25 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.21)
 project("Network Butcher" DESCRIPTION "Just a normal butcher. A network butcher")
 
 set(CMAKE_CXX_STANDARD 20)
 
 
 
-option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
+option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" OFF)
 message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
 
 
 option(BUILD_DOC "Build documentation" ON)
 message(STATUS "Build documentation: ${BUILD_DOC}")
 
-option(BUILD_DOC_GRAPH "Build documentation graphs" OFF)
+option(BUILD_DOC_GRAPH "Build documentation graphs" ON)
 message(STATUS "Build documentation graphs: ${BUILD_DOC_GRAPH}")
 
 
 option(BUILD_TESTS "Build tests" ON)
 message(STATUS "Build tests: ${BUILD_TESTS}")
 
-option(BUILD_BENCHMARK "Build benchmark tests" OFF)
+option(BUILD_BENCHMARK "Build benchmark tests" ON)
 message(STATUS "Build benchmark tests: ${BUILD_BENCHMARK}")
 
 
