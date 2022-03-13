@@ -34,7 +34,8 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
   if (add_padding_nodes)
     {
       io_collection_type<type_info_pointer> tt;
-      tt["__fake__input__"];
+      tt["__fake__input__"] =
+        std::make_shared<Dense_tensor>(0, std::vector<shape_type>{});
       nodes.emplace_back(Content({}, tt));
     }
 
@@ -80,11 +81,16 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
   if (add_padding_nodes)
     {
       io_collection_type<type_info_pointer> tt;
-      tt["__fake__output__"];
+      tt["__fake__output__"] =
+        std::make_shared<Dense_tensor>(0, std::vector<shape_type>{});
       nodes.emplace_back(Content(tt, {}));
 
-      (++nodes.begin())->content.input["__fake__input__"];
-      (++nodes.rbegin())->content.output["__fake__output__"];
+      (++nodes.begin())
+        ->content.input.insert(
+          *nodes.front().content.get_output().find("__fake__input__"));
+      (++nodes.rbegin())
+        ->content.output.insert(
+          *nodes.back().content.get_input().find("__fake__output__"));
     }
 
   return {Graph(nodes), model};
