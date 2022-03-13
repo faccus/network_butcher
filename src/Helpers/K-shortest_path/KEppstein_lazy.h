@@ -216,8 +216,7 @@ private:
         Q.erase(Q.begin());
         res.push_back(SK);
 
-        auto const  e      = SK.sidetracks.back();
-        auto const &e_edge = *e;
+        auto const e_edge = SK.sidetracks.back();
 
         auto const ot = sidetrack_distances_res.find(e_edge);
 
@@ -250,19 +249,21 @@ private:
         else
           {
             auto const tmp_it = ++SK.sidetracks.crbegin();
-            h_g_search        = (*tmp_it)->second;
+            h_g_search        = tmp_it->second;
           }
 
-        auto const alternatives = base::get_alternatives(
-          h_g.find(h_g_search)->second, h_g_edge_edges, h_out_edge_edges, e);
+        auto const alternatives =
+          base::get_alternatives(h_g.find(h_g_search)->second,
+                                 h_g_edge_edges,
+                                 h_out_edge_edges,
+                                 e_edge);
 
         if (!alternatives.empty())
           {
             SK.sidetracks.pop_back();
 
-            for (auto const &f : alternatives)
+            for (auto const &f_edge : alternatives)
               {
-                auto const &f_edge = *f;
                 auto        ut     = sidetrack_distances_res.find(f_edge);
 
                 if (ut == sidetrack_distances_res.cend())
@@ -272,7 +273,7 @@ private:
                   }
 
                 auto mod_sk = SK;
-                mod_sk.sidetracks.push_back(f);
+                mod_sk.sidetracks.push_back(f_edge);
                 mod_sk.length += (ut->second - ot->second);
 
                 Q.insert(std::move(mod_sk));
