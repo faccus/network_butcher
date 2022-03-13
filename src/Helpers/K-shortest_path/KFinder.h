@@ -106,13 +106,13 @@ protected:
   get_alternatives(H_g const          &h_g,
                    edge_edges_type    &h_g_edge_edges,
                    edge_edges_type    &h_out_edge_edges,
-                   edge_pointer const &edge) const
+                   edge_info const &edge) const
   {
     {
       auto const tmp_it = h_g_edge_edges.find(h_g.id);
 
       if (tmp_it != h_g_edge_edges.cend())
-        return (tmp_it->second)[edge];
+        return (tmp_it->second)[edge.edge];
     }
 
     auto       &h_g_map = h_g_edge_edges[h_g.id];
@@ -148,7 +148,7 @@ protected:
           }
       }
 
-    return h_g_map[edge];
+    return h_g_map[edge.edge];
   }
 
 
@@ -183,9 +183,9 @@ protected:
         while (node_to_insert != nodes.back().get_id())
           {
             info.path.push_back(node_to_insert);
-            if (it != sidetracks.cend() && (*it)->first == node_to_insert)
+            if (it != sidetracks.cend() && it->edge.first == node_to_insert)
               {
-                node_to_insert = (*it)->second;
+                node_to_insert = it->edge.second;
                 ++it;
               }
             else
