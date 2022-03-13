@@ -155,6 +155,11 @@ Computer_time::compute_operation_time(const node_type               &node,
       auto const operations = computer(node, true);
       res = operations * time_coeffs.second + time_coeffs.first;
     }
+  else
+    {
+      std::cout << "Unrecognized operation id (" << operation_id
+                << "): I won't count its execution time" << std::endl;
+    }
 
   return res;
 }
