@@ -172,11 +172,6 @@ private:
     auto const &graph = base_shortest::graph;
     auto const &nodes = graph.get_nodes();
 
-    if (nodes.empty())
-      return {};
-    if (K == 1)
-      return res;
-
     res.reserve(K);
 
     auto const sidetrack_distances_res =
