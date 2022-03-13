@@ -13,10 +13,16 @@
 
 struct edge_info
 {
-  edge_type edge;
+  std::shared_ptr<edge_type> edge;
   weight_type                delta_weight;
 
-  edge_info(edge_type in_edge, weight_type const &in_delta_weight)
+  edge_info(edge_type const &in_edge, weight_type const &in_delta_weight)
+    : edge(std::make_shared<edge_type>(in_edge))
+    , delta_weight(in_delta_weight)
+  {}
+
+  edge_info(std::shared_ptr<edge_type> in_edge,
+            weight_type const         &in_delta_weight)
     : edge(std::move(in_edge))
     , delta_weight(in_delta_weight)
   {}
@@ -25,13 +31,14 @@ struct edge_info
   operator<(const edge_info &rhs) const
   {
     return delta_weight < rhs.delta_weight ||
-           (delta_weight == rhs.delta_weight && edge < rhs.edge);
+           (delta_weight == rhs.delta_weight && *edge < *rhs.edge);
   }
 
   constexpr bool
   operator>(const edge_info &rhs) const
   {
-    return rhs < *this;
+    return delta_weight > rhs.delta_weight ||
+           (delta_weight == rhs.delta_weight && *edge > *rhs.edge);
   }
 };
 

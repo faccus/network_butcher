@@ -252,7 +252,7 @@ private:
         Q.erase(Q.begin());
         res.push_back(SK);
 
-        auto const  e_edge      = SK.sidetracks.back();
+        auto const  e      = SK.sidetracks.back();
         auto const &e_edge = *e;
 
         auto const ot = sidetrack_distances_res.find(e_edge);
@@ -338,7 +338,7 @@ private:
     auto const h_out =
       construct_h_out(successors, sidetrack_distances_res); // O(N+E*log(N))
 
-    auto const h_g = construct_h_g(h_out, successors); // O(N*log(N))
+    auto const h_g         = construct_h_g(h_out, successors); // O(N*log(N))
 
     return base_path_selector_eppstein(
       K, dij_res, sidetrack_distances_res, h_g, h_out);
