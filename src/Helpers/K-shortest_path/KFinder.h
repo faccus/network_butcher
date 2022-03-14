@@ -106,7 +106,7 @@ protected:
   get_alternatives(H_g const          &h_g,
                    edge_edges_type    &h_g_edge_edges,
                    edge_edges_type    &h_out_edge_edges,
-                   edge_type const &edge) const
+                   edge_pointer const &edge) const
   {
     {
       auto const tmp_it = h_g_edge_edges.find(h_g.id);
@@ -183,9 +183,9 @@ protected:
         while (node_to_insert != nodes.back().get_id())
           {
             info.path.push_back(node_to_insert);
-            if (it != sidetracks.cend() && it->first == node_to_insert)
+            if (it != sidetracks.cend() && (*it)->first == node_to_insert)
               {
-                node_to_insert = it->second;
+                node_to_insert = (*it)->second;
                 ++it;
               }
             else
