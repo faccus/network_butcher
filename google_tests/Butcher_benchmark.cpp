@@ -7,8 +7,8 @@
 #include <random>
 
 #include "../src/Butcher.h"
-#include "../src/Helpers/Computer/Computer_time.h"
 #include "../src/Helpers/APCS/chrono.h"
+#include "../src/Helpers/Computer/Computer_time.h"
 #include "../src/Helpers/IO_Manager.h"
 #include "TestClass.h"
 
@@ -19,13 +19,16 @@ namespace butcher_benchmark_test_namespace
   using type_collection_weights =
     std::map<std::pair<node_id_type, node_id_type>, type_weight>;
 
-  using basic_type = int;
-  using Input      = TestMemoryUsage<int>;
+  using basic_type   = int;
+  using Input        = TestMemoryUsage<int>;
   using Content_type = Content<Input>;
-  using Node_type = Node<Content_type>;
+  using Node_type    = Node<Content_type>;
+
+  using Graph_type      = WGraph<Content_type>;
+  using Real_Graph_Type = WGraph<graph_input_type>;
 
 
-  Butcher<Content_type>
+  Butcher<Graph_type>
   basic_butcher(int);
 
   std::vector<std::function<type_weight(edge_type const &)>>
@@ -49,13 +52,10 @@ namespace butcher_benchmark_test_namespace
 
   std::vector<std::function<type_weight(edge_type const &)>>
   real_weight(std::vector<type_collection_weights> &,
-              Butcher<graph_input_type> &);
+              Butcher<Real_Graph_Type> &);
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
-  real_transmission(Butcher<graph_input_type> &);
-
-
-
+  real_transmission(Butcher<Real_Graph_Type> &);
 
 
   TEST(ButcherBenchmarkTest, correct_basic_weight_generation)
@@ -85,8 +85,7 @@ namespace butcher_benchmark_test_namespace
     std::string path      = "resnet18-v2-7-inferred";
     std::string extension = ".onnx";
 
-    Butcher<graph_input_type> butcher(
-      IO_Manager::import_from_onnx(path + extension).first);
+    Butcher butcher(IO_Manager::import_from_onnx(path + extension).first);
 
     auto const &graph = butcher.get_graph();
     auto const &nodes = graph.get_nodes();
@@ -150,8 +149,6 @@ namespace butcher_benchmark_test_namespace
     lazy_eppstein.insert(lazy_eppstein_res.begin(), lazy_eppstein_res.end());
 
     ASSERT_EQ(eppstein, lazy_eppstein);
-
-
   }
 
 
@@ -160,8 +157,7 @@ namespace butcher_benchmark_test_namespace
     std::string path      = "resnet18-v2-7-inferred";
     std::string extension = ".onnx";
 
-    Butcher<graph_input_type> butcher(
-      IO_Manager::import_from_onnx(path + extension).first);
+    Butcher butcher(IO_Manager::import_from_onnx(path + extension).first);
 
     auto const &graph = butcher.get_graph();
     auto const &nodes = graph.get_nodes();
@@ -384,9 +380,7 @@ namespace butcher_benchmark_test_namespace
   }
 
 
-
-
-  Butcher<Content_type>
+  Butcher<Graph_type>
   basic_butcher(int num_nodes)
   {
     std::vector<Node_type> nodes;
@@ -398,7 +392,7 @@ namespace butcher_benchmark_test_namespace
     nodes.emplace_back(
       Content_type({{"X" + std::to_string(num_nodes - 2), num_nodes - 2}}, {}));
 
-    Graph graph_cons(nodes);
+    Graph_type graph_cons(std::move(nodes));
 
     return Butcher(std::move(graph_cons));
   }
@@ -579,11 +573,11 @@ namespace butcher_benchmark_test_namespace
 
   std::vector<std::function<type_weight(edge_type const &)>>
   real_weight(std::vector<type_collection_weights> &weight_maps,
-              Butcher<graph_input_type>            &butcher)
+              Butcher<Real_Graph_Type>             &butcher)
   {
     std::vector<std::function<type_weight(edge_type const &)>> res;
-    auto             &graph       = butcher.get_graph();
-    auto const & dependencies = graph.get_dependencies();
+    auto       &graph        = butcher.get_graph();
+    auto const &dependencies = graph.get_dependencies();
 
     std::size_t const num_devices = 3;
     weight_maps.reserve(num_devices);
@@ -615,7 +609,7 @@ namespace butcher_benchmark_test_namespace
   }
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
-  real_transmission(Butcher<graph_input_type> &butcher)
+  real_transmission(Butcher<Real_Graph_Type> &butcher)
   {
     auto const &graph = butcher.get_graph();
     auto const  mbps  = 1000. / 8;

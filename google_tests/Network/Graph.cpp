@@ -16,7 +16,7 @@ TEST(GraphTests, Constructor) {
   utilities::parse_onnx_file(model_test, model_path);
 
 
-  Graph graph = IO_Manager::import_from_onnx(model_path).first;
+  WGraph graph = IO_Manager::import_from_onnx(model_path).first;
 
   std::cout << std::endl;
 }
@@ -28,8 +28,8 @@ TEST(GraphTests, ConstructorFromGraph)
 
   const std::string model_path = "resnet18-v2-7-inferred.onnx";
 
-  Graph        graph = IO_Manager::import_from_onnx(model_path).first;
-  Graph<Input> graph2(std::move(graph));
+  WGraph        graph = IO_Manager::import_from_onnx(model_path).first;
+  WGraph graph2(std::move(graph));
 }
 
 TEST(GraphTests, DefaultConstructors)

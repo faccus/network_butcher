@@ -23,6 +23,7 @@
 template <class T>
 class Graph
 {
+protected:
   /// Vector of all the nodes
   std::vector<Node<T>> nodes;
 
@@ -32,28 +33,13 @@ class Graph
     dependencies;
 
 public:
-  /// Weigth map
-  weights_collection_type weigth_map;
+  Graph() = default;
 
-  weight_type
-  get_weigth(edge_type const &edge) const
-  {
-    auto const p = weigth_map.find(edge);
-    if (p == weigth_map.cend())
-      return -1.;
-    else
-      return p->second;
-  }
-
-  void
-  set_weigth(edge_type const &edge, weight_type weight)
-  {
-    weigth_map[edge] = weight;
-  }
-
-  Graph()              = default;
   Graph(Graph const &) = default;
-  Graph(Graph &&)      = default;
+  Graph & operator = (Graph const &) = default;
+
+  Graph(Graph &&) = default;
+  Graph & operator = (Graph &&) = default;
 
   /// Construct the graph from the nodes and the map containing the relation
   /// between the id of the input/output with the content
@@ -78,18 +64,20 @@ public:
     return nodes;
   }
 
-  inline const std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
+  [[nodiscard]] inline const std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
     &
     get_dependencies() const
   {
     return dependencies;
   }
+
+  virtual ~Graph() = default;
 };
 
 template <class T>
 class Graph<Content<T>>
 {
-private:
+protected:
   using Node_Type = Node<Content<T>>;
 
   /// Vector of all the nodes
@@ -137,28 +125,14 @@ private:
   }
 
 public:
-  /// Weigth map
-  weights_collection_type weigth_map;
-
-  weight_type
-  get_weigth(edge_type const &edge) const
-  {
-    auto const p = weigth_map.find(edge);
-    if (p == weigth_map.cend())
-      return -1.;
-    else
-      return p->second;
-  }
-
-  void
-  set_weigth(edge_type const &edge, weight_type weight)
-  {
-    weigth_map[edge] = weight;
-  }
 
   Graph()              = default;
+
   Graph(Graph const &) = default;
-  Graph(Graph &&)      = default;
+  Graph & operator = (Graph const &) = default;
+
+  Graph(Graph &&) = default;
+  Graph & operator = (Graph &&) = default;
 
   /// Construct the graph from the nodes and the map containing the relation
   /// between the id of the input/output with the content
@@ -217,6 +191,8 @@ public:
   {
     return dependencies;
   }
+
+  virtual ~Graph() = default;
 };
 
 #endif // NETWORK_BUTCHER_GRAPH_H

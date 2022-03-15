@@ -30,12 +30,12 @@ using weighted_real_paths = std::vector<weighted_real_path>;
 
 
 /// Butcher butchers a given graph into slices
-template <class T>
+template <class GraphType>
 class Butcher
 {
 private:
-  using network     = Graph<T>;
-  using new_network = Graph<node_id_collection_type>;
+  using network     = GraphType;
+  using new_network = WGraph<node_id_collection_type>;
 
   network graph;
 
@@ -295,7 +295,7 @@ private:
         in.insert(in.end(), new_dependencies.size() - 1 - num_of_devices + k);
     }
 
-    return {Graph(new_nodes, new_dependencies), old_to_new};
+    return {new_network(new_nodes, new_dependencies), old_to_new};
   }
 
 
