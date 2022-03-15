@@ -5,53 +5,52 @@
 #ifndef NETWORK_BUTCHER_WGRAPH_H
 #define NETWORK_BUTCHER_WGRAPH_H
 
-#include "Graph.h"
+#include "MWGraph.h"
 
 template <class T>
-class WGraph : public Graph<T>
+class WGraph : public MWGraph<T>
 {
-protected:
-  weights_collection_type weigth_map;
+private:
+  using Parent_type = MWGraph<T>;
 
 public:
-
-  WGraph() = default;
+  WGraph()               = default;
   WGraph(WGraph const &) = default;
-  WGraph & operator = (WGraph const &) = default;
+  WGraph &
+  operator=(WGraph const &) = default;
 
   WGraph(WGraph &&) = default;
-  WGraph & operator = (WGraph &&) = default;
+  WGraph &
+  operator=(WGraph &&) = default;
 
   explicit WGraph(
     std::vector<Node<T>> v,
     std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
-      dep = {}) : Graph<T>(v, dep) {}
+      dep = {})
+    : Parent_type(1, v, dep)
+  {}
 
 
   [[nodiscard]] weight_type
   get_weigth(edge_type const &edge) const
   {
-    auto const p = weigth_map.find(edge);
-    if (p == weigth_map.cend())
-      return -1.;
-    else
-      return p->second;
+    return Parent_type::get_weigth(0, edge);
   }
 
   void
   set_weigth(edge_type const &edge, weight_type weight)
   {
-    weigth_map[edge] = weight;
+    Parent_type::set_weigth(0, edge, weight);
   }
 };
 
 template <class T>
-class WGraph<Content<T>> : public Graph<Content<T>>
+class WGraph<Content<T>> : public MWGraph<Content<T>>
 {
+private:
+  using Parent_type = MWGraph<Content<T>>;
 protected:
-  weights_collection_type weigth_map;
-  using Node_Type = typename Graph<Content<T>>::Node_Type;
-
+  using Node_Type = typename Parent_type::Node_Type;
 public:
 
   WGraph() = default;
@@ -64,29 +63,25 @@ public:
   explicit WGraph(
     std::vector<Node<Content<T>>> v,
     std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
-      dep) : Graph<Content<T>>(v, dep) {};
+      dep) : Parent_type(1, v, dep) {};
 
   explicit WGraph(std::vector<Node_Type> const &v)
-    : Graph<Content<T>>(v) {}
+    : Parent_type(1, v) {}
 
   explicit WGraph(std::vector<Node_Type> &&v)
-    : Graph<Content<T>>(std::move(v)) {}
+    : Parent_type(1, std::move(v)) {}
 
 
   [[nodiscard]] weight_type
   get_weigth(edge_type const &edge) const
   {
-    auto const p = weigth_map.find(edge);
-    if (p == weigth_map.cend())
-      return -1.;
-    else
-      return p->second;
+    return Parent_type::get_weigth(0, edge);
   }
 
   void
   set_weigth(edge_type const &edge, weight_type weight)
   {
-    weigth_map[edge] = weight;
+    Parent_type::set_weigth(0, edge, weight);
   }
 };
 

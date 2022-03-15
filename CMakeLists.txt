@@ -39,7 +39,7 @@ if( BUILD_TESTS )
     if( BUILD_BENCHMARK )
         set(FINAL_TESTS_SOURCE ${TESTS_SOURCE} ${BENCHMARK_TESTS_SOURCE})
     else()
-        set(FINAL_TESTS_SOURCE ${TESTS_SOURCE} src/Network/WGraph.h)
+        set(FINAL_TESTS_SOURCE ${TESTS_SOURCE} src/Network/WGraph.h src/Network/MWGraph.h)
     endif()
 
     enable_testing()
