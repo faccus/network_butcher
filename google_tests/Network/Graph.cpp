@@ -12,7 +12,7 @@ TEST(GraphTests, Constructor) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   onnx::ModelProto model_test;
-  const std::string model_path = "resnet18-v2-7-inferred.onnx";
+  const std::string model_path = "version-RFB-640-inferred.onnx";
   utilities::parse_onnx_file(model_test, model_path);
 
 
