@@ -93,7 +93,7 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
           *nodes.back().content.get_input().find("__fake__output__"));
     }
 
-  return {Graph(nodes), model};
+  return {WGraph(nodes), model};
 }
 
 void

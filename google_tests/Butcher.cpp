@@ -25,12 +25,13 @@ namespace butcher_test_namespace
   using type_collection_weights =
     std::map<std::pair<node_id_type, node_id_type>, type_weight>;
 
-  using basic_type = int;
-  using Input      = TestMemoryUsage<int>;
+  using basic_type   = int;
+  using Input        = TestMemoryUsage<int>;
   using Content_type = Content<Input>;
-  using Node_type = Node<Content_type>;
+  using Node_type    = Node<Content_type>;
+  using GraphType    = WGraph<Content_type>;
 
-  Butcher<Content_type>
+  Butcher<GraphType>
   basic_butcher();
 
   std::vector<std::function<type_weight(edge_type const &)>>
@@ -46,8 +47,8 @@ namespace butcher_test_namespace
 
     const std::string model_path = "resnet18-v2-7-inferred.onnx";
 
-    Butcher<Content_type> butcher(IO_Manager::import_from_onnx(model_path).first);
-    auto           res = butcher.compute_two_slice_brute_force();
+    Butcher butcher(IO_Manager::import_from_onnx(model_path).first);
+    auto    res = butcher.compute_two_slice_brute_force();
   }
 
   TEST(ButcherTest, compute_two_slice_memory_brute_force_test)
@@ -56,16 +57,15 @@ namespace butcher_test_namespace
 
     const std::string model_path = "resnet18-v2-7-inferred.onnx";
 
-    Graph<Content_type> graph = IO_Manager::import_from_onnx(model_path).first;
+    auto graph = IO_Manager::import_from_onnx(model_path).first;
     const Computer_memory computer{};
 
     size_t half_size = computer.compute_memory_usage_input(graph) / 2;
 
-    Butcher<Content_type> butcher(std::move(graph));
+    Butcher butcher(std::move(graph));
 
     auto tot = butcher.compute_two_slice_memory_brute_force(half_size);
   }
-
 
 
   TEST(ButcherTest, compute_k_shortest_paths_eppstein_linear)
@@ -78,7 +78,7 @@ namespace butcher_test_namespace
     auto const &graph     = butcher.get_graph();
     auto const  num_nodes = graph.get_nodes().size();
 
-    auto maps = basic_weight(num_devices, weight_maps);
+    auto maps             = basic_weight(num_devices, weight_maps);
     auto transmission_fun = basic_transmission(num_devices, num_nodes);
 
     auto const res = butcher.compute_k_shortest_paths_eppstein_linear(
@@ -176,12 +176,16 @@ namespace butcher_test_namespace
               << " milliseconds" << std::endl;
   }
 
+  TEST(ButcherTest, final_network_test)
+  {
+    std::size_t num_devices = 3;
+    std::size_t k           = 1000;
+  }
 
-
-  Butcher<Content_type>
+  Butcher<GraphType>
   basic_butcher()
   {
-    std::vector<Node_type>      nodes;
+    std::vector<Node_type> nodes;
 
     nodes.emplace_back(Content_type({}, {{"X0", 0}}));
     nodes.emplace_back(Content_type({{"X0", 0}}, {{"X1", 1}}));
@@ -192,7 +196,7 @@ namespace butcher_test_namespace
     nodes.emplace_back(Content_type({{"X5", 5}}, {{"X6", 6}}));
     nodes.emplace_back(Content_type({{"X6", 6}}, {{"X7", 7}}));
 
-    Graph graph_cons(std::move(nodes));
+    GraphType graph_cons(std::move(nodes));
     return Butcher(std::move(graph_cons));
   }
 

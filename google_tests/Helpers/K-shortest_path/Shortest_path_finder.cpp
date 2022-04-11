@@ -21,10 +21,10 @@ namespace KspTestNamespace
     std::map<std::pair<node_id_type, node_id_type>, type_weight>;
 
 
-  Graph<Content_input>
+  WGraph<Content_input>
   basic_graph();
 
-  Graph<Content_input>
+  WGraph<Content_input>
   eppstein_graph();
 
 
@@ -35,7 +35,7 @@ namespace KspTestNamespace
     int number_of_nodes = 10;
 
 
-    Graph<Input> basic_graph;
+    WGraph<Input> basic_graph;
 
     Shortest_path_finder kFinder(basic_graph);
     auto                 res = kFinder.dijkstra();
@@ -126,7 +126,7 @@ namespace KspTestNamespace
   }
 
 
-  Graph<Content_input>
+  WGraph<Content_input>
   basic_graph()
   {
     std::vector<Node_type> nodes;
@@ -142,7 +142,7 @@ namespace KspTestNamespace
     nodes.emplace_back(Content<Input>({{"X2", 2}, {"X4", 4}}, {{"X5", 5}}));
     nodes.emplace_back(Content<Input>({{"X5", 5}}, {{"X6", 6}}));
 
-    Graph<Content_input> graph(nodes);
+    WGraph<Content_input> graph(nodes);
 
     graph.set_weigth({0, 1}, 4);
     graph.set_weigth({0, 2}, 1);
@@ -162,7 +162,7 @@ namespace KspTestNamespace
   }
 
 
-  Graph<Content_input>
+  WGraph<Content_input>
   eppstein_graph()
   {
     std::vector<Node_type> nodes;
@@ -191,7 +191,7 @@ namespace KspTestNamespace
                            {{"X" + std::to_string(i), i}}));
       }
 
-    Graph<Content_input> graph(std::move(nodes));
+    WGraph<Content_input> graph(std::move(nodes));
 
     graph.set_weigth({0, 1}, 2);
     graph.set_weigth({1, 2}, 20);

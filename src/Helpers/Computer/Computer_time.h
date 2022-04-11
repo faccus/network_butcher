@@ -35,7 +35,7 @@ public:
                          Hardware_specifications const &hw);
 
   [[nodiscard]] inline time_type
-  compute_operation_time(Graph<graph_input_type> const &graph,
+  compute_operation_time(WGraph<graph_input_type> const &graph,
                          node_id_type const            &id,
                          Hardware_specifications const &hw)
   {

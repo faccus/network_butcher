@@ -327,11 +327,6 @@ private:
   {
     auto const &graph = base_shortest::graph;
 
-    if (graph.get_nodes().empty())
-      return {};
-    if (K == 1)
-      return {{{}, dij_res.second.front()}};
-
     auto const sidetrack_distances_res =
       base::sidetrack_distances(dij_res.second); // O(E)
     auto const shortest_path =
