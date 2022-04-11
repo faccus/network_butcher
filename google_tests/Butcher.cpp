@@ -176,6 +176,11 @@ namespace butcher_test_namespace
               << " milliseconds" << std::endl;
   }
 
+  TEST(ButcherTest, final_network_test)
+  {
+    std::size_t num_devices = 3;
+    std::size_t k           = 1000;
+  }
 
   Butcher<GraphType>
   basic_butcher()
