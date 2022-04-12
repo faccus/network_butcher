@@ -6,6 +6,7 @@
 #define NETWORK_BUTCHER_IO_MANAGER_H
 
 #include "Traits/Graph_traits.h"
+#include <sstream>
 
 class IO_Manager
 {

@@ -154,10 +154,36 @@ IO_Manager::regression_parameters_to_excel(const std::string &path)
   auto const &onnx_graph = model.graph();
   auto const &onnx_nodes = onnx_graph.node();
 
-  for (auto const &node : onnx_nodes)
+  Map_IO value_infos;
+
+  {
+    std::unordered_set<std::string> initialized;
+    // Values that are given by the network
+    for (auto const &p : onnx_graph.initializer())
+      {
+        if (p.IsInitialized())
+          initialized.insert(p.name());
+      }
+
+    onnx_io_read(value_infos, onnx_graph.input(), initialized);
+    onnx_io_read(value_infos, onnx_graph.output(), initialized);
+    onnx_io_read(value_infos, onnx_graph.value_info(), initialized);
+  }
+
+  std::ostringstream out_string;
+
+  for (std::size_t i = 0; i < onnx_nodes.size(); ++i)
     {
+      auto const &node = onnx_nodes[i];
       if(node.op_type() == "Conv")
         {
+          io_collection_type<type_info_pointer> inputs;
+          io_collection_type<type_info_pointer> parameters;
+          io_collection_type<type_info_pointer> outputs;
+
+          onnx_process_node(node.input(), inputs, parameters, value_infos);
+          onnx_process_node(node.output(), outputs, parameters, value_infos);
+
           std::unordered_map<std::string, std::vector<std::size_t>> attributes;
           for (auto const &attribute : node.attribute())
             {
@@ -171,6 +197,8 @@ IO_Manager::regression_parameters_to_excel(const std::string &path)
                   attributes.insert({attribute.name(), add});
                 }
             }
+
+          std::cout << std::endl;
         }
     }
 }
