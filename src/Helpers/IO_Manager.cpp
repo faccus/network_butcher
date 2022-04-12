@@ -137,4 +137,40 @@ IO_Manager::onnx_process_node(
             io_collection.insert({io_name, iterator->second});
         }
     }
+  {}
+}
+
+void
+IO_Manager::export_to_onnx(const onnx::ModelProto &model, std::string path)
+{
+  utilities::output_onnx_file(model, path);
+}
+
+void
+IO_Manager::regression_parameters_to_excel(const std::string &path)
+{
+  onnx::ModelProto model = utilities::parse_onnx_file(path);
+
+  auto const &onnx_graph = model.graph();
+  auto const &onnx_nodes = onnx_graph.node();
+
+  for (auto const &node : onnx_nodes)
+    {
+      if(node.op_type() == "Conv")
+        {
+          std::unordered_map<std::string, std::vector<std::size_t>> attributes;
+          for (auto const &attribute : node.attribute())
+            {
+              if (attribute.name() == "kernel_shape")
+                {
+                  std::vector<std::size_t> add;
+                  for (auto it = attribute.ints().begin();
+                       it != attribute.ints().end();
+                       ++it)
+                    add.push_back(*it);
+                  attributes.insert({attribute.name(), add});
+                }
+            }
+        }
+    }
 }

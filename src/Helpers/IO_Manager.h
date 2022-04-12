@@ -30,12 +30,10 @@ public:
   import_from_onnx(std::string const &path, bool add_padding_nodes = true);
 
   static inline void
-  export_to_onnx(onnx::ModelProto const &model, std::string path)
-  {
-    utilities::output_onnx_file(model, path);
-  };
+  export_to_onnx(onnx::ModelProto const &model, std::string path);;
 
-
+  static void
+  regression_parameters_to_excel(std::string const &path);
 };
 
 
