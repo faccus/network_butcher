@@ -34,7 +34,8 @@ public:
   export_to_onnx(onnx::ModelProto const &model, std::string path);;
 
   static void
-  regression_parameters_to_excel(std::string const &path);
+  regression_parameters_to_excel(
+    std::pair<graph_type, onnx::ModelProto> const &input);
 };
 
 

@@ -147,58 +147,48 @@ IO_Manager::export_to_onnx(const onnx::ModelProto &model, std::string path)
 }
 
 void
-IO_Manager::regression_parameters_to_excel(const std::string &path)
+IO_Manager::regression_parameters_to_excel(
+  std::pair<graph_type, onnx::ModelProto> const &input)
 {
-  onnx::ModelProto model = utilities::parse_onnx_file(path);
+  auto const &graph = input.first;
+  auto const &model = input.second;
 
-  auto const &onnx_graph = model.graph();
-  auto const &onnx_nodes = onnx_graph.node();
+  std::fstream file_out;
+  file_out.open("test_out.csv", std::ios_base::out);
 
-  Map_IO value_infos;
+  file_out << "Layer,Hf,Wf,Cin,Cout,FLOPS" << std::endl;
 
-  {
-    std::unordered_set<std::string> initialized;
-    // Values that are given by the network
-    for (auto const &p : onnx_graph.initializer())
-      {
-        if (p.IsInitialized())
-          initialized.insert(p.name());
-      }
-
-    onnx_io_read(value_infos, onnx_graph.input(), initialized);
-    onnx_io_read(value_infos, onnx_graph.output(), initialized);
-    onnx_io_read(value_infos, onnx_graph.value_info(), initialized);
-  }
-
-  std::ostringstream out_string;
-
-  for (std::size_t i = 0; i < onnx_nodes.size(); ++i)
+  for (auto const &node : graph.get_nodes())
     {
-      auto const &node = onnx_nodes[i];
-      if(node.op_type() == "Conv")
+      if (node.content.operation_id == "conv")
         {
-          io_collection_type<type_info_pointer> inputs;
-          io_collection_type<type_info_pointer> parameters;
-          io_collection_type<type_info_pointer> outputs;
+          auto const &content = node.content;
 
-          onnx_process_node(node.input(), inputs, parameters, value_infos);
-          onnx_process_node(node.output(), outputs, parameters, value_infos);
+          auto const &ins  = content.get_input();
+          auto const &outs = content.get_output();
+          auto const  kernel_iterator =
+            content.get_attributes().find("kernel_shape");
 
-          std::unordered_map<std::string, std::vector<std::size_t>> attributes;
-          for (auto const &attribute : node.attribute())
+          if (ins.size() == 1 && outs.size() == 1 &&
+              kernel_iterator != content.get_attributes().cend())
             {
-              if (attribute.name() == "kernel_shape")
-                {
-                  std::vector<std::size_t> add;
-                  for (auto it = attribute.ints().begin();
-                       it != attribute.ints().end();
-                       ++it)
-                    add.push_back(*it);
-                  attributes.insert({attribute.name(), add});
-                }
-            }
+              auto const &out_shape    = outs.begin()->second->get_shape();
+              auto const &in_shape     = ins.begin()->second->get_shape();
+              auto const &kernel_shape = kernel_iterator->second;
 
-          std::cout << std::endl;
+              auto const &H_f = kernel_iterator->second[0];
+              auto const &W_f = kernel_iterator->second[1];
+
+
+              std::size_t const C_in      = in_shape[1];
+              std::size_t const C_out     = out_shape[1];
+              std::size_t const in_pixels = in_shape[2] * in_shape[3];
+
+              auto const flops = H_f * W_f * C_in * C_out * in_pixels;
+
+              file_out << node.get_id() << "," << H_f << "," << W_f << ","
+                       << C_in << "," << C_out << "," << flops << std::endl;
+            }
         }
     }
 }

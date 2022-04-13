@@ -6,5 +6,6 @@
 
 TEST(IOManagerTestSuit, RegressionParamtersToExcelTest)
 {
-  IO_Manager::regression_parameters_to_excel("version-RFB-640-inferred.onnx");
+  IO_Manager::regression_parameters_to_excel(
+    IO_Manager::import_from_onnx("version-RFB-640-inferred.onnx"));
 }
