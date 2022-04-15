@@ -10,6 +10,8 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
 {
   onnx::ModelProto model = utilities::parse_onnx_file(path);
   auto const &onnx_graph = model.graph();
+  auto const &onnx_input = onnx_graph.input();
+  auto const &onnx_output = onnx_graph.output();
 
   Map_IO value_infos;
 
@@ -31,12 +33,25 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
   std::vector<node_type> nodes;
   nodes.reserve(onnx_nodes.size() + 2);
 
+  auto const                            pointer_output =
+    std::make_shared<Dense_tensor>(0, std::vector<shape_type>{});
+  auto const                            pointer_intput =
+    std::make_shared<Dense_tensor>(0, std::vector<shape_type>{});
+
+  auto const fake_output = "__fake__output__";
+  auto const fake_input = "__fake__input__";
+
+  std::vector<node_type *> input_nodes;
+  std::vector<node_type *> output_nodes;
+
+  std::set<std::string> visited;
+
   if (add_padding_nodes)
     {
       io_collection_type<type_info_pointer> tt;
-      tt["__fake__input__"] =
-        std::make_shared<Dense_tensor>(0, std::vector<shape_type>{});
-      nodes.emplace_back(Content({}, tt));
+      tt[fake_input] = pointer_intput;
+
+      nodes.emplace_back(Content({}, std::move(tt)));
     }
 
   for (auto const &node : onnx_nodes)
@@ -44,15 +59,13 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
       io_collection_type<type_info_pointer> inputs;
       io_collection_type<type_info_pointer> parameters;
       onnx_process_node(node.input(), inputs, parameters, value_infos);
-      /*
-            if(inputs.empty())
-              continue;*/
 
       io_collection_type<type_info_pointer> outputs;
       onnx_process_node(node.output(), outputs, parameters, value_infos);
 
 
       std::unordered_map<std::string, std::vector<std::size_t>> attributes;
+
       for (auto const &attribute : node.attribute())
         {
           if (attribute.name() == "kernel_shape")
@@ -74,23 +87,67 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
 
       Content<type_info_pointer> content(
         inputs, outputs, parameters, attributes, operation_type);
-
       nodes.emplace_back(std::move(content));
+
+      {
+        std::set<std::string> in_keys;
+        std::set<std::string> tmp;
+
+        std::transform(inputs.begin(),
+                       inputs.end(),
+                       std::inserter(in_keys, in_keys.end()),
+                       [](auto pair) { return pair.first; });
+
+        std::set_intersection(visited.cbegin(),
+                              visited.cend(),
+                              in_keys.cbegin(),
+                              in_keys.cend(),
+                              tmp.begin());
+
+        if (tmp.size() != in_keys.size())
+          input_nodes.push_back(&nodes.back());
+
+        visited.insert(in_keys.cbegin(), in_keys.cend());
+      }
+
+      {
+        std::set<std::string> out_keys;
+        std::set<std::string> tmp;
+
+        std::transform(outputs.begin(),
+                       outputs.end(),
+                       std::inserter(out_keys, out_keys.end()),
+                       [](auto pair) { return pair.first; });
+
+        std::set_intersection(visited.cbegin(),
+                              visited.cend(),
+                              out_keys.cbegin(),
+                              out_keys.cend(),
+                              tmp.begin());
+
+        if (tmp.size() != out_keys.size())
+          output_nodes.push_back(&nodes.back());
+
+        visited.insert(out_keys.cbegin(), out_keys.cend());
+      }
     }
 
   if (add_padding_nodes)
     {
       io_collection_type<type_info_pointer> tt;
-      tt["__fake__output__"] =
-        std::make_shared<Dense_tensor>(0, std::vector<shape_type>{});
-      nodes.emplace_back(Content(tt, {}));
+      tt[fake_output] = pointer_output;
 
-      (++nodes.begin())
-        ->content.input.insert(
-          *nodes.front().content.get_output().find("__fake__input__"));
-      (++nodes.rbegin())
-        ->content.output.insert(
-          *nodes.back().content.get_input().find("__fake__output__"));
+      nodes.emplace_back(Content(std::move(tt), {}));
+
+      std::for_each(input_nodes.begin(), input_nodes.end(),
+                    [&fake_input, &pointer_intput](node_type * pt) {
+                      pt->content.input.emplace(fake_input, pointer_intput);
+                    });
+
+      std::for_each(output_nodes.begin(), output_nodes.end(),
+                    [&fake_output, &pointer_output](node_type * pt) {
+                      pt->content.input.emplace(fake_output, pointer_output);
+                    });
     }
 
   return {WGraph(nodes), model};
@@ -154,9 +211,9 @@ IO_Manager::regression_parameters_to_excel(
   auto const &model = input.second;
 
   std::fstream file_out;
-  file_out.open("test_out.csv", std::ios_base::out);
+  file_out.open("butcher_predict.csv", std::ios_base::out);
 
-  file_out << "Layer,Hf,Wf,Cin,Cout,FLOPS" << std::endl;
+  file_out << "Layer,Hf,Wf,Cin,Cout,FLOPS,Time" << std::endl;
 
   for (auto const &node : graph.get_nodes())
     {
@@ -187,7 +244,8 @@ IO_Manager::regression_parameters_to_excel(
               auto const flops = H_f * W_f * C_in * C_out * in_pixels;
 
               file_out << node.get_id() << "," << H_f << "," << W_f << ","
-                       << C_in << "," << C_out << "," << flops << std::endl;
+                       << C_in << "," << C_out << "," << flops << ",0"
+                       << std::endl;
             }
         }
     }

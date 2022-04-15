@@ -15,10 +15,7 @@ TEST(GraphTests, Constructor) {
   const std::string model_path = "version-RFB-640-inferred.onnx";
   utilities::parse_onnx_file(model_test, model_path);
 
-
   WGraph graph = IO_Manager::import_from_onnx(model_path).first;
-
-  std::cout << std::endl;
 }
 
 TEST(GraphTests, ConstructorFromGraph)
