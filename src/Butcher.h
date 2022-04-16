@@ -505,7 +505,7 @@ private:
   [[nodiscard]] weighted_real_paths
   get_weighted_network_slice(std::vector<path_info> const &new_paths,
                              new_network const            &new_graph,
-                             std::size_t num_of_devices) const
+                             std::size_t                   num_of_devices) const
   {
     auto network_slice =
       get_network_slices(new_paths, new_graph, num_of_devices);
