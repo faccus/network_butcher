@@ -17,7 +17,7 @@ private:
   onnx_io_read(
     Map_IO                                                         &input_map,
     google::protobuf::RepeatedPtrField<onnx::ValueInfoProto> const &collection,
-    std::unordered_set<std::string> const &initialized);
+    std::set<std::string> const &initialized);
 
   static void
   onnx_process_node(
@@ -26,6 +26,13 @@ private:
     io_collection_type<type_info_pointer> &parameters_collection,
     Map_IO const                          &value_infos);
 
+  static void
+  onnx_populate_id_collection(const google::protobuf::RepeatedPtrField<::onnx::ValueInfoProto> &onnx_io,
+                              std::set<std::string> &onnx_io_ids);
+
+  static std::vector<std::string>
+  get_common_elements(const std::set<std::string>           &onnx_io_ids,
+                      io_collection_type<type_info_pointer> &io_collection);
 public:
   static std::pair<graph_type, onnx::ModelProto>
   import_from_onnx(std::string const &path, bool add_padding_nodes = true);

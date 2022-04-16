@@ -13,16 +13,33 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
   auto const &onnx_input = onnx_graph.input();
   auto const &onnx_output = onnx_graph.output();
 
+  std::set<std::string> onnx_inputs_ids;
+  std::set<std::string> onnx_outputs_ids;
+
+  onnx_populate_id_collection(onnx_output, onnx_outputs_ids);
+
   Map_IO value_infos;
 
   {
-    std::unordered_set<std::string> initialized;
+    std::set<std::string> tmp_onnx_inputs_ids;
+    onnx_populate_id_collection(onnx_input, tmp_onnx_inputs_ids);
+    std::set<std::string> initialized;
     // Values that are given by the network
     for (auto const &p : onnx_graph.initializer())
       {
         if (p.IsInitialized())
           initialized.insert(p.name());
       }
+
+    std::vector<std::string> int_res(
+      std::min(tmp_onnx_inputs_ids.size(), initialized.size()));
+    auto it = std::set_difference(tmp_onnx_inputs_ids.cbegin(),
+                                  tmp_onnx_inputs_ids.cend(),
+                                  initialized.cbegin(),
+                                  initialized.cend(),
+                                  int_res.begin());
+    int_res.resize(it - int_res.begin());
+    onnx_inputs_ids.insert(int_res.cbegin(), int_res.cend());
 
     onnx_io_read(value_infos, onnx_graph.input(), initialized);
     onnx_io_read(value_infos, onnx_graph.output(), initialized);
@@ -40,11 +57,6 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
 
   auto const fake_output = "__fake__output__";
   auto const fake_input = "__fake__input__";
-
-  std::vector<node_type *> input_nodes;
-  std::vector<node_type *> output_nodes;
-
-  std::set<std::string> visited;
 
   if (add_padding_nodes)
     {
@@ -85,51 +97,15 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
                      operation_type.begin(),
                      ::tolower);
 
+      if (!get_common_elements(onnx_inputs_ids, inputs).empty())
+        inputs[fake_input] = pointer_intput;
+
+      if (!get_common_elements(onnx_outputs_ids, outputs).empty())
+        outputs[fake_output] = pointer_output;
+
       Content<type_info_pointer> content(
         inputs, outputs, parameters, attributes, operation_type);
       nodes.emplace_back(std::move(content));
-
-      {
-        std::set<std::string> in_keys;
-        std::set<std::string> tmp;
-
-        std::transform(inputs.begin(),
-                       inputs.end(),
-                       std::inserter(in_keys, in_keys.end()),
-                       [](auto pair) { return pair.first; });
-
-        std::set_intersection(visited.cbegin(),
-                              visited.cend(),
-                              in_keys.cbegin(),
-                              in_keys.cend(),
-                              tmp.begin());
-
-        if (tmp.size() != in_keys.size())
-          input_nodes.push_back(&nodes.back());
-
-        visited.insert(in_keys.cbegin(), in_keys.cend());
-      }
-
-      {
-        std::set<std::string> out_keys;
-        std::set<std::string> tmp;
-
-        std::transform(outputs.begin(),
-                       outputs.end(),
-                       std::inserter(out_keys, out_keys.end()),
-                       [](auto pair) { return pair.first; });
-
-        std::set_intersection(visited.cbegin(),
-                              visited.cend(),
-                              out_keys.cbegin(),
-                              out_keys.cend(),
-                              tmp.begin());
-
-        if (tmp.size() != out_keys.size())
-          output_nodes.push_back(&nodes.back());
-
-        visited.insert(out_keys.cbegin(), out_keys.cend());
-      }
     }
 
   if (add_padding_nodes)
@@ -138,26 +114,51 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
       tt[fake_output] = pointer_output;
 
       nodes.emplace_back(Content(std::move(tt), {}));
-
-      std::for_each(input_nodes.begin(), input_nodes.end(),
-                    [&fake_input, &pointer_intput](node_type * pt) {
-                      pt->content.input.emplace(fake_input, pointer_intput);
-                    });
-
-      std::for_each(output_nodes.begin(), output_nodes.end(),
-                    [&fake_output, &pointer_output](node_type * pt) {
-                      pt->content.input.emplace(fake_output, pointer_output);
-                    });
     }
 
   return {WGraph(nodes), model};
+}
+
+std::vector<std::string>
+IO_Manager::get_common_elements(
+  const std::set<std::string>           &onnx_io_ids,
+  io_collection_type<type_info_pointer> &io_collection)
+{
+  std::set<std::string>    in_keys;
+  std::vector<std::string> tmp;
+
+  std::transform(io_collection.begin(),
+                 io_collection.end(),
+                 std::inserter(in_keys, in_keys.end()),
+                 [](auto const &pair) { return pair.first; });
+
+  tmp.resize(std::min(onnx_io_ids.size(), in_keys.size()));
+
+  auto it = std::set_intersection(onnx_io_ids.cbegin(),
+                                  onnx_io_ids.cend(),
+                                  in_keys.cbegin(),
+                                  in_keys.cend(),
+                                  tmp.begin());
+  tmp.resize(it - tmp.begin());
+  return tmp;
+}
+
+void
+IO_Manager::onnx_populate_id_collection(
+  const google::protobuf::RepeatedPtrField<::onnx::ValueInfoProto> &onnx_io,
+  std::set<std::string>                                            &onnx_io_ids)
+{
+  std::transform(onnx_io.begin(),
+                 onnx_io.end(),
+                 std::inserter(onnx_io_ids, onnx_io_ids.end()),
+                 [](auto const &el) { return el.name(); });
 }
 
 void
 IO_Manager::onnx_io_read(
   IO_Manager::Map_IO                                             &input_map,
   const google::protobuf::RepeatedPtrField<onnx::ValueInfoProto> &collection,
-  const std::unordered_set<std::string>                          &initialized)
+  const std::set<std::string>                                    &initialized)
 {
   for (const auto &param : collection)
     {
