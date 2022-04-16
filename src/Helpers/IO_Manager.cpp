@@ -20,6 +20,7 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
 
   Map_IO value_infos;
 
+
   {
     std::set<std::string> tmp_onnx_inputs_ids;
     onnx_populate_id_collection(onnx_input, tmp_onnx_inputs_ids);
@@ -27,9 +28,9 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
     // Values that are given by the network
     for (auto const &p : onnx_graph.initializer())
       {
-        if (p.IsInitialized())
-          initialized.insert(p.name());
+        initialized.insert(p.name());
       }
+
 
     std::vector<std::string> int_res(
       std::min(tmp_onnx_inputs_ids.size(), initialized.size()));

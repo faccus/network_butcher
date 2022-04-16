@@ -197,6 +197,10 @@ private:
 
             counter += (dep.second.size() - 1);
           }
+        else
+          {
+            std::cout << std::endl;
+          }
       }
 
     auto const basic_size = new_nodes.size();
