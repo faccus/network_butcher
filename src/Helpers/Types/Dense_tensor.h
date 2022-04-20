@@ -29,11 +29,14 @@ public:
   /// \param in_shape Shape of the tensor
   Dense_tensor(type_info_id_type       in_type_id,
                std::vector<shape_type> in_shape,
-               bool                    given = false);
+               bool                    given    = false,
+               bool                    constant = false);
 
   /// Construct the tensor from a onnx::ValueInfoProto object
   /// \param info onnx::ValueInfoProto object
-  Dense_tensor(const onnx::ValueInfoProto &info, bool given = false);
+  Dense_tensor(const onnx::ValueInfoProto &info,
+               bool                        given    = false,
+               bool                        constant = false);
 
   /// Compute the total memory of the type
   /// \return Memory usage of the associated type

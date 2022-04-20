@@ -8,16 +8,20 @@
 
 Dense_tensor::Dense_tensor(type_info_id_type       in_type_id,
                            std::vector<shape_type> in_shape,
-                           bool                    given)
+                           bool                    given,
+                           bool constant)
   : Type_info()
   , type_id(in_type_id)
   , shape(std::move(in_shape))
 {
   t_initialized = given;
+  this->constant = constant;
 }
 
 
-Dense_tensor::Dense_tensor(const onnx::ValueInfoProto &info, bool given)
+Dense_tensor::Dense_tensor(const onnx::ValueInfoProto &info,
+                           bool                        given,
+                           bool                        constant)
 {
   const auto &type = info.type();
   name             = info.name();
@@ -31,6 +35,7 @@ Dense_tensor::Dense_tensor(const onnx::ValueInfoProto &info, bool given)
     }
 
   t_initialized = given;
+  this->constant = constant;
 }
 
 memory_type

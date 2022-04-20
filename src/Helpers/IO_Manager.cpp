@@ -8,10 +8,11 @@
 std::pair<graph_type, onnx::ModelProto>
 IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
 {
-  onnx::ModelProto model = utilities::parse_onnx_file(path);
-  auto const &onnx_graph = model.graph();
+  onnx::ModelProto onnx_model      = utilities::parse_onnx_file(path);
+  auto const &onnx_graph = onnx_model.graph();
   auto const &onnx_input = onnx_graph.input();
   auto const &onnx_output = onnx_graph.output();
+  auto const &onnx_value_info = onnx_graph.value_info();
 
   std::set<std::string> onnx_inputs_ids;
   std::set<std::string> onnx_outputs_ids;
@@ -19,7 +20,6 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
   onnx_populate_id_collection(onnx_output, onnx_outputs_ids);
 
   Map_IO value_infos;
-
 
   {
     std::set<std::string> tmp_onnx_inputs_ids;
@@ -42,9 +42,9 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
     int_res.resize(it - int_res.begin());
     onnx_inputs_ids.insert(int_res.cbegin(), int_res.cend());
 
-    onnx_io_read(value_infos, onnx_graph.input(), initialized);
-    onnx_io_read(value_infos, onnx_graph.output(), initialized);
-    onnx_io_read(value_infos, onnx_graph.value_info(), initialized);
+    onnx_io_read(value_infos, onnx_input, initialized);
+    onnx_io_read(value_infos, onnx_output, initialized);
+    onnx_io_read(value_infos, onnx_value_info, initialized);
   }
 
   auto const            &onnx_nodes = onnx_graph.node();
@@ -69,6 +69,8 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
 
   for (auto const &node : onnx_nodes)
     {
+      auto operation_type = node.op_type();
+
       io_collection_type<type_info_pointer> inputs;
       io_collection_type<type_info_pointer> parameters;
       onnx_process_node(node.input(), inputs, parameters, value_infos);
@@ -76,6 +78,14 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
       io_collection_type<type_info_pointer> outputs;
       onnx_process_node(node.output(), outputs, parameters, value_infos);
 
+      if (operation_type == "Constant")
+        {
+          auto it = value_infos.find(node.output(0));
+          if (it != value_infos.end())
+            it->second->set_initialized(true);
+
+          continue;
+        }
 
       std::unordered_map<std::string, std::vector<std::size_t>> attributes;
 
@@ -92,7 +102,6 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
             }
         }
 
-      std::string operation_type = node.op_type();
       std::transform(operation_type.begin(),
                      operation_type.end(),
                      operation_type.begin(),
@@ -117,7 +126,7 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
       nodes.emplace_back(Content(std::move(tt), {}));
     }
 
-  return {WGraph(nodes), model};
+  return {WGraph(nodes), onnx_model};
 }
 
 std::vector<std::string>

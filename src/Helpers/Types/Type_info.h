@@ -21,6 +21,7 @@ protected:
 
   /// Is the value of this type given by the network?
   bool t_initialized;
+  bool constant;
 
 public:
   /// Get the name of the type
@@ -37,6 +38,12 @@ public:
   initialized()
   {
     return t_initialized;
+  }
+
+  void
+  set_initialized(bool const &val)
+  {
+    t_initialized = val;
   }
 
   Type_info() = default;

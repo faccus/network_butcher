@@ -236,7 +236,7 @@ namespace butcher_test_namespace
   Butcher<graph_type>
   real_butcher()
   {
-    std::string const path = "version-RFB-640-inferred.onnx";
+    std::string const path = "version-RFB-640-inferred.onnx";//"version-RFB-640.onnx";
     return Butcher(IO_Manager::import_from_onnx(path).first);
   }
 
