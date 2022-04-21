@@ -164,6 +164,9 @@ private:
                  counter > 0)
           {
             new_nodes.back().content.insert(new_nodes.back().content.end(), node.get_id());
+
+            counter += local_counter;
+
             old_to_new[node.get_id()] = id;
           }
         else if (counter > 0 && ((local_counter >= 0 && dep.first.size() > 1) ||

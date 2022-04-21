@@ -78,6 +78,7 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
       io_collection_type<type_info_pointer> outputs;
       onnx_process_node(node.output(), outputs, parameters, value_infos);
 
+      /*
       if (operation_type == "Constant")
         {
           auto it = value_infos.find(node.output(0));
@@ -85,7 +86,7 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
             it->second->set_initialized(true);
 
           continue;
-        }
+        }*/
 
       std::unordered_map<std::string, std::vector<std::size_t>> attributes;
 
