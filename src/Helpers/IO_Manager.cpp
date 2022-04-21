@@ -217,13 +217,14 @@ IO_Manager::export_to_onnx(const onnx::ModelProto &model, std::string path)
 
 void
 IO_Manager::regression_parameters_to_excel(
-  std::pair<graph_type, onnx::ModelProto> const &input)
+  std::pair<graph_type, onnx::ModelProto> const &input,
+  std::string const                             &path)
 {
   auto const &graph = input.first;
   auto const &model = input.second;
 
   std::fstream file_out;
-  file_out.open("butcher_predict.csv", std::ios_base::out);
+  file_out.open(path, std::ios_base::out);
 
   file_out << "Layer,Hf,Wf,Cin,Cout,FLOPS,Time" << std::endl;
 

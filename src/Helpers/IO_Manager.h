@@ -42,7 +42,8 @@ public:
 
   static void
   regression_parameters_to_excel(
-    std::pair<graph_type, onnx::ModelProto> const &input);
+    std::pair<graph_type, onnx::ModelProto> const &input,
+    std::string const &path = "butcher_predict.csv");
 };
 
 
