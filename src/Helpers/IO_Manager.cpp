@@ -108,11 +108,14 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
                      operation_type.begin(),
                      ::tolower);
 
-      if (!get_common_elements(onnx_inputs_ids, inputs).empty())
-        inputs[fake_input] = pointer_intput;
+      if (add_padding_nodes)
+        {
+          if (!get_common_elements(onnx_inputs_ids, inputs).empty())
+            inputs[fake_input] = pointer_intput;
 
-      if (!get_common_elements(onnx_outputs_ids, outputs).empty())
-        outputs[fake_output] = pointer_output;
+          if (!get_common_elements(onnx_outputs_ids, outputs).empty())
+            outputs[fake_output] = pointer_output;
+        }
 
       Content<type_info_pointer> content(
         inputs, outputs, parameters, attributes, operation_type);
