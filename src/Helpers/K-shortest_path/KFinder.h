@@ -22,6 +22,13 @@ public:
   virtual ~KFinder() = default;
 
 protected:
+  using callback_function_helper_eppstein =
+    std::function<void(H_g_collection &,
+                       H_out_collection &,
+                       weights_collection_type const &,
+                       std::vector<node_id_type> const &,
+                       node_id_type)>;
+
   /// It extracts the first sidetrack associated to the given node
   /// \param j The index of the node
   /// \param h_g The h_g map
@@ -198,6 +205,128 @@ protected:
 
     return res;
   }
+
+  /// The final function called by the basic_eppstein and basic_eppstein_linear.
+  /// It will construct the actual shortest paths
+  /// \param K The number of shortest paths
+  /// \param dij_res The result of the dijkstra algorithm
+  /// \param sidetrack_distances_res The sidetrack distances of every edge
+  /// \param h_g The h_g map
+  /// \param edge_edges The edge_edges map
+  /// \return The (implicit) shortest paths
+  std::vector<implicit_path_info>
+  helper_eppstein_support(
+    std::size_t                              K,
+    dijkstra_result_type const              &dij_res,
+    weights_collection_type const           &sidetrack_distances_res,
+    H_g_collection                          &h_g,
+    H_out_collection                        &h_out,
+    bool const                              &callback_fun_activation = false,
+    callback_function_helper_eppstein const &callback_fun =
+      callback_function_helper_eppstein()) const
+  {
+    auto const &successors          = dij_res.first;
+
+    std::vector<implicit_path_info> res;
+    res.push_back({{}, dij_res.second.front()});
+
+    auto const first_side_track_res = extrack_first_sidetrack_edge(0, h_g);
+    if (!first_side_track_res.first)
+      return res;
+    res.reserve(K);
+
+    edge_edges_type h_out_edge_edges;
+    edge_edges_type h_g_edge_edges;
+
+    std::set<implicit_path_info> Q;
+
+    implicit_path_info first_path;
+    auto const &first_side_track = first_side_track_res.second;
+    first_path.sidetracks = {first_side_track.edge};
+    first_path.length = first_side_track.delta_weight + dij_res.second.front();
+
+    Q.insert(std::move(first_path));
+
+    auto print_missing_sidetrack_distance = [](edge_type const &e) {
+      std::cout << "Error: cannot find proper sidetrack distance for edge ("
+                << e.first << ", " << e.second << ")" << std::endl;
+    };
+
+    for (int k = 2; k <= K && !Q.empty(); ++k)
+      {
+        auto SK = *Q.begin();
+        Q.erase(Q.begin());
+        res.push_back(SK);
+
+        auto const  e      = SK.sidetracks.back();
+        auto const &e_edge = *e;
+
+        auto const ot = sidetrack_distances_res.find(e_edge);
+
+        if (ot == sidetrack_distances_res.cend())
+          {
+            print_missing_sidetrack_distance(e_edge);
+            continue;
+          }
+
+        if (callback_fun_activation)
+          callback_fun(
+            h_g, h_out, sidetrack_distances_res, successors, e_edge.second);
+
+        auto const f_res = extrack_first_sidetrack_edge(e_edge.second, h_g);
+
+        if (f_res.first)
+          {
+            auto const &f = f_res.second;
+
+            auto mod_sk = SK;
+            mod_sk.sidetracks.push_back(f.edge);
+            mod_sk.length += f.delta_weight;
+            Q.insert(std::move(mod_sk));
+          }
+
+        node_id_type h_g_search;
+        if (SK.sidetracks.size() == 1)
+          h_g_search = 0;
+        else
+          {
+            auto const tmp_it = ++SK.sidetracks.crbegin();
+            h_g_search        = (*tmp_it)->second;
+          }
+
+        auto const alternatives = get_alternatives(h_g.find(h_g_search)->second,
+                                                   h_g_edge_edges,
+                                                   h_out_edge_edges,
+                                                   e);
+
+        if (!alternatives.empty())
+          {
+            SK.sidetracks.pop_back();
+
+            for (auto const &f : alternatives)
+              {
+                auto const &f_edge = *f;
+
+                auto ut = sidetrack_distances_res.find(f_edge);
+
+                if (ut == sidetrack_distances_res.cend())
+                  {
+                    print_missing_sidetrack_distance(f_edge);
+                    continue;
+                  }
+
+                auto mod_sk = SK;
+                mod_sk.sidetracks.push_back(f);
+                mod_sk.length += (ut->second - ot->second);
+
+                Q.insert(std::move(mod_sk));
+              }
+          }
+      }
+
+    return res;
+  }
+
 };
 
 #endif // NETWORK_BUTCHER_KFINDER_H

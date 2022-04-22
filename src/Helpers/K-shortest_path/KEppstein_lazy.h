@@ -108,8 +108,7 @@ private:
   /// \param sidetrack_distances The sidetrack distances
   /// \param successors The successor collection
   /// \param node The node associated to the h_out to construct
-  /// \param edge_edges
-  /// The edge_edges map
+  /// \param edge_edges The edge_edges map
   /// \return The iterator to the added element
   H_g_collection::iterator
   construct_partial_h_g(H_g_collection                  &h_g,
@@ -166,122 +165,29 @@ private:
   [[nodiscard]] std::vector<implicit_path_info>
   basic_lazy_eppstein(std::size_t K, dijkstra_result_type const &dij_res)
   {
-    std::vector<implicit_path_info> res;
-    res.push_back({{}, dij_res.second.front()}); // O(1)
-
-    auto const &graph = base_shortest::graph;
-    auto const &nodes = graph.get_nodes();
-
-    res.reserve(K);
-
     auto const sidetrack_distances_res =
       base::sidetrack_distances(dij_res.second); // O(E)
-    auto const shortest_path =
-      base_shortest::shortest_path_finder(dij_res, 0); // O(N)
 
-    auto const &successors          = dij_res.first;
-    auto const &shortest_paths_cost = dij_res.second;
 
     H_out_collection h_out;
     H_g_collection   h_g;
 
-    edge_edges_type h_out_edge_edges;
-    edge_edges_type h_g_edge_edges;
+    auto const &successors = dij_res.first;
 
-    construct_partial_h_g(
-      h_g, h_out, sidetrack_distances_res, successors, 0);
+    construct_partial_h_g(h_g, h_out, sidetrack_distances_res, successors, 0);
 
-    auto const first_side_track_res =
-      base::extrack_first_sidetrack_edge(0, h_g);
-    if (!first_side_track_res.first)
-      return res;
-    auto const &first_side_track = first_side_track_res.second;
-
-    std::set<implicit_path_info> Q;
-
-    implicit_path_info first_path;
-    first_path.sidetracks = {first_side_track.edge};
-    first_path.length = first_side_track.delta_weight + dij_res.second.front();
-
-    Q.insert(std::move(first_path));
-
-    auto print_missing_sidetrack_distance = [](edge_type const &e) {
-      std::cout << "Error: cannot find proper sidetrack distance for edge ("
-                << e.first << ", " << e.second << ")" << std::endl;
-    };
-
-    for (int k = 2; k <= K && !Q.empty(); ++k)
-      {
-        auto SK = *Q.begin();
-        Q.erase(Q.begin());
-        res.push_back(SK);
-
-        auto const  e      = SK.sidetracks.back();
-        auto const &e_edge = *e;
-
-        auto const ot = sidetrack_distances_res.find(e_edge);
-
-        if (ot == sidetrack_distances_res.cend())
-          {
-            print_missing_sidetrack_distance(e_edge);
-            continue;
-          }
-
+    typename base::callback_function_helper_eppstein fun =
+      [this](H_g_collection                  &h_g_,
+             H_out_collection                &h_out_,
+             weights_collection_type const   &sidetrack_distances_,
+             std::vector<node_id_type> const &successors_,
+             node_id_type                     node_) {
         construct_partial_h_g(
-          h_g, h_out, sidetrack_distances_res, successors, e_edge.second);
+          h_g_, h_out_, sidetrack_distances_, successors_, node_);
+      };
 
-
-        auto const f_res =
-          base::extrack_first_sidetrack_edge(e_edge.second, h_g);
-
-        if (f_res.first)
-          {
-            auto const &f = f_res.second;
-
-            auto mod_sk = SK;
-            mod_sk.sidetracks.push_back(f.edge);
-            mod_sk.length += f.delta_weight;
-            Q.insert(std::move(mod_sk));
-          }
-
-        node_id_type h_g_search;
-        if (SK.sidetracks.size() == 1)
-          h_g_search = 0;
-        else
-          {
-            auto const tmp_it = ++SK.sidetracks.crbegin();
-            h_g_search        = (*tmp_it)->second;
-          }
-
-        auto const alternatives = base::get_alternatives(
-          h_g.find(h_g_search)->second, h_g_edge_edges, h_out_edge_edges, e);
-
-        if (!alternatives.empty())
-          {
-            SK.sidetracks.pop_back();
-
-            for (auto const &f : alternatives)
-              {
-                auto const &f_edge = *f;
-                auto        ut     = sidetrack_distances_res.find(f_edge);
-
-                if (ut == sidetrack_distances_res.cend())
-                  {
-                    print_missing_sidetrack_distance(f_edge);
-                    continue;
-                  }
-
-                auto mod_sk = SK;
-                mod_sk.sidetracks.push_back(f);
-                mod_sk.length += (ut->second - ot->second);
-
-                Q.insert(std::move(mod_sk));
-              }
-          }
-      }
-
-
-    return res;
+    return base::helper_eppstein_support(
+      K, dij_res, sidetrack_distances_res, h_g, h_out, true, fun);
   }
 };
 

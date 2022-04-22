@@ -215,20 +215,17 @@ private:
     H_g_collection const                 &h_g,
     H_out_collection const               &h_out) const
   {
+    //auto const &successors = dij_res.first;
+    auto const &graph      = base_shortest::graph;
+
     std::vector<implicit_path_info> res;
     res.push_back({{}, dij_res.second.front()});
-
-    auto const &successors = dij_res.first;
-    auto const &graph      = base_shortest::graph;
 
     auto const first_side_track_res =
       base::extrack_first_sidetrack_edge(0, h_g);
     if (!first_side_track_res.first)
       return res;
-
     res.reserve(K);
-
-    auto const &first_side_track = first_side_track_res.second;
 
     edge_edges_type h_out_edge_edges;
     edge_edges_type h_g_edge_edges;
@@ -236,6 +233,7 @@ private:
     std::set<implicit_path_info> Q;
 
     implicit_path_info first_path;
+    auto const &first_side_track = first_side_track_res.second;
     first_path.sidetracks = {first_side_track.edge};
     first_path.length = first_side_track.delta_weight + dij_res.second.front();
 
@@ -335,12 +333,12 @@ private:
     auto const &successors          = dij_res.first;
     auto const &shortest_paths_cost = dij_res.second;
 
-    auto const h_out =
+    auto h_out =
       construct_h_out(successors, sidetrack_distances_res); // O(N+E*log(N))
 
-    auto const h_g         = construct_h_g(h_out, successors); // O(N*log(N))
+    auto h_g = construct_h_g(h_out, successors); // O(N*log(N))
 
-    return base_path_selector_eppstein(
+    return base::helper_eppstein_support(
       K, dij_res, sidetrack_distances_res, h_g, h_out);
   }
 };
