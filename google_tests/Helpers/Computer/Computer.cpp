@@ -124,8 +124,7 @@ namespace ComputerTimeTests
   WGraph<graph_input_type>
   basic_graph()
   {
-    auto const res =
-      IO_Manager::import_from_onnx("resnet18-v2-7-inferred.onnx", false);
-    return res.first;
+    return std::get<0>(
+      IO_Manager::import_from_onnx("resnet18-v2-7-inferred.onnx", false));
   }
 } // namespace ComputerTimeTests

@@ -7,15 +7,16 @@
 #include "../../src/Helpers/IO_Manager.h"
 #include "../TestClass.h"
 
-TEST(GraphTests, Constructor) {
+TEST(GraphTests, Constructor)
+{
   using Input = graph_input_type;
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-  onnx::ModelProto model_test;
+  onnx::ModelProto  model_test;
   const std::string model_path = "version-RFB-640-inferred.onnx";
   utilities::parse_onnx_file(model_test, model_path);
 
-  WGraph graph = IO_Manager::import_from_onnx(model_path).first;
+  WGraph graph = std::get<0>(IO_Manager::import_from_onnx(model_path));
 }
 
 TEST(GraphTests, ConstructorFromGraph)
@@ -25,7 +26,7 @@ TEST(GraphTests, ConstructorFromGraph)
 
   const std::string model_path = "resnet18-v2-7-inferred.onnx";
 
-  WGraph        graph = IO_Manager::import_from_onnx(model_path).first;
+  WGraph graph = std::get<0>(IO_Manager::import_from_onnx(model_path));
   WGraph graph2(std::move(graph));
 }
 

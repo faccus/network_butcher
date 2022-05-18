@@ -5,9 +5,13 @@
 #include "IO_Manager.h"
 
 
-std::pair<graph_type, onnx::ModelProto>
+std::tuple<graph_type,
+           onnx::ModelProto,
+           std::map<node_id_type, node_id_type>>
 IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
 {
+  std::map<node_id_type, node_id_type> link_id_nodeproto;
+
   onnx::ModelProto onnx_model      = utilities::parse_onnx_file(path);
   auto const &onnx_graph = onnx_model.graph();
   auto const &onnx_input = onnx_graph.input();
@@ -53,18 +57,22 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
 
   auto const                            pointer_output =
     std::make_shared<Dense_tensor>(0, std::vector<shape_type>{});
-  auto const                            pointer_intput =
+  auto const pointer_input =
     std::make_shared<Dense_tensor>(0, std::vector<shape_type>{});
 
   auto const fake_output = "__fake__output__";
   auto const fake_input = "__fake__input__";
 
+  node_id_type node_id = 0;
+  node_id_type onnx_node_id = 0;
+
   if (add_padding_nodes)
     {
       io_collection_type<type_info_pointer> tt;
-      tt[fake_input] = pointer_intput;
+      tt[fake_input] = pointer_input;
 
       nodes.emplace_back(Content({}, std::move(tt)));
+      ++node_id;
     }
 
   for (auto const &node : onnx_nodes)
@@ -77,16 +85,6 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
 
       io_collection_type<type_info_pointer> outputs;
       onnx_process_node(node.output(), outputs, parameters, value_infos);
-
-      /*
-      if (operation_type == "Constant")
-        {
-          auto it = value_infos.find(node.output(0));
-          if (it != value_infos.end())
-            it->second->set_initialized(true);
-
-          continue;
-        }*/
 
       std::unordered_map<std::string, std::vector<std::size_t>> attributes;
 
@@ -111,7 +109,7 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
       if (add_padding_nodes)
         {
           if (!get_common_elements(onnx_inputs_ids, inputs).empty())
-            inputs[fake_input] = pointer_intput;
+            inputs[fake_input] = pointer_input;
 
           if (!get_common_elements(onnx_outputs_ids, outputs).empty())
             outputs[fake_output] = pointer_output;
@@ -120,6 +118,8 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
       Content<type_info_pointer> content(
         inputs, outputs, parameters, attributes, operation_type);
       nodes.emplace_back(std::move(content));
+
+      link_id_nodeproto.emplace(node_id++, onnx_node_id++);
     }
 
   if (add_padding_nodes)
@@ -128,9 +128,10 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
       tt[fake_output] = pointer_output;
 
       nodes.emplace_back(Content(std::move(tt), {}));
+      ++node_id;
     }
 
-  return {WGraph(nodes), onnx_model};
+  return {WGraph(nodes), onnx_model, link_id_nodeproto};
 }
 
 std::vector<std::string>
@@ -189,7 +190,6 @@ IO_Manager::onnx_io_read(
     }
 }
 
-
 void
 IO_Manager::onnx_process_node(
   const google::protobuf::RepeatedPtrField<std::basic_string<char>> &io_names,
@@ -219,13 +219,10 @@ IO_Manager::export_to_onnx(const onnx::ModelProto &model, std::string path)
 }
 
 void
-IO_Manager::regression_parameters_to_excel(
-  std::pair<graph_type, onnx::ModelProto> const &input,
-  std::string const                             &path)
+IO_Manager::regression_parameters_to_excel(graph_type const       &graph,
+                                           onnx::ModelProto const &model,
+                                           std::string const      &path)
 {
-  auto const &graph = input.first;
-  auto const &model = input.second;
-
   std::fstream file_out;
   file_out.open(path, std::ios_base::out);
 

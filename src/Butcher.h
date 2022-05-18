@@ -544,6 +544,9 @@ public:
   explicit Butcher(network &&g)
     : graph(std::move(g)){};
 
+  explicit Butcher(network const &g)
+    : graph(g) {};
+
   /// Basic getter for graph
   /// \return The graph (const reference)
   const network &

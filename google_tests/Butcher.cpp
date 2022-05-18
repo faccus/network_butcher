@@ -34,7 +34,9 @@ namespace butcher_test_namespace
   Butcher<GraphType>
   basic_butcher();
 
-  Butcher<graph_type>
+  std::tuple<Butcher<graph_type>,
+             onnx::ModelProto,
+             std::map<node_id_type, node_id_type>>
   real_butcher();
 
   std::vector<std::function<type_weight(edge_type const &)>>
@@ -56,7 +58,7 @@ namespace butcher_test_namespace
 
     const std::string model_path = "resnet18-v2-7-inferred.onnx";
 
-    Butcher butcher(IO_Manager::import_from_onnx(model_path).first);
+    Butcher butcher(std::get<0>(IO_Manager::import_from_onnx(model_path)));
     auto    res = butcher.compute_two_slice_brute_force();
   }
 
@@ -66,7 +68,7 @@ namespace butcher_test_namespace
 
     const std::string model_path = "resnet18-v2-7-inferred.onnx";
 
-    auto graph = IO_Manager::import_from_onnx(model_path).first;
+    auto graph = std::get<0>(IO_Manager::import_from_onnx(model_path));
     const Computer_memory computer{};
 
     size_t half_size = computer.compute_memory_usage_input(graph) / 2;
@@ -191,7 +193,10 @@ namespace butcher_test_namespace
     std::size_t const k           = 1000;
 
     std::vector<type_collection_weights> weight_maps;
-    auto                                 butcher = real_butcher();
+    auto const                           model_butcher = real_butcher();
+
+    auto const &model   = std::get<1>(model_butcher);
+    auto const &butcher = std::get<0>(model_butcher);
 
     auto const &graph = butcher.get_graph();
     auto const &nodes = graph.get_nodes();
@@ -212,6 +217,19 @@ namespace butcher_test_namespace
 
     std::cout << "Lazy Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
               << std::endl;
+
+    auto const out_models =
+      IO_Manager::reconstruct_model(lazy_eppstein_res.back().second,
+                                    model,
+                                    graph,
+                                    std::get<2>(model_butcher));
+
+    for (std::size_t i = 0; i < out_models.size(); ++i)
+      IO_Manager::export_to_onnx(out_models[i].first,
+                                 "version-RFB-640-inferred-" +
+                                   std::to_string(i) + "-device-" +
+                                   std::to_string(out_models[i].second) +
+                                   ".onnx");
   }
 
   Butcher<GraphType>
@@ -233,11 +251,18 @@ namespace butcher_test_namespace
   }
 
 
-  Butcher<graph_type>
+  std::tuple<Butcher<graph_type>,
+             onnx::ModelProto,
+             std::map<node_id_type, node_id_type>>
   real_butcher()
   {
-    std::string const path = "version-RFB-640-inferred.onnx";//"version-RFB-640.onnx";
-    return Butcher(IO_Manager::import_from_onnx(path).first);
+    std::string const path =
+      "version-RFB-640-inferred.onnx"; //"version-RFB-640.onnx";
+    auto tuple = IO_Manager::import_from_onnx(path);
+
+    return {Butcher(std::get<0>(tuple)),
+            std::get<1>(tuple),
+            std::get<2>(tuple)};
   }
 
 

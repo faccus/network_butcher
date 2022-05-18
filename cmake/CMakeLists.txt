@@ -17,7 +17,6 @@ else()
     find_package(Protobuf REQUIRED)
     set(PROTOBUF_LIBRARY_LOCATION ${Protobuf_LIBRARIES})
     message(STATUS "Found protobuf version ${Protobuf_VERSION}")
-    FILE(COPY ${CMAKE_SOURCE_DIR}/src/Models/version-RFB-640-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR})
 endif ()
 
 if ( BUILD_TESTS )
