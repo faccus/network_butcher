@@ -218,17 +218,17 @@ namespace butcher_test_namespace
     std::cout << "Lazy Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
               << std::endl;
 
-    auto const out_models =
+    auto const model_device =
       IO_Manager::reconstruct_model(lazy_eppstein_res.back().second,
                                     model,
                                     graph,
                                     std::get<2>(model_butcher));
 
-    for (std::size_t i = 0; i < out_models.size(); ++i)
-      IO_Manager::export_to_onnx(out_models[i].first,
+    for (std::size_t i = 0; i < model_device.size(); ++i)
+      IO_Manager::export_to_onnx(model_device[i].first,
                                  "version-RFB-640-inferred-" +
                                    std::to_string(i) + "-device-" +
-                                   std::to_string(out_models[i].second) +
+                                   std::to_string(model_device[i].second) +
                                    ".onnx");
   }
 
