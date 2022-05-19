@@ -36,6 +36,9 @@ namespace utilities
   onnx::ModelProto
   parse_onnx_file(const std::string &model_path);
 
+  /// Outputs an onnx file from the given model
+  /// \param m Model to be exported
+  /// \param path Path of the exported model
   void
   output_onnx_file(onnx::ModelProto const &m, const std::string &path);
 

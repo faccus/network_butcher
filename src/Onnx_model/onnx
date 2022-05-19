@@ -222,7 +222,7 @@ message NodeProto {
 //
 // The semantics of the initialization-step is that the initializers
 // in ModelProto.graph and in TrainingInfoProto.algorithm are first
-// initialized as specified by the initializers in the graph, and then
+// t_initialized as specified by the initializers in the graph, and then
 // updated by the "initialization_binding" in every instance in
 // ModelProto.training_info.
 //
@@ -236,7 +236,7 @@ message TrainingInfoProto {
   // This field describes a graph to compute the initial tensors
   // upon starting the training process. Initialization graph has no input
   // and can have multiple outputs. Usually, trainable tensors in neural
-  // networks are randomly initialized. To achieve that, for each tensor,
+  // networks are randomly t_initialized. To achieve that, for each tensor,
   // the user can put a random number operator such as RandomNormal or
   // RandomUniform in TrainingInfoProto.initialization.node and assign its
   // random output to the specific tensor using "initialization_binding".
@@ -317,7 +317,7 @@ message TrainingInfoProto {
   //  2. The keys must appear in names of "ModelProto.graph.initializer" or
   //     "TrainingInfoProto.algorithm.initializer".
   //  3. The values must be output names of "algorithm" or "ModelProto.graph.output".
-  //  4. Mutable variables are initialized to the value specified by the
+  //  4. Mutable variables are t_initialized to the value specified by the
   //     corresponding initializer, and then potentially updated by
   //     "initializer_binding"s and "update_binding"s in "TrainingInfoProto"s.
   //

@@ -5,17 +5,21 @@
 #ifndef NETWORK_BUTCHER_NODE_TRAITS_H
 #define NETWORK_BUTCHER_NODE_TRAITS_H
 
-#include "../../Network/Node.h"
-#include "../Types/Type_info.h"
+//#include <boost/functional/hash.hpp>
 #include <memory>
 
-using node_type               = Node;
-using type_info_pointer       = std::shared_ptr<Type_info>;
-using graph_input_type        = type_info_pointer;
+#include "../../Network/Node.h"
+#include "../Types/Content.h"
+#include "../Types/Type_info.h"
+
+using graph_input_type  = Content<type_info_pointer>;
+using node_type               = Node<graph_input_type>;
 using node_id_collection_type = std::set<node_id_type>;
 
-using edge_type               = std::pair<node_id_type, node_id_type>;
-using type_weight             = double;
-using type_collection_weights = std::map<edge_type, type_weight>;
+using edge_type   = std::pair<node_id_type, node_id_type>;
+
+using weight_type = double;
+using weights_collection_type =
+  std::map<edge_type, weight_type>;//, boost::hash<edge_type>>;
 
 #endif // NETWORK_BUTCHER_NODE_TRAITS_H

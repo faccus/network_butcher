@@ -1,23 +1,24 @@
+#include "src/Helpers/APCS/GetPot"
+#include "src/Helpers/IO_Manager.h"
+
 #include <iostream>
-#include <fstream>
 
-#include "src/Butcher.h"
-#include "src/Helpers/Types/Dense_tensor.h"
-#include "src/Onnx_model/onnx.pb.h"
+int
+main(int argc, char** argv)
+{
+  GetPot command_line(argc, argv);
+  std::string const path = command_line("generate_regression", "");
+  std::string const out_path =
+    command_line("output_file", "butcher_predict.csv");
+  std::string const file_path = command_line("input_file", "");
 
+  if(!path.empty() && !file_path.empty())
+    {
+      auto pair = IO_Manager::import_from_onnx(file_path);
+      IO_Manager::regression_parameters_to_excel(std::get<0>(pair),
+                                                 std::get<1>(pair),
+                                                 out_path);
+    }
 
-
-int main() {
-
-
-
-
-    // https://github.com/onnx/onnx/blob/master/docs/IR.md
-
-
-
-
-
-    std::cout << std::endl;
-    return 0;
+  return 0;
 }

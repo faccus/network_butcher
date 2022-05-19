@@ -12,101 +12,51 @@
 #include <memory>
 
 
-template <class T, typename id_content>
+template <class T>
 class Graph;
 
 /// A node of a graph
+template <class T>
 class Node
 {
 private:
-  template <class T, typename id_content>
-  friend class Graph;
+  friend class Graph<T>;
 
   /// Current node id
   node_id_type id;
 
-  /// Collection of the ids of inputs of the node
-  io_id_collection_type input;
-  /// Collection of the ids of outputs of the node
-  io_id_collection_type output;
-  /// Collection of the ids of parameters of the node
-  io_id_collection_type parameters;
-  /// Collection of the attributes of the node
-  std::unordered_map<std::string, std::vector<long>> attributes;
-
 
   /// Basic constructor for a node
   /// \param starting_id Initial node id
-  /// \param initial_input Initial set of inputs
-  /// \param initial_output Initial set of outputs
-  /// \param initial_output Initial set of parameters
-  Node(node_id_type          starting_id,
-       io_id_collection_type initial_input,
-       io_id_collection_type initial_output,
-       io_id_collection_type initial_parameters = {})
+  /// \param starting_content Initial content
+  Node(node_id_type starting_id, T starting_content)
     : id(starting_id)
-    , input(std::move(initial_input))
-    , output(std::move(initial_output))
-    , parameters(std::move(initial_parameters))
+    , content(std::move(starting_content))
   {}
 
-  inline void
-  set_attribute(std::string const &name, std::vector<long> tensor)
-  {
-    attributes.emplace(name, tensor);
-  }
 
 public:
-  /// Basic constructor for a node
-  /// \param initial_input Initial set of inputs
-  /// \param initial_output Initial set of outputs
-  /// \param initial_output Initial set of parameters
-  Node(io_id_collection_type initial_input      = {},
-       io_id_collection_type initial_output     = {},
-       io_id_collection_type initial_parameters = {})
+  /// Node content
+  T content;
+
+  /// Basic move constructor for a node
+  explicit Node(T && starting_content)
     : id(std::numeric_limits<node_id_type>::max())
-    , input(std::move(initial_input))
-    , output(std::move(initial_output))
-    , parameters(std::move(initial_parameters))
+    , content(std::move(starting_content))
+  {}
+
+  /// Basic move constructor for a node
+  explicit Node(T const & starting_content)
+    : id(std::numeric_limits<node_id_type>::max())
+    , content(starting_content)
   {}
 
 
-  /// Read-only getter for input
-  /// \return Const reference to input
-  inline const io_id_collection_type &
-  get_input() const
-  {
-    return input;
-  }
-
-
-  /// Read-only getter for output
-  /// \return Const reference to output
-  inline const io_id_collection_type &
-  get_output() const
-  {
-    return output;
-  }
-
-
-  /// Read-only getter for the parameters
-  /// \return Const reference to the parameters
-  inline const io_id_collection_type &
-  get_parameters() const
-  {
-    return parameters;
-  }
-
+  /// Getter for the node id
   inline node_id_type
   get_id() const
   {
     return id;
-  }
-
-  inline std::unordered_map<std::string, std::vector<long>> const &
-  get_attributes() const
-  {
-    return attributes;
   }
 };
 

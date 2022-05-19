@@ -5,9 +5,9 @@
 #ifndef NETWORK_BUTCHER_DENSE_TENSOR_H
 #define NETWORK_BUTCHER_DENSE_TENSOR_H
 
-#include "Type_info.h"
-#include "../Utilities.h"
 #include "../Traits/Type_info_traits.h"
+#include "../Utilities.h"
+#include "Type_info.h"
 
 #include <vector>
 
@@ -15,8 +15,10 @@
 class Dense_tensor : public Type_info
 {
 private:
-  /// (onnx::TensorProto_DataType_*) Type id for the variables stored in the tensor
-  type_info_id_type type_id = -1; // Maybe, it can be changed to the dimension of the type
+  /// (onnx::TensorProto_DataType_*) Type id for the variables stored in the
+  /// tensor
+  type_info_id_type type_id =
+    -1; // Maybe, it can be changed to the dimension of the type
 
   /// Shape of the tensor
   std::vector<shape_type> shape;
@@ -25,11 +27,16 @@ public:
   /// Construct the tensor from the type id and the shape
   /// \param in_type_id onnx::TensorProto_DataType_* id
   /// \param in_shape Shape of the tensor
-  Dense_tensor(type_info_id_type in_type_id, std::vector<shape_type> in_shape);
+  Dense_tensor(type_info_id_type       in_type_id,
+               std::vector<shape_type> in_shape,
+               bool                    given    = false,
+               bool                    constant = false);
 
   /// Construct the tensor from a onnx::ValueInfoProto object
   /// \param info onnx::ValueInfoProto object
-  Dense_tensor(const onnx::ValueInfoProto &info);
+  Dense_tensor(const onnx::ValueInfoProto &info,
+               bool                        given    = false,
+               bool                        constant = false);
 
   /// Compute the total memory of the type
   /// \return Memory usage of the associated type
@@ -46,6 +53,3 @@ public:
 };
 
 #endif // NETWORK_BUTCHER_DENSE_TENSOR_H
-/*
- *
- * */

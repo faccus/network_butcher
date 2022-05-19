@@ -6,7 +6,7 @@ if( BUILD_PROTOBUF_SOURCE )
     FetchContent_Declare(
             protobuf
             URL https://github.com/protocolbuffers/protobuf/releases/download/v3.17.3/protobuf-cpp-3.17.3.zip
-            SOURCE_SUBDIR  cmake
+            SOURCE_SUBDIR cmake
     )
     option(protobuf_BUILD_TESTS OFF)
     option(protobuf_BUILD_PROTOC_BINARIES OFF)
@@ -17,7 +17,7 @@ else()
     find_package(Protobuf REQUIRED)
     set(PROTOBUF_LIBRARY_LOCATION ${Protobuf_LIBRARIES})
     message(STATUS "Found protobuf version ${Protobuf_VERSION}")
-endif()
+endif ()
 
 if ( BUILD_TESTS )
     # Add google test library from git
@@ -31,8 +31,13 @@ if ( BUILD_TESTS )
 
     # Add model for tests
     FILE(COPY ${CMAKE_SOURCE_DIR}/src/Models/resnet18-v2-7-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR})
-endif()
+    FILE(COPY ${CMAKE_SOURCE_DIR}/src/Models/version-RFB-640-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR})
+endif ()
 
-set(TMP_LIBRARIES_LOCATION ${PROTOBUF_LIBRARY_LOCATION})
+#find_package(Boost REQUIRED COMPONENTS)
+#include_directories(${Boost_INCLUDE_DIRS})
+
+
+set(TMP_LIBRARIES_LOCATION ${PROTOBUF_LIBRARY_LOCATION})# ${Boost_LIBRARIES})
 set(RUN_LIBRARIES_LOCATION ${TMP_LIBRARIES_LOCATION} PARENT_SCOPE)
 set(TEST_LIBRARIES_LOCATION ${TMP_LIBRARIES_LOCATION} gtest gtest_main PARENT_SCOPE)

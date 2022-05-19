@@ -8,7 +8,6 @@
 #include <string>
 #include <vector>
 
-#include "../Traits/Basic_traits.h"
 #include "../Traits/Hardware_traits.h"
 #include "../Traits/Type_info_traits.h"
 
@@ -20,6 +19,10 @@ protected:
   /// Name of the type
   std::string name;
 
+  /// Is the value of this type given by the network?
+  bool t_initialized;
+  bool constant;
+
 public:
   /// Get the name of the type
   /// \return
@@ -27,7 +30,21 @@ public:
   get_name()
   {
     return name;
-  };
+  }
+
+  /// Get if the value of this type is given by the network
+  /// \return True if it has been already initialized
+  bool
+  initialized()
+  {
+    return t_initialized;
+  }
+
+  void
+  set_initialized(bool const &val)
+  {
+    t_initialized = val;
+  }
 
   Type_info() = default;
 

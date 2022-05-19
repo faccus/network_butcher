@@ -14,15 +14,15 @@
 struct edge_info
 {
   std::shared_ptr<edge_type> edge;
-  type_weight                delta_weight;
+  weight_type                delta_weight;
 
-  edge_info(edge_type const &in_edge, type_weight const &in_delta_weight)
+  edge_info(edge_type const &in_edge, weight_type const &in_delta_weight)
     : edge(std::make_shared<edge_type>(in_edge))
     , delta_weight(in_delta_weight)
   {}
 
   edge_info(std::shared_ptr<edge_type> in_edge,
-            type_weight const         &in_delta_weight)
+            weight_type const         &in_delta_weight)
     : edge(std::move(in_edge))
     , delta_weight(in_delta_weight)
   {}
@@ -42,30 +42,29 @@ struct edge_info
   }
 };
 
-template <class T>
-struct H_out
+template <class T = edge_info>
+class H_out
 {
+public:
+  using container_type = typename Heap<T>::container_type;
+
   Heap<T> heap;
 
   bool
   operator<(const H_out &rhs) const
   {
-    if (!heap.children.empty() && !rhs.heap.children.empty())
-      return *heap.children.cbegin() < *rhs.heap.children.cbegin();
-    else if (heap.children.empty() && rhs.heap.children.empty())
+    if(heap.children.empty())
       return true;
-    else
-      return heap.children.empty();
+    if(rhs.heap.children.empty())
+      return false;
+    return *heap.children.cbegin() < *rhs.heap.children.cbegin();
   }
 };
 
-using H_out_pointer = std::shared_ptr<H_out<edge_info>>;
 
 bool
-operator<(H_out_pointer const &lhs, H_out_pointer const &rhs);
-
-using H_g         = Heap<H_out_pointer>;
-using H_g_pointer = std::shared_ptr<H_g>;
+operator<(std::shared_ptr<H_out<edge_info>> const &lhs,
+          std::shared_ptr<H_out<edge_info>> const &rhs);
 
 
 #endif // NETWORK_BUTCHER_HEAP_EPPSTEIN_H

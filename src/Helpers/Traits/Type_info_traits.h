@@ -5,6 +5,8 @@
 #ifndef NETWORK_BUTCHER_TYPE_INFO_TRAITS_H
 #define NETWORK_BUTCHER_TYPE_INFO_TRAITS_H
 
+#include <string>
+
 using type_info_id_type = int;
 using shape_type        = std::size_t;
 

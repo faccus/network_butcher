@@ -17,8 +17,6 @@ TEST(UtilitiesTestSuit, ParseOnnxFileTest)
 {
   const std::string model_path = "resnet18-v2-7-inferred.onnx";
   auto const        res        = utilities::parse_onnx_file(model_path);
-
-  std::cout;
 }
 
 TEST(UtilitiesTestSuit, OutputOnnxFileTest)

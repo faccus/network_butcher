@@ -7,8 +7,9 @@
 #include <random>
 
 #include "../src/Butcher.h"
-#include "../src/Helpers/Computer/Computer_time.h"
 #include "../src/Helpers/APCS/chrono.h"
+#include "../src/Helpers/Computer/Computer_time.h"
+#include "../src/Helpers/IO_Manager.h"
 #include "TestClass.h"
 
 namespace butcher_benchmark_test_namespace
@@ -18,22 +19,29 @@ namespace butcher_benchmark_test_namespace
   using type_collection_weights =
     std::map<std::pair<node_id_type, node_id_type>, type_weight>;
 
-  using basic_type = int;
-  using Input      = TestMemoryUsage<int>;
+  using basic_type   = int;
+  using Input        = TestMemoryUsage<int>;
+  using Content_type = Content<Input>;
+  using Node_type    = Node<Content_type>;
+
+  using Graph_type      = WGraph<Content_type>;
+  using Real_Graph_Type = WGraph<graph_input_type>;
 
 
-  Butcher<Input>
+  Butcher<Graph_type>
   basic_butcher(int);
 
   std::vector<std::function<type_weight(edge_type const &)>>
   basic_weight(std::size_t,
                std::size_t,
-               std::vector<type_collection_weights> &);
+               std::vector<type_collection_weights> &,
+               bool);
 
   std::vector<std::function<type_weight(edge_type const &)>>
   basic_weight(Graph<graph_input_type> const &,
                std::size_t,
-               std::vector<type_collection_weights> &);
+               std::vector<type_collection_weights> &,
+               bool);
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
     basic_transmission(std::size_t, std::size_t);
@@ -44,165 +52,30 @@ namespace butcher_benchmark_test_namespace
 
   std::vector<std::function<type_weight(edge_type const &)>>
   real_weight(std::vector<type_collection_weights> &,
-              Butcher<graph_input_type> &);
+              Butcher<Real_Graph_Type> &);
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
-  real_transmission(Butcher<graph_input_type> &);
+  real_transmission(Butcher<Real_Graph_Type> &);
 
 
-
-  TEST(ButcherBenchmarkTest,
-       compute_k_shortest_paths_lazy_eppstein_multiple_random)
+  TEST(ButcherBenchmarkTest, correct_basic_weight_generation)
   {
-    std::size_t       num_devices     = 3;
-    std::size_t const num_nodes       = 100;
-    std::size_t const number_of_tests = 100;
-
-    auto        butcher = basic_butcher(num_nodes);
-    auto const &graph   = butcher.getGraph();
-
-    double total_time = .0;
-
-    for (auto num_test = 0; num_test < number_of_tests; ++num_test)
-      {
-        std::vector<type_collection_weights> weight_maps;
-        auto maps = basic_weight(num_devices, num_nodes, weight_maps);
-
-        auto transmission_fun =
-          basic_transmission(num_devices, butcher.getGraph().nodes.size());
-
-        Chrono crono;
-        crono.start();
-        auto const res = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
-          maps, transmission_fun, num_devices, num_nodes * 0.1);
-        crono.stop();
-
-        total_time += crono.wallTime();
-      }
-
-    std::cout << "Average time per test: "
-              << total_time / number_of_tests / 1000 << " milli-seconds"
-              << std::endl;
-  }
-
-  TEST(ButcherBenchmarkTest, compute_k_shortest_paths_eppstein_multiple_random)
-  {
-    std::size_t       num_devices     = 3;
-    std::size_t const num_nodes       = 100;
-    std::size_t const number_of_tests = 100;
-
-    auto        butcher = basic_butcher(num_nodes);
-    auto const &graph   = butcher.getGraph();
-
-    double total_time = .0;
-
-    for (auto num_test = 0; num_test < number_of_tests; ++num_test)
-      {
-        std::vector<type_collection_weights> weight_maps;
-        auto maps = basic_weight(num_devices, num_nodes, weight_maps);
-
-        auto transmission_fun =
-          basic_transmission(num_devices, butcher.getGraph().nodes.size());
-
-        Chrono crono;
-        crono.start();
-        auto const res = butcher.compute_k_shortest_paths_eppstein_linear(
-          maps, transmission_fun, num_devices, num_nodes * 0.1);
-        crono.stop();
-
-        total_time += crono.wallTime();
-      }
-
-    std::cout << "Average time per test: "
-              << total_time / number_of_tests / 1000 << " milli-seconds"
-              << std::endl;
-  }
-
-  TEST(ButcherBenchmarkTest,
-       compute_k_shortest_paths_eppstein_vs_lazy_random_multiple)
-  {
-    std::map<io_id_type, Input> map;
-    std::vector<node_type>      nodes;
-
-    std::size_t       num_devices = 3;
-    std::size_t const num_nodes   = 100;
-
-    std::size_t k = 1000;
-
-    std::size_t number_of_tests = 1000;
+    std::vector<type_collection_weights> weight_maps;
 
 
-    auto        butcher = basic_butcher(num_nodes);
-    auto const &graph   = butcher.getGraph();
+    std::size_t num_nodes   = 100;
+    std::size_t num_devices = 3;
 
-    double time_std  = .0;
-    double time_lazy = .0;
+    auto maps = basic_weight(num_devices, num_nodes, weight_maps, true);
 
-    for (auto num_test = 0; num_test < number_of_tests; ++num_test)
-      {
-        std::vector<type_collection_weights> weight_maps;
-        auto maps = basic_weight(num_devices, num_nodes, weight_maps);
+    for (auto const &pair : weight_maps.front())
+      for (std::size_t k = 1; k < num_devices; ++k)
+        {
+          auto const second_value =
+            weight_maps[k].find(pair.first)->second * std::pow(2, k);
 
-        auto transmission_fun =
-          basic_transmission(num_devices, butcher.getGraph().nodes.size());
-
-        Chrono crono;
-        crono.start();
-        auto eppstein_res = butcher.compute_k_shortest_paths_eppstein_linear(
-          maps, transmission_fun, num_devices, k);
-        crono.stop();
-        time_std += crono.wallTime();
-
-        crono.start();
-        auto lazy_eppstein_res =
-          butcher.compute_k_shortest_paths_lazy_eppstein_linear(
-            maps, transmission_fun, num_devices, k);
-        crono.stop();
-        time_lazy += crono.wallTime();
-
-        ASSERT_EQ(eppstein_res.size(), lazy_eppstein_res.size());
-
-        auto const last_weight_epp = eppstein_res.back().second;
-        ASSERT_EQ(last_weight_epp, lazy_eppstein_res.back().second);
-
-        auto tmp_it  = --eppstein_res.end();
-        auto tmp_it2 = --lazy_eppstein_res.end();
-
-        for (; tmp_it != eppstein_res.begin() &&
-               tmp_it2 != lazy_eppstein_res.begin();
-             --tmp_it, --tmp_it2)
-          {
-            if (tmp_it->second != last_weight_epp)
-              break;
-          }
-
-        ++tmp_it;
-        ++tmp_it2;
-
-        eppstein_res.erase(tmp_it, eppstein_res.end());
-        lazy_eppstein_res.erase(tmp_it2, lazy_eppstein_res.end());
-
-        std::set<
-          std::pair<std::vector<std::pair<size_t, std::set<node_id_type>>>,
-                    type_weight>>
-          eppstein;
-        eppstein.insert(eppstein_res.begin(), eppstein_res.end());
-
-        std::set<
-          std::pair<std::vector<std::pair<size_t, std::set<node_id_type>>>,
-                    type_weight>>
-          lazy_eppstein;
-        lazy_eppstein.insert(lazy_eppstein_res.begin(),
-                             lazy_eppstein_res.end());
-
-        ASSERT_EQ(eppstein, lazy_eppstein);
-      }
-
-    std::cout << "Lazy Eppstein: " << time_lazy / 1000 / number_of_tests
-              << " milliseconds" << std::endl;
-
-    std::cout << "Eppstein: " << time_std / 1000 / number_of_tests
-              << " milliseconds" << std::endl;
+          EXPECT_DOUBLE_EQ(pair.second, second_value);
+        }
   }
 
 
@@ -212,17 +85,17 @@ namespace butcher_benchmark_test_namespace
     std::string path      = "resnet18-v2-7-inferred";
     std::string extension = ".onnx";
 
-    Butcher<graph_input_type> butcher(path + extension);
+    Butcher butcher(IO_Manager::import_from_onnx(path + extension).first);
 
-    auto const &graph = butcher.getGraph();
-    auto const &nodes = graph.nodes;
+    auto const &graph = butcher.get_graph();
+    auto const &nodes = graph.get_nodes();
     auto const  k     = 1000;
 
     std::size_t                          num_devices = 3;
     std::vector<type_collection_weights> weight_maps;
 
 
-    auto maps             = basic_weight(graph, num_devices, weight_maps);
+    auto maps             = basic_weight(graph, num_devices, weight_maps, true);
     auto transmission_fun = basic_transmission(num_devices, nodes.size());
 
     Chrono crono;
@@ -269,53 +142,25 @@ namespace butcher_benchmark_test_namespace
     lazy_eppstein_res.erase(tmp_it2, lazy_eppstein_res.end());
 
 
-    std::set<std::pair<std::vector<std::pair<size_t, std::set<node_id_type>>>,
-                       type_weight>>
-      eppstein;
+    std::set<weighted_real_path> eppstein;
     eppstein.insert(eppstein_res.begin(), eppstein_res.end());
 
-    std::set<std::pair<std::vector<std::pair<size_t, std::set<node_id_type>>>,
-                       type_weight>>
-      lazy_eppstein;
+    std::set<weighted_real_path> lazy_eppstein;
     lazy_eppstein.insert(lazy_eppstein_res.begin(), lazy_eppstein_res.end());
 
     ASSERT_EQ(eppstein, lazy_eppstein);
-
-
-    crono.start();
-    auto model_decomp =
-      butcher.reconstruct_model(lazy_eppstein_res.back().first);
-    crono.stop();
-
-    std::cout << "Model reconstruction: " << crono.wallTime() / 1000
-              << " milliseconds" << std::endl;
-
-    /*
-    crono.start();
-    for (std::size_t i = 0; i < model_decomp.size(); ++i)
-      {
-        auto const &model    = model_decomp[i];
-        std::string out_path = path;
-        out_path += "-" + std::to_string(i) + "-dev" +
-                    std::to_string(model.second) + extension;
-
-        utilities::output_onnx_file(model.first, out_path);
-      }
-    crono.stop();
-    std::cout << "Model output: " << crono.wallTime() / 1000 << " milliseconds"
-              << std::endl;
-    */
   }
+
 
   TEST(ButcherBenchmarkTest, compute_k_shortest_paths_test_network_real_weights)
   {
     std::string path      = "resnet18-v2-7-inferred";
     std::string extension = ".onnx";
 
-    Butcher<graph_input_type> butcher(path + extension);
+    Butcher butcher(IO_Manager::import_from_onnx(path + extension).first);
 
-    auto const &graph = butcher.getGraph();
-    auto const &nodes = graph.nodes;
+    auto const &graph = butcher.get_graph();
+    auto const &nodes = graph.get_nodes();
     auto const  k     = 1000;
 
     std::size_t                          num_devices = 3;
@@ -368,101 +213,186 @@ namespace butcher_benchmark_test_namespace
     lazy_eppstein_res.erase(tmp_it2, lazy_eppstein_res.end());
 
 
-    std::set<std::pair<std::vector<std::pair<size_t, std::set<node_id_type>>>,
-                       type_weight>>
-      eppstein;
+    std::set<weighted_real_path> eppstein;
     eppstein.insert(eppstein_res.begin(), eppstein_res.end());
 
-    std::set<std::pair<std::vector<std::pair<size_t, std::set<node_id_type>>>,
-                       type_weight>>
-      lazy_eppstein;
+    std::set<weighted_real_path> lazy_eppstein;
     lazy_eppstein.insert(lazy_eppstein_res.begin(), lazy_eppstein_res.end());
 
     ASSERT_EQ(eppstein, lazy_eppstein);
+  }
 
 
-    crono.start();
-    auto model_decomp =
-      butcher.reconstruct_model(lazy_eppstein_res.back().first);
-    crono.stop();
+  TEST(ButcherBenchmarkTest,
+       compute_k_shortest_paths_eppstein_vs_lazy_deterministic_multiple)
+  {
+    std::vector<node_type> nodes;
 
-    std::cout << "Model reconstruction: " << crono.wallTime() / 1000
+    std::size_t       num_devices = 3;
+    std::size_t const num_nodes   = 1000;
+
+    std::size_t k = 1000;
+
+    std::size_t number_of_tests = 1000;
+
+
+    auto        butcher = basic_butcher(num_nodes);
+    auto const &graph   = butcher.get_graph();
+
+    double time_std  = .0;
+    double time_lazy = .0;
+
+    for (auto num_test = 0; num_test < number_of_tests; ++num_test)
+      {
+        std::vector<type_collection_weights> weight_maps;
+        auto maps = basic_weight(num_devices, num_nodes, weight_maps, false);
+
+        auto transmission_fun =
+          basic_transmission(num_devices, graph.get_nodes().size());
+
+        Chrono crono;
+        crono.start();
+        auto eppstein_res = butcher.compute_k_shortest_paths_eppstein_linear(
+          maps, transmission_fun, num_devices, k);
+        crono.stop();
+        double const time_instance_std = crono.wallTime();
+        time_std += time_instance_std;
+
+        crono.start();
+        auto lazy_eppstein_res =
+          butcher.compute_k_shortest_paths_lazy_eppstein_linear(
+            maps, transmission_fun, num_devices, k);
+        crono.stop();
+        double const time_instance_lazy = crono.wallTime();
+        time_lazy += time_instance_lazy;
+
+        ASSERT_EQ(eppstein_res.size(), lazy_eppstein_res.size());
+
+        auto const last_weight_epp = eppstein_res.back().second;
+        ASSERT_EQ(last_weight_epp, lazy_eppstein_res.back().second);
+
+        auto tmp_it  = --eppstein_res.end();
+        auto tmp_it2 = --lazy_eppstein_res.end();
+
+        for (; tmp_it != eppstein_res.begin() &&
+               tmp_it2 != lazy_eppstein_res.begin();
+             --tmp_it, --tmp_it2)
+          {
+            if (tmp_it->second != last_weight_epp)
+              break;
+          }
+
+        ++tmp_it;
+        ++tmp_it2;
+
+        eppstein_res.erase(tmp_it, eppstein_res.end());
+        lazy_eppstein_res.erase(tmp_it2, lazy_eppstein_res.end());
+
+        std::set<weighted_real_path> eppstein;
+        eppstein.insert(eppstein_res.begin(), eppstein_res.end());
+
+        std::set<weighted_real_path> lazy_eppstein;
+        lazy_eppstein.insert(lazy_eppstein_res.begin(),
+                             lazy_eppstein_res.end());
+
+        ASSERT_EQ(eppstein, lazy_eppstein);
+
+        std::cout << "Test number #" << (num_test + 1)
+                  << ", Lazy: " << time_instance_lazy / 1000
+                  << " ms, Epp: " << time_instance_std / 1000 << " ms"
+                  << std::endl;
+      }
+
+    std::cout << "Lazy Eppstein: " << time_lazy / 1000 / number_of_tests
               << " milliseconds" << std::endl;
 
-    /*
-    crono.start();
-    for (std::size_t i = 0; i < model_decomp.size(); ++i)
+    std::cout << "Eppstein: " << time_std / 1000 / number_of_tests
+              << " milliseconds" << std::endl;
+  }
+
+
+  TEST(ButcherBenchmarkTest,
+       compute_k_shortest_paths_lazy_eppstein_multiple_random)
+  {
+    std::size_t       num_devices     = 3;
+    std::size_t const num_nodes       = 100;
+    std::size_t const number_of_tests = 1000;
+
+    auto        butcher = basic_butcher(num_nodes);
+    auto const &graph   = butcher.get_graph();
+
+    double total_time = .0;
+
+    for (auto num_test = 0; num_test < number_of_tests; ++num_test)
       {
-        auto const &model    = model_decomp[i];
-        std::string out_path = path;
-        out_path += "-" + std::to_string(i) + "-dev" +
-                    std::to_string(model.second) + extension;
+        std::vector<type_collection_weights> weight_maps;
+        auto maps = basic_weight(num_devices, num_nodes, weight_maps, true);
 
-        utilities::output_onnx_file(model.first, out_path);
+        auto transmission_fun =
+          basic_transmission(num_devices, graph.get_nodes().size());
+
+        Chrono crono;
+        crono.start();
+        auto const res = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
+          maps, transmission_fun, num_devices, num_nodes * 0.1);
+        crono.stop();
+
+        total_time += crono.wallTime();
       }
-    crono.stop();
-    std::cout << "Model output: " << crono.wallTime() / 1000 << " milliseconds"
+
+    std::cout << "Average time per test: "
+              << total_time / number_of_tests / 1000 << " milli-seconds"
               << std::endl;
-    */
   }
 
 
-
-
-  TEST(ButcherBenchmarkTest, correct_basic_weight_generation)
+  TEST(ButcherBenchmarkTest, compute_k_shortest_paths_eppstein_multiple_random)
   {
-    std::vector<type_collection_weights> weight_maps;
+    std::size_t       num_devices     = 3;
+    std::size_t const num_nodes       = 100;
+    std::size_t const number_of_tests = 1000;
 
+    auto        butcher = basic_butcher(num_nodes);
+    auto const &graph   = butcher.get_graph();
 
-    std::size_t num_nodes   = 100;
-    std::size_t num_devices = 3;
+    double total_time = .0;
 
-    auto maps = basic_weight(num_devices, num_nodes, weight_maps);
+    for (auto num_test = 0; num_test < number_of_tests; ++num_test)
+      {
+        std::vector<type_collection_weights> weight_maps;
+        auto maps = basic_weight(num_devices, num_nodes, weight_maps, true);
 
-    for (auto const &pair : weight_maps.front())
-      for (std::size_t k = 1; k < num_devices; ++k)
-        {
-          auto const second_value =
-            weight_maps[k].find(pair.first)->second * std::pow(2, k);
+        auto transmission_fun =
+          basic_transmission(num_devices, graph.get_nodes().size());
 
-          EXPECT_DOUBLE_EQ(pair.second, second_value);
-        }
-  }
+        Chrono crono;
+        crono.start();
+        auto const res = butcher.compute_k_shortest_paths_eppstein_linear(
+          maps, transmission_fun, num_devices, num_nodes * 0.1);
+        crono.stop();
 
-  TEST(ButcherBenchmarkTest, correct_real_weight_generation)
-  {
-    std::vector<type_collection_weights> basic_weight_maps;
-    std::vector<type_collection_weights> real_weight_maps;
+        total_time += crono.wallTime();
+      }
 
-    std::string path      = "resnet18-v2-7-inferred";
-    std::string extension = ".onnx";
-
-    Butcher<graph_input_type> butcher(path + extension);
-    std::size_t const         num_devices = 3;
-    std::size_t const         num_nodes   = butcher.getGraph().nodes.size();
-
-
-    basic_weight(num_devices, num_nodes, basic_weight_maps);
-    real_weight(real_weight_maps, butcher);
-
-    for (auto const &pair : basic_weight_maps.front())
-      for (std::size_t k = 1; k < num_devices; ++k)
-        {}
+    std::cout << "Average time per test: "
+              << total_time / number_of_tests / 1000 << " milli-seconds"
+              << std::endl;
   }
 
 
-  Butcher<Input>
+  Butcher<Graph_type>
   basic_butcher(int num_nodes)
   {
-    std::vector<node_type>                     nodes;
-    std::map<io_id_type, TestMemoryUsage<int>> map;
+    std::vector<Node_type> nodes;
 
-    nodes.push_back(node_type(io_id_collection_type{}, {{"Y", 0}}));
+    nodes.emplace_back(Content_type({}, {{"X0", 0}}));
     for (int n = 1; n < num_nodes - 1; ++n)
-      nodes.push_back(node_type({{"X", n - 1}}, {{"Y", n}}));
-    nodes.push_back(node_type({{"X", num_nodes - 2}}, {{"Y", 0}}));
+      nodes.emplace_back(Content_type({{"X" + std::to_string(n - 1), n - 1}},
+                                      {{"X" + std::to_string(n), n}}));
+    nodes.emplace_back(
+      Content_type({{"X" + std::to_string(num_nodes - 2), num_nodes - 2}}, {}));
 
-    Graph<TestMemoryUsage<int>> graph_cons(nodes, map);
+    Graph_type graph_cons(std::move(nodes));
 
     return Butcher(std::move(graph_cons));
   }
@@ -470,10 +400,22 @@ namespace butcher_benchmark_test_namespace
   std::vector<std::function<type_weight(edge_type const &)>>
   basic_weight(std::size_t                           num_devices,
                std::size_t                           num_nodes,
-               std::vector<type_collection_weights> &weight_maps)
+               std::vector<type_collection_weights> &weight_maps,
+               bool                                  fully_random)
   {
-    std::random_device         rd;
-    std::default_random_engine random_engine{rd()};
+    std::size_t seed;
+
+    if (fully_random)
+      {
+        std::random_device rd;
+        seed = rd();
+      }
+    else
+      {
+        seed = 0;
+      }
+
+    std::default_random_engine random_engine{seed};
 
     std::uniform_int_distribution node_weights_generator{5000, 10000};
 
@@ -510,12 +452,23 @@ namespace butcher_benchmark_test_namespace
   std::vector<std::function<type_weight(edge_type const &)>>
   basic_weight(Graph<graph_input_type> const        &graph,
                std::size_t                           num_devices,
-               std::vector<type_collection_weights> &weight_maps)
+               std::vector<type_collection_weights> &weight_maps,
+               bool                                  fully_random)
   {
-    std::random_device         rd;
-    std::default_random_engine random_engine{rd()};
+    std::size_t seed;
 
-    auto const num_nodes = graph.nodes.size();
+    if (fully_random)
+      {
+        std::random_device rd;
+        seed = rd();
+      }
+    else
+      {
+        seed = 0;
+      }
+    std::default_random_engine random_engine{seed};
+
+    auto const num_nodes = graph.get_nodes().size();
 
     std::uniform_int_distribution node_weights_generator{5000, 10000};
 
@@ -524,8 +477,8 @@ namespace butcher_benchmark_test_namespace
     weight_maps.emplace_back();
     auto &initial_weight_map = weight_maps.back();
 
-    for (std::size_t tail = 0; tail < graph.nodes.size(); ++tail)
-      for (auto const &head : graph.dependencies[tail].second)
+    for (std::size_t tail = 0; tail < num_nodes; ++tail)
+      for (auto const &head : graph.get_dependencies()[tail].second)
         initial_weight_map[{tail, head}] =
           node_weights_generator(random_engine);
 
@@ -586,7 +539,6 @@ namespace butcher_benchmark_test_namespace
       };
   }
 
-
   std::vector<Hardware_specifications>
   basic_hardware()
   {
@@ -621,10 +573,12 @@ namespace butcher_benchmark_test_namespace
 
   std::vector<std::function<type_weight(edge_type const &)>>
   real_weight(std::vector<type_collection_weights> &weight_maps,
-              Butcher<graph_input_type>            &butcher)
+              Butcher<Real_Graph_Type>             &butcher)
   {
     std::vector<std::function<type_weight(edge_type const &)>> res;
-    auto             &graph       = butcher.getGraph();
+    auto       &graph        = butcher.get_graph();
+    auto const &dependencies = graph.get_dependencies();
+
     std::size_t const num_devices = 3;
     weight_maps.reserve(num_devices);
 
@@ -638,9 +592,9 @@ namespace butcher_benchmark_test_namespace
         auto &map = weight_maps.back();
         auto &hw  = hws[i];
 
-        for (std::size_t tail = 0; tail < graph.dependencies.size(); ++tail)
+        for (std::size_t tail = 0; tail < dependencies.size(); ++tail)
           {
-            for (auto const &head : graph.dependencies[tail].second)
+            for (auto const &head : dependencies[tail].second)
               map[{tail, head}] = cp.compute_operation_time(graph, tail, hw);
           }
       }
@@ -655,9 +609,9 @@ namespace butcher_benchmark_test_namespace
   }
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
-  real_transmission(Butcher<graph_input_type> &butcher)
+  real_transmission(Butcher<Real_Graph_Type> &butcher)
   {
-    auto const &graph = butcher.getGraph();
+    auto const &graph = butcher.get_graph();
     auto const  mbps  = 1000. / 8;
 
 
@@ -666,7 +620,7 @@ namespace butcher_benchmark_test_namespace
                           std::size_t         to_device) {
       Computer_memory cm;
       auto const      mem_to_transmit =
-        cm.compute_memory_usage_output(graph, graph.nodes[node], false);
+        cm.compute_memory_usage_output(graph.get_nodes()[node]);
 
       if (from_device == 0 && to_device == 1 ||
           from_device == 1 && to_device == 0)
