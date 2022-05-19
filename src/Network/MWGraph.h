@@ -51,6 +51,11 @@ public:
   {
     weigth_map[index][edge] = weight;
   }
+
+  [[nodiscard]] std::size_t
+  get_num_devices() const {
+    return weigth_map.size();
+  }
 };
 
 template <class T>
@@ -111,6 +116,11 @@ public:
   set_weigth(std::size_t index, edge_type const &edge, weight_type weight)
   {
     weigth_map[index][edge] = weight;
+  }
+
+  [[nodiscard]] std::size_t
+  get_num_devices() const {
+    return weigth_map.size();
   }
 };
 
