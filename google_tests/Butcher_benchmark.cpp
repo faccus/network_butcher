@@ -24,8 +24,8 @@ namespace butcher_benchmark_test_namespace
   using Content_type = Content<Input>;
   using Node_type    = Node<Content_type>;
 
-  using Graph_type      = WGraph<Content_type>;
-  using Real_Graph_Type = WGraph<graph_input_type>;
+  using Graph_type      = MWGraph<Content_type>;
+  using Real_Graph_Type = MWGraph<graph_input_type>;
 
 
   Butcher<Graph_type>
@@ -85,7 +85,8 @@ namespace butcher_benchmark_test_namespace
     std::string path      = "resnet18-v2-7-inferred";
     std::string extension = ".onnx";
 
-    Butcher butcher(IO_Manager::import_from_onnx(path + extension).first);
+    Butcher butcher(
+      std::get<0>(IO_Manager::import_from_onnx(path + extension)));
 
     auto const &graph = butcher.get_graph();
     auto const &nodes = graph.get_nodes();
@@ -121,8 +122,8 @@ namespace butcher_benchmark_test_namespace
 
     ASSERT_EQ(eppstein_res.size(), lazy_eppstein_res.size());
 
-    auto const last_weight_epp = eppstein_res.back().second;
-    ASSERT_EQ(last_weight_epp, lazy_eppstein_res.back().second);
+    auto const last_weight_epp = eppstein_res.back().first;
+    ASSERT_EQ(last_weight_epp, lazy_eppstein_res.back().first);
 
     auto tmp_it  = --eppstein_res.end();
     auto tmp_it2 = --lazy_eppstein_res.end();
@@ -131,7 +132,7 @@ namespace butcher_benchmark_test_namespace
          tmp_it != eppstein_res.begin() && tmp_it2 != lazy_eppstein_res.begin();
          --tmp_it, --tmp_it2)
       {
-        if (tmp_it->second != last_weight_epp)
+        if (tmp_it->first != last_weight_epp)
           break;
       }
 
@@ -157,7 +158,7 @@ namespace butcher_benchmark_test_namespace
     std::string path      = "resnet18-v2-7-inferred";
     std::string extension = ".onnx";
 
-    Butcher butcher(IO_Manager::import_from_onnx(path + extension).first);
+    Butcher butcher(std::get<0>(IO_Manager::import_from_onnx(path + extension)));
 
     auto const &graph = butcher.get_graph();
     auto const &nodes = graph.get_nodes();
@@ -192,8 +193,8 @@ namespace butcher_benchmark_test_namespace
 
     ASSERT_EQ(eppstein_res.size(), lazy_eppstein_res.size());
 
-    auto const last_weight_epp = eppstein_res.back().second;
-    ASSERT_EQ(last_weight_epp, lazy_eppstein_res.back().second);
+    auto const last_weight_epp = eppstein_res.back().first;
+    ASSERT_EQ(last_weight_epp, lazy_eppstein_res.back().first);
 
     auto tmp_it  = --eppstein_res.end();
     auto tmp_it2 = --lazy_eppstein_res.end();
@@ -202,7 +203,7 @@ namespace butcher_benchmark_test_namespace
          tmp_it != eppstein_res.begin() && tmp_it2 != lazy_eppstein_res.begin();
          --tmp_it, --tmp_it2)
       {
-        if (tmp_it->second != last_weight_epp)
+        if (tmp_it->first != last_weight_epp)
           break;
       }
 
@@ -268,8 +269,8 @@ namespace butcher_benchmark_test_namespace
 
         ASSERT_EQ(eppstein_res.size(), lazy_eppstein_res.size());
 
-        auto const last_weight_epp = eppstein_res.back().second;
-        ASSERT_EQ(last_weight_epp, lazy_eppstein_res.back().second);
+        auto const last_weight_epp = eppstein_res.back().first;
+        ASSERT_EQ(last_weight_epp, lazy_eppstein_res.back().first);
 
         auto tmp_it  = --eppstein_res.end();
         auto tmp_it2 = --lazy_eppstein_res.end();
@@ -278,7 +279,7 @@ namespace butcher_benchmark_test_namespace
                tmp_it2 != lazy_eppstein_res.begin();
              --tmp_it, --tmp_it2)
           {
-            if (tmp_it->second != last_weight_epp)
+            if (tmp_it->first != last_weight_epp)
               break;
           }
 
@@ -392,7 +393,7 @@ namespace butcher_benchmark_test_namespace
     nodes.emplace_back(
       Content_type({{"X" + std::to_string(num_nodes - 2), num_nodes - 2}}, {}));
 
-    Graph_type graph_cons(std::move(nodes));
+    Graph_type graph_cons(1, std::move(nodes));
 
     return Butcher(std::move(graph_cons));
   }

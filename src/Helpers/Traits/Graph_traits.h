@@ -9,7 +9,7 @@
 #include "../../Network/WGraph.h"
 
 // using layer_type = Graph<node_type>;
-using graph_type = WGraph<graph_input_type>;
+using graph_type = MWGraph<graph_input_type>;
 using slice_type = std::set<node_id_type>;
 
 #endif // NETWORK_BUTCHER_GRAPH_TRAITS_H

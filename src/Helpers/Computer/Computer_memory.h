@@ -143,7 +143,7 @@ public:
 
   template <class T>
   static inline std::vector<memory_type>
-  compute_nodes_memory_usage(WGraph<T> const &graph)
+  compute_nodes_memory_usage(Graph<T> const &graph)
   {
     return compute_nodes_memory_usage_gen(graph, [](Node<T> const &node) {
       return compute_memory_usage(node);
@@ -152,7 +152,7 @@ public:
 
   template <class T>
   static inline std::vector<memory_type>
-  compute_nodes_memory_usage(WGraph<Content<T>> const &graph,
+  compute_nodes_memory_usage(Graph<Content<T>> const &graph,
                              bool include_initialized = true)
   {
     return compute_nodes_memory_usage_gen(
@@ -163,7 +163,7 @@ public:
 
   template <class T>
   static inline memory_type
-  compute_memory_usage(WGraph<T> const &graph)
+  compute_memory_usage(Graph<T> const &graph)
   {
     auto const nodes_memory_usage = compute_nodes_memory_usage(graph);
 
@@ -173,7 +173,7 @@ public:
 
   template <class T>
   static inline std::vector<memory_type>
-  compute_nodes_memory_usage_input(WGraph<Content<T>> const &graph)
+  compute_nodes_memory_usage_input(Graph<Content<T>> const &graph)
   {
     auto const              &nodes = graph.get_nodes();
     std::vector<memory_type> memory_usages;
@@ -190,7 +190,7 @@ public:
 
   template <class T>
   static inline std::vector<memory_type>
-  compute_nodes_memory_usage_parameters(WGraph<Content<T>> const &graph)
+  compute_nodes_memory_usage_parameters(Graph<Content<T>> const &graph)
   {
     auto const              &nodes = graph.get_nodes();
     std::vector<memory_type> memory_usages;
@@ -207,7 +207,7 @@ public:
 
   template <class T>
   static inline memory_type
-  compute_memory_usage_input(WGraph<Content<T>> const &graph)
+  compute_memory_usage_input(Graph<Content<T>> const &graph)
   {
     auto const nodes_usage = compute_nodes_memory_usage_input(graph);
     return std::reduce(nodes_usage.cbegin(), nodes_usage.cend());
@@ -215,7 +215,7 @@ public:
 
   template <class T>
   static inline memory_type
-  compute_memory_usage_parameters(WGraph<Content<T>> const &graph)
+  compute_memory_usage_parameters(Graph<Content<T>> const &graph)
   {
     auto const nodes_usage = compute_nodes_memory_usage_parameters(graph);
     return std::reduce(nodes_usage.cbegin(), nodes_usage.cend());

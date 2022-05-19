@@ -17,7 +17,7 @@ namespace ComputerMemoryTests
   using IO_collection = io_collection_type<Input>;
   using Node_type = Node<Content<Input>>;
 
-  WGraph<Content<Input>>
+  MWGraph<Content<Input>>
   basic_graph(int);
 
   TEST(ComputerTests, MemoryConctructorTest)
@@ -69,7 +69,7 @@ namespace ComputerMemoryTests
     ASSERT_EQ(lhs, rhs);
   }
 
-  WGraph<Content<Input>>
+  MWGraph<Content<Input>>
   basic_graph(int number_of_nodes)
   {
     std::vector<Node_type> nodes;
@@ -100,7 +100,7 @@ namespace ComputerMemoryTests
 
 namespace ComputerTimeTests
 {
-  WGraph<graph_input_type>
+  MWGraph<graph_input_type>
   basic_graph();
 
   TEST(ComputerTests, TimeConstructorTest)
@@ -121,7 +121,7 @@ namespace ComputerTimeTests
     ASSERT_EQ(time, 9);
   }
 
-  WGraph<graph_input_type>
+  MWGraph<graph_input_type>
   basic_graph()
   {
     return std::get<0>(

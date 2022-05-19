@@ -152,8 +152,8 @@ namespace butcher_test_namespace
 
     ASSERT_EQ(eppstein_res.size(), lazy_eppstein_res.size());
 
-    auto const last_weight_epp = eppstein_res.back().second;
-    ASSERT_EQ(last_weight_epp, lazy_eppstein_res.back().second);
+    auto const last_weight_epp = eppstein_res.back().first;
+    ASSERT_EQ(last_weight_epp, lazy_eppstein_res.back().first);
 
     auto tmp_it  = --eppstein_res.end();
     auto tmp_it2 = --lazy_eppstein_res.end();
@@ -162,7 +162,7 @@ namespace butcher_test_namespace
          tmp_it != eppstein_res.begin() && tmp_it2 != lazy_eppstein_res.begin();
          --tmp_it, --tmp_it2)
       {
-        if (tmp_it->second != last_weight_epp)
+        if (tmp_it->first != last_weight_epp)
           break;
       }
 
