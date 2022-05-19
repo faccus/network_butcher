@@ -35,7 +35,7 @@ public:
   }
 
 
-  [[nodiscard]] weight_type const &
+  [[nodiscard]] weight_type
   get_weigth(std::size_t index, edge_type const &edge) const
   {
     auto const &map = weigth_map[index];
@@ -96,7 +96,7 @@ public:
   }
 
 
-  [[nodiscard]] weight_type const &
+  [[nodiscard]] weight_type
   get_weigth(std::size_t index, edge_type const &edge) const
   {
     auto const &map = weigth_map[index];
