@@ -549,12 +549,19 @@ public:
 
   /// Basic getter for graph
   /// \return The graph (const reference)
-  const network &
+  network const &
   get_graph() const
   {
     return graph;
   }
 
+  /// Ref getter for graph
+  /// \return Reference to the stored graph
+  network &
+  get_graph_ref()
+  {
+    return graph;
+  }
 
   /// It will compute every possible 2-slice partition of the network and it
   /// will select the partition whose total memory usage is less than the
@@ -647,6 +654,31 @@ public:
     return get_weighted_network_slice(res, new_graph.first, num_of_devices);
   }
 
+
+    /// It will prodice the k-shortest paths for the linearized block graph
+    /// associated with the original one
+    /// \param weights The vector of weight map function, that associates to every
+    /// edge the corresponding weight for the corresponding device
+    /// \param num_of_devices The number of devices
+    /// \param k The number of shortest paths to find
+    /// \return The k-shortest paths on the graph (with the lenghts and devices)
+    weighted_real_paths
+    compute_k_shortest_paths_eppstein_linear(
+      std::vector<std::function<weight_type(edge_type const &)>> &weights,
+      std::function<weight_type(node_id_type const &, std::size_t, std::size_t)>
+                 &transmission_weights,
+      std::size_t num_of_devices,
+      std::size_t k) const
+    {
+      auto new_graph = block_graph(num_of_devices);
+
+      block_graph_weights(weights, transmission_weights, new_graph.first);
+
+      KFinder_Eppstein kFinder(new_graph.first);
+      auto const       res = kFinder.eppstein(k);
+
+      return get_weighted_network_slice(res, new_graph.first, num_of_devices);
+    }
 
   /// It will prodice the k-shortest paths for the linearized block graph
   /// associated with the original one

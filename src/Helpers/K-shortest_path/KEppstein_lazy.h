@@ -35,7 +35,6 @@ public:
     if (K == 1)
       return {base_shortest::shortest_path_finder(dij_res, 0)};
 
-
     auto const epp_res = basic_lazy_eppstein(K, dij_res);
 
     return base::helper_eppstein(dij_res, epp_res);

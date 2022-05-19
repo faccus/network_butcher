@@ -31,7 +31,7 @@ public:
   {}
 
 
-  [[nodiscard]] weight_type
+  [[nodiscard]] weight_type const &
   get_weigth(edge_type const &edge) const
   {
     return Parent_type::get_weigth(0, edge);
@@ -72,7 +72,7 @@ public:
     : Parent_type(1, std::move(v)) {}
 
 
-  [[nodiscard]] weight_type
+  [[nodiscard]] weight_type const &
   get_weigth(edge_type const &edge) const
   {
     return Parent_type::get_weigth(0, edge);
