@@ -265,33 +265,47 @@ IO_Manager::regression_parameters_to_csv(graph_type const       &graph,
         }
     }
 }
-
+/// WIP
 void
-import_weights_from_csv(graph_type        &graph,
-                        std::size_t        device,
-                        std::string const &path) {
-    std::fstream file_in;
-    file_in.open(path, std::ios_base::in);
-    weight_type tmp_weight;
+IO_Manager::import_weights_from_csv(graph_type        &graph,
+                                    std::size_t        device,
+                                    std::string const &path)
+{
+  std::fstream file_in;
+  file_in.open(path, std::ios_base::in);
+  weight_type tmp_weight;
 
-    auto it = graph.get_nodes().cbegin();
+  auto it = graph.get_nodes().cbegin();
 
+  std::string tmp_line;
+  std::getline(file_in, tmp_line);
+
+  while (!file_in.eof())
     {
-      std::string tmp;
-      file_in >> tmp;
+      std::getline(file_in, tmp_line);
+      std::stringstream stream_line(tmp_line);
+
+      while (std::getline(stream_line, tmp_line, ','))
+        tmp_weight = ::atof(tmp_line.c_str());
+
+      while (it != graph.get_nodes().cend() &&
+             !(it->content.get_operation_id() == "conv" &&
+               it->content.get_input().size() == 1 &&
+               it->content.get_output().size() == 1 &&
+               it->content.get_attributes().find("kernel_shape") !=
+                 it->content.get_attributes().cend())) {
+          ++it;
+        }
+
+      if(it == graph.get_nodes().cend())
+        return;
+
+      for (auto const &successor :
+           graph.get_dependencies()[it->get_id()].second)
+        {
+          graph.set_weigth(device, {it->get_id(), successor}, tmp_weight);
+        }
+
+      ++it;
     }
-
-    while(!file_in.eof())
-      {
-        file_in >> tmp_weight;
-        file_in >> tmp_weight;
-
-        while(it->content.get_operation_id() != "conv") ++it;
-
-        for (auto const &successor :
-             graph.get_dependencies()[it->get_id()].second)
-          {
-            graph.set_weigth(device, {it->get_id(), successor}, tmp_weight);
-          }
-      }
 }
