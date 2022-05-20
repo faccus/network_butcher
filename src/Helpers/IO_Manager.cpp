@@ -236,21 +236,37 @@ IO_Manager::regression_parameters_to_csv(graph_type const       &graph,
         {
           auto const &content = node.content;
 
-          auto const &ins  = content.get_input();
-          auto const &outs = content.get_output();
+          auto ins  = content.get_input();
+          auto outs = content.get_output();
           auto const  kernel_iterator =
             content.get_attributes().find("kernel_shape");
 
-          if (ins.size() == 1 && outs.size() == 1 &&
-              kernel_iterator != content.get_attributes().cend())
+          /*
+           if ((ins.size() == 1 || ins.size() == 2 && ins.contains("__fake__input__")) &&
+   (outs.size() == 1 || outs.size() == 2 && outs.contains("__fake__output__")) &&
+   kernel_iterator != content.get_attributes().cend())
+           */
+
+          if (kernel_iterator != content.get_attributes().cend())
             {
-              auto const &out_shape    = outs.begin()->second->get_shape();
-              auto const &in_shape     = ins.begin()->second->get_shape();
+              auto out_it = outs.cbegin();
+              while (out_it != outs.cend() &&
+                     out_it->first == "__fake__output__")
+                ++out_it;
+
+              auto in_it = ins.cbegin();
+              while (in_it != ins.cend() && in_it->first == "__fake__input__")
+                ++in_it;
+
+              if(in_it == ins.cend() || out_it == outs.cend())
+                continue;
+
+              auto const &out_shape    = out_it->second->get_shape();
+              auto const &in_shape     = in_it->second->get_shape();
               auto const &kernel_shape = kernel_iterator->second;
 
               auto const &H_f = kernel_iterator->second[0];
               auto const &W_f = kernel_iterator->second[1];
-
 
               std::size_t const C_in      = in_shape[1];
               std::size_t const C_out     = out_shape[1];
@@ -265,7 +281,7 @@ IO_Manager::regression_parameters_to_csv(graph_type const       &graph,
         }
     }
 }
-/// WIP
+
 void
 IO_Manager::import_weights_from_csv(graph_type        &graph,
                                     std::size_t        device,
@@ -288,12 +304,27 @@ IO_Manager::import_weights_from_csv(graph_type        &graph,
       while (std::getline(stream_line, tmp_line, ','))
         tmp_weight = ::atof(tmp_line.c_str());
 
+      /*
+       while (it != graph.get_nodes().cend() &&
+      !(it->content.get_operation_id() == "conv" &&
+        (it->content.get_input().size() == 1 ||
+         it->content.get_input().size() == 2 &&
+           it->content.get_input().contains("__fake__input__")) &&
+        (it->content.get_output().size() == 1 ||
+         it->content.get_output().size() == 2 &&
+           it->content.get_output().contains("__fake__output__")) &&
+        it->content.get_attributes().find("kernel_shape") !=
+          it->content.get_attributes().cend()))
+ {
+   ++it;
+ }
+       */
+
       while (it != graph.get_nodes().cend() &&
              !(it->content.get_operation_id() == "conv" &&
-               it->content.get_input().size() == 1 &&
-               it->content.get_output().size() == 1 &&
                it->content.get_attributes().find("kernel_shape") !=
-                 it->content.get_attributes().cend())) {
+                 it->content.get_attributes().cend()))
+        {
           ++it;
         }
 
