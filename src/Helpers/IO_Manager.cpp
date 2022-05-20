@@ -270,5 +270,28 @@ void
 import_weights_from_csv(graph_type        &graph,
                         std::size_t        device,
                         std::string const &path) {
+    std::fstream file_in;
+    file_in.open(path, std::ios_base::in);
+    weight_type tmp_weight;
 
+    auto it = graph.get_nodes().cbegin();
+
+    {
+      std::string tmp;
+      file_in >> tmp;
+    }
+
+    while(!file_in.eof())
+      {
+        file_in >> tmp_weight;
+        file_in >> tmp_weight;
+
+        while(it->content.get_operation_id() != "conv") ++it;
+
+        for (auto const &successor :
+             graph.get_dependencies()[it->get_id()].second)
+          {
+            graph.set_weigth(device, {it->get_id(), successor}, tmp_weight);
+          }
+      }
 }
