@@ -15,5 +15,6 @@ TEST(IOManagerTestSuit, ImportWeightsFromCsvTest) {
     IO_Manager::import_from_onnx("version-RFB-640-inferred.onnx", true, 3));
   IO_Manager::import_weights_from_csv(graph, 0, "prediction.csv");
 
-  std::cout << graph.get_weigth(0, {0,1}) << std::endl;
+  ASSERT_EQ(graph.get_weigth(0, {73,74}), 0.018152080268248223);
+  ASSERT_EQ(graph.get_weigth(0, {0,1}), -1.);
 }
