@@ -221,7 +221,7 @@ IO_Manager::export_to_onnx(const onnx::ModelProto &model, std::string path)
 }
 
 void
-IO_Manager::regression_parameters_to_excel(graph_type const       &graph,
+IO_Manager::regression_parameters_to_csv(graph_type const       &graph,
                                            onnx::ModelProto const &model,
                                            std::string const      &path)
 {
@@ -264,4 +264,11 @@ IO_Manager::regression_parameters_to_excel(graph_type const       &graph,
             }
         }
     }
+}
+
+void
+import_weights_from_csv(graph_type        &graph,
+                        std::size_t        device,
+                        std::string const &path) {
+
 }

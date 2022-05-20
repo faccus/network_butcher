@@ -47,10 +47,15 @@ public:
   export_to_onnx(onnx::ModelProto const &model, std::string path);
 
   static void
-  regression_parameters_to_excel(
+  regression_parameters_to_csv(
     graph_type const       &graph,
     onnx::ModelProto const &model,
     std::string const      &path = "butcher_predict.csv");
+
+  static void
+  import_weights_from_csv(graph_type        &graph,
+                          std::size_t        device,
+                          std::string const &path);
 
   template <class Graph>
   static std::vector<std::pair<onnx::ModelProto, std::size_t>>
