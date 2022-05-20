@@ -2,3 +2,6 @@
 /cmake-build-debug/
 /build/
 /ML_inputs/
+/scripts/a-ML files/output_test_decision_tree
+/scripts/a-ML files/output_test_random_forest
+/scripts/a-ML files/output_test_ridge
