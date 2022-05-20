@@ -8,7 +8,9 @@
 std::tuple<graph_type,
            onnx::ModelProto,
            std::map<node_id_type, node_id_type>>
-IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
+IO_Manager::import_from_onnx(const std::string &path,
+                             bool               add_padding_nodes,
+                             std::size_t        num_devices)
 {
   std::map<node_id_type, node_id_type> link_id_nodeproto;
 
@@ -131,7 +133,7 @@ IO_Manager::import_from_onnx(const std::string &path, bool add_padding_nodes)
       ++node_id;
     }
 
-  return {WGraph(nodes), onnx_model, link_id_nodeproto};
+  return {MWGraph(num_devices, nodes), onnx_model, link_id_nodeproto};
 }
 
 std::vector<std::string>

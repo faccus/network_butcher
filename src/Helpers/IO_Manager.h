@@ -39,7 +39,9 @@ public:
   static std::tuple<graph_type,
                     onnx::ModelProto,
                     std::map<node_id_type, node_id_type>>
-  import_from_onnx(std::string const &path, bool add_padding_nodes = true);
+    import_from_onnx(std::string const &path,
+                     bool               add_padding_nodes = true,
+                     std::size_t        num_devices       = 1);
 
   static void
   export_to_onnx(onnx::ModelProto const &model, std::string path);

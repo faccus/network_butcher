@@ -29,7 +29,7 @@ namespace butcher_test_namespace
   using Input        = TestMemoryUsage<int>;
   using Content_type = Content<Input>;
   using Node_type    = Node<Content_type>;
-  using GraphType    = WGraph<Content_type>;
+  using GraphType    = MWGraph<Content_type>;
 
   Butcher<GraphType>
   basic_butcher();
@@ -39,14 +39,35 @@ namespace butcher_test_namespace
              std::map<node_id_type, node_id_type>>
   real_butcher();
 
-  std::vector<std::function<type_weight(edge_type const &)>>
-  basic_weight(std::size_t, std::vector<type_collection_weights> &);
+  template <class Graph>
+  void
+  basic_weight(Graph &graph, bool fully_random)
+  {
+    std::size_t seed;
 
-  std::vector<std::function<type_weight(edge_type const &)>>
-  basic_weight(graph_type const                     &graph,
-               std::size_t                           num_devices,
-               std::vector<type_collection_weights> &weight_maps,
-               bool                                  fully_random);
+    if (fully_random)
+      {
+        std::random_device rd;
+        seed = rd();
+      }
+    else
+      {
+        seed = 0;
+      }
+    std::default_random_engine random_engine{seed};
+
+    auto const num_nodes = graph.get_nodes().size();
+
+    std::uniform_int_distribution node_weights_generator{5000, 10000};
+
+    for (std::size_t tail = 0; tail < num_nodes; ++tail)
+      for (auto const &head : graph.get_dependencies()[tail].second)
+        {
+          auto const tmp_weight = node_weights_generator(random_engine);
+          for (std::size_t k = 0; k < graph.get_num_devices(); ++k)
+            graph.set_weigth(k, {tail, head}, tmp_weight / std::pow(2, k));
+        }
+  };
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
     basic_transmission(std::size_t, std::size_t);
@@ -83,17 +104,13 @@ namespace butcher_test_namespace
   {
     std::size_t num_devices = 3;
 
-    auto                                 butcher = basic_butcher();
-    std::vector<type_collection_weights> weight_maps;
+    auto butcher = basic_butcher();
 
     auto const &graph     = butcher.get_graph();
     auto const  num_nodes = graph.get_nodes().size();
 
-    auto maps             = basic_weight(num_devices, weight_maps);
-    auto transmission_fun = basic_transmission(num_devices, num_nodes);
-
     auto const res = butcher.compute_k_shortest_paths_eppstein_linear(
-      maps, transmission_fun, num_devices, 1000);
+      basic_transmission(graph.get_num_devices(), num_nodes), 1000);
 
     ASSERT_EQ(res.size(), 81);
   }
@@ -103,18 +120,16 @@ namespace butcher_test_namespace
     std::size_t num_devices = 3;
 
     auto                                 butcher = basic_butcher();
-    std::vector<type_collection_weights> weight_maps;
 
-    auto maps = basic_weight(num_devices, weight_maps);
-    auto const &graph     = butcher.get_graph();
+    auto &graph     = butcher.get_graph_ref();
     auto const  num_nodes = graph.get_nodes().size();
 
     auto transmission_fun = basic_transmission(num_devices, num_nodes);
 
-    auto const res = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
-      maps, transmission_fun, num_devices, 1000);
+        auto const res = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
+          transmission_fun, 1000);
 
-    ASSERT_EQ(res.size(), 81);
+        ASSERT_EQ(res.size(), 81);
   }
 
   TEST(ButcherTest, compute_k_shortest_paths_eppstein_vs_lazy_linear)
@@ -124,28 +139,22 @@ namespace butcher_test_namespace
 
 
     auto        butcher = basic_butcher();
-    auto const &graph   = butcher.get_graph();
-    auto const &nodes = graph.get_nodes();
+    auto       &graph   = butcher.get_graph_ref();
+    auto const &nodes   = graph.get_nodes();
 
-    std::vector<type_collection_weights> weight_maps;
-    auto maps = basic_weight(num_devices, weight_maps);
-
-    auto transmission_fun =
-      basic_transmission(num_devices, nodes.size());
+    auto transmission_fun = basic_transmission(num_devices, nodes.size());
 
     Chrono crono;
     crono.start();
-    auto eppstein_res = butcher.compute_k_shortest_paths_eppstein_linear(
-      maps, transmission_fun, num_devices, k);
+    auto eppstein_res =
+      butcher.compute_k_shortest_paths_eppstein_linear(transmission_fun, k);
     crono.stop();
 
 
     Chrono crono2;
     crono2.start();
     auto lazy_eppstein_res =
-      butcher.compute_k_shortest_paths_lazy_eppstein_linear(maps,
-                                                            transmission_fun,
-                                                            num_devices,
+      butcher.compute_k_shortest_paths_lazy_eppstein_linear(transmission_fun,
                                                             k);
     crono2.stop();
     crono2.wallTime();
@@ -193,25 +202,23 @@ namespace butcher_test_namespace
     std::size_t const k           = 1000;
 
     std::vector<type_collection_weights> weight_maps;
-    auto const                           model_butcher = real_butcher();
+    auto                                 model_butcher = real_butcher();
 
     auto const &model   = std::get<1>(model_butcher);
-    auto const &butcher = std::get<0>(model_butcher);
+    auto       &butcher = std::get<0>(model_butcher);
 
-    auto const &graph = butcher.get_graph();
+    auto &graph = butcher.get_graph_ref();
     auto const &nodes = graph.get_nodes();
 
-    auto maps =
-      basic_weight(butcher.get_graph(), num_devices, weight_maps, true);
+    basic_weight(graph, true);
+
     auto transmission_fun =
       basic_transmission(k, butcher.get_graph().get_nodes().size());
 
     Chrono crono;
     crono.start();
     auto lazy_eppstein_res =
-      butcher.compute_k_shortest_paths_lazy_eppstein_linear(maps,
-                                                            transmission_fun,
-                                                            num_devices,
+      butcher.compute_k_shortest_paths_lazy_eppstein_linear(transmission_fun,
                                                             k);
     crono.stop();
 
@@ -246,8 +253,21 @@ namespace butcher_test_namespace
     nodes.emplace_back(Content_type({{"X5", 5}}, {{"X6", 6}}));
     nodes.emplace_back(Content_type({{"X6", 6}}, {{"X7", 7}}));
 
-    GraphType graph_cons(std::move(nodes));
-    return Butcher(std::move(graph_cons));
+    GraphType graph(3, std::move(nodes));
+
+    for (std::size_t k = 0; k < graph.get_num_devices(); ++k)
+      {
+        graph.set_weigth(k, {0, 1}, 1000. / std::pow(2, k));
+        graph.set_weigth(k, {1, 2}, 1000. / std::pow(2, k));
+        graph.set_weigth(k, {1, 3}, 500. / std::pow(2, k));
+        graph.set_weigth(k, {3, 4}, 500. / std::pow(2, k));
+        graph.set_weigth(k, {2, 5}, 1000. / std::pow(2, k));
+        graph.set_weigth(k, {4, 5}, 1000. / std::pow(2, k));
+        graph.set_weigth(k, {5, 6}, 1000. / std::pow(2, k));
+        graph.set_weigth(k, {6, 7}, 0.);
+      }
+
+    return Butcher(std::move(graph));
   }
 
 
@@ -263,102 +283,6 @@ namespace butcher_test_namespace
     return {Butcher(std::get<0>(tuple)),
             std::get<1>(tuple),
             std::get<2>(tuple)};
-  }
-
-
-  std::vector<std::function<type_weight(edge_type const &)>>
-  basic_weight(std::size_t                           num_devices,
-               std::vector<type_collection_weights> &weight_maps)
-  {
-    std::vector<std::function<type_weight(edge_type const &)>> maps;
-    weight_maps.reserve(num_devices);
-
-    weight_maps.emplace_back();
-    auto &initial_map = weight_maps.back();
-
-    initial_map[{0, 1}] = 1000.;
-    initial_map[{1, 2}] = 1000.;
-    initial_map[{1, 3}] = 500.;
-    initial_map[{3, 4}] = 500.;
-    initial_map[{2, 5}] = 1000.;
-    initial_map[{4, 5}] = 1000.;
-    initial_map[{5, 6}] = 1000.;
-    initial_map[{6, 7}] = 0.;
-
-    for (std::size_t k = 1; k < num_devices; ++k)
-      {
-        weight_maps.emplace_back(weight_maps.front());
-        auto &tmp_map = weight_maps.back();
-        for (auto &edge : tmp_map)
-          edge.second /= std::pow(2, k);
-      }
-
-    for (std::size_t i = 0; i < num_devices; ++i)
-      {
-        auto &weight_map = weight_maps[i];
-
-        maps.emplace_back([&weight_map](edge_type const &edge) {
-          return weight_map.find(edge)->second;
-        });
-      }
-
-    return maps;
-  }
-
-
-  std::vector<std::function<type_weight(edge_type const &)>>
-  basic_weight(graph_type const                     &graph,
-               std::size_t                           num_devices,
-               std::vector<type_collection_weights> &weight_maps,
-               bool                                  fully_random)
-  {
-    std::size_t seed;
-
-    if (fully_random)
-      {
-        std::random_device rd;
-        seed = rd();
-      }
-    else
-      {
-        seed = 0;
-      }
-    std::default_random_engine random_engine{seed};
-
-    auto const num_nodes = graph.get_nodes().size();
-
-    std::uniform_int_distribution node_weights_generator{5000, 10000};
-
-    weight_maps.reserve(num_devices);
-
-    weight_maps.emplace_back();
-    auto &initial_weight_map = weight_maps.back();
-
-    for (std::size_t tail = 0; tail < num_nodes; ++tail)
-      for (auto const &head : graph.get_dependencies()[tail].second)
-        initial_weight_map[{tail, head}] =
-          node_weights_generator(random_engine);
-
-    for (std::size_t k = 1; k < num_devices; ++k)
-      {
-        weight_maps.emplace_back(weight_maps.front());
-        auto &tmp_map = weight_maps.back();
-        for (auto &edge : tmp_map)
-          edge.second /= std::pow(2, k);
-      }
-
-    std::vector<std::function<type_weight(edge_type const &)>> maps;
-
-    for (std::size_t i = 0; i < num_devices; ++i)
-      {
-        auto &weight_map = weight_maps[i];
-
-        maps.emplace_back([&weight_map](edge_type const &edge) {
-          return weight_map.find(edge)->second;
-        });
-      }
-
-    return maps;
   }
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>

@@ -122,6 +122,12 @@ public:
   get_num_devices() const {
     return weigth_map.size();
   }
+
+  [[nodiscard]] std::vector<weights_collection_type> const &
+  get_weight_map() const
+  {
+    return weigth_map;
+  }
 };
 
 #endif // NETWORK_BUTCHER_MWGRAPH_H
