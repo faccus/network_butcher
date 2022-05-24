@@ -27,11 +27,12 @@ message(STATUS "Build benchmark tests: ${BUILD_BENCHMARK}")
 add_subdirectory(cmake)
 
 # Download onnx file and create source files
+add_subdirectory(include)
 add_subdirectory(src)
 
 add_subdirectory(google_tests)
 
-add_executable(network_butcher_run main.cpp ${BASE_SOURCE})
+add_executable(network_butcher_run main.cpp ${BASE_SOURCE} ${BASE_HEADER})
 
 target_link_libraries(network_butcher_run  ${RUN_LIBRARIES_LOCATION})
 
@@ -44,7 +45,7 @@ if( BUILD_TESTS )
 
     enable_testing()
 
-    add_executable(test_run ${FINAL_TESTS_SOURCE} ${BASE_SOURCE})
+    add_executable(test_run ${FINAL_TESTS_SOURCE} ${BASE_SOURCE} ${BASE_HEADER})
     target_link_libraries(test_run ${TEST_LIBRARIES_LOCATION})
     include(GoogleTest)
     gtest_discover_tests(test_run)

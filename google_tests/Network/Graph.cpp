@@ -2,10 +2,10 @@
 // Created by faccus on 11/09/21.
 //
 
-#include <gtest/gtest.h>
-#include "../../src/Network/Graph.h"
-#include "../../src/Helpers/IO_Manager.h"
+#include "../../include/Network/Graph.h"
+#include "../../include/Helpers/IO_Manager.h"
 #include "../TestClass.h"
+#include <gtest/gtest.h>
 
 TEST(GraphTests, Constructor)
 {

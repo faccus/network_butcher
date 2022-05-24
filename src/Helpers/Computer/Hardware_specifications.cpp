@@ -1,7 +1,7 @@
 //
 // Created by faccus on 07/11/21.
 //
-#include "Hardware_specifications.h"
+#include "../../../include/Helpers/Computer/Hardware_specifications.h"
 
 Hardware_specifications::Hardware_specifications(hardware_id_type in_id)
   : id(in_id)

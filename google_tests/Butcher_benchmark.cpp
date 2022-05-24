@@ -6,10 +6,10 @@
 #include <iostream>
 #include <random>
 
-#include "../src/Butcher.h"
-#include "../src/Helpers/APCS/chrono.h"
-#include "../src/Helpers/Computer/Computer_time.h"
-#include "../src/Helpers/IO_Manager.h"
+#include "../include/Butcher.h"
+#include "../include/Helpers/APSC/chrono.h"
+#include "../include/Helpers/Computer/Computer_time.h"
+#include "../include/Helpers/IO_Manager.h"
 #include "TestClass.h"
 
 namespace butcher_benchmark_test_namespace

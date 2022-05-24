@@ -2,7 +2,7 @@
 // Created by faccus on 28/08/21.
 //
 
-#include "Dense_tensor.h"
+#include "../../../include/Helpers/Types/Dense_tensor.h"
 
 #include <utility>
 

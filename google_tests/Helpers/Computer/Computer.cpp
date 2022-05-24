@@ -5,9 +5,9 @@
 #include <gtest/gtest.h>
 #include <memory>
 
-#include "../../../src/Helpers/Computer/Computer_memory.h"
-#include "../../../src/Helpers/Computer/Computer_time.h"
-#include "../../../src/Helpers/IO_Manager.h"
+#include "../../../include/Helpers/Computer/Computer_memory.h"
+#include "../../../include/Helpers/Computer/Computer_time.h"
+#include "../../../include/Helpers/IO_Manager.h"
 #include "../../TestClass.h"
 
 namespace ComputerMemoryTests

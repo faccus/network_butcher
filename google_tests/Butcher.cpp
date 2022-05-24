@@ -5,9 +5,9 @@
 #include <iostream>
 #include <random>
 
-#include "../src/Butcher.h"
-#include "../src/Helpers/IO_Manager.h"
-#include "../src/Helpers/APCS/chrono.h"
+#include "../include/Butcher.h"
+#include "../include/Helpers/APSC/chrono.h"
+#include "../include/Helpers/IO_Manager.h"
 #include "TestClass.h"
 
 /*

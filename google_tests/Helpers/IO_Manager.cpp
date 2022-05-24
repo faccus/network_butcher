@@ -1,7 +1,7 @@
 //
 // Created by root on 12/04/22.
 //
-#include "../../src/Helpers/IO_Manager.h"
+#include "../../include/Helpers/IO_Manager.h"
 #include <gtest/gtest.h>
 
 TEST(IOManagerTestSuit, RegressionParamtersToExcelTest)

@@ -12,11 +12,11 @@
 #include <utility>
 #include <vector>
 
-#include "../Onnx_model/onnx.pb.h"
+#include "../../src/Onnx_model/onnx.pb.h"
 
 #include "../Helpers/Traits/Node_traits.h"
-#include "Node.h"
 #include "../Helpers/Types/Content.h"
+#include "Node.h"
 
 /// Just another graph class...
 /// \tparam T Type of the content of the node

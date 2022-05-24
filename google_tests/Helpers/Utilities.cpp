@@ -1,7 +1,7 @@
 //
 // Created by faccus on 30/08/21.
 //
-#include "../../src/Helpers/Utilities.h"
+#include "../../include/Helpers/Utilities.h"
 #include <gtest/gtest.h>
 
 TEST(UtilitiesTestSuit, ComputeMemoryUsageFromEnumTest)

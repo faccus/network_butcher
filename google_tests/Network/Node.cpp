@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 #include <memory>
 
-#include "../../src/Network/Node.h"
+#include "../../include/Network/Node.h"
 
 TEST(NodeTests, ConctructorTest)
 {

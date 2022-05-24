@@ -2,8 +2,8 @@
 // Created by faccus on 30/08/21.
 //
 
+#include "../../../include/Helpers/Types/Dense_tensor.h"
 #include <gtest/gtest.h>
-#include "../../../src/Helpers/Types/Dense_tensor.h"
 
 TEST(DenseTensorTest, ConstuctorAndMemoryUsage) {
   Dense_tensor d(onnx::TensorProto_DataType_INT64,
