@@ -22,12 +22,7 @@
 #include "Helpers/Types/Type_info.h"
 
 #include "Helpers/Utilities.h"
-
-
-using real_path = std::vector<std::pair<std::size_t, std::set<node_id_type>>>;
-using weighted_real_path = std::pair<weight_type, real_path>;
-using weighted_real_paths = std::vector<weighted_real_path>;
-
+#include "Helpers/Types/Paths.h"
 
 /// Butcher butchers a given graph into slices
 template <class GraphType>
@@ -459,11 +454,11 @@ private:
     return current_node_id == 0 ? 0 : current_node_id - device_id;
   }
 
-  [[nodiscard]] real_path
+  [[nodiscard]] Real_Path
   get_network_slices(path_info const   &new_path,
                      new_network const &new_graph) const
   {
-    real_path   res;
+    Real_Path   res;
     std::size_t current_model_device = 0;
 
     res.emplace_back(current_model_device, std::set<node_id_type>());
@@ -493,11 +488,11 @@ private:
     return res;
   }
 
-  [[nodiscard]] std::vector<real_path>
+  [[nodiscard]] std::vector<Real_Path>
   get_network_slices(std::vector<path_info> const &new_paths,
                      new_network const            &new_graph) const
   {
-    std::vector<real_path> res(new_paths.size());
+    std::vector<Real_Path> res(new_paths.size());
 
     std::transform(new_paths.begin(),
                    new_paths.end(),
@@ -510,13 +505,13 @@ private:
     return res;
   }
 
-  [[nodiscard]] weighted_real_paths
+  [[nodiscard]] Weighted_Real_Paths
   get_weighted_network_slice(std::vector<path_info> const &new_paths,
                              new_network const            &new_graph) const
   {
     auto network_slice =
       get_network_slices(new_paths, new_graph);
-    weighted_real_paths final_res;
+    Weighted_Real_Paths final_res;
 
     final_res.reserve(network_slice.size());
 
@@ -525,13 +520,13 @@ private:
     return final_res;
   }
 
-  [[nodiscard]] weighted_real_paths
+  [[nodiscard]] Weighted_Real_Paths
   get_weighted_network_slice(
     std::vector<path_info> const &new_paths,
     std::vector<std::vector<std::pair<size_t, std::set<node_id_type>>>> const
       &network_slice) const
   {
-    weighted_real_paths final_res;
+    Weighted_Real_Paths final_res;
     final_res.reserve(network_slice.size());
     for (std::size_t i = 0; i < network_slice.size(); ++i)
       final_res.emplace_back(new_paths[i].length, network_slice[i]);
@@ -634,7 +629,7 @@ public:
   /// \param num_of_devices The number of devices
   /// \param k The number of shortest paths to find
   /// \return The k-shortest paths on the graph (with the lenghts and devices)
-  weighted_real_paths
+  Weighted_Real_Paths
   compute_k_shortest_paths_eppstein_linear(
     std::function<weight_type(node_id_type const &,
                               std::size_t,
@@ -656,7 +651,7 @@ public:
   /// \param num_of_devices The number of devices
   /// \param k The number of shortest paths to find
   /// \return The k-shortest paths on the graph (with the lenghts and devices)
-  weighted_real_paths
+  Weighted_Real_Paths
   compute_k_shortest_paths_lazy_eppstein_linear(
     std::function<weight_type(node_id_type const &,
                               std::size_t,

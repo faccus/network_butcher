@@ -181,10 +181,10 @@ namespace butcher_test_namespace
     eppstein_res.erase(tmp_it, eppstein_res.end());
     lazy_eppstein_res.erase(tmp_it2, lazy_eppstein_res.end());
 
-    std::set<weighted_real_path> eppstein;
+    std::set<Weighted_Real_Path> eppstein;
     eppstein.insert(eppstein_res.begin(), eppstein_res.end());
 
-    std::set<weighted_real_path> lazy_eppstein;
+    std::set<Weighted_Real_Path> lazy_eppstein;
     lazy_eppstein.insert(lazy_eppstein_res.begin(), lazy_eppstein_res.end());
 
     ASSERT_EQ(eppstein, lazy_eppstein);

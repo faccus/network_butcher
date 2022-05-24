@@ -60,7 +60,7 @@ public:
   template <class Graph>
   static std::vector<std::pair<onnx::ModelProto, std::size_t>>
   reconstruct_model(
-    real_path const                                       &partitions,
+    Real_Path const                                       &partitions,
     onnx::ModelProto const                                &original_model,
     Graph const                                           &graph,
     std::map<node_id_type, node_id_type> const &node_collection);
@@ -69,7 +69,7 @@ public:
 template <class Graph>
 std::vector<std::pair<onnx::ModelProto, std::size_t>>
 IO_Manager::reconstruct_model(
-  real_path const                      &partitions,
+  Real_Path const                      &partitions,
   onnx::ModelProto const               &original_model,
   Graph const                          &graph,
   std::map<node_id_type, node_id_type> const &node_collection)

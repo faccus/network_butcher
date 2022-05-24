@@ -1,6 +1,6 @@
 set(BASE_HEADER
         include/Network/Node.h include/Network/Graph.h include/Network/WGraph.h include/Network/MWGraph.h
-        include/Butcher.h
+        include/Butcher.h include/Helpers/Types/Paths.h
         include/Helpers/Utilities.h include/Helpers/IO_Manager.h
         include/Helpers/Types/Type_info.h include/Helpers/Types/Dense_tensor.h include/Helpers/Types/Content.h
         include/Helpers/Traits/Graph_traits.h include/Helpers/Traits/Node_traits.h include/Helpers/Traits/Basic_traits.h
