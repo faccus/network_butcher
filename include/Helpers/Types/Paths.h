@@ -7,8 +7,9 @@
 
 #include <vector>
 
-using Real_Partition = std::pair<std::size_t, std::set<node_id_type>>;
-using Real_Path = std::vector<Real_Partition>;
+using Slice_Type          = std::set<node_id_type>;
+using Real_Partition      = std::pair<std::size_t, Slice_Type>;
+using Real_Path           = std::vector<Real_Partition>;
 using Weighted_Real_Path  = std::pair<weight_type, Real_Path>;
 using Weighted_Real_Paths = std::vector<Weighted_Real_Path>;
 

@@ -38,21 +38,21 @@ private:
   /// node
   /// \return returns the smallest connected sub-graph (with dependencies)
   /// that connects the first node with the n-th node
-  [[nodiscard]] std::vector<slice_type>
+  [[nodiscard]] std::vector<Slice_Type>
   compute_basic_routes() const
   {
-    std::vector<slice_type> basic_routes;
+    std::vector<Slice_Type> basic_routes;
     basic_routes.reserve(graph.get_nodes().size());
 
     {
-      slice_type tmp;
+      Slice_Type tmp;
       tmp.insert(0);
       basic_routes.push_back(tmp);
     }
 
     for (int i = 1; i < graph.get_nodes().size(); ++i)
       {
-        slice_type partial_res;
+        Slice_Type partial_res;
         partial_res.insert(i);
 
         const auto &input_nodes = graph.get_dependencies()[i].first;
@@ -68,25 +68,31 @@ private:
     return basic_routes;
   };
 
-
-  /// Given a vector of slices, verify which ones applied to tester return true.
-  /// \param slices The vector of input slices
+  /// Given a vector of Real_Partition, verify which ones applied to tester return true.
+  /// \param partitions The vector of input Real_Partition
   /// \param tester The tester function
-  /// \return The slices that satisfy the tester function
-  static std::vector<slice_type>
-  partition_checker(std::vector<slice_type>                       &slices,
-                    const std::function<bool(const slice_type &)> &tester)
+  /// \return True if the tester function returns true for every Real_Partition
+  static bool
+  partition_checker(Real_Path const &path,
+                    const std::function<bool(const Real_Partition &)> &tester)
   {
-    std::vector<slice_type> res;
+    std::vector<Slice_Type> res;
 
-    for (int i = 0; i < slices.size(); ++i)
-      {
-        if (tester(slices[i]))
-          res.push_back(slices[i]);
-      }
+    for(auto const &partition : path)
+      if(!tester(partition))
+        return false;
 
-    return res;
+    return true;
   };
+
+  static bool
+  partition_memory_checker(
+    Real_Path const                            &real_path,
+    std::map<node_id_type, node_id_type> const &old_to_new_nodes,
+    std::vector<memory_type> const             &memory_constraint)
+  {
+
+  }
 
 
   /// It will produce a linearized version of the current graph (with multiple
@@ -199,7 +205,8 @@ private:
           }
         else
           {
-            std::cout << std::endl;
+            std::cout << "Unknown node found during block_graph construction"
+                      << std::endl;
           }
       }
 
@@ -564,7 +571,7 @@ public:
   /// \param memory_first_slice Total memory usage allowed to the first slice
   /// \return a collection of all the admissible partitions (and the nodes
   /// contained in the first partition)
-  [[nodiscard]] std::vector<slice_type>
+  [[nodiscard]] std::vector<Slice_Type>
   compute_two_slice_memory_brute_force(memory_type memory_first_slice) const
   {
     Computer_memory computer;
@@ -572,7 +579,7 @@ public:
     auto nodes_memory_usage = computer.compute_nodes_memory_usage_input(graph);
 
     auto tester = [&nodes_memory_usage,
-                   &memory_first_slice](const slice_type &slice) {
+                   &memory_first_slice](const Slice_Type &slice) {
       memory_type memory_usage = 0;
       for (auto &j : slice)
         memory_usage += nodes_memory_usage[j];
@@ -586,15 +593,15 @@ public:
   /// It will try to compute every 2-slice partition of a graph
   /// \return A vector containing every possibile 2-slice partition of the graph
   /// (taking into account dependencies)
-  [[nodiscard]] std::vector<slice_type>
+  [[nodiscard]] std::vector<Slice_Type>
   compute_two_slice_brute_force() const
   {
     auto const &nodes = graph.get_nodes();
 
-    std::vector<slice_type> res;
+    std::vector<Slice_Type> res;
     res.reserve(nodes.size());
 
-    slice_type start{0};
+    Slice_Type start{0};
     res.push_back(start);
 
     for (int i = 1; i < nodes.size(); ++i)

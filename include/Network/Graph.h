@@ -33,6 +33,8 @@ protected:
     dependencies;
 
 public:
+  using NodeType = Node<T>;
+
   Graph() = default;
 
   Graph(Graph const &) = default;
