@@ -85,14 +85,6 @@ private:
     return true;
   };
 
-  static bool
-  partition_memory_checker(
-    Real_Path const                            &real_path,
-    std::map<node_id_type, node_id_type> const &old_to_new_nodes,
-    std::vector<memory_type> const             &memory_constraint)
-  {
-
-  }
 
 
   /// It will produce a linearized version of the current graph (with multiple
@@ -565,70 +557,60 @@ public:
     return graph;
   }
 
-  /// It will compute every possible 2-slice partition of the network and it
-  /// will select the partition whose total memory usage is less than the
-  /// specified value
-  /// \param memory_first_slice Total memory usage allowed to the first slice
-  /// \return a collection of all the admissible partitions (and the nodes
-  /// contained in the first partition)
-  [[nodiscard]] std::vector<Slice_Type>
-  compute_two_slice_memory_brute_force(memory_type memory_first_slice) const
+
+  bool
+  partition_memory_checker(Real_Path const                &real_path,
+                           std::vector<memory_type> const &memory_constraint)
   {
-    Computer_memory computer;
-    auto            slices  = compute_two_slice_brute_force();
-    auto nodes_memory_usage = computer.compute_nodes_memory_usage_input(graph);
+    auto const nodes_memory_usage =
+      Computer_memory::compute_nodes_memory_usage_output(graph, true);
 
-    auto tester = [&nodes_memory_usage,
-                   &memory_first_slice](const Slice_Type &slice) {
-      memory_type memory_usage = 0;
-      for (auto &j : slice)
-        memory_usage += nodes_memory_usage[j];
-      return memory_usage < memory_first_slice;
-    };
-
-    return partition_checker(slices, tester);
-  };
-
-
-  /// It will try to compute every 2-slice partition of a graph
-  /// \return A vector containing every possibile 2-slice partition of the graph
-  /// (taking into account dependencies)
-  [[nodiscard]] std::vector<Slice_Type>
-  compute_two_slice_brute_force() const
-  {
-    auto const &nodes = graph.get_nodes();
-
-    std::vector<Slice_Type> res;
-    res.reserve(nodes.size());
-
-    Slice_Type start{0};
-    res.push_back(start);
-
-    for (int i = 1; i < nodes.size(); ++i)
+    for (auto const &[model_id, nodes] : real_path)
       {
-        auto &dependencies = graph.get_dependencies()[i];
-        auto &input        = dependencies.first;
+        memory_type memory = 0, branch_memory = 0, tmp_memory = 0;
+        std::map<node_id_type, std::size_t> node_occupancy;
 
-        for (auto &part : res)
+        for (auto const &node : nodes)
           {
-            bool ok = true;
-            for (auto &in : input)
-              if (!part.contains(in))
-                {
-                  ok = false;
-                  break;
-                }
-            if (ok)
+            node_occupancy[node] = graph.get_dependencies()[node].second.size();
+            tmp_memory           = nodes_memory_usage[node];
+
+            for (auto const &ins : graph.get_dependencies()[node].first)
               {
-                auto copy = part;
-                copy.insert(i);
-                res.push_back(copy);
+                auto it = node_occupancy.find(ins);
+                it->second -= 1;
+                if (it->second == 0)
+                  node_occupancy.erase(it);
+              }
+
+            if (node_occupancy.size() <= 1)
+              {
+                branch_memory = std::max(branch_memory, tmp_memory);
+                memory        = std::max(memory, branch_memory);
+                branch_memory = 0, tmp_memory = 0;
+              }
+            else
+              {
+                for (auto it = ++node_occupancy.crbegin();
+                     it != node_occupancy.crend();
+                     ++it)
+                  {
+                    tmp_memory += nodes_memory_usage[it->first];
+                  }
+
+                branch_memory = std::max(branch_memory, tmp_memory);
               }
           }
+
+        branch_memory = std::max(branch_memory, tmp_memory);
+        memory        = std::max(memory, branch_memory);
+
+        if (memory > memory_constraint[model_id])
+          return false;
       }
 
-    return res;
-  };
+    return true;
+  }
 
 
   /// It will prodice the k-shortest paths for the linearized block graph

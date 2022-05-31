@@ -42,11 +42,11 @@ utilities::compute_memory_usage_from_enum(type_info_id_type input) {
           case onnx::TensorProto_DataType_BFLOAT16:
             return 2; // https://www.ibm.com/docs/en/zos/2.4.0?topic=definitions-cc-data-type
           default:
-            return -1;
+            return 0;
         }
     }
   else
-    return -1;
+    return 0;
 }
 
 void utilities::parse_onnx_file(onnx::ModelProto & m, const std::string& model_path)

@@ -10,7 +10,7 @@ TEST(UtilitiesTestSuit, ComputeMemoryUsageFromEnumTest)
   ASSERT_EQ(res, sizeof(float));
 
   res = utilities::compute_memory_usage_from_enum(-1);
-  ASSERT_EQ(res, -1);
+  ASSERT_EQ(res, 0);
 }
 
 TEST(UtilitiesTestSuit, ParseOnnxFileTest)

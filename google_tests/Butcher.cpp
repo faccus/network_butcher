@@ -73,33 +73,6 @@ namespace butcher_test_namespace
     basic_transmission(std::size_t, std::size_t);
 
 
-  TEST(ButcherTest, compute_two_slice_brute_force_test)
-  {
-    using Content_type = graph_input_type;
-
-    const std::string model_path = "resnet18-v2-7-inferred.onnx";
-
-    Butcher butcher(std::get<0>(IO_Manager::import_from_onnx(model_path)));
-    auto    res = butcher.compute_two_slice_brute_force();
-  }
-
-  TEST(ButcherTest, compute_two_slice_memory_brute_force_test)
-  {
-    using Content_type = graph_input_type;
-
-    const std::string model_path = "resnet18-v2-7-inferred.onnx";
-
-    auto graph = std::get<0>(IO_Manager::import_from_onnx(model_path));
-    const Computer_memory computer{};
-
-    size_t half_size = computer.compute_memory_usage_input(graph) / 2;
-
-    Butcher butcher(std::move(graph));
-
-    auto tot = butcher.compute_two_slice_memory_brute_force(half_size);
-  }
-
-
   TEST(ButcherTest, compute_k_shortest_paths_eppstein_linear)
   {
     std::size_t num_devices = 3;
@@ -129,7 +102,7 @@ namespace butcher_test_namespace
         auto const res = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
           transmission_fun, 1000);
 
-        ASSERT_EQ(res.size(), 81);
+    ASSERT_EQ(res.size(), 81);
   }
 
   TEST(ButcherTest, compute_k_shortest_paths_eppstein_vs_lazy_linear)
@@ -222,6 +195,14 @@ namespace butcher_test_namespace
                                                             k);
     crono.stop();
 
+    memory_type const gb  = 1024 * 1024 * 1024;
+    memory_type const gb1 = gb;
+    memory_type const gb4 = 4 * gb;
+    memory_type const gb8 = 8 * gb;
+
+    butcher.partition_memory_checker(lazy_eppstein_res[10].second,
+                                     {gb1, gb4, gb8});
+
     std::cout << "Lazy Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
               << std::endl;
 
@@ -278,7 +259,7 @@ namespace butcher_test_namespace
   {
     std::string const path =
       "version-RFB-640-inferred.onnx"; //"version-RFB-640.onnx";
-    auto tuple = IO_Manager::import_from_onnx(path);
+    auto tuple = IO_Manager::import_from_onnx(path, true, 3);
 
     return {Butcher(std::get<0>(tuple)),
             std::get<1>(tuple),

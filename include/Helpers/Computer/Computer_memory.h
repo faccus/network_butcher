@@ -190,6 +190,38 @@ public:
 
   template <class T>
   static inline std::vector<memory_type>
+  compute_nodes_memory_usage_output(Graph<Content<T>> const &graph,
+                                    bool include_parameters = false)
+  {
+    auto const              &nodes = graph.get_nodes();
+    std::vector<memory_type> memory_usages;
+    memory_usages.resize(nodes.size());
+
+    if (include_parameters)
+      {
+        std::transform(nodes.cbegin(),
+                       nodes.cend(),
+                       memory_usages.begin(),
+                       [](Node<Content<T>> const &node) {
+                         return compute_memory_usage_output(node) +
+                                compute_memory_usage_parameters(node);
+                       });
+      }
+    else
+      {
+        std::transform(nodes.cbegin(),
+                       nodes.cend(),
+                       memory_usages.begin(),
+                       [](Node<Content<T>> const &node) {
+                         return compute_memory_usage_output(node);
+                       });
+      }
+
+    return memory_usages;
+  }
+
+  template <class T>
+  static inline std::vector<memory_type>
   compute_nodes_memory_usage_parameters(Graph<Content<T>> const &graph)
   {
     auto const              &nodes = graph.get_nodes();
