@@ -34,11 +34,6 @@ namespace butcher_test_namespace
   Butcher<GraphType>
   basic_butcher();
 
-  std::tuple<Butcher<graph_type>,
-             onnx::ModelProto,
-             std::map<node_id_type, node_id_type>>
-  real_butcher();
-
   template <class Graph>
   void
   complete_weights(Graph &graph)
@@ -58,9 +53,6 @@ namespace butcher_test_namespace
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
     basic_transmission(std::size_t, std::size_t);
-
-  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
-  real_transmission(graph_type const &);
 
 
   TEST(ButcherTest, compute_k_shortest_paths_eppstein_linear)
@@ -159,62 +151,6 @@ namespace butcher_test_namespace
               << " milliseconds" << std::endl;
   }
 
-  TEST(ButcherTest, final_network_test)
-  {
-    std::size_t       num_devices = 2;
-    std::size_t const k           = 1000;
-
-    std::vector<type_collection_weights> weight_maps;
-    auto                                 model_butcher = real_butcher();
-
-    auto const &model   = std::get<1>(model_butcher);
-    auto       &butcher = std::get<0>(model_butcher);
-
-    auto &graph = butcher.get_graph_ref();
-    auto const &nodes = graph.get_nodes();
-
-    auto transmission_fun = real_transmission(graph);
-
-    Chrono crono;
-    crono.start();
-    auto lazy_eppstein_res =
-      butcher.compute_k_shortest_paths_lazy_eppstein_linear(transmission_fun,
-                                                            k);
-    crono.stop();
-
-    memory_type const gb  = 1024 * 1024 * 1024;
-    memory_type const gb_pi = gb / 2; // 512 MB RAM
-    memory_type const gb_cluster = 4 * gb; // 4 GB RAM
-
-    auto const memory_test =
-      butcher.partition_memory_checker(lazy_eppstein_res.back().second,
-                                       {gb_pi, gb_cluster});
-
-    std::cout << "Lazy Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
-              << std::endl;
-
-    auto const model_device =
-      IO_Manager::reconstruct_model(lazy_eppstein_res.back().second,
-                                    model,
-                                    graph,
-                                    std::get<2>(model_butcher));
-
-    std::string const p = "output_final_network_test";
-    utilities::create_directory(p);
-
-    for(std::size_t j = 0; j < lazy_eppstein_res.size(); ++j) {
-        utilities::create_directory(p + "/" + std::to_string(j));
-        for (std::size_t i = 0; i < model_device.size(); ++i)
-          IO_Manager::export_to_onnx(model_device[i].first,
-                                     p + "/" + std::to_string(j) +
-                                       "/version-RFB-640-inferred-" +
-                                       std::to_string(i) + "-device-" +
-                                       std::to_string(model_device[i].second) +
-                                       ".onnx");
-      }
-
-  }
-
   Butcher<GraphType>
   basic_butcher()
   {
@@ -244,27 +180,6 @@ namespace butcher_test_namespace
       }
 
     return Butcher(std::move(graph));
-  }
-
-
-  std::tuple<Butcher<graph_type>,
-             onnx::ModelProto,
-             std::map<node_id_type, node_id_type>>
-  real_butcher()
-  {
-    std::string const path =
-      "version-RFB-640-inferred.onnx"; //"version-RFB-640.onnx";
-    auto tuple = IO_Manager::import_from_onnx(path, true, 2);
-    auto &graph = std::get<0>(tuple);
-
-    IO_Manager::import_weights_from_csv(graph, 0, "prediction_pi.csv");
-    IO_Manager::import_weights_from_csv(graph, 1, "prediction_tegra.csv");
-
-    complete_weights(graph);
-
-    return {Butcher(graph),
-            std::get<1>(tuple),
-            std::get<2>(tuple)};
   }
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
@@ -300,27 +215,5 @@ namespace butcher_test_namespace
             return -1.;
           }
       };
-  }
-
-
-
-  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
-  real_transmission(graph_type const &graph)
-  {
-    auto const  mbps  = std::pow(10, 6) / 8;
-
-    return [&graph, mbps](node_id_type const &node,
-                          std::size_t         from_device,
-                          std::size_t         to_device) {
-      Computer_memory cm;
-      auto const      mem_to_transmit =
-        cm.compute_memory_usage_output(graph.get_nodes()[node]);
-
-      if (from_device == to_device)
-        return .0;
-      else
-        return mem_to_transmit / (18.88 * mbps) +
-               mem_to_transmit / (5.85 * mbps);
-    };
   }
 } // namespace butcher_test_namespace

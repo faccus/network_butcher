@@ -31,6 +31,27 @@ namespace butcher_benchmark_test_namespace
   Butcher<Graph_type>
   basic_butcher(int);
 
+  std::tuple<Butcher<graph_type>,
+             onnx::ModelProto,
+             std::map<node_id_type, node_id_type>>
+  real_butcher();
+
+  template <class Graph>
+  void
+  complete_weights(Graph &graph)
+  {
+    auto const  num_nodes    = graph.get_nodes().size();
+    auto const &dependencies = graph.get_dependencies();
+
+    for (node_id_type tail = 0; tail < num_nodes; ++tail)
+      for (auto const &head : dependencies[tail].second) {
+          for (std::size_t k = 0; k < graph.get_num_devices(); ++k) {
+              if (graph.get_weigth(k, {tail, head}) == -1.)
+                graph.set_weigth(k, {tail, head}, 0.);
+            }
+        }
+  };
+
   template <class Graph>
   void
   basic_weight(Graph &graph, bool fully_random)
@@ -137,10 +158,10 @@ namespace butcher_benchmark_test_namespace
     lazy_eppstein_res.erase(tmp_it2, lazy_eppstein_res.end());
 
 
-    std::set<weighted_real_path> eppstein;
+    std::set<Weighted_Real_Path> eppstein;
     eppstein.insert(eppstein_res.begin(), eppstein_res.end());
 
-    std::set<weighted_real_path> lazy_eppstein;
+    std::set<Weighted_Real_Path> lazy_eppstein;
     lazy_eppstein.insert(lazy_eppstein_res.begin(), lazy_eppstein_res.end());
 
     ASSERT_EQ(eppstein, lazy_eppstein);
@@ -207,10 +228,10 @@ namespace butcher_benchmark_test_namespace
     lazy_eppstein_res.erase(tmp_it2, lazy_eppstein_res.end());
 
 
-    std::set<weighted_real_path> eppstein;
+    std::set<Weighted_Real_Path> eppstein;
     eppstein.insert(eppstein_res.begin(), eppstein_res.end());
 
-    std::set<weighted_real_path> lazy_eppstein;
+    std::set<Weighted_Real_Path> lazy_eppstein;
     lazy_eppstein.insert(lazy_eppstein_res.begin(), lazy_eppstein_res.end());
 
     ASSERT_EQ(eppstein, lazy_eppstein);
@@ -282,10 +303,10 @@ namespace butcher_benchmark_test_namespace
         eppstein_res.erase(tmp_it, eppstein_res.end());
         lazy_eppstein_res.erase(tmp_it2, lazy_eppstein_res.end());
 
-        std::set<weighted_real_path> eppstein;
+        std::set<Weighted_Real_Path> eppstein;
         eppstein.insert(eppstein_res.begin(), eppstein_res.end());
 
-        std::set<weighted_real_path> lazy_eppstein;
+        std::set<Weighted_Real_Path> lazy_eppstein;
         lazy_eppstein.insert(lazy_eppstein_res.begin(),
                              lazy_eppstein_res.end());
 
@@ -374,6 +395,67 @@ namespace butcher_benchmark_test_namespace
               << std::endl;
   }
 
+  TEST(ButcherTest, final_network_test)
+  {
+    std::size_t       num_devices = 2;
+    std::size_t const k           = 1000;
+
+    std::vector<type_collection_weights> weight_maps;
+    auto                                 model_butcher = real_butcher();
+
+    auto const &model   = std::get<1>(model_butcher);
+    auto       &butcher = std::get<0>(model_butcher);
+
+    auto &graph = butcher.get_graph_ref();
+    auto const &nodes = graph.get_nodes();
+
+    auto transmission_fun = real_transmission(graph);
+
+    Chrono crono;
+    crono.start();
+    auto lazy_eppstein_res =
+      butcher.compute_k_shortest_paths_lazy_eppstein_linear(transmission_fun,
+                                                            k);
+    crono.stop();
+
+
+
+    memory_type const gb  = 1024 * 1024 * 1024;
+    memory_type const gb_pi = gb / 2; // 512 MB RAM
+    memory_type const gb_cluster = 4 * gb; // 4 GB RAM
+    auto const model_device =
+      IO_Manager::reconstruct_model(lazy_eppstein_res.back().second,
+                                    model,
+                                    graph,
+                                    std::get<2>(model_butcher));
+
+
+
+    std::string const p = "output_final_network_test";
+    utilities::create_directory(p);
+
+    std::ofstream out_file(p + "/report.txt", std::ios::out);
+    for(std::size_t j = 0; j < lazy_eppstein_res.size(); ++j) {
+        out_file << std::to_string(j) << ": "
+                 << butcher.partition_memory_checker(
+                      lazy_eppstein_res[j].second, {gb_pi, gb_cluster})
+                 << std::endl;
+      }
+    out_file.close();
+
+    for(std::size_t j = 0; j < lazy_eppstein_res.size(); ++j) {
+        utilities::create_directory(p + "/" + std::to_string(j));
+        for (std::size_t i = 0; i < model_device.size(); ++i)
+          IO_Manager::export_to_onnx(model_device[i].first,
+                                     p + "/" + std::to_string(j) +
+                                       "/version-RFB-640-inferred-" +
+                                       std::to_string(i) + "-device-" +
+                                       std::to_string(model_device[i].second) +
+                                       ".onnx");
+      }
+
+  }
+
 
   Butcher<Graph_type>
   basic_butcher(int num_nodes)
@@ -459,6 +541,8 @@ namespace butcher_benchmark_test_namespace
     return res;
   }
 
+
+
   void
   real_weight(Real_Graph_Type &graph)
   {
@@ -509,6 +593,27 @@ namespace butcher_benchmark_test_namespace
       else
         return .0;
     };
+  }
+
+
+  std::tuple<Butcher<graph_type>,
+             onnx::ModelProto,
+             std::map<node_id_type, node_id_type>>
+  real_butcher()
+  {
+    std::string const path =
+      "version-RFB-640-inferred.onnx"; //"version-RFB-640.onnx";
+    auto tuple = IO_Manager::import_from_onnx(path, true, 2);
+    auto &graph = std::get<0>(tuple);
+
+    IO_Manager::import_weights_from_csv(graph, 0, "prediction_pi.csv");
+    IO_Manager::import_weights_from_csv(graph, 1, "prediction_tegra.csv");
+
+    complete_weights(graph);
+
+    return {Butcher(graph),
+            std::get<1>(tuple),
+            std::get<2>(tuple)};
   }
 
 
