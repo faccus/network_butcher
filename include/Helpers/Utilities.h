@@ -51,6 +51,13 @@ namespace utilities
     return std::filesystem::exists(p);
   }
 
+  inline void
+  create_directory(const std::string &path) {
+    if(!std::filesystem::is_directory(path) || !std::filesystem::exists(path)) {
+        std::filesystem::create_directory(path);
+      }
+  }
+
 } // namespace utilities
 
 #endif // NETWORK_BUTCHER_UTILITIES_H
