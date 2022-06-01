@@ -41,33 +41,20 @@ namespace butcher_test_namespace
 
   template <class Graph>
   void
-  basic_weight(Graph &graph, bool fully_random)
+  complete_weights(Graph &graph)
   {
-    std::size_t seed;
+    auto const  num_nodes    = graph.get_nodes().size();
+    auto const &dependencies = graph.get_dependencies();
 
-    if (fully_random)
-      {
-        std::random_device rd;
-        seed = rd();
-      }
-    else
-      {
-        seed = 0;
-      }
-    std::default_random_engine random_engine{seed};
-
-    auto const num_nodes = graph.get_nodes().size();
-
-    std::uniform_int_distribution node_weights_generator{5000, 10000};
-
-    for (std::size_t tail = 0; tail < num_nodes; ++tail)
-      for (auto const &head : graph.get_dependencies()[tail].second)
-        {
-          auto const tmp_weight = node_weights_generator(random_engine);
-          for (std::size_t k = 0; k < graph.get_num_devices(); ++k)
-            graph.set_weigth(k, {tail, head}, tmp_weight / std::pow(2, k));
+    for (node_id_type tail = 0; tail < num_nodes; ++tail)
+      for (auto const &head : dependencies[tail].second) {
+          for (std::size_t k = 0; k < graph.get_num_devices(); ++k) {
+              if (graph.get_weigth(k, {tail, head}) == -1.)
+                graph.set_weigth(k, {tail, head}, 0.);
+            }
         }
   };
+
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
     basic_transmission(std::size_t, std::size_t);
@@ -186,10 +173,7 @@ namespace butcher_test_namespace
     auto &graph = butcher.get_graph_ref();
     auto const &nodes = graph.get_nodes();
 
-    basic_weight(graph, true);
-
-    auto transmission_fun =
-      basic_transmission(k, butcher.get_graph().get_nodes().size());
+    auto transmission_fun = real_transmission(graph);
 
     Chrono crono;
     crono.start();
@@ -199,12 +183,12 @@ namespace butcher_test_namespace
     crono.stop();
 
     memory_type const gb  = 1024 * 1024 * 1024;
-    memory_type const gb1 = gb;
-    memory_type const gb4 = 4 * gb;
-    memory_type const gb8 = 8 * gb;
+    memory_type const gb_pi = gb / 2; // 512 MB RAM
+    memory_type const gb_cluster = 4 * gb; // 4 GB RAM
 
-    butcher.partition_memory_checker(lazy_eppstein_res[10].second,
-                                     {gb1, gb4, gb8});
+    auto const memory_test =
+      butcher.partition_memory_checker(lazy_eppstein_res.back().second,
+                                       {gb_pi, gb_cluster});
 
     std::cout << "Lazy Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
               << std::endl;
@@ -215,9 +199,12 @@ namespace butcher_test_namespace
                                     graph,
                                     std::get<2>(model_butcher));
 
+    std::string const p = "output_final_network_test";
+    utilities::create_directory(p);
+
     for (std::size_t i = 0; i < model_device.size(); ++i)
       IO_Manager::export_to_onnx(model_device[i].first,
-                                 "version-RFB-640-inferred-" +
+                                 p + "/version-RFB-640-inferred-" +
                                    std::to_string(i) + "-device-" +
                                    std::to_string(model_device[i].second) +
                                    ".onnx");
@@ -268,6 +255,8 @@ namespace butcher_test_namespace
     IO_Manager::import_weights_from_csv(graph, 0, "prediction_pi.csv");
     IO_Manager::import_weights_from_csv(graph, 1, "prediction_tegra.csv");
 
+    complete_weights(graph);
+
     return {Butcher(graph),
             std::get<1>(tuple),
             std::get<2>(tuple)};
@@ -313,7 +302,7 @@ namespace butcher_test_namespace
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
   real_transmission(graph_type const &graph)
   {
-    auto const  mbps  = 1000. / 8;
+    auto const  mbps  = std::pow(10, 6) / 8;
 
     return [&graph, mbps](node_id_type const &node,
                           std::size_t         from_device,
