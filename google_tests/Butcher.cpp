@@ -72,6 +72,9 @@ namespace butcher_test_namespace
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
     basic_transmission(std::size_t, std::size_t);
 
+  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+  real_transmission(graph_type const &);
+
 
   TEST(ButcherTest, compute_k_shortest_paths_eppstein_linear)
   {
@@ -171,7 +174,7 @@ namespace butcher_test_namespace
 
   TEST(ButcherTest, final_network_test)
   {
-    std::size_t       num_devices = 3;
+    std::size_t       num_devices = 2;
     std::size_t const k           = 1000;
 
     std::vector<type_collection_weights> weight_maps;
@@ -259,9 +262,13 @@ namespace butcher_test_namespace
   {
     std::string const path =
       "version-RFB-640-inferred.onnx"; //"version-RFB-640.onnx";
-    auto tuple = IO_Manager::import_from_onnx(path, true, 3);
+    auto tuple = IO_Manager::import_from_onnx(path, true, 2);
+    auto &graph = std::get<0>(tuple);
 
-    return {Butcher(std::get<0>(tuple)),
+    IO_Manager::import_weights_from_csv(graph, 0, "prediction_pi.csv");
+    IO_Manager::import_weights_from_csv(graph, 1, "prediction_tegra.csv");
+
+    return {Butcher(graph),
             std::get<1>(tuple),
             std::get<2>(tuple)};
   }
@@ -299,5 +306,27 @@ namespace butcher_test_namespace
             return -1.;
           }
       };
+  }
+
+
+
+  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+  real_transmission(graph_type const &graph)
+  {
+    auto const  mbps  = 1000. / 8;
+
+    return [&graph, mbps](node_id_type const &node,
+                          std::size_t         from_device,
+                          std::size_t         to_device) {
+      Computer_memory cm;
+      auto const      mem_to_transmit =
+        cm.compute_memory_usage_output(graph.get_nodes()[node]);
+
+      if (from_device == to_device)
+        return .0;
+      else
+        return mem_to_transmit / (18.88 * mbps) +
+               mem_to_transmit / (5.85 * mbps);
+    };
   }
 } // namespace butcher_test_namespace
