@@ -202,12 +202,17 @@ namespace butcher_test_namespace
     std::string const p = "output_final_network_test";
     utilities::create_directory(p);
 
-    for (std::size_t i = 0; i < model_device.size(); ++i)
-      IO_Manager::export_to_onnx(model_device[i].first,
-                                 p + "/version-RFB-640-inferred-" +
-                                   std::to_string(i) + "-device-" +
-                                   std::to_string(model_device[i].second) +
-                                   ".onnx");
+    for(std::size_t j = 0; j < lazy_eppstein_res.size(); ++j) {
+        utilities::create_directory(p + "/" + std::to_string(j));
+        for (std::size_t i = 0; i < model_device.size(); ++i)
+          IO_Manager::export_to_onnx(model_device[i].first,
+                                     p + "/" + std::to_string(j) +
+                                       "/version-RFB-640-inferred-" +
+                                       std::to_string(i) + "-device-" +
+                                       std::to_string(model_device[i].second) +
+                                       ".onnx");
+      }
+
   }
 
   Butcher<GraphType>
