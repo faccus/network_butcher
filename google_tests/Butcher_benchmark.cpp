@@ -415,20 +415,14 @@ namespace butcher_benchmark_test_namespace
     crono.start();
     auto lazy_eppstein_res =
       butcher.compute_k_shortest_paths_lazy_eppstein_linear(transmission_fun,
-                                                            k);
+                                                            k,
+                                                            false);
     crono.stop();
-
 
 
     memory_type const gb  = 1024 * 1024 * 1024;
     memory_type const gb_pi = gb / 2; // 512 MB RAM
     memory_type const gb_cluster = 4 * gb; // 4 GB RAM
-    auto const model_device =
-      IO_Manager::reconstruct_model(lazy_eppstein_res.back().second,
-                                    model,
-                                    graph,
-                                    std::get<2>(model_butcher));
-
 
 
     std::string const p = "output_final_network_test";
@@ -445,6 +439,13 @@ namespace butcher_benchmark_test_namespace
 
     for(std::size_t j = 0; j < lazy_eppstein_res.size(); ++j) {
         utilities::create_directory(p + "/" + std::to_string(j));
+
+        auto const model_device =
+          IO_Manager::reconstruct_model(lazy_eppstein_res[j].second,
+                                        model,
+                                        graph,
+                                        std::get<2>(model_butcher));
+
         for (std::size_t i = 0; i < model_device.size(); ++i)
           IO_Manager::export_to_onnx(model_device[i].first,
                                      p + "/" + std::to_string(j) +
@@ -577,19 +578,15 @@ namespace butcher_benchmark_test_namespace
       auto const      mem_to_transmit =
         cm.compute_memory_usage_output(graph.get_nodes()[node]);
 
-      if (from_device == 0 && to_device == 1 ||
-          from_device == 1 && to_device == 0)
+      if(from_device > to_device)
+        return std::numeric_limits<type_weight>::max();
+      else if (from_device == 0 && to_device == 1)
         return mem_to_transmit / (18.88 * mbps);
       else if (from_device == 0 && to_device == 2)
         return mem_to_transmit / (5.85 * mbps) +
                mem_to_transmit / (18.88 * mbps);
       else if (from_device == 1 && to_device == 2)
         return mem_to_transmit / (5.85 * mbps);
-      else if (from_device == 2 && to_device == 0)
-        return mem_to_transmit / (18.88 * mbps) +
-               mem_to_transmit / (13.76 * mbps);
-      else if (from_device == 2 && to_device == 1)
-        return mem_to_transmit / (13.76 * mbps);
       else
         return .0;
     };

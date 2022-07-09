@@ -15,9 +15,9 @@ main(int argc, char** argv)
   if(!path.empty() && !file_path.empty())
     {
       auto pair = IO_Manager::import_from_onnx(file_path);
-      IO_Manager::regression_parameters_to_csv(std::get<0>(pair),
-                                               std::get<1>(pair),
-                                               out_path);
+      IO_Manager::export_network_informations_to_csv(std::get<0>(pair),
+                                                     std::get<1>(pair),
+                                                     out_path);
     }
 
   return 0;

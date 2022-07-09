@@ -221,7 +221,7 @@ IO_Manager::export_to_onnx(const onnx::ModelProto &model, std::string path)
 }
 
 void
-IO_Manager::regression_parameters_to_csv(graph_type const       &graph,
+IO_Manager::export_network_informations_to_csv(graph_type const       &graph,
                                            onnx::ModelProto const &model,
                                            std::string const      &path)
 {

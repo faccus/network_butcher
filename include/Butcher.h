@@ -89,11 +89,13 @@ private:
 
   /// It will produce a linearized version of the current graph (with multiple
   /// devices)
+  /// \param backward_connections_allowed Allow backward connections between
+  /// devices (i.e. data can be sent from device 2 to device 1)
   /// \return The linearized graph (with multiple devices) and the map that
   /// associated every node id of the original graph to the respective node id
   /// of the "new" graph
   [[nodiscard]] std::pair<new_network, std::map<node_id_type, node_id_type>>
-  block_graph() const
+  block_graph(bool backward_connections_allowed = true) const
   {
     auto const num_of_devices = graph.get_num_devices();
 
@@ -247,8 +249,14 @@ private:
       for (std::size_t k = 0; k < num_of_devices; ++k)
         out.insert(out.end(), 1 + num_of_devices + k);
 
-      for (std::size_t k = 1; k < num_of_devices; ++k)
-        new_dependencies.push_back(new_dependencies.back());
+      for (std::size_t k = 1; k < num_of_devices; ++k) {
+          auto dep_cpy = new_dependencies.back();
+
+          if (!backward_connections_allowed)
+            dep_cpy.second.erase(num_of_devices + k);
+
+          new_dependencies.push_back(std::move(dep_cpy));
+        }
     }
 
     {
@@ -263,14 +271,22 @@ private:
           auto &in  = new_dependencies.back().first;
           auto &out = new_dependencies.back().second;
 
+          in.insert(in.end(), id - num_of_devices);
           for (std::size_t k = 0; k < num_of_devices; ++k)
             {
-              in.insert(in.end(), id - num_of_devices + k);
               out.insert(out.end(), id + num_of_devices + k);
             }
 
-          for (std::size_t k = 1; k < num_of_devices; ++k)
-            new_dependencies.push_back(new_dependencies.back());
+          for (std::size_t k = 1; k < num_of_devices; ++k) {
+              auto tmp_dep = new_dependencies.back();
+
+              if(!backward_connections_allowed) {
+                  tmp_dep.first.insert(id - num_of_devices + k);
+                  tmp_dep.second.erase(id + num_of_devices + k - 1);
+                }
+
+              new_dependencies.emplace_back(std::move(tmp_dep));
+            }
         }
     }
 
@@ -282,10 +298,14 @@ private:
           {}, {id + num_of_devices}));
 
       auto &in = new_dependencies.back().first;
-      for (std::size_t k = 0; k < num_of_devices; ++k)
-        in.insert(in.end(), id - num_of_devices + k);
-      for (std::size_t k = 1; k < num_of_devices; ++k)
-        new_dependencies.push_back(new_dependencies.back());
+      in.insert(in.end(), id - num_of_devices);
+
+      for (std::size_t k = 1; k < num_of_devices; ++k) {
+          auto dep_cpy = new_dependencies.back();
+          dep_cpy.first.insert(id - num_of_devices + k);
+
+          new_dependencies.emplace_back(std::move(dep_cpy));
+        }
     }
 
     {
@@ -617,15 +637,18 @@ public:
   /// associated with the original one
   /// \param num_of_devices The number of devices
   /// \param k The number of shortest paths to find
+  /// \param backward_connections_allowed Allow backward connections between
+  /// devices (i.e. data can be sent from device 2 to device 1)
   /// \return The k-shortest paths on the graph (with the lenghts and devices)
   Weighted_Real_Paths
   compute_k_shortest_paths_eppstein_linear(
     std::function<weight_type(node_id_type const &,
                               std::size_t,
                               std::size_t)> const &transmission_weights,
-    std::size_t                                    k) const
+    std::size_t                                    k,
+    bool backward_connections_allowed = true) const
   {
-    auto new_graph = block_graph();
+    auto new_graph = block_graph(backward_connections_allowed);
 
     block_graph_weights(transmission_weights, new_graph.first);
 
@@ -639,15 +662,18 @@ public:
   /// associated with the original one
   /// \param num_of_devices The number of devices
   /// \param k The number of shortest paths to find
+  /// \param backward_connections_allowed Allow backward connections between
+  /// devices (i.e. data can be sent from device 2 to device 1)
   /// \return The k-shortest paths on the graph (with the lenghts and devices)
   Weighted_Real_Paths
   compute_k_shortest_paths_lazy_eppstein_linear(
     std::function<weight_type(node_id_type const &,
                               std::size_t,
                               std::size_t)> const &transmission_weights,
-    std::size_t                                    k) const
+    std::size_t                                    k,
+    bool backward_connections_allowed = true) const
   {
-    auto new_graph = block_graph();
+    auto new_graph = block_graph(backward_connections_allowed);
 
     block_graph_weights(transmission_weights, new_graph.first);
 

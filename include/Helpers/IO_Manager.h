@@ -47,7 +47,7 @@ public:
   export_to_onnx(onnx::ModelProto const &model, std::string path);
 
   static void
-  regression_parameters_to_csv(
+  export_network_informations_to_csv(
     graph_type const       &graph,
     onnx::ModelProto const &model,
     std::string const      &path = "butcher_predict.csv");

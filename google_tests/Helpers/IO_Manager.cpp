@@ -7,7 +7,8 @@
 TEST(IOManagerTestSuit, RegressionParamtersToExcelTest)
 {
   auto const out = IO_Manager::import_from_onnx("version-RFB-640-inferred.onnx");
-  IO_Manager::regression_parameters_to_csv(std::get<0>(out), std::get<1>(out));
+  IO_Manager::export_network_informations_to_csv(std::get<0>(out),
+                                                 std::get<1>(out));
 }
 
 TEST(IOManagerTestSuit, ImportWeightsFromCsvTest)
