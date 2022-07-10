@@ -422,6 +422,7 @@ namespace butcher_benchmark_test_namespace
 
     memory_type const gb  = 1024 * 1024 * 1024;
     memory_type const gb_pi = gb / 2; // 512 MB RAM
+    memory_type const gb_laptop = 4 * gb; // 4 GB RAM
     memory_type const gb_cluster = 4 * gb; // 4 GB RAM
 
 
@@ -569,7 +570,7 @@ namespace butcher_benchmark_test_namespace
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
   real_transmission(Real_Graph_Type const &graph)
   {
-    auto const  mbps  = 1000. / 8;
+    auto const mbps = 1000. / 8;
 
     return [&graph, mbps](node_id_type const &node,
                           std::size_t         from_device,
@@ -578,14 +579,15 @@ namespace butcher_benchmark_test_namespace
       auto const      mem_to_transmit =
         cm.compute_memory_usage_output(graph.get_nodes()[node]);
 
-      if(from_device > to_device)
-        return std::numeric_limits<type_weight>::max();
-      else if (from_device == 0 && to_device == 1)
+      auto const first  = std::min(from_device, to_device);
+      auto const second = std::max(from_device, to_device);
+
+      if (first == 0 && second == 1)
         return mem_to_transmit / (18.88 * mbps);
-      else if (from_device == 0 && to_device == 2)
+      else if (first == 0 && second == 2)
         return mem_to_transmit / (5.85 * mbps) +
                mem_to_transmit / (18.88 * mbps);
-      else if (from_device == 1 && to_device == 2)
+      else if (first == 1 && second == 2)
         return mem_to_transmit / (5.85 * mbps);
       else
         return .0;

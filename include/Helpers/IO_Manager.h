@@ -29,16 +29,16 @@ private:
     Map_IO const                          &value_infos);
 
   static void
-  onnx_populate_id_collection(const google::protobuf::RepeatedPtrField<::onnx::ValueInfoProto> &onnx_io,
-                              std::set<std::string> &onnx_io_ids);
+  onnx_populate_id_collection(
+    const google::protobuf::RepeatedPtrField<::onnx::ValueInfoProto> &onnx_io,
+    std::set<std::string> &onnx_io_ids);
 
   static std::vector<std::string>
   get_common_elements(const std::set<std::string>           &onnx_io_ids,
                       io_collection_type<type_info_pointer> &io_collection);
 public:
-  static std::tuple<graph_type,
-                    onnx::ModelProto,
-                    std::map<node_id_type, node_id_type>>
+  static std::
+    tuple<graph_type, onnx::ModelProto, std::map<node_id_type, node_id_type>>
     import_from_onnx(std::string const &path,
                      bool               add_padding_nodes = true,
                      std::size_t        num_devices       = 1);
@@ -47,7 +47,7 @@ public:
   export_to_onnx(onnx::ModelProto const &model, std::string path);
 
   static void
-  export_network_informations_to_csv(
+  export_network_infos_to_csv(
     graph_type const       &graph,
     onnx::ModelProto const &model,
     std::string const      &path = "butcher_predict.csv");
@@ -60,9 +60,9 @@ public:
   template <class Graph>
   static std::vector<std::pair<onnx::ModelProto, std::size_t>>
   reconstruct_model(
-    Real_Path const                                       &partitions,
-    onnx::ModelProto const                                &original_model,
-    Graph const                                           &graph,
+    Real_Path const                            &partitions,
+    onnx::ModelProto const                     &original_model,
+    Graph const                                &graph,
     std::map<node_id_type, node_id_type> const &node_collection);
 };
 
