@@ -304,22 +304,6 @@ IO_Manager::import_weights_from_csv(graph_type        &graph,
       while (std::getline(stream_line, tmp_line, ','))
         tmp_weight = ::atof(tmp_line.c_str());
 
-      /*
-       while (it != graph.get_nodes().cend() &&
-      !(it->content.get_operation_id() == "conv" &&
-        (it->content.get_input().size() == 1 ||
-         it->content.get_input().size() == 2 &&
-           it->content.get_input().contains("__fake__input__")) &&
-        (it->content.get_output().size() == 1 ||
-         it->content.get_output().size() == 2 &&
-           it->content.get_output().contains("__fake__output__")) &&
-        it->content.get_attributes().find("kernel_shape") !=
-          it->content.get_attributes().cend()))
- {
-   ++it;
- }
-       */
-
       while (it != graph.get_nodes().cend() &&
              !(it->content.get_operation_id() == "conv" &&
                it->content.get_attributes().find("kernel_shape") !=
@@ -338,5 +322,88 @@ IO_Manager::import_weights_from_csv(graph_type        &graph,
         }
 
       ++it;
+    }
+}
+Parameters
+IO_Manager::read_parameters(const std::string &path)
+{
+  GetPot file(path);
+
+  Parameters res;
+  std::string const basic_infos = "config";
+
+  res.model_name = file(basic_infos + "/model_name", "model");
+  res.model_path = file(basic_infos + "/model_path", "");
+  std::string const method = file(basic_infos + "/method", "");
+  res.backward_connections_allowed =
+    file(basic_infos + "/backward_connections_allowed", false);
+
+  res.export_directory = file(basic_infos + "/export_directory", "ksp_result");
+
+  if (method == "Eppstein")
+    res.method = KSP_Method::Eppstein;
+  else
+    res.method = KSP_Method::Lazy_Eppstein;
+
+  res.K = file(basic_infos + "/K", 100);
+  std::size_t num_devices = file(basic_infos + "/num_devices", 1);
+
+  res.devices.reserve(num_devices);
+
+  for(std::size_t i = 0; i < num_devices; ++i) {
+      std::string const prx = "device_" + std::to_string(i);
+
+      Device dev;
+      dev.id = i;
+      dev.maximum_memory = file(prx + "/maximum_memory", 1);
+      dev.weights_path = file(prx + "/weight_path", "");
+
+      res.devices.push_back(std::move(dev));
+    }
+
+  std::string const bndw = "bandwidth";
+  for(std::size_t i = 0; i < num_devices; ++i) {
+      for(std::size_t j = i + 1; j < num_devices; ++j) {
+          res.bandwidth[{i, j}] = file(bndw + "/from_" + std::to_string(i) +
+                                         "_to_" + std::to_string(j), .0);
+        }
+    }
+
+  if(res.backward_connections_allowed) {
+      for(std::size_t i = num_devices; i >= 0; --i) {
+          for(std::size_t j = i - 1; j >= 0; --j) {
+              res.bandwidth[{i, j}] = file(bndw + "/from_" + std::to_string(i) +
+                                             "_to_" + std::to_string(j), .0);
+            }
+        }
+    }
+
+
+  return res;
+}
+
+void
+IO_Manager::export_network_partitions(
+  const Parameters                           &params,
+  graph_type const                           &graph,
+  onnx::ModelProto const                     &model,
+  std::map<node_id_type, node_id_type> const &link_id_nodeproto,
+  const Weighted_Real_Paths                  &paths)
+{
+  utilities::create_directory(params.export_directory);
+  for (std::size_t j = 0; j < paths.size(); ++j)
+    {
+      utilities::create_directory(params.export_directory + "/" +
+                                  std::to_string(j));
+
+      auto const model_device = reconstruct_model(
+        paths[j].second, model, graph, link_id_nodeproto);
+
+      for (std::size_t i = 0; i < model_device.size(); ++i)
+        export_to_onnx(
+          model_device[i].first,
+          params.export_directory + "/" + std::to_string(j) + "/" +
+            params.model_name + "-" + std::to_string(i) + "-device-" +
+            std::to_string(model_device[i].second) + ".onnx");
     }
 }

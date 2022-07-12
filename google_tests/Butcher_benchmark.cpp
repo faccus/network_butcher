@@ -422,7 +422,7 @@ namespace butcher_benchmark_test_namespace
 
     memory_type const gb  = 1024 * 1024 * 1024;
     memory_type const gb_pi = gb / 2; // 512 MB RAM
-    memory_type const gb_laptop = 4 * gb; // 4 GB RAM
+    memory_type const gb_laptop = 2 * gb; // 2 GB RAM
     memory_type const gb_cluster = 4 * gb; // 4 GB RAM
 
 

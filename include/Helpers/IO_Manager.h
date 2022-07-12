@@ -6,7 +6,10 @@
 #define NETWORK_BUTCHER_IO_MANAGER_H
 
 #include "Traits/Graph_traits.h"
+#include "Parameters.h"
 #include "../Butcher.h"
+
+#include "APSC/GetPot"
 
 #include <sstream>
 
@@ -36,7 +39,10 @@ private:
   static std::vector<std::string>
   get_common_elements(const std::set<std::string>           &onnx_io_ids,
                       io_collection_type<type_info_pointer> &io_collection);
+
 public:
+  static Parameters read_parameters(std::string const &path);
+
   static std::
     tuple<graph_type, onnx::ModelProto, std::map<node_id_type, node_id_type>>
     import_from_onnx(std::string const &path,
@@ -64,6 +70,14 @@ public:
     onnx::ModelProto const                     &original_model,
     Graph const                                &graph,
     std::map<node_id_type, node_id_type> const &node_collection);
+
+  static void
+  export_network_partitions(
+    const Parameters                           &params,
+    const graph_type                           &graph,
+    const onnx::ModelProto                     &model,
+    std::map<node_id_type, node_id_type> const &link_id_nodeproto,
+    const Weighted_Real_Paths                  &paths);
 };
 
 template <class Graph>
@@ -293,6 +307,5 @@ IO_Manager::reconstruct_model(
 
   return res;
 }
-
 
 #endif // NETWORK_BUTCHER_IO_MANAGER_H
