@@ -271,13 +271,13 @@ private:
           auto &in  = new_dependencies.back().first;
           auto &out = new_dependencies.back().second;
 
-          if (backward_connections_allowed)
+          if (!backward_connections_allowed)
             in.insert(in.end(), id - num_of_devices);
 
 
           for (std::size_t k = 0; k < num_of_devices; ++k)
             {
-              if (!backward_connections_allowed)
+              if (backward_connections_allowed)
                 in.insert(in.end(), id - num_of_devices + k);
 
               out.insert(out.end(), id + num_of_devices + k);
