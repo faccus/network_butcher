@@ -271,9 +271,15 @@ private:
           auto &in  = new_dependencies.back().first;
           auto &out = new_dependencies.back().second;
 
-          in.insert(in.end(), id - num_of_devices);
+          if (backward_connections_allowed)
+            in.insert(in.end(), id - num_of_devices);
+
+
           for (std::size_t k = 0; k < num_of_devices; ++k)
             {
+              if (!backward_connections_allowed)
+                in.insert(in.end(), id - num_of_devices + k);
+
               out.insert(out.end(), id + num_of_devices + k);
             }
 
@@ -300,9 +306,15 @@ private:
       auto &in = new_dependencies.back().first;
       in.insert(in.end(), id - num_of_devices);
 
+      if (backward_connections_allowed)
+        for (std::size_t k = 1; k < num_of_devices; ++k)
+          in.insert(in.end(), id - num_of_devices + k);
+
       for (std::size_t k = 1; k < num_of_devices; ++k) {
           auto dep_cpy = new_dependencies.back();
-          dep_cpy.first.insert(id - num_of_devices + k);
+
+          if (!backward_connections_allowed)
+            dep_cpy.first.insert(id - num_of_devices + k);
 
           new_dependencies.emplace_back(std::move(dep_cpy));
         }
