@@ -12,14 +12,14 @@ message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURC
 option(BUILD_DOC "Build documentation" OFF)
 message(STATUS "Build documentation: ${BUILD_DOC}")
 
-option(BUILD_DOC_GRAPH "Build documentation graphs" ON)
+option(BUILD_DOC_GRAPH "Build documentation graphs" OFF)
 message(STATUS "Build documentation graphs: ${BUILD_DOC_GRAPH}")
 
 
 option(BUILD_TESTS "Build tests" ON)
 message(STATUS "Build tests: ${BUILD_TESTS}")
 
-option(BUILD_BENCHMARK "Build benchmark tests" ON)
+option(BUILD_BENCHMARK "Build benchmark tests" OFF)
 message(STATUS "Build benchmark tests: ${BUILD_BENCHMARK}")
 
 
