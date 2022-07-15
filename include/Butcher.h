@@ -335,7 +335,7 @@ private:
 
 
   /// Given the current graph and the original weight function, it will produce
-  /// athe weigths for the linearized graph
+  /// the weigths for the linearized graph
   /// \param transmission_weights Used when we are switching from a device to
   /// another. The node is the source while the two size_t are the input and
   /// output device ids
