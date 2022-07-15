@@ -566,6 +566,56 @@ private:
   }
 
 
+  /// It will prodice the k-shortest paths for the linearized block graph
+  /// associated with the original one
+  /// \param num_of_devices The number of devices
+  /// \param k The number of shortest paths to find
+  /// \param backward_connections_allowed Allow backward connections between
+  /// devices (i.e. data can be sent from device 2 to device 1)
+  /// \return The k-shortest paths on the graph (with the lenghts and devices)
+  Weighted_Real_Paths
+  compute_k_shortest_paths_eppstein_linear(
+    std::function<weight_type(node_id_type const &,
+                              std::size_t,
+                              std::size_t)> const &transmission_weights,
+    std::size_t                                    k,
+    bool backward_connections_allowed = true) const
+  {
+    auto new_graph = block_graph(backward_connections_allowed);
+
+    block_graph_weights(transmission_weights, new_graph.first);
+
+    KFinder_Eppstein kFinder(new_graph.first);
+    auto const       res = kFinder.eppstein(k);
+
+    return get_weighted_network_slice(res, new_graph.first);
+  }
+
+  /// It will prodice the k-shortest paths for the linearized block graph
+  /// associated with the original one
+  /// \param num_of_devices The number of devices
+  /// \param k The number of shortest paths to find
+  /// \param backward_connections_allowed Allow backward connections between
+  /// devices (i.e. data can be sent from device 2 to device 1)
+  /// \return The k-shortest paths on the graph (with the lenghts and devices)
+  Weighted_Real_Paths
+  compute_k_shortest_paths_lazy_eppstein_linear(
+    std::function<weight_type(node_id_type const &,
+                              std::size_t,
+                              std::size_t)> const &transmission_weights,
+    std::size_t                                    k,
+    bool backward_connections_allowed = true) const
+  {
+    auto new_graph = block_graph(backward_connections_allowed);
+
+    block_graph_weights(transmission_weights, new_graph.first);
+
+    KFinder_Lazy_Eppstein kFinder(new_graph.first);
+    auto const            res = kFinder.lazy_eppstein(k);
+
+    return get_weighted_network_slice(res, new_graph.first);
+  }
+
 public:
   Butcher() = default;
   /// Move constructor
@@ -644,56 +694,6 @@ public:
       }
 
     return true;
-  }
-
-  /// It will prodice the k-shortest paths for the linearized block graph
-  /// associated with the original one
-  /// \param num_of_devices The number of devices
-  /// \param k The number of shortest paths to find
-  /// \param backward_connections_allowed Allow backward connections between
-  /// devices (i.e. data can be sent from device 2 to device 1)
-  /// \return The k-shortest paths on the graph (with the lenghts and devices)
-  Weighted_Real_Paths
-  compute_k_shortest_paths_eppstein_linear(
-    std::function<weight_type(node_id_type const &,
-                              std::size_t,
-                              std::size_t)> const &transmission_weights,
-    std::size_t                                    k,
-    bool backward_connections_allowed = true) const
-  {
-    auto new_graph = block_graph(backward_connections_allowed);
-
-    block_graph_weights(transmission_weights, new_graph.first);
-
-    KFinder_Eppstein kFinder(new_graph.first);
-    auto const       res = kFinder.eppstein(k);
-
-    return get_weighted_network_slice(res, new_graph.first);
-  }
-
-  /// It will prodice the k-shortest paths for the linearized block graph
-  /// associated with the original one
-  /// \param num_of_devices The number of devices
-  /// \param k The number of shortest paths to find
-  /// \param backward_connections_allowed Allow backward connections between
-  /// devices (i.e. data can be sent from device 2 to device 1)
-  /// \return The k-shortest paths on the graph (with the lenghts and devices)
-  Weighted_Real_Paths
-  compute_k_shortest_paths_lazy_eppstein_linear(
-    std::function<weight_type(node_id_type const &,
-                              std::size_t,
-                              std::size_t)> const &transmission_weights,
-    std::size_t                                    k,
-    bool backward_connections_allowed = true) const
-  {
-    auto new_graph = block_graph(backward_connections_allowed);
-
-    block_graph_weights(transmission_weights, new_graph.first);
-
-    KFinder_Lazy_Eppstein kFinder(new_graph.first);
-    auto const            res = kFinder.lazy_eppstein(k);
-
-    return get_weighted_network_slice(res, new_graph.first);
   }
 
 

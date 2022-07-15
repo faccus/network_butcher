@@ -36,6 +36,12 @@ namespace butcher_benchmark_test_namespace
              std::map<node_id_type, node_id_type>>
   real_butcher();
 
+  Parameters
+  eppstein_parameters(std::size_t k, bool backward = true);
+
+  Parameters
+  lazy_eppstein_parameters(std::size_t k, bool backward = true);
+
   template <class Graph>
   void
   complete_weights(Graph &graph)
@@ -119,8 +125,8 @@ namespace butcher_benchmark_test_namespace
     Chrono crono;
     crono.start();
     auto lazy_eppstein_res =
-      butcher.compute_k_shortest_paths_lazy_eppstein_linear(transmission_fun,
-                                                            k);
+      butcher.compute_k_shortest_path(transmission_fun,
+                                      lazy_eppstein_parameters(k));
     crono.stop();
 
     std::cout << "Lazy Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
@@ -128,7 +134,7 @@ namespace butcher_benchmark_test_namespace
 
     crono.start();
     auto eppstein_res =
-      butcher.compute_k_shortest_paths_eppstein_linear(transmission_fun, k);
+      butcher.compute_k_shortest_path(transmission_fun, eppstein_parameters(k));
     crono.stop();
 
     std::cout << "Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
@@ -189,8 +195,8 @@ namespace butcher_benchmark_test_namespace
     Chrono crono;
     crono.start();
     auto lazy_eppstein_res =
-      butcher.compute_k_shortest_paths_lazy_eppstein_linear(transmission_fun,
-                                                            k);
+      butcher.compute_k_shortest_path(transmission_fun,
+                                      lazy_eppstein_parameters(k));
     crono.stop();
 
     std::cout << "Lazy Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
@@ -198,7 +204,7 @@ namespace butcher_benchmark_test_namespace
 
     crono.start();
     auto eppstein_res =
-      butcher.compute_k_shortest_paths_eppstein_linear(transmission_fun, k);
+      butcher.compute_k_shortest_path(transmission_fun, eppstein_parameters(k));
     crono.stop();
 
     std::cout << "Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
@@ -251,7 +257,7 @@ namespace butcher_benchmark_test_namespace
     std::size_t number_of_tests = 1000;
 
 
-    auto        butcher = basic_butcher(num_nodes);
+    auto  butcher = basic_butcher(num_nodes);
     auto &graph   = butcher.get_graph_ref();
 
     double time_std  = .0;
@@ -268,15 +274,16 @@ namespace butcher_benchmark_test_namespace
         Chrono crono;
         crono.start();
         auto eppstein_res =
-          butcher.compute_k_shortest_paths_eppstein_linear(transmission_fun, k);
+          butcher.compute_k_shortest_path(transmission_fun,
+                                          eppstein_parameters(k));
         crono.stop();
         double const time_instance_std = crono.wallTime();
         time_std += time_instance_std;
 
         crono.start();
         auto lazy_eppstein_res =
-          butcher.compute_k_shortest_paths_lazy_eppstein_linear(
-            transmission_fun, k);
+          butcher.compute_k_shortest_path(transmission_fun,
+                                          lazy_eppstein_parameters(k));
         crono.stop();
         double const time_instance_lazy = crono.wallTime();
         time_lazy += time_instance_lazy;
@@ -348,8 +355,8 @@ namespace butcher_benchmark_test_namespace
 
         Chrono crono;
         crono.start();
-        auto const res = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
-          transmission_fun, num_nodes * 0.1);
+        auto const res = butcher.compute_k_shortest_path(
+          transmission_fun, lazy_eppstein_parameters(num_nodes * 0.1));
         crono.stop();
 
         total_time += crono.wallTime();
@@ -383,8 +390,8 @@ namespace butcher_benchmark_test_namespace
         Chrono crono;
         crono.start();
         auto const res =
-          butcher.compute_k_shortest_paths_eppstein_linear(transmission_fun,
-                                                           num_nodes * 0.1);
+          butcher.compute_k_shortest_path(transmission_fun,
+                                          eppstein_parameters(num_nodes * 0.1));
         crono.stop();
 
         total_time += crono.wallTime();
@@ -394,6 +401,7 @@ namespace butcher_benchmark_test_namespace
               << total_time / number_of_tests / 1000 << " milli-seconds"
               << std::endl;
   }
+
 
   TEST(ButcherTest, final_network_test)
   {
@@ -406,7 +414,7 @@ namespace butcher_benchmark_test_namespace
     auto const &model   = std::get<1>(model_butcher);
     auto       &butcher = std::get<0>(model_butcher);
 
-    auto &graph = butcher.get_graph_ref();
+    auto       &graph = butcher.get_graph_ref();
     auto const &nodes = graph.get_nodes();
 
     auto transmission_fun = real_transmission(graph);
@@ -414,15 +422,14 @@ namespace butcher_benchmark_test_namespace
     Chrono crono;
     crono.start();
     auto lazy_eppstein_res =
-      butcher.compute_k_shortest_paths_lazy_eppstein_linear(transmission_fun,
-                                                            k,
-                                                            false);
+      butcher.compute_k_shortest_path(transmission_fun,
+                                      lazy_eppstein_parameters(k, false));
     crono.stop();
 
 
-    memory_type const gb  = 1024 * 1024 * 1024;
-    memory_type const gb_pi = gb / 2; // 512 MB RAM
-    memory_type const gb_laptop = 2 * gb; // 2 GB RAM
+    memory_type const gb         = 1024 * 1024 * 1024;
+    memory_type const gb_pi      = gb / 2; // 512 MB RAM
+    memory_type const gb_laptop  = 2 * gb; // 2 GB RAM
     memory_type const gb_cluster = 4 * gb; // 4 GB RAM
 
 
@@ -430,7 +437,8 @@ namespace butcher_benchmark_test_namespace
     utilities::create_directory(p);
 
     std::ofstream out_file(p + "/report.txt", std::ios::out);
-    for(std::size_t j = 0; j < lazy_eppstein_res.size(); ++j) {
+    for (std::size_t j = 0; j < lazy_eppstein_res.size(); ++j)
+      {
         out_file << std::to_string(j) << ": "
                  << butcher.partition_memory_checker(
                       lazy_eppstein_res[j].second, {gb_pi, gb_cluster})
@@ -438,7 +446,8 @@ namespace butcher_benchmark_test_namespace
       }
     out_file.close();
 
-    for(std::size_t j = 0; j < lazy_eppstein_res.size(); ++j) {
+    for (std::size_t j = 0; j < lazy_eppstein_res.size(); ++j)
+      {
         utilities::create_directory(p + "/" + std::to_string(j));
 
         auto const model_device =
@@ -455,7 +464,6 @@ namespace butcher_benchmark_test_namespace
                                        std::to_string(model_device[i].second) +
                                        ".onnx");
       }
-
   }
 
 
@@ -615,5 +623,26 @@ namespace butcher_benchmark_test_namespace
             std::get<2>(tuple)};
   }
 
+  Parameters
+  eppstein_parameters(std::size_t k, bool backward)
+  {
+    Parameters res;
+    res.K                            = k;
+    res.backward_connections_allowed = backward;
+    res.method                       = KSP_Method::Eppstein;
+
+    return res;
+  }
+
+  Parameters
+  lazy_eppstein_parameters(std::size_t k, bool backward)
+  {
+    Parameters res;
+    res.K                            = k;
+    res.backward_connections_allowed = backward;
+    res.method                       = KSP_Method::Lazy_Eppstein;
+
+    return res;
+  }
 
 }; // namespace butcher_benchmark_test_namespace

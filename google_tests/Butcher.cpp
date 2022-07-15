@@ -34,6 +34,12 @@ namespace butcher_test_namespace
   Butcher<GraphType>
   basic_butcher();
 
+  Parameters
+  eppstein_parameters(std::size_t k);
+
+  Parameters
+  lazy_eppstein_parameters(std::size_t k);
+
   template <class Graph>
   void
   complete_weights(Graph &graph)
@@ -64,8 +70,9 @@ namespace butcher_test_namespace
     auto const &graph     = butcher.get_graph();
     auto const  num_nodes = graph.get_nodes().size();
 
-    auto const res = butcher.compute_k_shortest_paths_eppstein_linear(
-      basic_transmission(graph.get_num_devices(), num_nodes), 1000);
+    auto const res = butcher.compute_k_shortest_path(
+      basic_transmission(graph.get_num_devices(), num_nodes),
+      eppstein_parameters(1000));
 
     ASSERT_EQ(res.size(), 81);
   }
@@ -74,15 +81,16 @@ namespace butcher_test_namespace
   {
     std::size_t num_devices = 3;
 
-    auto                                 butcher = basic_butcher();
+    auto butcher = basic_butcher();
 
-    auto &graph     = butcher.get_graph_ref();
-    auto const  num_nodes = graph.get_nodes().size();
+    auto      &graph     = butcher.get_graph_ref();
+    auto const num_nodes = graph.get_nodes().size();
 
     auto transmission_fun = basic_transmission(num_devices, num_nodes);
 
-        auto const res = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
-          transmission_fun, 1000);
+    auto const res = butcher.compute_k_shortest_path(
+      basic_transmission(graph.get_num_devices(), num_nodes),
+      lazy_eppstein_parameters(1000));
 
     ASSERT_EQ(res.size(), 81);
   }
@@ -102,15 +110,16 @@ namespace butcher_test_namespace
     Chrono crono;
     crono.start();
     auto eppstein_res =
-      butcher.compute_k_shortest_paths_eppstein_linear(transmission_fun, k);
+      butcher.compute_k_shortest_path(transmission_fun, eppstein_parameters(k));
     crono.stop();
 
 
     Chrono crono2;
     crono2.start();
     auto lazy_eppstein_res =
-      butcher.compute_k_shortest_paths_lazy_eppstein_linear(transmission_fun,
-                                                            k);
+      butcher.compute_k_shortest_path(transmission_fun,
+                                      lazy_eppstein_parameters(k));
+
     crono2.stop();
     crono2.wallTime();
 
@@ -215,5 +224,25 @@ namespace butcher_test_namespace
             return -1.;
           }
       };
+  }
+
+  Parameters
+  eppstein_parameters(std::size_t k) {
+    Parameters res;
+    res.K = k;
+    res.backward_connections_allowed = true;
+    res.method = KSP_Method::Eppstein;
+
+    return res;
+  }
+
+  Parameters
+  lazy_eppstein_parameters(std::size_t k) {
+    Parameters res;
+    res.K = k;
+    res.backward_connections_allowed = true;
+    res.method = KSP_Method::Lazy_Eppstein;
+
+    return res;
   }
 } // namespace butcher_test_namespace
