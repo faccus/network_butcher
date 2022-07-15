@@ -22,6 +22,7 @@
 #include "Helpers/Types/Type_info.h"
 
 #include "Helpers/Utilities.h"
+#include "Helpers/Parameters.h"
 #include "Helpers/Types/Paths.h"
 
 /// Butcher butchers a given graph into slices
@@ -564,6 +565,7 @@ private:
     return final_res;
   }
 
+
 public:
   Butcher() = default;
   /// Move constructor
@@ -644,7 +646,6 @@ public:
     return true;
   }
 
-
   /// It will prodice the k-shortest paths for the linearized block graph
   /// associated with the original one
   /// \param num_of_devices The number of devices
@@ -693,6 +694,31 @@ public:
     auto const            res = kFinder.lazy_eppstein(k);
 
     return get_weighted_network_slice(res, new_graph.first);
+  }
+
+
+  Weighted_Real_Paths
+  compute_k_shortest_path(
+    std::function<weight_type(node_id_type const &,
+                              std::size_t,
+                              std::size_t)> const &transmission_weights,
+    Parameters const                              &parameters) const
+  {
+    switch (parameters.method)
+      {
+        case KSP_Method::Eppstein:
+          return compute_k_shortest_paths_eppstein_linear(
+            transmission_weights,
+            parameters.K,
+            parameters.backward_connections_allowed);
+        case KSP_Method::Lazy_Eppstein:
+          return compute_k_shortest_paths_lazy_eppstein_linear(
+            transmission_weights,
+            parameters.K,
+            parameters.backward_connections_allowed);
+        default:
+          return {};
+      }
   }
 };
 

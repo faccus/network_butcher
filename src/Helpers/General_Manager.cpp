@@ -38,7 +38,7 @@ void
 General_Manager::boot(std::string const &path)
 {
   Parameters params = IO_Manager::read_parameters(path);
-  auto [graph, model, link_id_nodeproto] =
+  auto [graph, model, link_graph_model] =
     IO_Manager::import_from_onnx(params.model_path,
                                  true,
                                  params.devices.size());
@@ -51,25 +51,12 @@ General_Manager::boot(std::string const &path)
     }
 
   Butcher             butcher(std::move(graph));
-  Weighted_Real_Paths paths;
 
-  std::function<weight_type(const node_id_type &, size_t, size_t)>
-    transmission_weights =
-      General_Manager::generate_bandwidth_transmission_function(params,
-                                                                butcher);
+  auto const paths = butcher.compute_k_shortest_path(
+    General_Manager::generate_bandwidth_transmission_function(params, butcher),
+    params);
 
-  switch (params.method)
-    {
-      case KSP_Method::Eppstein:
-        paths = butcher.compute_k_shortest_paths_eppstein_linear(
-          transmission_weights, params.K, params.backward_connections_allowed);
-        break;
-      case KSP_Method::Lazy_Eppstein:
-        paths = butcher.compute_k_shortest_paths_lazy_eppstein_linear(
-          transmission_weights, params.K, params.backward_connections_allowed);
-        break;
-    }
 
   IO_Manager::export_network_partitions(
-    params, graph, model, link_id_nodeproto, paths);
+    params, graph, model, link_graph_model, paths);
 }
