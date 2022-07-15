@@ -21,7 +21,7 @@ public:
   /// \param K The number of shortest paths to find
   /// \return The shortest paths
   [[nodiscard]] std::vector<path_info>
-  eppstein(std::size_t K)
+  compute(std::size_t K) override
   {
     auto const &graph = base_shortest::graph;
 
@@ -43,7 +43,7 @@ public:
   explicit KFinder_Eppstein(Graph_type const &g)
     : base(g){};
 
-  virtual ~KFinder_Eppstein() = default;
+  ~KFinder_Eppstein() override = default;
 
 private:
 

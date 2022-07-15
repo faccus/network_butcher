@@ -334,46 +334,73 @@ IO_Manager::read_parameters(const std::string &path)
 
   res.model_name = file(basic_infos + "/model_name", "model");
   res.model_path = file(basic_infos + "/model_path", "");
-  std::string const method = file(basic_infos + "/method", "");
-  res.backward_connections_allowed =
-    file(basic_infos + "/backward_connections_allowed", false);
-
   res.export_directory = file(basic_infos + "/export_directory", "ksp_result");
+
+
+  res.K = file(basic_infos + "/K", 100);
+  std::string const method = file(basic_infos + "/method", "");
 
   if (method == "Eppstein")
     res.method = KSP_Method::Eppstein;
   else
     res.method = KSP_Method::Lazy_Eppstein;
 
-  res.K = file(basic_infos + "/K", 100);
-  std::size_t num_devices = file(basic_infos + "/num_devices", 1);
+  res.backward_connections_allowed =
+    file(basic_infos + "/backward_connections_allowed", false);
 
+
+  res.memory_constraint = file(basic_infos + "/memory_constraint", false);
+  if (res.memory_constraint)
+    {
+      std::string const memory_constraint_type =
+        file(basic_infos + "/memory_constraint_type", "max");
+
+      if (memory_constraint_type == "max")
+        {
+          res.memory_constraint_type = Memory_Constraint_Type::Max;
+        }
+      else if (memory_constraint_type == "sum")
+        {
+          res.memory_constraint_type = Memory_Constraint_Type::Sum;
+        }
+    }
+
+
+  std::size_t num_devices = file(basic_infos + "/num_devices", 1);
   res.devices.reserve(num_devices);
 
-  for(std::size_t i = 0; i < num_devices; ++i) {
+  for (std::size_t i = 0; i < num_devices; ++i)
+    {
       std::string const prx = "device_" + std::to_string(i);
 
       Device dev;
-      dev.id = i;
-      dev.maximum_memory = file(prx + "/maximum_memory", 1);
-      dev.weights_path = file(prx + "/weight_path", "");
+      dev.id             = i;
+      dev.maximum_memory = file(prx + "/maximum_memory", 0);
+      dev.weights_path   = file(prx + "/weight_path", "");
 
       res.devices.push_back(std::move(dev));
     }
 
   std::string const bndw = "bandwidth";
-  for(std::size_t i = 0; i < num_devices; ++i) {
-      for(std::size_t j = i + 1; j < num_devices; ++j) {
+  for (std::size_t i = 0; i < num_devices; ++i)
+    {
+      for (std::size_t j = i + 1; j < num_devices; ++j)
+        {
           res.bandwidth[{i, j}] = file(bndw + "/from_" + std::to_string(i) +
-                                         "_to_" + std::to_string(j), .0);
+                                         "_to_" + std::to_string(j),
+                                       .0);
         }
     }
 
-  if(res.backward_connections_allowed) {
-      for(std::size_t i = num_devices; i >= 0; --i) {
-          for(std::size_t j = i - 1; j >= 0; --j) {
+  if (res.backward_connections_allowed)
+    {
+      for (std::size_t i = num_devices; i >= 0; --i)
+        {
+          for (std::size_t j = i - 1; j >= 0; --j)
+            {
               res.bandwidth[{i, j}] = file(bndw + "/from_" + std::to_string(i) +
-                                             "_to_" + std::to_string(j), .0);
+                                             "_to_" + std::to_string(j),
+                                           .0);
             }
         }
     }

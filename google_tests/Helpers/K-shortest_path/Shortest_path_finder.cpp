@@ -78,7 +78,7 @@ namespace KspTestNamespace
 
     std::vector<type_weight> real_sol = {
       55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
-    auto res = kfinder.eppstein(real_sol.size());
+    auto res = kfinder.compute(real_sol.size());
 
     std::vector<type_weight> real_path_lengths;
     std::vector<type_weight> path_lengths;
@@ -106,7 +106,7 @@ namespace KspTestNamespace
 
     std::vector<type_weight> real_sol = {
       55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
-    auto res = kfinder.lazy_eppstein(real_sol.size());
+    auto res = kfinder.compute(real_sol.size());
 
     std::vector<type_weight> real_path_lengths;
     std::vector<type_weight> path_lengths;

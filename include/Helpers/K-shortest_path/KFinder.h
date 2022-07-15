@@ -15,6 +15,12 @@ class KFinder : public Shortest_path_finder<Graph_type>
 public:
   using base = Shortest_path_finder<Graph_type>;
 
+  /// Applies a K-shortest path algorithm to find the k-shortest paths on the
+  /// given graph (from the first node to the last one)
+  /// \param K The number of shortest paths to find
+  /// \return The shortest paths
+  [[nodiscard]] virtual std::vector<path_info>
+  compute(std::size_t K) = 0;
 
   explicit KFinder(Graph_type const &g)
     : base(g){};

@@ -156,7 +156,7 @@ namespace butcher_test_namespace
 
     std::cout << "Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
               << std::endl;
-    std::cout << "Lazy eppstein: " << crono2.wallTime() / 1000
+    std::cout << "Lazy compute: " << crono2.wallTime() / 1000
               << " milliseconds" << std::endl;
   }
 

@@ -14,6 +14,8 @@ private:
   generate_bandwidth_transmission_function(const Parameters          &params,
                                            const Butcher<graph_type> &butcher);
 
+  static void import_weights(graph_type &graph, Parameters const &params);
+
 public:
   static void boot(std::string const &path);
 };

@@ -23,14 +23,15 @@
 template <class T>
 class Graph
 {
+public:
+  using DependenciesType = std::vector<std::pair<node_id_collection_type, node_id_collection_type>>;
 protected:
   /// Vector of all the nodes
   std::vector<Node<T>> nodes;
 
   /// Vector that contains all the neighbours of every node (first input, then
   /// output)
-  std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
-    dependencies;
+  DependenciesType dependencies;
 
 public:
   using NodeType = Node<T>;
@@ -51,8 +52,7 @@ public:
   /// \param dependencies Node dependencies (input and outputs of every node)
   explicit Graph(
     std::vector<Node<T>> v,
-    std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
-      dep = {})
+    DependenciesType dep = {})
     : nodes(std::move(v))
     , dependencies(std::move(dep))
   {
@@ -66,12 +66,26 @@ public:
     return nodes;
   }
 
-  [[nodiscard]] inline const std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
-    &
-    get_dependencies() const
+  [[nodiscard]] inline const DependenciesType &
+  get_dependencies() const
   {
     return dependencies;
   }
+
+  [[nodiscard]] inline DependenciesType &
+  get_dependencies_ref()
+  {
+    return dependencies;
+  }
+
+  [[nodiscard]] inline const std::size_t size() const {
+    return nodes.size();
+  }
+
+  Node<T> const & operator[](int id) const {
+    return nodes[id];
+  }
+
 
   virtual ~Graph() = default;
 };
@@ -79,6 +93,9 @@ public:
 template <class T>
 class Graph<Content<T>>
 {
+public:
+  using DependenciesType = std::vector<std::pair<node_id_collection_type, node_id_collection_type>>;
+
 protected:
   using Node_Type = Node<Content<T>>;
 
@@ -87,8 +104,7 @@ protected:
 
   /// Vector that contains all the neighbours of every node (first input, then
   /// output)
-  std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
-    dependencies;
+  DependenciesType dependencies;
 
 
   /// Compute node dependencies
@@ -144,8 +160,7 @@ public:
   /// \param dependencies Node dependencies (input and outputs of every node)
   explicit Graph(
     std::vector<Node_Type> v,
-    std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
-      dep)
+    DependenciesType dep)
     : nodes(std::move(v))
     , dependencies(std::move(dep))
   {
@@ -187,11 +202,24 @@ public:
     return nodes;
   }
 
-  inline const std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
-    &
-    get_dependencies() const
+  inline const DependenciesType &
+  get_dependencies() const
   {
     return dependencies;
+  }
+
+  [[nodiscard]] inline DependenciesType &
+  get_dependencies_ref()
+  {
+    return dependencies;
+  }
+
+  [[nodiscard]] inline const std::size_t size() const {
+    return nodes.size();
+  }
+
+  Node<Content<T>> const & operator[](int id) const {
+    return nodes[id];
   }
 
   virtual ~Graph() = default;

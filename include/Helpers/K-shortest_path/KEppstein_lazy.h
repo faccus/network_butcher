@@ -22,7 +22,7 @@ public:
   /// \param K The number of shortest paths to find
   /// \return The shortest paths
   [[nodiscard]] std::vector<path_info>
-  lazy_eppstein(std::size_t K)
+  compute(std::size_t K) override
   {
     auto const &graph = base_shortest::graph;
 
@@ -43,7 +43,7 @@ public:
   explicit KFinder_Lazy_Eppstein(Graph_type const &g)
     : base(g){};
 
-  virtual ~KFinder_Lazy_Eppstein() = default;
+  ~KFinder_Lazy_Eppstein() override = default;
 
 private:
   std::pair<bool, H_g_collection::iterator>

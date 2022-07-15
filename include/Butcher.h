@@ -21,9 +21,9 @@
 
 #include "Helpers/Types/Type_info.h"
 
-#include "Helpers/Utilities.h"
 #include "Helpers/Parameters.h"
 #include "Helpers/Types/Paths.h"
+#include "Helpers/Utilities.h"
 
 /// Butcher butchers a given graph into slices
 template <class GraphType>
@@ -69,23 +69,22 @@ private:
     return basic_routes;
   };
 
-  /// Given a vector of Real_Partition, verify which ones applied to tester return true.
-  /// \param partitions The vector of input Real_Partition
-  /// \param tester The tester function
-  /// \return True if the tester function returns true for every Real_Partition
+  /// Given a vector of Real_Partition, verify which ones applied to tester
+  /// return true. \param partitions The vector of input Real_Partition \param
+  /// tester The tester function \return True if the tester function returns
+  /// true for every Real_Partition
   static bool
-  partition_checker(Real_Path const &path,
+  partition_checker(Real_Path const                                   &path,
                     const std::function<bool(const Real_Partition &)> &tester)
   {
     std::vector<Slice_Type> res;
 
-    for(auto const &partition : path)
-      if(!tester(partition))
+    for (auto const &partition : path)
+      if (!tester(partition))
         return false;
 
     return true;
   };
-
 
 
   /// It will produce a linearized version of the current graph (with multiple
@@ -96,7 +95,7 @@ private:
   /// associated every node id of the original graph to the respective node id
   /// of the "new" graph
   [[nodiscard]] std::pair<new_network, std::map<node_id_type, node_id_type>>
-  block_graph(bool backward_connections_allowed = true) const
+  block_graph(bool backward_connections_allowed) const
   {
     auto const num_of_devices = graph.get_num_devices();
 
@@ -107,7 +106,7 @@ private:
       new_dependencies;
 
     auto const &old_dependencies = graph.get_dependencies();
-    auto const &old_nodes = graph.get_nodes();
+    auto const &old_nodes        = graph.get_nodes();
 
     // Counter is used to establish if the current node has more output
     // connections than the inputs one.
@@ -138,7 +137,8 @@ private:
         if (local_counter <= 0 && counter == 0)
           {
             new_nodes.emplace_back(node_id_collection_type{});
-            new_nodes.back().content.insert(new_nodes.back().content.end(), node.get_id());
+            new_nodes.back().content.insert(new_nodes.back().content.end(),
+                                            node.get_id());
 
             old_to_new[node.get_id()] = id;
 
@@ -148,7 +148,8 @@ private:
         else if (local_counter > 0 && counter == 0)
           {
             new_nodes.emplace_back(node_id_collection_type{});
-            new_nodes.back().content.insert(new_nodes.back().content.end(), node.get_id());
+            new_nodes.back().content.insert(new_nodes.back().content.end(),
+                                            node.get_id());
             old_to_new[node.get_id()] = id;
 
             new_nodes.emplace_back(node_id_collection_type{});
@@ -161,7 +162,8 @@ private:
                   local_counter > 0 && dep.first.size() <= 1) &&
                  counter > 0)
           {
-            new_nodes.back().content.insert(new_nodes.back().content.end(), node.get_id());
+            new_nodes.back().content.insert(new_nodes.back().content.end(),
+                                            node.get_id());
 
             counter += local_counter;
 
@@ -226,7 +228,7 @@ private:
         }
 
     // Move the content of the first nodes to their appropriate final position
-    for(std::size_t i = basic_size - 1; i > 1; --i)
+    for (std::size_t i = basic_size - 1; i > 1; --i)
       {
         new_nodes[1 + num_of_devices * (i - 1)].content =
           std::move(new_nodes[i].content);
@@ -250,7 +252,8 @@ private:
       for (std::size_t k = 0; k < num_of_devices; ++k)
         out.insert(out.end(), 1 + num_of_devices + k);
 
-      for (std::size_t k = 1; k < num_of_devices; ++k) {
+      for (std::size_t k = 1; k < num_of_devices; ++k)
+        {
           auto dep_cpy = new_dependencies.back();
 
           if (!backward_connections_allowed)
@@ -284,10 +287,12 @@ private:
               out.insert(out.end(), id + num_of_devices + k);
             }
 
-          for (std::size_t k = 1; k < num_of_devices; ++k) {
+          for (std::size_t k = 1; k < num_of_devices; ++k)
+            {
               auto tmp_dep = new_dependencies.back();
 
-              if(!backward_connections_allowed) {
+              if (!backward_connections_allowed)
+                {
                   tmp_dep.first.insert(id - num_of_devices + k);
                   tmp_dep.second.erase(id + num_of_devices + k - 1);
                 }
@@ -311,7 +316,8 @@ private:
         for (std::size_t k = 1; k < num_of_devices; ++k)
           in.insert(in.end(), id - num_of_devices + k);
 
-      for (std::size_t k = 1; k < num_of_devices; ++k) {
+      for (std::size_t k = 1; k < num_of_devices; ++k)
+        {
           auto dep_cpy = new_dependencies.back();
 
           if (!backward_connections_allowed)
@@ -332,6 +338,76 @@ private:
     }
 
     return {new_network(new_nodes, new_dependencies), old_to_new};
+  }
+
+
+  void
+  remove_unfeasible_paths(new_network               &new_graph,
+                          std::vector<Device> const &devices,
+                          Memory_Constraint_Type     constraint_type) const
+  {
+    auto const input_memory =
+      Computer_memory::compute_nodes_memory_usage_input(graph);
+    auto const output_memory =
+      Computer_memory::compute_nodes_memory_usage_output(graph);
+    auto const params_memory =
+      Computer_memory::compute_nodes_memory_usage_parameters(graph);
+
+    std::vector<bool> available(devices.size(), true);
+    memory_type memory_graph = 0;
+
+    {
+
+    }
+
+    for (std::size_t i = 1; i < new_graph.size() - 1; i += devices.size())
+      {
+        auto const &new_node_content = new_graph[i].content;
+        bool        easy_content     = new_node_content.size() == 1;
+
+        for (std::size_t k = 0; k < devices.size(); ++k)
+          {
+            std::size_t node = i + k;
+
+            if (!available[k])
+              {
+                auto &dep = new_graph.get_dependencies_ref()[node];
+                dep.first.clear();
+                dep.second.clear();
+              }
+            else
+              {
+                if (easy_content)
+                  {
+                    if (constraint_type == Memory_Constraint_Type::Max)
+                      {
+                        auto const  index = *new_node_content.begin();
+                        memory_type memory_node =
+                          params_memory[index] +
+                          std::max(input_memory[index], output_memory[index]); // Maybe, in + out + params...
+
+                        if (memory_graph < memory_node)
+                          {
+                            memory_graph = std::max(memory_graph, memory_node);
+                            available[k] =
+                              memory_graph < devices[k].maximum_memory;
+                          }
+                      }
+                    else if (constraint_type == Memory_Constraint_Type::Sum)
+                      {
+                        auto const  index = *new_node_content.begin();
+                        memory_type memory_node =
+                          params_memory[index] +
+                          std::max(input_memory[index], output_memory[index]);
+                      }
+                  }
+              }
+          }
+      }
+
+    {
+
+    }
   }
 
 
@@ -501,7 +577,7 @@ private:
     for (std::size_t i = 0; i < path_nodes.size(); ++i)
       {
         auto const  node_id_new_graph = path_nodes[i];
-        std::size_t device_id = get_device_id(node_id_new_graph);
+        std::size_t device_id         = get_device_id(node_id_new_graph);
 
         auto const base_node_id_new_graph =
           get_base_node_id(node_id_new_graph, device_id);
@@ -530,8 +606,7 @@ private:
                    new_paths.end(),
                    res.begin(),
                    [&new_graph, this](path_info const &path) {
-                     return get_network_slices(path,
-                                               new_graph);
+                     return get_network_slices(path, new_graph);
                    });
 
     return res;
@@ -541,8 +616,7 @@ private:
   get_weighted_network_slice(std::vector<path_info> const &new_paths,
                              new_network const            &new_graph) const
   {
-    auto network_slice =
-      get_network_slices(new_paths, new_graph);
+    auto network_slice = get_network_slices(new_paths, new_graph);
     Weighted_Real_Paths final_res;
 
     final_res.reserve(network_slice.size());
@@ -564,58 +638,6 @@ private:
       final_res.emplace_back(new_paths[i].length, network_slice[i]);
     return final_res;
   }
-
-
-  /// It will prodice the k-shortest paths for the linearized block graph
-  /// associated with the original one
-  /// \param num_of_devices The number of devices
-  /// \param k The number of shortest paths to find
-  /// \param backward_connections_allowed Allow backward connections between
-  /// devices (i.e. data can be sent from device 2 to device 1)
-  /// \return The k-shortest paths on the graph (with the lenghts and devices)
-  Weighted_Real_Paths
-  compute_k_shortest_paths_eppstein_linear(
-    std::function<weight_type(node_id_type const &,
-                              std::size_t,
-                              std::size_t)> const &transmission_weights,
-    std::size_t                                    k,
-    bool backward_connections_allowed = true) const
-  {
-    auto new_graph = block_graph(backward_connections_allowed);
-
-    block_graph_weights(transmission_weights, new_graph.first);
-
-    KFinder_Eppstein kFinder(new_graph.first);
-    auto const       res = kFinder.eppstein(k);
-
-    return get_weighted_network_slice(res, new_graph.first);
-  }
-
-  /// It will prodice the k-shortest paths for the linearized block graph
-  /// associated with the original one
-  /// \param num_of_devices The number of devices
-  /// \param k The number of shortest paths to find
-  /// \param backward_connections_allowed Allow backward connections between
-  /// devices (i.e. data can be sent from device 2 to device 1)
-  /// \return The k-shortest paths on the graph (with the lenghts and devices)
-  Weighted_Real_Paths
-  compute_k_shortest_paths_lazy_eppstein_linear(
-    std::function<weight_type(node_id_type const &,
-                              std::size_t,
-                              std::size_t)> const &transmission_weights,
-    std::size_t                                    k,
-    bool backward_connections_allowed = true) const
-  {
-    auto new_graph = block_graph(backward_connections_allowed);
-
-    block_graph_weights(transmission_weights, new_graph.first);
-
-    KFinder_Lazy_Eppstein kFinder(new_graph.first);
-    auto const            res = kFinder.lazy_eppstein(k);
-
-    return get_weighted_network_slice(res, new_graph.first);
-  }
-
 public:
   Butcher() = default;
   /// Move constructor
@@ -623,7 +645,7 @@ public:
     : graph(std::move(g)){};
 
   explicit Butcher(network const &g)
-    : graph(g) {};
+    : graph(g){};
 
   /// Basic getter for graph
   /// \return The graph (const reference)
@@ -702,23 +724,37 @@ public:
     std::function<weight_type(node_id_type const &,
                               std::size_t,
                               std::size_t)> const &transmission_weights,
-    Parameters const                              &parameters) const
+    Parameters const                              &params) const
   {
-    switch (parameters.method)
+    auto [new_graph, connection_map] =
+      block_graph(params.backward_connections_allowed);
+
+    /*
+    if (params.memory_constraint && !params.backward_connections_allowed)
+      remove_unfeasible_paths(new_graph,
+                              params.devices,
+                              params.memory_constraint_type);
+    */
+
+    block_graph_weights(transmission_weights, new_graph);
+
+    std::unique_ptr<KFinder<new_network>> kFinder;
+
+    switch (params.method)
       {
         case KSP_Method::Eppstein:
-          return compute_k_shortest_paths_eppstein_linear(
-            transmission_weights,
-            parameters.K,
-            parameters.backward_connections_allowed);
+          kFinder = std::make_unique<KFinder_Eppstein<new_network>>(new_graph);
+          break;
         case KSP_Method::Lazy_Eppstein:
-          return compute_k_shortest_paths_lazy_eppstein_linear(
-            transmission_weights,
-            parameters.K,
-            parameters.backward_connections_allowed);
+          kFinder =
+            std::make_unique<KFinder_Lazy_Eppstein<new_network>>(new_graph);
+          break;
         default:
           return {};
       }
+
+    auto const            res = kFinder->compute(params.K);
+    return get_weighted_network_slice(res, new_graph);
   }
 };
 

@@ -35,20 +35,26 @@ General_Manager::generate_bandwidth_transmission_function(
 }
 
 void
-General_Manager::boot(std::string const &path)
+General_Manager::import_weights(graph_type &graph, const Parameters &params)
 {
-  Parameters params = IO_Manager::read_parameters(path);
-  auto [graph, model, link_graph_model] =
-    IO_Manager::import_from_onnx(params.model_path,
-                                 true,
-                                 params.devices.size());
-
   for (auto const &device : params.devices)
     {
       IO_Manager::import_weights_from_csv(graph,
                                           device.id,
                                           device.weights_path);
     }
+}
+
+void
+General_Manager::boot(std::string const &path)
+{
+  Parameters params = IO_Manager::read_parameters(path);
+
+  auto [graph, model, link_graph_model] =
+    IO_Manager::import_from_onnx(params.model_path,
+                                 true,
+                                 params.devices.size());
+  import_weights(graph, params);
 
   Butcher             butcher(std::move(graph));
 
