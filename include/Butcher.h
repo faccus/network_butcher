@@ -365,41 +365,49 @@ private:
         auto const &new_node_content = new_graph[i].content;
         bool        easy_content     = new_node_content.size() == 1;
 
-        for (std::size_t k = 0; k < devices.size(); ++k)
+        if (easy_content)
           {
-            std::size_t node = i + k;
+            auto const  index = *new_node_content.begin();
 
-            if (!available[k])
+            for (std::size_t k = 0; k < devices.size(); ++k)
               {
-                auto &dep = new_graph.get_dependencies_ref()[node];
-                dep.first.clear();
-                dep.second.clear();
-              }
-            else
-              {
-                if (easy_content)
+                std::size_t node = i + k;
+
+                if (!available[k])
                   {
-                    if (constraint_type == Memory_Constraint_Type::Max)
-                      {
-                        auto const  index = *new_node_content.begin();
-                        memory_type memory_node =
-                          params_memory[index] +
-                          std::max(input_memory[index], output_memory[index]); // Maybe, in + out + params...
+                    auto &dep = new_graph.get_dependencies_ref()[node];
+                    dep.first.clear();
+                    dep.second.clear();
+                  }
+                else if (constraint_type == Memory_Constraint_Type::Max)
+                  {
+                    memory_type memory_node = params_memory[index] +
+                                              input_memory[index] +
+                                              output_memory[index];
 
-                        if (memory_graph < memory_node)
-                          {
-                            memory_graph = std::max(memory_graph, memory_node);
-                            available[k] =
-                              memory_graph < devices[k].maximum_memory;
-                          }
-                      }
-                    else if (constraint_type == Memory_Constraint_Type::Sum)
+                    if (memory_graph < memory_node)
                       {
-                        auto const  index = *new_node_content.begin();
-                        memory_type memory_node =
-                          params_memory[index] +
-                          std::max(input_memory[index], output_memory[index]);
+                        memory_graph = std::max(memory_graph, memory_node);
+                        available[k] = memory_graph < devices[k].maximum_memory;
                       }
+                  }
+                else if (constraint_type == Memory_Constraint_Type::Sum)
+                  {
+                    memory_type memory_node = params_memory[index] +
+                                              input_memory[index] +
+                                              output_memory[index];
+
+                    memory_graph += memory_node;
+                    available[k] = memory_graph < devices[k].maximum_memory;
+                  }
+                else if (constraint_type ==
+                         Memory_Constraint_Type::Preload_Parameters)
+                  {
+                    memory_graph += params_memory[index];
+
+                    available[k] =
+                      (memory_graph + input_memory[index] +
+                       output_memory[index]) < devices[k].maximum_memory;
                   }
               }
           }
