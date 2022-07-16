@@ -410,6 +410,8 @@ private:
                        output_memory[index]) < devices[k].maximum_memory;
                   }
               }
+          } else { // else son ca... cavoli
+
           }
       }
 
