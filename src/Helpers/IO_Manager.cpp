@@ -353,14 +353,19 @@ IO_Manager::read_parameters(const std::string &path)
   if (res.memory_constraint)
     {
       std::string const memory_constraint_type =
-        file(basic_infos + "/memory_constraint_type", "max");
+        file(basic_infos + "/memory_constraint_type", "none");
 
       if (memory_constraint_type == "max")
         {
           res.memory_constraint_type = Memory_Constraint_Type::Max;
         }
-      else if(memory_constraint_type == "preload_parameters") {
+      else if (memory_constraint_type == "preload_parameters")
+        {
           res.memory_constraint = Memory_Constraint_Type::Preload_Parameters;
+        }
+      else if (memory_constraint_type == "none")
+        {
+          res.memory_constraint = Memory_Constraint_Type::None;
         }
     }
 

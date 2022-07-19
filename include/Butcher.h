@@ -362,19 +362,19 @@ private:
     for (auto const &id : ids)
       {
         auto const &node = graph[id];
-        auto const &parents = dependencies[node].first;
+        auto const &parents = dependencies[id].first;
 
         for(auto const &parent : parents) {
             auto const it = visited_ids.find(parent);
             if(it != visited_ids.cend()) {
                 it->second.insert(id);
-                if(it->second == dependencies[parent].second) {
+                if(it->second.size() == dependencies[parent].second.size()) {
                     res -= (input_memory[parent] + output_memory[parent]);
                   }
               }
           }
 
-        visited_ids.insert({node, std::set<node_id_type>()});
+        visited_ids[id] = std::set<node_id_type>();
       }
 
     return res;
@@ -775,7 +775,8 @@ public:
       block_graph(params.backward_connections_allowed);
 
 
-    if (params.memory_constraint && !params.backward_connections_allowed)
+    if (params.memory_constraint != Memory_Constraint_Type::None &&
+        !params.backward_connections_allowed)
       remove_unfeasible_paths(params.devices,
                               new_graph,
                               params.memory_constraint_type);

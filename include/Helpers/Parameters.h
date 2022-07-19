@@ -21,6 +21,7 @@ enum KSP_Method {
 };
 
 enum Memory_Constraint_Type {
+  None,
   Max,
   Preload_Parameters
 };

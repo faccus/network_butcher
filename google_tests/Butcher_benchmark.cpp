@@ -37,10 +37,16 @@ namespace butcher_benchmark_test_namespace
   real_butcher();
 
   Parameters
-  eppstein_parameters(std::size_t k, bool backward = true);
+  eppstein_parameters(std::size_t k, bool backward, std::size_t num_devices);
 
   Parameters
-  lazy_eppstein_parameters(std::size_t k, bool backward = true);
+  lazy_eppstein_parameters(std::size_t k,
+                           bool        backward,
+                           std::size_t num_devices);
+  Parameters
+  real_parameters(std::size_t k,
+                           bool        backward,
+                           std::size_t num_devices);
 
   template <class Graph>
   void
@@ -50,8 +56,10 @@ namespace butcher_benchmark_test_namespace
     auto const &dependencies = graph.get_dependencies();
 
     for (node_id_type tail = 0; tail < num_nodes; ++tail)
-      for (auto const &head : dependencies[tail].second) {
-          for (std::size_t k = 0; k < graph.get_num_devices(); ++k) {
+      for (auto const &head : dependencies[tail].second)
+        {
+          for (std::size_t k = 0; k < graph.get_num_devices(); ++k)
+            {
               if (graph.get_weigth(k, {tail, head}) == -1.)
                 graph.set_weigth(k, {tail, head}, 0.);
             }
@@ -111,7 +119,7 @@ namespace butcher_benchmark_test_namespace
     Butcher butcher(
       std::get<0>(IO_Manager::import_from_onnx(path + extension)));
 
-    auto &graph = butcher.get_graph_ref();
+    auto       &graph = butcher.get_graph_ref();
     auto const &nodes = graph.get_nodes();
     auto const  k     = 1000;
 
@@ -124,17 +132,16 @@ namespace butcher_benchmark_test_namespace
 
     Chrono crono;
     crono.start();
-    auto lazy_eppstein_res =
-      butcher.compute_k_shortest_path(transmission_fun,
-                                      lazy_eppstein_parameters(k));
+    auto lazy_eppstein_res = butcher.compute_k_shortest_path(
+      transmission_fun, lazy_eppstein_parameters(k, true, num_devices));
     crono.stop();
 
     std::cout << "Lazy Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
               << std::endl;
 
     crono.start();
-    auto eppstein_res =
-      butcher.compute_k_shortest_path(transmission_fun, eppstein_parameters(k));
+    auto eppstein_res = butcher.compute_k_shortest_path(
+      transmission_fun, eppstein_parameters(k, true, num_devices));
     crono.stop();
 
     std::cout << "Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
@@ -194,17 +201,16 @@ namespace butcher_benchmark_test_namespace
 
     Chrono crono;
     crono.start();
-    auto lazy_eppstein_res =
-      butcher.compute_k_shortest_path(transmission_fun,
-                                      lazy_eppstein_parameters(k));
+    auto lazy_eppstein_res = butcher.compute_k_shortest_path(
+      transmission_fun, lazy_eppstein_parameters(k, true, num_devices));
     crono.stop();
 
     std::cout << "Lazy Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
               << std::endl;
 
     crono.start();
-    auto eppstein_res =
-      butcher.compute_k_shortest_path(transmission_fun, eppstein_parameters(k));
+    auto eppstein_res = butcher.compute_k_shortest_path(
+      transmission_fun, eppstein_parameters(k, true, num_devices));
     crono.stop();
 
     std::cout << "Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
@@ -273,17 +279,15 @@ namespace butcher_benchmark_test_namespace
 
         Chrono crono;
         crono.start();
-        auto eppstein_res =
-          butcher.compute_k_shortest_path(transmission_fun,
-                                          eppstein_parameters(k));
+        auto eppstein_res = butcher.compute_k_shortest_path(
+          transmission_fun, eppstein_parameters(k, true, num_devices));
         crono.stop();
         double const time_instance_std = crono.wallTime();
         time_std += time_instance_std;
 
         crono.start();
-        auto lazy_eppstein_res =
-          butcher.compute_k_shortest_path(transmission_fun,
-                                          lazy_eppstein_parameters(k));
+        auto lazy_eppstein_res = butcher.compute_k_shortest_path(
+          transmission_fun, lazy_eppstein_parameters(k, true, num_devices));
         crono.stop();
         double const time_instance_lazy = crono.wallTime();
         time_lazy += time_instance_lazy;
@@ -356,7 +360,8 @@ namespace butcher_benchmark_test_namespace
         Chrono crono;
         crono.start();
         auto const res = butcher.compute_k_shortest_path(
-          transmission_fun, lazy_eppstein_parameters(num_nodes * 0.1));
+          transmission_fun,
+          lazy_eppstein_parameters(num_nodes * 0.1, true, num_devices));
         crono.stop();
 
         total_time += crono.wallTime();
@@ -389,9 +394,9 @@ namespace butcher_benchmark_test_namespace
 
         Chrono crono;
         crono.start();
-        auto const res =
-          butcher.compute_k_shortest_path(transmission_fun,
-                                          eppstein_parameters(num_nodes * 0.1));
+        auto const res = butcher.compute_k_shortest_path(
+          transmission_fun,
+          eppstein_parameters(num_nodes * 0.1, true, num_devices));
         crono.stop();
 
         total_time += crono.wallTime();
@@ -403,7 +408,7 @@ namespace butcher_benchmark_test_namespace
   }
 
 
-  TEST(ButcherTest, final_network_test)
+  TEST(ButcherBenchmarkTest, final_network_test)
   {
     std::size_t       num_devices = 2;
     std::size_t const k           = 1000;
@@ -421,9 +426,8 @@ namespace butcher_benchmark_test_namespace
 
     Chrono crono;
     crono.start();
-    auto lazy_eppstein_res =
-      butcher.compute_k_shortest_path(transmission_fun,
-                                      lazy_eppstein_parameters(k, false));
+    auto lazy_eppstein_res = butcher.compute_k_shortest_path(
+      transmission_fun, real_parameters(k, false, num_devices));
     crono.stop();
 
 
@@ -552,7 +556,6 @@ namespace butcher_benchmark_test_namespace
   }
 
 
-
   void
   real_weight(Real_Graph_Type &graph)
   {
@@ -610,7 +613,7 @@ namespace butcher_benchmark_test_namespace
   {
     std::string const path =
       "version-RFB-640-inferred.onnx"; //"version-RFB-640.onnx";
-    auto tuple = IO_Manager::import_from_onnx(path, true, 2);
+    auto  tuple = IO_Manager::import_from_onnx(path, true, 2);
     auto &graph = std::get<0>(tuple);
 
     IO_Manager::import_weights_from_csv(graph, 0, "prediction_pi.csv");
@@ -618,29 +621,48 @@ namespace butcher_benchmark_test_namespace
 
     complete_weights(graph);
 
-    return {Butcher(graph),
-            std::get<1>(tuple),
-            std::get<2>(tuple)};
+    return {Butcher(graph), std::get<1>(tuple), std::get<2>(tuple)};
   }
 
   Parameters
-  eppstein_parameters(std::size_t k, bool backward)
+  eppstein_parameters(std::size_t k, bool backward, std::size_t num_devices)
   {
     Parameters res;
     res.K                            = k;
     res.backward_connections_allowed = backward;
     res.method                       = KSP_Method::Eppstein;
+    res.devices                      = std::vector<Device>(num_devices);
+    res.memory_constraint_type = Memory_Constraint_Type::None;
 
     return res;
   }
 
   Parameters
-  lazy_eppstein_parameters(std::size_t k, bool backward)
+  lazy_eppstein_parameters(std::size_t k,
+                           bool        backward,
+                           std::size_t num_devices)
   {
     Parameters res;
     res.K                            = k;
     res.backward_connections_allowed = backward;
     res.method                       = KSP_Method::Lazy_Eppstein;
+    res.devices                      = std::vector<Device>(num_devices);
+    res.memory_constraint_type = Memory_Constraint_Type::None;
+
+    return res;
+  }
+
+  Parameters
+  real_parameters(std::size_t k,
+                           bool        backward,
+                           std::size_t num_devices)
+  {
+    Parameters res;
+    res.K                            = k;
+    res.backward_connections_allowed = backward;
+    res.method                       = KSP_Method::Lazy_Eppstein;
+    res.devices                      = std::vector<Device>(num_devices);
+    res.memory_constraint_type = Memory_Constraint_Type::Preload_Parameters;
 
     return res;
   }
