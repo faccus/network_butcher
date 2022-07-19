@@ -359,9 +359,8 @@ IO_Manager::read_parameters(const std::string &path)
         {
           res.memory_constraint_type = Memory_Constraint_Type::Max;
         }
-      else if (memory_constraint_type == "sum")
-        {
-          res.memory_constraint_type = Memory_Constraint_Type::Sum;
+      else if(memory_constraint_type == "preload_parameters") {
+          res.memory_constraint = Memory_Constraint_Type::Preload_Parameters;
         }
     }
 

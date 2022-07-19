@@ -340,10 +340,49 @@ private:
     return {new_network(new_nodes, new_dependencies), old_to_new};
   }
 
+  memory_type
+  remove_unfeasible_paths(std::vector<Device> const      &devices,
+                          std::vector<bool>              &available,
+                          Memory_Constraint_Type          constraint_type,
+                          std::set<node_id_type> const   &ids,
+                          std::vector<memory_type> const &input_memory,
+                          std::vector<memory_type> const &output_memory,
+                          std::vector<memory_type> const &params_memory) const
+  {
+    memory_type res = 0;
+    if (constraint_type == Preload_Parameters)
+      {
+        res = std::reduce(std::next(params_memory.begin(), *ids.cbegin()),
+                          std::next(params_memory.begin(), *ids.crbegin()));
+      }
+
+    std::map<node_id_type, std::set<node_id_type>> visited_ids;
+    auto const &dependencies = graph.get_dependencies();
+
+    for (auto const &id : ids)
+      {
+        auto const &node = graph[id];
+        auto const &parents = dependencies[node].first;
+
+        for(auto const &parent : parents) {
+            auto const it = visited_ids.find(parent);
+            if(it != visited_ids.cend()) {
+                it->second.insert(id);
+                if(it->second == dependencies[parent].second) {
+                    res -= (input_memory[parent] + output_memory[parent]);
+                  }
+              }
+          }
+
+        visited_ids.insert({node, std::set<node_id_type>()});
+      }
+
+    return res;
+  }
 
   void
-  remove_unfeasible_paths(new_network               &new_graph,
-                          std::vector<Device> const &devices,
+  remove_unfeasible_paths(std::vector<Device> const &devices,
+                          new_network               &new_graph,
                           Memory_Constraint_Type     constraint_type) const
   {
     auto const input_memory =
@@ -354,11 +393,9 @@ private:
       Computer_memory::compute_nodes_memory_usage_parameters(graph);
 
     std::vector<bool> available(devices.size(), true);
-    memory_type memory_graph = 0;
+    memory_type       memory_graph = 0;
 
-    {
-
-    }
+    {}
 
     for (std::size_t i = 1; i < new_graph.size() - 1; i += devices.size())
       {
@@ -367,7 +404,7 @@ private:
 
         if (easy_content)
           {
-            auto const  index = *new_node_content.begin();
+            auto const index = *new_node_content.begin();
 
             for (std::size_t k = 0; k < devices.size(); ++k)
               {
@@ -391,15 +428,6 @@ private:
                         available[k] = memory_graph < devices[k].maximum_memory;
                       }
                   }
-                else if (constraint_type == Memory_Constraint_Type::Sum)
-                  {
-                    memory_type memory_node = params_memory[index] +
-                                              input_memory[index] +
-                                              output_memory[index];
-
-                    memory_graph += memory_node;
-                    available[k] = memory_graph < devices[k].maximum_memory;
-                  }
                 else if (constraint_type ==
                          Memory_Constraint_Type::Preload_Parameters)
                   {
@@ -410,14 +438,20 @@ private:
                        output_memory[index]) < devices[k].maximum_memory;
                   }
               }
-          } else { // else son ca... cavoli
-
+          }
+        else
+          { // else son ca... cavoli
+            remove_unfeasible_paths(devices,
+                                    available,
+                                    constraint_type,
+                                    new_node_content,
+                                    input_memory,
+                                    output_memory,
+                                    params_memory);
           }
       }
 
-    {
-
-    }
+    {}
   }
 
 
@@ -648,6 +682,7 @@ private:
       final_res.emplace_back(new_paths[i].length, network_slice[i]);
     return final_res;
   }
+
 public:
   Butcher() = default;
   /// Move constructor
@@ -739,12 +774,12 @@ public:
     auto [new_graph, connection_map] =
       block_graph(params.backward_connections_allowed);
 
-    /*
+
     if (params.memory_constraint && !params.backward_connections_allowed)
-      remove_unfeasible_paths(new_graph,
-                              params.devices,
+      remove_unfeasible_paths(params.devices,
+                              new_graph,
                               params.memory_constraint_type);
-    */
+
 
     block_graph_weights(transmission_weights, new_graph);
 
@@ -763,7 +798,7 @@ public:
           return {};
       }
 
-    auto const            res = kFinder->compute(params.K);
+    auto const res = kFinder->compute(params.K);
     return get_weighted_network_slice(res, new_graph);
   }
 };
