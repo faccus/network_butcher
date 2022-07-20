@@ -342,18 +342,19 @@ private:
 
   memory_type
   remove_unfeasible_paths(std::vector<Device> const      &devices,
-                          std::vector<bool>              &available,
                           Memory_Constraint_Type          constraint_type,
                           std::set<node_id_type> const   &ids,
-                          std::vector<memory_type> const &input_memory,
                           std::vector<memory_type> const &output_memory,
                           std::vector<memory_type> const &params_memory) const
   {
-    memory_type res = 0;
+
+    memory_type current_memory_res = 0, real_memory_res = 0;
+
     if (constraint_type == Preload_Parameters)
       {
-        res = std::reduce(std::next(params_memory.begin(), *ids.cbegin()),
-                          std::next(params_memory.begin(), *ids.crbegin()));
+        current_memory_res = real_memory_res =
+          std::reduce(std::next(params_memory.begin(), *ids.cbegin()),
+                      std::next(params_memory.begin(), *ids.crbegin()));
       }
 
     std::map<node_id_type, std::set<node_id_type>> visited_ids;
@@ -369,15 +370,25 @@ private:
             if(it != visited_ids.cend()) {
                 it->second.insert(id);
                 if(it->second.size() == dependencies[parent].second.size()) {
-                    res -= (input_memory[parent] + output_memory[parent]);
+                    current_memory_res -= output_memory[parent];
                   }
               }
+          }
+
+        if (constraint_type == Memory_Constraint_Type::Preload_Parameters)
+          {
+            real_memory_res = std::max(current_memory_res,
+                                       current_memory_res += output_memory[id]);
+          }
+        else if (constraint_type == Memory_Constraint_Type::Max)
+          {
+
           }
 
         visited_ids[id] = std::set<node_id_type>();
       }
 
-    return res;
+    return current_memory_res;
   }
 
   void
@@ -385,6 +396,9 @@ private:
                           new_network               &new_graph,
                           Memory_Constraint_Type     constraint_type) const
   {
+    if(constraint_type == Memory_Constraint_Type::None)
+      return;
+
     auto const input_memory =
       Computer_memory::compute_nodes_memory_usage_input(graph);
     auto const output_memory =
@@ -442,10 +456,8 @@ private:
         else
           { // else son ca... cavoli
             remove_unfeasible_paths(devices,
-                                    available,
                                     constraint_type,
                                     new_node_content,
-                                    input_memory,
                                     output_memory,
                                     params_memory);
           }
