@@ -45,8 +45,7 @@ namespace butcher_benchmark_test_namespace
                            std::size_t num_devices);
   Parameters
   real_parameters(std::size_t k,
-                           bool        backward,
-                           std::size_t num_devices);
+                           bool        backward);
 
   template <class Graph>
   void
@@ -410,7 +409,6 @@ namespace butcher_benchmark_test_namespace
 
   TEST(ButcherBenchmarkTest, final_network_test)
   {
-    std::size_t       num_devices = 2;
     std::size_t const k           = 1000;
 
     std::vector<type_collection_weights> weight_maps;
@@ -427,28 +425,12 @@ namespace butcher_benchmark_test_namespace
     Chrono crono;
     crono.start();
     auto lazy_eppstein_res = butcher.compute_k_shortest_path(
-      transmission_fun, real_parameters(k, false, num_devices));
+      transmission_fun, real_parameters(k, false));
     crono.stop();
-
-
-    memory_type const gb         = 1024 * 1024 * 1024;
-    memory_type const gb_pi      = gb / 2; // 512 MB RAM
-    memory_type const gb_laptop  = 2 * gb; // 2 GB RAM
-    memory_type const gb_cluster = 4 * gb; // 4 GB RAM
 
 
     std::string const p = "output_final_network_test";
     utilities::create_directory(p);
-
-    std::ofstream out_file(p + "/report.txt", std::ios::out);
-    for (std::size_t j = 0; j < lazy_eppstein_res.size(); ++j)
-      {
-        out_file << std::to_string(j) << ": "
-                 << butcher.partition_memory_checker(
-                      lazy_eppstein_res[j].second, {gb_pi, gb_cluster})
-                 << std::endl;
-      }
-    out_file.close();
 
     for (std::size_t j = 0; j < lazy_eppstein_res.size(); ++j)
       {
@@ -613,11 +595,12 @@ namespace butcher_benchmark_test_namespace
   {
     std::string const path =
       "version-RFB-640-inferred.onnx"; //"version-RFB-640.onnx";
-    auto  tuple = IO_Manager::import_from_onnx(path, true, 2);
+    auto  tuple = IO_Manager::import_from_onnx(path, true, 3);
     auto &graph = std::get<0>(tuple);
 
     IO_Manager::import_weights_from_csv(graph, 0, "prediction_pi.csv");
     IO_Manager::import_weights_from_csv(graph, 1, "prediction_tegra.csv");
+    IO_Manager::import_weights_from_csv(graph, 2, "prediction_tegra.csv");
 
     complete_weights(graph);
 
@@ -632,7 +615,7 @@ namespace butcher_benchmark_test_namespace
     res.backward_connections_allowed = backward;
     res.method                       = KSP_Method::Eppstein;
     res.devices                      = std::vector<Device>(num_devices);
-    res.memory_constraint_type = Memory_Constraint_Type::None;
+    res.memory_constraint_type       = Memory_Constraint_Type::None;
 
     return res;
   }
@@ -647,22 +630,30 @@ namespace butcher_benchmark_test_namespace
     res.backward_connections_allowed = backward;
     res.method                       = KSP_Method::Lazy_Eppstein;
     res.devices                      = std::vector<Device>(num_devices);
-    res.memory_constraint_type = Memory_Constraint_Type::None;
+    res.memory_constraint_type       = Memory_Constraint_Type::None;
 
     return res;
   }
 
   Parameters
-  real_parameters(std::size_t k,
-                           bool        backward,
-                           std::size_t num_devices)
+  real_parameters(std::size_t k, bool backward)
   {
+    std::size_t num_devices = 3;
+
     Parameters res;
     res.K                            = k;
     res.backward_connections_allowed = backward;
     res.method                       = KSP_Method::Lazy_Eppstein;
     res.devices                      = std::vector<Device>(num_devices);
     res.memory_constraint_type = Memory_Constraint_Type::Preload_Parameters;
+
+    memory_type const MB = 1024 * 1024;
+
+    for (int i = 0; i < res.devices.size(); ++i)
+      {
+        res.devices[i].id             = i;
+        res.devices[i].maximum_memory = MB * 32 * std::pow(64, i);
+      }
 
     return res;
   }

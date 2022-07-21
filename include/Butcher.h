@@ -340,6 +340,62 @@ private:
     return {new_network(new_nodes, new_dependencies), old_to_new};
   }
 
+  std::tuple<memory_type, memory_type>
+  estimate_maximum_memory_usage(
+    std::vector<Device> const      &devices,
+    Memory_Constraint_Type          constraint_type,
+    std::set<node_id_type> const   &ids,
+    std::vector<memory_type> const &input_memory,
+    std::vector<memory_type> const &output_memory,
+    std::vector<memory_type> const &params_memory) const
+  {
+    memory_type result_memory = 0, fixed_memory = 0;
+
+    if (constraint_type == Memory_Constraint_Type::Preload_Parameters)
+      {
+        fixed_memory =
+          std::reduce(std::next(params_memory.begin(), *ids.cbegin()),
+                      std::next(params_memory.begin(), *ids.crbegin()));
+      }
+    auto const &dependencies = graph.get_dependencies();
+    std::size_t qty = 1;
+
+
+    if (dependencies[*ids.begin()].first.size() == 1)
+      {
+        auto const &father = *dependencies[*ids.begin()].first.begin();
+        qty = std::max(qty, dependencies[father].second.size());
+      }
+
+    for (auto const &id : ids)
+      {
+        auto const &node = graph[id];
+
+        auto const &node_dependencies = dependencies[id];
+        auto const &parents           = node_dependencies.first;
+        auto const &children          = node_dependencies.second;
+
+        memory_type        in_memory  = input_memory[id];
+        memory_type const &out_memory = output_memory[id];
+
+        if (constraint_type == Memory_Constraint_Type::Preload_Parameters)
+          {
+            result_memory = std::max(result_memory, in_memory + out_memory);
+          }
+        else if (constraint_type == Memory_Constraint_Type::Max)
+          {
+            result_memory =
+              std::max(result_memory,
+                       in_memory + out_memory + params_memory[id]);
+          }
+
+        if (children.size() > parents.size())
+          qty = qty + dependencies[id].second.size() - parents.size() - 1;
+      }
+
+    return {result_memory * qty, fixed_memory};
+  }
+
   memory_type
   remove_unfeasible_paths(std::vector<Device> const      &devices,
                           Memory_Constraint_Type          constraint_type,
@@ -396,7 +452,7 @@ private:
                           new_network               &new_graph,
                           Memory_Constraint_Type     constraint_type) const
   {
-    if(constraint_type == Memory_Constraint_Type::None)
+    if (constraint_type == Memory_Constraint_Type::None)
       return;
 
     auto const input_memory =
@@ -409,7 +465,59 @@ private:
     std::vector<bool> available(devices.size(), true);
     memory_type       memory_graph = 0;
 
-    {}
+
+    auto const dependencies_clear = [&](node_id_type const &node_id) {
+      auto &dep =
+        new_graph.get_dependencies_ref()[node_id];
+
+      for(auto const &in : dep.first)
+        new_graph.get_dependencies_ref()[in].second.erase(node_id);
+      for(auto const &out : dep.second)
+        new_graph.get_dependencies_ref()[out].first.erase(node_id);
+
+      dep.first.clear();
+      dep.second.clear();
+    };
+
+    auto const response_fun_max = [&](std::size_t        basic_node_id,
+                                      memory_type const &memory_node) {
+      if (memory_graph < memory_node)
+        {
+          memory_graph = std::max(memory_graph, memory_node);
+
+          for (std::size_t k = 0; k < devices.size(); ++k)
+            {
+              if (available[k] && memory_graph < devices[k].maximum_memory)
+                {
+                  continue;
+                }
+              else
+                {
+                  available[k] = false;
+                  dependencies_clear(basic_node_id + k);
+                }
+            }
+        }
+    };
+
+    auto const response_fun_preload_parameters = [&](std::size_t basic_node_id,
+                                                     memory_type const &param,
+                                                     memory_type const &io) {
+      memory_graph += param;
+
+      for (std::size_t k = 0; k < devices.size(); ++k)
+        {
+          if (available[k] && (memory_graph + io) < devices[k].maximum_memory)
+            {
+              continue;
+            }
+          else
+            {
+              available[k] = false;
+              dependencies_clear(basic_node_id + k);
+            }
+        }
+    };
 
     for (std::size_t i = 1; i < new_graph.size() - 1; i += devices.size())
       {
@@ -420,50 +528,42 @@ private:
           {
             auto const index = *new_node_content.begin();
 
-            for (std::size_t k = 0; k < devices.size(); ++k)
+            if (constraint_type == Memory_Constraint_Type::Max)
               {
-                std::size_t node = i + k;
-
-                if (!available[k])
-                  {
-                    auto &dep = new_graph.get_dependencies_ref()[node];
-                    dep.first.clear();
-                    dep.second.clear();
-                  }
-                else if (constraint_type == Memory_Constraint_Type::Max)
-                  {
-                    memory_type memory_node = params_memory[index] +
-                                              input_memory[index] +
-                                              output_memory[index];
-
-                    if (memory_graph < memory_node)
-                      {
-                        memory_graph = std::max(memory_graph, memory_node);
-                        available[k] = memory_graph < devices[k].maximum_memory;
-                      }
-                  }
-                else if (constraint_type ==
-                         Memory_Constraint_Type::Preload_Parameters)
-                  {
-                    memory_graph += params_memory[index];
-
-                    available[k] =
-                      (memory_graph + input_memory[index] +
-                       output_memory[index]) < devices[k].maximum_memory;
-                  }
+                response_fun_max(i,
+                                 params_memory[index] + input_memory[index] +
+                                   output_memory[index]);
+              }
+            else if (constraint_type ==
+                     Memory_Constraint_Type::Preload_Parameters)
+              {
+                response_fun_preload_parameters(i,
+                                                params_memory[index],
+                                                input_memory[index] +
+                                                  output_memory[index]);
               }
           }
         else
-          { // else son ca... cavoli
-            remove_unfeasible_paths(devices,
-                                    constraint_type,
-                                    new_node_content,
-                                    output_memory,
-                                    params_memory);
+          {
+            auto const [param_mem, io_mem] =
+              estimate_maximum_memory_usage(devices,
+                                            constraint_type,
+                                            new_node_content,
+                                            input_memory,
+                                            output_memory,
+                                            params_memory);
+
+            if (constraint_type == Memory_Constraint_Type::Max)
+              {
+                response_fun_max(i, param_mem + io_mem);
+              }
+            else if (constraint_type ==
+                     Memory_Constraint_Type::Preload_Parameters)
+              {
+                response_fun_preload_parameters(i, param_mem, io_mem);
+              }
           }
       }
-
-    {}
   }
 
 
