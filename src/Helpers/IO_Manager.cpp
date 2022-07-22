@@ -77,6 +77,16 @@ IO_Manager::import_from_onnx(const std::string &path,
       ++node_id;
     }
 
+  auto const help_func =
+    [](std::string const                                         &name,
+       auto const                                                &array,
+       std::unordered_map<std::string, std::vector<DynamicType>> &attributes) {
+      std::vector<DynamicType> add;
+      for (auto it = array.cbegin(); it != array.cend(); ++it)
+        add.emplace_back(*it);
+      attributes.insert({name, add});
+    };
+
   for (auto const &node : onnx_nodes)
     {
       auto operation_type = node.op_type();
@@ -95,17 +105,11 @@ IO_Manager::import_from_onnx(const std::string &path,
           switch (attribute.type())
             {
                 case onnx::AttributeProto_AttributeType_FLOAT: {
-
                   attributes.insert({attribute.name(), {attribute.f()}});
                   break;
                 }
                 case onnx::AttributeProto_AttributeType_FLOATS: {
-                  std::vector<DynamicType> add;
-                  for (auto it = attribute.floats().begin();
-                       it != attribute.floats().end();
-                       ++it)
-                    add.emplace_back(*it);
-                  attributes.insert({attribute.name(), add});
+                  help_func(attribute.name(), attribute.floats(), attributes);
                   break;
                 }
                 case onnx::AttributeProto_AttributeType_INT: {
@@ -113,30 +117,14 @@ IO_Manager::import_from_onnx(const std::string &path,
                   break;
                 }
                 case onnx::AttributeProto_AttributeType_INTS: {
-                  std::vector<DynamicType> add;
-                  for (auto it = attribute.ints().begin();
-                       it != attribute.ints().end();
-                       ++it)
-                    {
-                      add.emplace_back(*it);
-                    }
-
-                  attributes.insert({attribute.name(), add});
+                  help_func(attribute.name(), attribute.ints(), attributes);
                   break;
                 }
                 case onnx::AttributeProto_AttributeType_STRING: {
                   attributes.insert({attribute.name(), {attribute.s()}});
                 }
                 case onnx::AttributeProto_AttributeType_STRINGS: {
-                  std::vector<DynamicType> add;
-                  for (auto it = attribute.strings().begin();
-                       it != attribute.strings().end();
-                       ++it)
-                    {
-                      add.emplace_back(*it);
-                    }
-
-                  attributes.insert({attribute.name(), add});
+                  help_func(attribute.name(), attribute.strings(), attributes);
                   break;
                 }
             }
@@ -370,8 +358,9 @@ IO_Manager::read_parameters(const std::string &path)
   res.export_directory = file(basic_infos + "/export_directory", "ksp_result");
 
 
-  res.K = file(basic_infos + "/K", 100);
-  std::string const method = file(basic_infos + "/method", "");
+  res.K                    = file(basic_infos + "/K", 100);
+  std::string const method = utilities::trim_copy(
+    utilities::to_lowercase_copy(file(basic_infos + "/method", "")));
 
   if (method == "Eppstein")
     res.method = KSP_Method::Eppstein;
@@ -386,7 +375,8 @@ IO_Manager::read_parameters(const std::string &path)
   if (res.memory_constraint)
     {
       std::string const memory_constraint_type =
-        file(basic_infos + "/memory_constraint_type", "none");
+        utilities::trim_copy(utilities::to_lowercase_copy(
+          file(basic_infos + "/memory_constraint_type", "none")));
 
       if (memory_constraint_type == "none")
         {
