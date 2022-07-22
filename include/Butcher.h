@@ -340,6 +340,14 @@ private:
     return {new_network(new_nodes, new_dependencies), old_to_new};
   }
 
+  /// Helper function used to estimate the memory usage of a group of nodes
+  /// \param devices The devices
+  /// \param constraint_type The type of the memory constraint
+  /// \param ids The set of nodes to "analyze"
+  /// \param input_memory The memory usage of all input nodes
+  /// \param output_memory The memory usage of all output nodes
+  /// \param params_memory The memory usage of all parameters nodes
+  /// \return The pair of maximum memory of ios and of memory of parameters
   std::tuple<memory_type, memory_type>
   estimate_maximum_memory_usage(
     std::vector<Device> const      &devices,
@@ -358,13 +366,13 @@ private:
                       std::next(params_memory.begin(), *ids.crbegin()));
       }
     auto const &dependencies = graph.get_dependencies();
-    std::size_t qty = 1;
+    std::size_t qty          = 1;
 
 
     if (dependencies[*ids.begin()].first.size() == 1)
       {
         auto const &father = *dependencies[*ids.begin()].first.begin();
-        qty = std::max(qty, dependencies[father].second.size());
+        qty                = std::max(qty, dependencies[father].second.size());
       }
 
     for (auto const &id : ids)
@@ -396,6 +404,7 @@ private:
     return {result_memory * qty, fixed_memory};
   }
 
+  // WIP
   memory_type
   remove_unfeasible_paths(std::vector<Device> const      &devices,
                           Memory_Constraint_Type          constraint_type,
@@ -403,7 +412,6 @@ private:
                           std::vector<memory_type> const &output_memory,
                           std::vector<memory_type> const &params_memory) const
   {
-
     memory_type current_memory_res = 0, real_memory_res = 0;
 
     if (constraint_type == Preload_Parameters)
@@ -418,14 +426,17 @@ private:
 
     for (auto const &id : ids)
       {
-        auto const &node = graph[id];
+        auto const &node    = graph[id];
         auto const &parents = dependencies[id].first;
 
-        for(auto const &parent : parents) {
+        for (auto const &parent : parents)
+          {
             auto const it = visited_ids.find(parent);
-            if(it != visited_ids.cend()) {
+            if (it != visited_ids.cend())
+              {
                 it->second.insert(id);
-                if(it->second.size() == dependencies[parent].second.size()) {
+                if (it->second.size() == dependencies[parent].second.size())
+                  {
                     current_memory_res -= output_memory[parent];
                   }
               }
@@ -437,9 +448,7 @@ private:
                                        current_memory_res += output_memory[id]);
           }
         else if (constraint_type == Memory_Constraint_Type::Max)
-          {
-
-          }
+          {}
 
         visited_ids[id] = std::set<node_id_type>();
       }
@@ -447,6 +456,10 @@ private:
     return current_memory_res;
   }
 
+  /// Removes the "unfeasible" paths due to memory constraints
+  /// \param devices The set of devices
+  /// \param new_graph The linearized graph
+  /// \param constraint_type The memory constraint
   void
   remove_unfeasible_paths(std::vector<Device> const &devices,
                           new_network               &new_graph,
@@ -467,12 +480,11 @@ private:
 
 
     auto const dependencies_clear = [&](node_id_type const &node_id) {
-      auto &dep =
-        new_graph.get_dependencies_ref()[node_id];
+      auto &dep = new_graph.get_dependencies_ref()[node_id];
 
-      for(auto const &in : dep.first)
+      for (auto const &in : dep.first)
         new_graph.get_dependencies_ref()[in].second.erase(node_id);
-      for(auto const &out : dep.second)
+      for (auto const &out : dep.second)
         new_graph.get_dependencies_ref()[out].first.erase(node_id);
 
       dep.first.clear();
@@ -705,12 +717,19 @@ private:
   }
 
 
+  /// Returns the device id based on the node id
+  /// \param node_id The node id
+  /// \return The device id
   [[nodiscard]] std::size_t
   get_device_id(node_id_type const &node_id) const
   {
     return node_id == 0 ? 0 : (node_id - 1) % graph.get_num_devices();
   }
 
+  /// Returns the id of the node with content in the linearized graph
+  /// \param current_node_id The id of the node in the linearized graph
+  /// \param device_id The device id
+  /// \return The id of the node of the linearized graph with content
   [[nodiscard]] node_id_type
   get_base_node_id(node_id_type const &current_node_id,
                    std::size_t const  &device_id) const
@@ -718,6 +737,10 @@ private:
     return current_node_id == 0 ? 0 : current_node_id - device_id;
   }
 
+  /// It will produce the set of nodes associated to a given device
+  /// \param new_path The path
+  /// \param new_graph The linearized graph
+  /// \return The "real" path
   [[nodiscard]] Real_Path
   get_network_slices(path_info const   &new_path,
                      new_network const &new_graph) const
@@ -752,6 +775,12 @@ private:
     return res;
   }
 
+  /// It will produce the set of nodes associated to a given device for every
+  /// new_path
+  /// \param new_paths The collection of paths
+  /// \param new_graph The
+  /// linearized graph
+  /// \return The "real" path
   [[nodiscard]] std::vector<Real_Path>
   get_network_slices(std::vector<path_info> const &new_paths,
                      new_network const            &new_graph) const
@@ -768,6 +797,12 @@ private:
     return res;
   }
 
+  /// It will produce the set of nodes associated to a given device for every
+  /// new_path with the associated path weight
+  /// \param new_paths The collection of paths
+  /// \param new_graph The
+  /// linearized graph
+  /// \return The "real" path
   [[nodiscard]] Weighted_Real_Paths
   get_weighted_network_slice(std::vector<path_info> const &new_paths,
                              new_network const            &new_graph) const
@@ -782,6 +817,11 @@ private:
     return final_res;
   }
 
+  /// It will produce the set of nodes associated to a given device for every
+  /// new_path with the associated path weight
+  /// \param new_paths The collection of paths
+  /// \param network_slice The network slices
+  /// \return The "real" weighted paths
   [[nodiscard]] Weighted_Real_Paths
   get_weighted_network_slice(
     std::vector<path_info> const &new_paths,
@@ -820,10 +860,13 @@ public:
     return graph;
   }
 
-
+  /// Check if a given partition satisfies the memory constraints
+  /// \param real_path A real path
+  /// \param devices Collection of devices
+  /// \return True if the partition satisfies the memory constraint
   bool
   partition_memory_checker(Real_Path const                &real_path,
-                           std::vector<memory_type> const &memory_constraint)
+                           std::vector<Device> const &devices)
   {
     auto const nodes_memory_usage =
       Computer_memory::compute_nodes_memory_usage_output(graph, true);
@@ -868,14 +911,17 @@ public:
         branch_memory = std::max(branch_memory, tmp_memory);
         memory        = std::max(memory, branch_memory);
 
-        if (memory > memory_constraint[model_id])
+        if (memory > devices[model_id].maximum_memory)
           return false;
       }
 
     return true;
   }
 
-
+  /// Computes the k shortest paths for the given graph
+  /// \param transmission_weights The transmission weight function
+  /// \param params The set of parameters
+  /// \return The set of "best" paths
   Weighted_Real_Paths
   compute_k_shortest_path(
     std::function<weight_type(node_id_type const &,
