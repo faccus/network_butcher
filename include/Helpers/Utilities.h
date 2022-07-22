@@ -51,6 +51,8 @@ namespace utilities
     return std::filesystem::exists(p);
   }
 
+  /// Creates a directory with the given path
+  /// \param path The input string
   inline void
   create_directory(const std::string &path) {
     if(!std::filesystem::is_directory(path) || !std::filesystem::exists(path)) {
@@ -58,50 +60,62 @@ namespace utilities
       }
   }
 
-  // trim from start (in place)
+  /// Left trim for the input string (modifies the input string)
+  /// \param s The input string
   static inline void ltrim(std::string &s) {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
               return !std::isspace(ch);
             }));
   }
 
-  // trim from end (in place)
+  /// Right trim for the input string (modifies the input string)
+  /// \param s The input string
   static inline void rtrim(std::string &s) {
     s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
               return !std::isspace(ch);
             }).base(), s.end());
   }
 
-  // trim from both ends (in place)
+  /// Trim for the input string (modifies the input string)
+  /// \param s The input string
   static inline void trim(std::string &s) {
     ltrim(s);
     rtrim(s);
   }
 
-  // Makes the string lower case (in place)
+  /// Sets in lowercase the input string
+  /// \param s The input string
   static inline void to_lowercase(std::string &s) {
     std::transform(s.begin(), s.end(), s.begin(), ::tolower);
   }
 
-  // trim from start (copying)
+  /// Left trim for the input string (returns the modified string)
+  /// \param s The input string
+  /// \return The modified string
   static inline std::string ltrim_copy(std::string s) {
     ltrim(s);
     return s;
   }
 
-  // trim from end (copying)
+  /// Right trim for the input string (returns the modified string)
+  /// \param s The input string
+  /// \return The modified string
   static inline std::string rtrim_copy(std::string s) {
     rtrim(s);
     return s;
   }
 
-  // trim from both ends (copying)
+  /// Trim for the input string (returns the modified string)
+  /// \param s The input string
+  /// \return The modified string
   static inline std::string trim_copy(std::string s) {
     trim(s);
     return s;
   }
 
-  // Makes the string lower case (copying)
+  /// Returns in lowercase the input string
+  /// \param s The input string
+  /// \return The modified string
   static inline std::string to_lowercase_copy(std::string s) {
     to_lowercase(s);
     return s;
