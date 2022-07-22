@@ -109,7 +109,7 @@ public:
   [[nodiscard]] dijkstra_result_type
   shortest_path_tree() const
   {
-    return dijkstra(graph.get_nodes().size() - 1, true);
+    return dijkstra(graph.size() - 1, true);
   } // time: ((N+E)log(N)), space: O(N)
 
   virtual ~Shortest_path_finder() = default;
@@ -129,7 +129,7 @@ protected:
   {
     path_info info;
     info.length = dij_res.second[root];
-    info.path.reserve(graph.get_nodes().size());
+    info.path.reserve(graph.size());
 
     auto ind = root;
     while (ind != graph.get_nodes().back().get_id())

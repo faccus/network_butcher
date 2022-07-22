@@ -26,7 +26,7 @@ public:
   {
     auto const &graph = base_shortest::graph;
 
-    if (graph.get_nodes().empty() || K == 0)
+    if (graph.empty() || K == 0)
       return {};
 
     auto const dij_res =
@@ -123,7 +123,7 @@ private:
     auto const &graph = base_shortest::graph;
 
 
-    if (node == graph.get_nodes().size() - 1)
+    if (node == graph.size() - 1)
       {
         auto inserted_h_g = h_g.emplace(node, H_g()).first;
 

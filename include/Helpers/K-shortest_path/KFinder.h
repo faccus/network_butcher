@@ -65,7 +65,7 @@ protected:
     weights_collection_type res;
 
     auto const &graph     = base::graph;
-    auto const  num_nodes = graph.get_nodes().size();
+    auto const  num_nodes = graph.size();
 
     for (std::size_t tail = 0; tail < num_nodes; ++tail)
       for (auto const &head : graph.get_dependencies()[tail].second)
@@ -186,7 +186,7 @@ protected:
 
         path_info info;
         info.length = implicit_path->length;
-        info.path.reserve(graph.get_nodes().size());
+        info.path.reserve(graph.size());
 
         auto const &sidetracks = implicit_path->sidetracks;
 

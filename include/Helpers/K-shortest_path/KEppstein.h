@@ -25,7 +25,7 @@ public:
   {
     auto const &graph = base_shortest::graph;
 
-    if (graph.get_nodes().empty() || K == 0)
+    if (graph.empty() || K == 0)
       return {};
 
     auto const dij_res =
@@ -105,7 +105,7 @@ private:
   {
     return helper_construct_h_out(successors,
                                   sidetrack_distances,
-                                  base_shortest::graph.get_nodes().size());
+                                  base_shortest::graph.size());
   }
 
 
@@ -195,7 +195,7 @@ private:
   {
     return helper_construct_h_g(h_out,
                                 successors,
-                                base_shortest::graph.get_nodes().size());
+                                base_shortest::graph.size());
   }
 
 

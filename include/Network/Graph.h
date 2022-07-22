@@ -82,6 +82,10 @@ public:
     return nodes.size();
   }
 
+  [[nodiscard]] inline const std::size_t empty() const {
+    return nodes.empty();
+  }
+
   Node<T> const & operator[](int id) const {
     return nodes[id];
   }
@@ -216,6 +220,10 @@ public:
 
   [[nodiscard]] inline const std::size_t size() const {
     return nodes.size();
+  }
+
+  [[nodiscard]] inline const std::size_t empty() const {
+    return nodes.empty();
   }
 
   Node<Content<T>> const & operator[](int id) const {
