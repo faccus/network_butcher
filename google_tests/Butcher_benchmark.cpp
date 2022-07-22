@@ -558,6 +558,8 @@ namespace butcher_benchmark_test_namespace
                                cp.compute_operation_time(graph, tail, hws[i]));
           }
       }
+
+    return;
   }
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>

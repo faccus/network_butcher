@@ -8,6 +8,7 @@
 #include "../Traits/Type_info_traits.h"
 #include "../Utilities.h"
 #include "Type_info.h"
+#include "DynamicType.h"
 
 #include <vector>
 
@@ -22,6 +23,8 @@ private:
 
   /// Shape of the tensor
   std::vector<shape_type> shape;
+
+  DynamicType value;
 
 public:
   /// Construct the tensor from the type id and the shape

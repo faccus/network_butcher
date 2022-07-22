@@ -92,6 +92,7 @@ IO_Manager::import_from_onnx(const std::string &path,
 
       for (auto const &attribute : node.attribute())
         {
+
           if (attribute.name() == "kernel_shape")
             {
               std::vector<std::size_t> add;
