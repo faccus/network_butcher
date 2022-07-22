@@ -62,7 +62,6 @@ General_Manager::boot(std::string const &path)
     General_Manager::generate_bandwidth_transmission_function(params, butcher),
     params);
 
-
   IO_Manager::export_network_partitions(
     params, graph, model, link_graph_model, paths);
 }

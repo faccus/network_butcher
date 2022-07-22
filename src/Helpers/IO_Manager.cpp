@@ -280,12 +280,6 @@ IO_Manager::export_network_infos_to_csv(graph_type const       &graph,
           auto const  kernel_iterator =
             content.get_attributes().find("kernel_shape");
 
-          /*
-           if ((ins.size() == 1 || ins.size() == 2 && ins.contains("__fake__input__")) &&
-   (outs.size() == 1 || outs.size() == 2 && outs.contains("__fake__output__")) &&
-   kernel_iterator != content.get_attributes().cend())
-           */
-
           if (kernel_iterator != content.get_attributes().cend())
             {
               auto out_it = outs.cbegin();
@@ -369,7 +363,7 @@ IO_Manager::read_parameters(const std::string &path)
   GetPot file(path);
 
   Parameters res;
-  std::string const basic_infos = "config";
+  std::string const basic_infos = "basic_config";
 
   res.model_name = file(basic_infos + "/model_name", "model");
   res.model_path = file(basic_infos + "/model_path", "");
@@ -394,17 +388,17 @@ IO_Manager::read_parameters(const std::string &path)
       std::string const memory_constraint_type =
         file(basic_infos + "/memory_constraint_type", "none");
 
-      if (memory_constraint_type == "max")
+      if (memory_constraint_type == "none")
+        {
+          res.memory_constraint = Memory_Constraint_Type::None;
+        }
+      else if (memory_constraint_type == "max")
         {
           res.memory_constraint_type = Memory_Constraint_Type::Max;
         }
       else if (memory_constraint_type == "preload_parameters")
         {
           res.memory_constraint = Memory_Constraint_Type::Preload_Parameters;
-        }
-      else if (memory_constraint_type == "none")
-        {
-          res.memory_constraint = Memory_Constraint_Type::None;
         }
     }
 
@@ -417,7 +411,9 @@ IO_Manager::read_parameters(const std::string &path)
       std::string const prx = "device_" + std::to_string(i);
 
       Device dev;
+
       dev.id             = i;
+      dev.name           = file(prx + "/name", "");
       dev.maximum_memory = file(prx + "/maximum_memory", 0);
       dev.weights_path   = file(prx + "/weight_path", "");
 
