@@ -35,10 +35,14 @@ public:
   }
 
 
+  /// Get the weight for the given edge on the given device
+  /// \param device The device id
+  /// \param edge The edge
+  /// \return The weight
   [[nodiscard]] weight_type
-  get_weigth(std::size_t index, edge_type const &edge) const
+  get_weigth(std::size_t device, edge_type const &edge) const
   {
-    auto const &map = weigth_map[index];
+    auto const &map = weigth_map[device];
     auto const  p   = map.find(edge);
     if (p == map.cend())
       return -1.;
@@ -46,12 +50,18 @@ public:
       return p->second;
   }
 
+  /// Sets the weight for the given edge on the given device
+  /// \param device The device id
+  /// \param edge The edge
+  /// \param weight The weight
   void
-  set_weigth(std::size_t index, edge_type const &edge, weight_type weight)
+  set_weigth(std::size_t device, edge_type const &edge, weight_type weight)
   {
-    weigth_map[index][edge] = weight;
+    weigth_map[device][edge] = weight;
   }
 
+  /// Gets the number of devices
+  /// \return Number of devices
   [[nodiscard]] std::size_t
   get_num_devices() const {
     return weigth_map.size();
@@ -101,10 +111,14 @@ public:
   }
 
 
+  /// Get the weight for the given edge on the given device
+  /// \param device The device id
+  /// \param edge The edge
+  /// \return The weight
   [[nodiscard]] weight_type
-  get_weigth(std::size_t index, edge_type const &edge) const
+  get_weigth(std::size_t device, edge_type const &edge) const
   {
-    auto const &map = weigth_map[index];
+    auto const &map = weigth_map[device];
     auto const  p   = map.find(edge);
     if (p == map.cend())
       return -1.;
@@ -112,17 +126,25 @@ public:
       return p->second;
   }
 
+  /// Sets the weight for the given edge on the given device
+  /// \param device The device id
+  /// \param edge The edge
+  /// \param weight The weight
   void
-  set_weigth(std::size_t index, edge_type const &edge, weight_type weight)
+  set_weigth(std::size_t device, edge_type const &edge, weight_type weight)
   {
-    weigth_map[index][edge] = weight;
+    weigth_map[device][edge] = weight;
   }
 
+  /// Gets the number of devices
+  /// \return Number of devices
   [[nodiscard]] std::size_t
   get_num_devices() const {
     return weigth_map.size();
   }
 
+  /// Gets the weight maps
+  /// \return The weight maps
   [[nodiscard]] std::vector<weights_collection_type> const &
   get_weight_map() const
   {

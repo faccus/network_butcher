@@ -30,13 +30,18 @@ public:
     : Parent_type(1, v, dep)
   {}
 
-
+  /// Get the weight for the given edge
+  /// \param edge The edge
+  /// \return The weight
   [[nodiscard]] weight_type
   get_weigth(edge_type const &edge) const
   {
     return Parent_type::get_weigth(0, edge);
   }
 
+  /// Set the weight for the given edge
+  /// \param edge The edge
+  /// \param weight The weight
   void
   set_weigth(edge_type const &edge, weight_type weight)
   {
@@ -71,13 +76,18 @@ public:
   explicit WGraph(std::vector<Node_Type> &&v)
     : Parent_type(1, std::move(v)) {}
 
-
+  /// Get the weight for the given edge
+  /// \param edge The edge
+  /// \return The weight
   [[nodiscard]] weight_type
   get_weigth(edge_type const &edge) const
   {
     return Parent_type::get_weigth(0, edge);
   }
 
+  /// Set the weight for the given edge
+  /// \param edge The edge
+  /// \param weight The weight
   void
   set_weigth(edge_type const &edge, weight_type weight)
   {

@@ -60,36 +60,48 @@ public:
       nodes[i].id = i;
   }
 
+  /// Get the collection of nodes
+  /// \return The vector of nodes
   inline const std::vector<Node<T>> &
   get_nodes() const
   {
     return nodes;
   }
 
+  /// Get the collection of dependencies (as a const reference)
+  /// \return The dependencies
   [[nodiscard]] inline const DependenciesType &
   get_dependencies() const
   {
     return dependencies;
   }
 
+  /// Get the collection of dependencies (as a reference)
+  /// \return The dependencies
   [[nodiscard]] inline DependenciesType &
   get_dependencies_ref()
   {
     return dependencies;
   }
 
+  /// Gets the number of nodes
+  /// \return The number of nodes
   [[nodiscard]] inline const std::size_t size() const {
     return nodes.size();
   }
 
+  /// Checks if the graph has nodes
+  /// \return True if there are no stored nodes
   [[nodiscard]] inline const std::size_t empty() const {
     return nodes.empty();
   }
 
+  /// Gets the node with the given id
+  /// \param id The id
+  /// \return The node
   Node<T> const & operator[](int id) const {
     return nodes[id];
   }
-
 
   virtual ~Graph() = default;
 };
@@ -200,33 +212,46 @@ public:
     compute_dependencies();
   }
 
-  inline const std::vector<Node_Type> &
+  /// Get the collection of nodes
+  /// \return The vector of nodes
+  inline const std::vector<Node<T>> &
   get_nodes() const
   {
     return nodes;
   }
 
-  inline const DependenciesType &
+  /// Get the collection of dependencies (as a const reference)
+  /// \return The dependencies
+  [[nodiscard]] inline const DependenciesType &
   get_dependencies() const
   {
     return dependencies;
   }
 
+  /// Get the collection of dependencies (as a reference)
+  /// \return The dependencies
   [[nodiscard]] inline DependenciesType &
   get_dependencies_ref()
   {
     return dependencies;
   }
 
+  /// Gets the number of nodes
+  /// \return The number of nodes
   [[nodiscard]] inline const std::size_t size() const {
     return nodes.size();
   }
 
+  /// Checks if the graph has nodes
+  /// \return True if there are no stored nodes
   [[nodiscard]] inline const std::size_t empty() const {
     return nodes.empty();
   }
 
-  Node<Content<T>> const & operator[](int id) const {
+  /// Gets the node with the given id
+  /// \param id The id
+  /// \return The node
+  Node<T> const & operator[](int id) const {
     return nodes[id];
   }
 
