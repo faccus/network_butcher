@@ -11,7 +11,7 @@ set(
 
 set(
         BENCHMARK_TESTS_SOURCE
-        google_tests/Helpers/GeneralManager.cpp
+        google_tests/Helpers/General_Manager.cpp
         google_tests/Butcher_benchmark.cpp
         PARENT_SCOPE
 )
