@@ -25,7 +25,6 @@ private:
   std::vector<shape_type> shape;
 
   DynamicType value;
-
 public:
   /// Construct the tensor from the type id and the shape
   /// \param in_type_id onnx::TensorProto_DataType_* id
@@ -52,6 +51,14 @@ public:
   get_shape() const override
   {
     return shape;
+  }
+
+  inline DynamicType const &get_value() const {
+    return value;
+  }
+
+  inline void set_value(DynamicType const &value) {
+    this->value = value;
   }
 };
 

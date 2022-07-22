@@ -88,10 +88,36 @@ IO_Manager::import_from_onnx(const std::string &path,
       io_collection_type<type_info_pointer> outputs;
       onnx_process_node(node.output(), outputs, parameters, value_infos);
 
-      std::unordered_map<std::string, std::vector<std::size_t>> attributes;
+      std::unordered_map<std::string, std::vector<DynamicType>> attributes;
 
       for (auto const &attribute : node.attribute())
         {
+          switch(attribute.type()) {
+              case onnx::AttributeProto_AttributeType_INT:
+                attributes.insert({attribute.name(), attribute.ints(0)});
+                break;
+              case onnx::AttributeProto_AttributeType_INTS:
+                std::vector<int> add;
+                for (auto it = attribute.ints().begin();
+                     it != attribute.ints().end();
+                     ++it)
+                  add.push_back(*it);
+                attributes.insert({attribute.name(), add});
+                break;
+              case onnx::AttributeProto_AttributeType_FLOAT:
+                attributes.insert({attribute.name(), attribute.floats(0)});
+                break;
+              case onnx::AttributeProto_AttributeType_FLOATS:
+                std::vector<float> add;
+                for (auto it = attribute.ints().begin();
+                     it != attribute.ints().end();
+                     ++it)
+                  add.push_back(*it);
+                attributes.insert({attribute.name(), add});
+                break;
+            }
+
+
           if (attribute.name() == "kernel_shape")
             {
               std::vector<std::size_t> add;

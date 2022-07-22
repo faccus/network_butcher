@@ -7,7 +7,7 @@
 
 #include "../Traits/Basic_traits.h"
 #include "Dense_tensor.h"
-
+#include "DynamicType.h"
 
 template <class T>
 class Content
@@ -22,7 +22,7 @@ private:
   /// Collection of the ids of parameters of the node
   io_collection_type<T> parameters;
   /// Collection of the attributes of the node
-  std::unordered_map<std::string, std::vector<std::size_t>> attributes;
+  std::unordered_map<std::string, std::vector<DynamicType>> attributes;
   /// Operation name
   std::string operation_id;
 
@@ -36,7 +36,7 @@ public:
   Content(io_collection_type<T> in     = {},
           io_collection_type<T> out    = {},
           io_collection_type<T> params = {},
-          std::unordered_map<std::string, std::vector<std::size_t>>
+          std::unordered_map<std::string, std::vector<DynamicType>>
                       in_attributes  = {},
           std::string operation_name = "")
     : input(std::move(in))
@@ -72,7 +72,7 @@ public:
 
   /// Read-only getter for attributes
   /// \return Const reference to the attributes
-  inline const std::unordered_map<std::string, std::vector<std::size_t>> &
+  inline const std::unordered_map<std::string, std::vector<DynamicType>> &
   get_attributes() const
   {
     return attributes;
