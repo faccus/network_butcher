@@ -10,8 +10,7 @@
 
 class DynamicType {
 private:
-  std::vector<int> ints;
-  std::vector<std::size_t> longs;
+  std::vector<long int> ints;
   std::vector<float> floats;
   std::vector<std::string> strings;
 
@@ -23,28 +22,13 @@ public:
     , strings{}
     , assigned{false} {};
 
-  DynamicType(int i)
+  DynamicType(long int i)
     : ints{i}
-    , longs{}
     , floats{}
     , strings{}
     , assigned{true} {};
-  DynamicType(std::vector<int> const &_ints)
+  DynamicType(std::vector<long int> const &_ints)
     : ints{_ints}
-    , longs{}
-    , floats{}
-    , strings{}
-    , assigned{true} {};
-
-  DynamicType(std::size_t i)
-    : ints{}
-    , longs{i}
-    , floats{}
-    , strings{}
-    , assigned{true} {};
-  DynamicType(std::vector<std::size_t> const &_ints)
-    : ints{}
-    , longs{_ints}
     , floats{}
     , strings{}
     , assigned{true} {};
@@ -56,20 +40,17 @@ public:
     , assigned{true} {};
   DynamicType(std::vector<float> const &_floats)
     : ints{}
-    , longs{}
     , floats{_floats}
     , strings{}
     , assigned{true} {};
 
   DynamicType(std::string str)
     : ints{}
-    , longs{}
     , floats{}
     , strings{str}
     , assigned{true} {};
   DynamicType(std::vector<std::string> const &strs)
     : ints{}
-    , longs{}
     , floats{}
     , strings{strs}
     , assigned{true} {};
@@ -87,26 +68,11 @@ public:
     return is_assigned() && ints.size() == 1;
   }
 
-  inline std::vector<int> const &get_ints() const {
+  inline std::vector<long int> const &get_ints() const {
     return ints;
   }
-  inline int const &get_int() const {
+  inline long int const &get_int() const {
     return ints.front();
-  }
-
-
-  inline bool has_longs() const {
-    return is_assigned() && longs.size() >= 1;
-  }
-  inline bool has_long() const {
-    return is_assigned() && longs.size() == 1;
-  }
-
-  inline std::vector<std::size_t> const &get_longs() const {
-    return longs;
-  }
-  inline std::size_t const &get_long() const {
-    return longs.front();
   }
 
 
@@ -138,8 +104,6 @@ public:
   inline std::string const &get_string() const {
     return strings.front();
   }
-
-
 };
 
 #endif // NETWORK_BUTCHER_DYNAMICTYPE_H

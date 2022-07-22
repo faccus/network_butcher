@@ -86,7 +86,8 @@ Computer_time::setup() const
             auto const &kernel_shape = kernel_iterator->second;
 
             std::size_t const H_f_times_W_f =
-              kernel_iterator->second[0] * kernel_iterator->second[1];
+              kernel_iterator->second[0].get_int() *
+              kernel_iterator->second[1].get_int();
 
             std::size_t const C_in  = in_shape[1];
             std::size_t const C_out = out_shape[1];
@@ -113,7 +114,8 @@ Computer_time::setup() const
             auto const &kernel_shape = kernel_iterator->second;
 
             std::size_t const C_out         = out_shape[1];
-            std::size_t const H_f_times_W_f = kernel_shape[0] * kernel_shape[1];
+            std::size_t const H_f_times_W_f =
+              kernel_shape[0].get_int() * kernel_shape[1].get_int();
             res = forward ? H_f_times_W_f * C_out : (H_f_times_W_f + 1) * C_out;
           }
 

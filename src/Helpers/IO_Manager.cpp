@@ -92,40 +92,53 @@ IO_Manager::import_from_onnx(const std::string &path,
 
       for (auto const &attribute : node.attribute())
         {
-          switch(attribute.type()) {
-              case onnx::AttributeProto_AttributeType_INT:
-                attributes.insert({attribute.name(), attribute.ints(0)});
-                break;
-              case onnx::AttributeProto_AttributeType_INTS:
-                std::vector<int> add;
-                for (auto it = attribute.ints().begin();
-                     it != attribute.ints().end();
-                     ++it)
-                  add.push_back(*it);
-                attributes.insert({attribute.name(), add});
-                break;
-              case onnx::AttributeProto_AttributeType_FLOAT:
-                attributes.insert({attribute.name(), attribute.floats(0)});
-                break;
-              case onnx::AttributeProto_AttributeType_FLOATS:
-                std::vector<float> add;
-                for (auto it = attribute.ints().begin();
-                     it != attribute.ints().end();
-                     ++it)
-                  add.push_back(*it);
-                attributes.insert({attribute.name(), add});
-                break;
-            }
-
-
-          if (attribute.name() == "kernel_shape")
+          switch (attribute.type())
             {
-              std::vector<std::size_t> add;
-              for (auto it = attribute.ints().begin();
-                   it != attribute.ints().end();
-                   ++it)
-                add.push_back(*it);
-              attributes.insert({attribute.name(), add});
+                case onnx::AttributeProto_AttributeType_FLOAT: {
+
+                  attributes.insert({attribute.name(), {attribute.f()}});
+                  break;
+                }
+                case onnx::AttributeProto_AttributeType_FLOATS: {
+                  std::vector<DynamicType> add;
+                  for (auto it = attribute.floats().begin();
+                       it != attribute.floats().end();
+                       ++it)
+                    add.emplace_back(*it);
+                  attributes.insert({attribute.name(), add});
+                  break;
+                }
+                case onnx::AttributeProto_AttributeType_INT: {
+                  attributes.insert({attribute.name(), {attribute.i()}});
+                  break;
+                }
+                case onnx::AttributeProto_AttributeType_INTS: {
+                  std::vector<DynamicType> add;
+                  for (auto it = attribute.ints().begin();
+                       it != attribute.ints().end();
+                       ++it)
+                    {
+                      add.emplace_back(*it);
+                    }
+
+                  attributes.insert({attribute.name(), add});
+                  break;
+                }
+                case onnx::AttributeProto_AttributeType_STRING: {
+                  attributes.insert({attribute.name(), {attribute.s()}});
+                }
+                case onnx::AttributeProto_AttributeType_STRINGS: {
+                  std::vector<DynamicType> add;
+                  for (auto it = attribute.strings().begin();
+                       it != attribute.strings().end();
+                       ++it)
+                    {
+                      add.emplace_back(*it);
+                    }
+
+                  attributes.insert({attribute.name(), add});
+                  break;
+                }
             }
         }
 
@@ -291,8 +304,8 @@ IO_Manager::export_network_infos_to_csv(graph_type const       &graph,
               auto const &in_shape     = in_it->second->get_shape();
               auto const &kernel_shape = kernel_iterator->second;
 
-              auto const &H_f = kernel_iterator->second[0];
-              auto const &W_f = kernel_iterator->second[1];
+              auto const &H_f = kernel_iterator->second[0].get_int();
+              auto const &W_f = kernel_iterator->second[1].get_int();
 
               std::size_t const C_in      = in_shape[1];
               std::size_t const C_out     = out_shape[1];
