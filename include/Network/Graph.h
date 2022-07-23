@@ -34,7 +34,7 @@ protected:
   DependenciesType dependencies;
 
 public:
-  using NodeType = Node<T>;
+  using Node_Type = Node<T>;
 
   Graph() = default;
 
@@ -51,7 +51,7 @@ public:
   /// topological order, according to the Onnx IR specifications.
   /// \param dependencies Node dependencies (input and outputs of every node)
   explicit Graph(
-    std::vector<Node<T>> v,
+    std::vector<Node_Type> v,
     DependenciesType dep = {})
     : nodes(std::move(v))
     , dependencies(std::move(dep))
@@ -62,7 +62,7 @@ public:
 
   /// Get the collection of nodes
   /// \return The vector of nodes
-  inline const std::vector<Node<T>> &
+  inline const std::vector<Node_Type> &
   get_nodes() const
   {
     return nodes;
@@ -99,7 +99,7 @@ public:
   /// Gets the node with the given id
   /// \param id The id
   /// \return The node
-  Node<T> const & operator[](int id) const {
+  Node_Type const & operator[](int id) const {
     return nodes[id];
   }
 
@@ -214,7 +214,7 @@ public:
 
   /// Get the collection of nodes
   /// \return The vector of nodes
-  inline const std::vector<Node<T>> &
+  inline const std::vector<Node_Type> &
   get_nodes() const
   {
     return nodes;
@@ -251,7 +251,7 @@ public:
   /// Gets the node with the given id
   /// \param id The id
   /// \return The node
-  Node<T> const & operator[](int id) const {
+  Node_Type const & operator[](int id) const {
     return nodes[id];
   }
 
