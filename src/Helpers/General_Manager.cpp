@@ -6,7 +6,7 @@
 std::function<weight_type(const node_id_type &, size_t, size_t)>
 General_Manager::generate_bandwidth_transmission_function(
   const Parameters          &params,
-  const Butcher<graph_type> &butcher)
+  const graph_type &graph)
 {
   Computer_memory cm;
   auto const      mbps = 1000. / 8;
@@ -14,7 +14,7 @@ General_Manager::generate_bandwidth_transmission_function(
   std::function<weight_type(node_id_type const &, std::size_t, std::size_t)>
     transmission_weights = [&params,
                             &cm,
-                            &butcher,
+                            &graph,
                             mbps](node_id_type const &node_id,
                                   std::size_t         first_device,
                                   std::size_t         second_device) {
@@ -24,9 +24,8 @@ General_Manager::generate_bandwidth_transmission_function(
         }
       else
         {
-          auto const mem = cm.compute_memory_usage_output(
-            butcher.get_graph().get_nodes()[node_id]);
-          auto const it = params.bandwidth.find({first_device, second_device});
+          auto const mem = cm.compute_memory_usage_output(graph[node_id]);
+          auto const it  = params.bandwidth.find({first_device, second_device});
 
           return mem / (it->second * mbps);
         }
@@ -45,21 +44,29 @@ General_Manager::import_weights(graph_type &graph, const Parameters &params)
     }
 }
 
+
+
 void
 General_Manager::boot(std::string const &path)
 {
   Parameters params = IO_Manager::read_parameters(path);
+  boot(params);
+}
 
+void
+General_Manager::boot(const Parameters &params)
+{
   auto [graph, model, link_graph_model] =
     IO_Manager::import_from_onnx(params.model_path,
                                  true,
                                  params.devices.size());
   import_weights(graph, params);
 
-  Butcher             butcher(std::move(graph));
+  Butcher butcher(std::move(graph));
 
   auto const paths = butcher.compute_k_shortest_path(
-    General_Manager::generate_bandwidth_transmission_function(params, butcher),
+    General_Manager::generate_bandwidth_transmission_function(
+      params, butcher.get_graph()),
     params);
 
   IO_Manager::export_network_partitions(
