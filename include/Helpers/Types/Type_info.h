@@ -25,7 +25,7 @@ protected:
 
 public:
   /// Get the name of the type
-  /// \return
+  /// \return The name
   std::string
   get_name()
   {
