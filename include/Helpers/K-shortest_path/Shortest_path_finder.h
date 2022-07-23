@@ -21,6 +21,7 @@ class Shortest_path_finder
 public:
   /// Executes dijkstra algorithm to compute the shortest paths from the root to
   /// evert node for the given graph
+  /// \param graph The graph
   /// \param root The starting vertex
   /// \param reversed Reverses the edge directions
   /// \return A pair: the first element is the collection of the successors
@@ -100,6 +101,7 @@ public:
 
   /// Computes through dijkstra the shortest path single destination tree for
   /// the given graph
+  /// \param graph The graph
   /// \return A pair: the first element is the collection of the successors
   /// (along the shortest path) of the different nodes while the second element
   /// is the shortest path length from every node to the sink
@@ -111,6 +113,7 @@ public:
 
   /// Given the result of the dijkstra algorithm, it will return the shortest
   /// path from the root to the final node
+  /// \param graph The graph
   /// \param dij_res The result of the dijkstra algorithm
   /// \param root The starting node
   /// \return The shortest path
@@ -137,6 +140,7 @@ public:
 
 private:
   /// Given a node_id, it will produce it's children in the current graph
+  /// \param graph The graph
   /// \param node_id The node id
   /// \param reversed If true, every edge is considered reversed
   /// \return The children of the given node
@@ -152,6 +156,7 @@ private:
 
   /// Given the tail and the head of the edge, it will produce the associated
   /// weight
+  /// \param graph The graph
   /// \param tail The tail node id
   /// \param head The head node id
   /// \param weight_map The weight map
