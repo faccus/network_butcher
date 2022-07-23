@@ -19,9 +19,6 @@ template <class Graph_type>
 class Shortest_path_finder
 {
 public:
-  explicit Shortest_path_finder(Graph_type const &g)
-    : graph(g){};
-
   /// Executes dijkstra algorithm to compute the shortest paths from the root to
   /// evert node for the given graph
   /// \param root The starting vertex
@@ -29,9 +26,10 @@ public:
   /// \return A pair: the first element is the collection of the successors
   /// (along the shortest path) of the different nodes while the second element
   /// is the shortest path length from the root to every node
-  [[nodiscard]] dijkstra_result_type
-  dijkstra(node_id_type root = 0,
-           bool reversed     = false) const // time: ((N+E)log(N)), space: O(N)
+  [[nodiscard]] static dijkstra_result_type
+  dijkstra(Graph_type const &graph,
+           node_id_type      root = 0,
+           bool reversed          = false) // time: ((N+E)log(N)), space: O(N)
   {
     auto const &nodes = graph.get_nodes();
 
@@ -60,15 +58,14 @@ public:
 
         to_visit.erase(to_visit.begin()); // O(log(N))
 
-        auto const &children = extract_children(current_node.id, reversed);
+        auto const &children = extract_children(graph, current_node.id, reversed);
         if (!children.empty())
           {
             for (auto const &head_node : children)
               {
                 auto      &base_distance = total_distance[head_node]; // O(1)
-                auto const weight        = get_weight(current_node.id,
-                                               head_node,
-                                               reversed);
+                auto const weight =
+                  get_weight(graph, current_node.id, head_node, reversed);
 
                 if (weight < 0)
                   {
@@ -106,26 +103,22 @@ public:
   /// \return A pair: the first element is the collection of the successors
   /// (along the shortest path) of the different nodes while the second element
   /// is the shortest path length from every node to the sink
-  [[nodiscard]] dijkstra_result_type
-  shortest_path_tree() const
+  [[nodiscard]] static dijkstra_result_type
+  shortest_path_tree(Graph_type const &graph)
   {
-    return dijkstra(graph.size() - 1, true);
+    return dijkstra(graph, graph.size() - 1, true);
   } // time: ((N+E)log(N)), space: O(N)
-
-  virtual ~Shortest_path_finder() = default;
-
-protected:
-  Graph_type const &graph;
 
   /// Given the result of the dijkstra algorithm, it will return the shortest
   /// path from the root to the final node
   /// \param dij_res The result of the dijkstra algorithm
   /// \param root The starting node
   /// \return The shortest path
-  path_info
-  shortest_path_finder(std::pair<std::vector<node_id_type>,
+  static path_info
+  shortest_path_finder(Graph_type const                          &graph,
+                       std::pair<std::vector<node_id_type>,
                                  std::vector<weight_type>> const &dij_res,
-                       node_id_type                               root) const
+                       node_id_type                               root)
   {
     path_info info;
     info.length = dij_res.second[root];
@@ -147,8 +140,10 @@ private:
   /// \param node_id The node id
   /// \param reversed If true, every edge is considered reversed
   /// \return The children of the given node
-  [[nodiscard]] std::set<node_id_type> const &
-  extract_children(node_id_type const &node_id, bool const &reversed) const
+  [[nodiscard]] static std::set<node_id_type> const &
+  extract_children(Graph_type const   &graph,
+                   node_id_type const &node_id,
+                   bool const         &reversed)
   {
     auto const &dependencies = graph.get_dependencies();
     return reversed ? dependencies[node_id].first :
@@ -162,10 +157,11 @@ private:
   /// \param weight_map The weight map
   /// \param reversed If true, every edge is considered reversed
   /// \return The corresponding weight
-  weight_type
-  get_weight(std::size_t                    tail,
-             std::size_t                    head,
-             bool const                    &reversed) const
+  static weight_type
+  get_weight(Graph_type const &graph,
+             std::size_t       tail,
+             std::size_t       head,
+             bool const       &reversed)
   {
     edge_type edge =
       reversed ? std::make_pair(head, tail) : std::make_pair(tail, head);

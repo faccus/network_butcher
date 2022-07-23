@@ -24,16 +24,16 @@ public:
   [[nodiscard]] std::vector<path_info>
   compute(std::size_t K) override
   {
-    auto const &graph = base_shortest::graph;
+    auto const &graph = base::graph;
 
     if (graph.empty() || K == 0)
       return {};
 
     auto const dij_res =
-      base_shortest::shortest_path_tree(); // time: ((N+E)log(N)), space: O(N)
+      base_shortest::shortest_path_tree(graph); // time: ((N+E)log(N)), space: O(N)
 
     if (K == 1)
-      return {base_shortest::shortest_path_finder(dij_res, 0)};
+      return {base_shortest::shortest_path_finder(graph, dij_res, 0)};
 
     auto const epp_res = basic_lazy_eppstein(K, dij_res);
 
@@ -72,7 +72,7 @@ private:
         return it;
     }
 
-    auto const &graph = base_shortest::graph;
+    auto const &graph = base::graph;
 
     auto it = h_out.emplace(node, std::make_shared<H_out<edge_info>>());
     it.first->second->heap.id = node;
@@ -120,7 +120,7 @@ private:
     if (pair_iterator.first)
       return pair_iterator.second;
 
-    auto const &graph = base_shortest::graph;
+    auto const &graph = base::graph;
 
 
     if (node == graph.size() - 1)

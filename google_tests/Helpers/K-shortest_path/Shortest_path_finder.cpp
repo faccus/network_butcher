@@ -16,40 +16,23 @@ namespace KspTestNamespace
   using Input         = TestMemoryUsage<basic_type>;
   using Content_input = Content<Input>;
   using Node_type     = Node<Content<Input>>;
+  using Graph_type = WGraph<Content_input>;
 
   using weights_collection_type =
     std::map<std::pair<node_id_type, node_id_type>, type_weight>;
 
 
-  WGraph<Content_input>
+  Graph_type
   basic_graph();
 
-  WGraph<Content_input>
+  Graph_type
   eppstein_graph();
-
-
-  TEST(KspTests, Constructor)
-  {
-    using basic_type    = int;
-    using Input         = TestMemoryUsage<basic_type>;
-    int number_of_nodes = 10;
-
-
-    WGraph<Input> basic_graph;
-
-    Shortest_path_finder kFinder(basic_graph);
-    auto                 res = kFinder.dijkstra();
-
-    ASSERT_EQ(res.first.size(), 0);
-  }
 
 
   TEST(KspTests, DijkstraSourceSink)
   {
     auto const graph = basic_graph();
-
-    Shortest_path_finder kfinder(graph);
-    auto                 res = kfinder.dijkstra();
+    auto       res   = Shortest_path_finder<Graph_type>::dijkstra(graph);
 
     std::vector<node_id_type> theoretical_res = {0, 2, 0, 1, 3, 2, 5};
 
@@ -60,8 +43,7 @@ namespace KspTestNamespace
   {
     auto const graph = basic_graph();
 
-    Shortest_path_finder kfinder(graph);
-    auto                 res = kfinder.dijkstra(6, true);
+    auto res = Shortest_path_finder<Graph_type>::dijkstra(graph, 6, true);
 
     std::vector<node_id_type> theoretical_res = {2, 3, 5, 4, 5, 6, 6};
 

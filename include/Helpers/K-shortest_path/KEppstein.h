@@ -23,16 +23,16 @@ public:
   [[nodiscard]] std::vector<path_info>
   compute(std::size_t K) override
   {
-    auto const &graph = base_shortest::graph;
+    auto const &graph = base::graph;
 
     if (graph.empty() || K == 0)
       return {};
 
     auto const dij_res =
-      base_shortest::shortest_path_tree(); // time: ((N+E)log(N)), space: O(N)
+      base_shortest::shortest_path_tree(graph); // time: ((N+E)log(N)), space: O(N)
 
     if (K == 1)
-      return {base_shortest::shortest_path_finder(dij_res, 0)};
+      return {base_shortest::shortest_path_finder(graph, dij_res, 0)};
 
 
     auto const epp_res = basic_eppstein(K, dij_res);
@@ -61,7 +61,7 @@ private:
                          std::size_t const                real_num_nodes) const
   {
     H_out_collection h_out;
-    auto const &graph     = base_shortest::graph;
+    auto const &graph     = base::graph;
 
     for (auto i = 0; i < real_num_nodes; ++i) // O(N)
       {
@@ -105,7 +105,7 @@ private:
   {
     return helper_construct_h_out(successors,
                                   sidetrack_distances,
-                                  base_shortest::graph.size());
+                                  base::graph.size());
   }
 
 
@@ -123,7 +123,7 @@ private:
   {
     H_g_collection res;
 
-    auto const &graph = base_shortest::graph;
+    auto const &graph = base::graph;
     auto const &nodes = graph.get_nodes();
 
     std::vector<std::set<node_id_type>> sp_dependencies;
@@ -190,12 +190,10 @@ private:
   /// list \return The map associating every node to its corresponding H_g map
   [[nodiscard]] H_g_collection
   construct_h_g(
-    H_out_collection const &h_out,
+    H_out_collection const          &h_out,
     std::vector<node_id_type> const &successors) const // O(N*log(N))
   {
-    return helper_construct_h_g(h_out,
-                                successors,
-                                base_shortest::graph.size());
+    return helper_construct_h_g(h_out, successors, base::graph.size());
   }
 
 
@@ -216,7 +214,7 @@ private:
     H_out_collection const               &h_out) const
   {
     //auto const &successors = dij_res.first;
-    auto const &graph      = base_shortest::graph;
+    auto const &graph      = base::graph;
 
     std::vector<implicit_path_info> res;
     res.push_back({{}, dij_res.second.front()});
@@ -323,12 +321,12 @@ private:
   [[nodiscard]] std::vector<implicit_path_info>
   basic_eppstein(std::size_t K, dijkstra_result_type const &dij_res)
   {
-    auto const &graph = base_shortest::graph;
+    auto const &graph = base::graph;
 
     auto const sidetrack_distances_res =
       base::sidetrack_distances(dij_res.second); // O(E)
     auto const shortest_path =
-      base_shortest::shortest_path_finder(dij_res, 0); // O(N)
+      base_shortest::shortest_path_finder(graph, dij_res, 0); // O(N)
 
     auto const &successors          = dij_res.first;
     auto const &shortest_paths_cost = dij_res.second;

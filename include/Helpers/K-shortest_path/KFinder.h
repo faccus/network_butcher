@@ -10,11 +10,12 @@
 
 
 template <class Graph_type>
-class KFinder : public Shortest_path_finder<Graph_type>
+class KFinder
 {
-public:
-  using base = Shortest_path_finder<Graph_type>;
+protected:
+  Graph_type const &graph;
 
+public:
   /// Applies a K-shortest path algorithm to find the k-shortest paths on the
   /// given graph (from the first node to the last one)
   /// \param K The number of shortest paths to find
@@ -23,7 +24,7 @@ public:
   compute(std::size_t K) = 0;
 
   explicit KFinder(Graph_type const &g)
-    : base(g){};
+    : graph(g){};
 
   virtual ~KFinder() = default;
 
@@ -64,7 +65,6 @@ protected:
   {
     weights_collection_type res;
 
-    auto const &graph     = base::graph;
     auto const  num_nodes = graph.size();
 
     for (std::size_t tail = 0; tail < num_nodes; ++tail)
@@ -176,8 +176,6 @@ protected:
   {
     std::vector<path_info> res;
     res.reserve(epp_res.size());
-
-    auto const            &graph = base::graph;
 
     for (auto implicit_path = epp_res.cbegin(); implicit_path != epp_res.cend();
          ++implicit_path)
