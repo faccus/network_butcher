@@ -36,14 +36,38 @@ General_Manager::generate_bandwidth_transmission_function(
 void
 General_Manager::import_weights(graph_type &graph, const Parameters &params)
 {
-  for (auto const &device : params.devices)
+  switch (params.weight_import_mode)
     {
-      IO_Manager::import_weights_from_csv(graph,
-                                          device.id,
-                                          device.weights_path);
+        case Weight_Import_Mode::aMLLibrary: {
+          for (auto const &device : params.devices)
+            {
+              IO_Manager::import_weights_from_csv_aMLLibrary(
+                graph, device.id, device.weights_path);
+            }
+
+          break;
+        }
+        case Weight_Import_Mode::operation_time: {
+          for (auto const &device : params.devices)
+            {
+              IO_Manager::import_weights_from_csv_operation_time(
+                graph, device.id, device.weights_path);
+            }
+
+          break;
+        }
+        case Weight_Import_Mode::multi_operation_time: {
+          std::vector<std::size_t> devices;
+          for (auto const &device : params.devices)
+            devices.push_back(device.id);
+
+          IO_Manager::import_weights_from_csv_multi_operation_time(
+            graph, devices, params.devices.front().weights_path);
+
+          break;
+        }
     }
 }
-
 
 
 void

@@ -32,8 +32,12 @@ if ( BUILD_TESTS )
     # Add model for tests
     FILE(COPY ${CMAKE_SOURCE_DIR}/src/Models/resnet18-v2-7-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR})
     FILE(COPY ${CMAKE_SOURCE_DIR}/src/Models/version-RFB-640-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR})
-    FILE(COPY ${CMAKE_SOURCE_DIR}/src/Models/prediction_tegra.csv DESTINATION ${CMAKE_BINARY_DIR})
-    FILE(COPY ${CMAKE_SOURCE_DIR}/src/Models/prediction_pi.csv DESTINATION ${CMAKE_BINARY_DIR})
+
+    FILE(COPY ${CMAKE_SOURCE_DIR}/src/Models/aMLLibrary_prediction_tegra.csv DESTINATION ${CMAKE_BINARY_DIR})
+    FILE(COPY ${CMAKE_SOURCE_DIR}/src/Models/aMLLibrary_prediction_pi.csv DESTINATION ${CMAKE_BINARY_DIR})
+
+    FILE(COPY ${CMAKE_SOURCE_DIR}/src/Models/operation_time_cloud.csv DESTINATION ${CMAKE_BINARY_DIR})
+    FILE(COPY ${CMAKE_SOURCE_DIR}/src/Models/operation_time_edge.csv DESTINATION ${CMAKE_BINARY_DIR})
 endif ()
 
 #find_package(Boost REQUIRED COMPONENTS)

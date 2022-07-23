@@ -301,12 +301,14 @@ IO_Manager::export_network_infos_to_csv(graph_type const       &graph,
             }
         }
     }
+
+  file_out.close();
 }
 
 void
-IO_Manager::import_weights_from_csv(graph_type        &graph,
-                                    std::size_t        device,
-                                    std::string const &path)
+IO_Manager::import_weights_from_csv_aMLLibrary(graph_type        &graph,
+                                               std::size_t        device,
+                                               std::string const &path)
 {
   std::fstream file_in;
   file_in.open(path, std::ios_base::in);
@@ -333,7 +335,7 @@ IO_Manager::import_weights_from_csv(graph_type        &graph,
           ++it;
         }
 
-      if(it == graph.get_nodes().cend())
+      if (it == graph.get_nodes().cend())
         return;
 
       for (auto const &successor :
@@ -344,7 +346,113 @@ IO_Manager::import_weights_from_csv(graph_type        &graph,
 
       ++it;
     }
+
+  file_in.close();
 }
+
+void
+IO_Manager::import_weights_from_csv_operation_time(graph_type        &graph,
+                                                   std::size_t        device,
+                                                   const std::string &path)
+{
+  std::fstream file_in;
+  file_in.open(path, std::ios_base::in);
+  weight_type tmp_weight;
+
+  auto it = graph.get_nodes().cbegin();
+
+  std::string tmp_line;
+  std::getline(file_in, tmp_line);
+
+  while (!file_in.eof())
+    {
+      std::getline(file_in, tmp_line);
+      std::stringstream stream_line(tmp_line);
+
+      std::getline(stream_line, tmp_line, ',');
+      auto const operation_name = tmp_line;
+
+      std::getline(stream_line, tmp_line, ',');
+      tmp_weight = ::atof(tmp_line.c_str());
+
+      while (it != graph.get_nodes().cend() &&
+             utilities::to_lowercase_copy(it->content.operation_id) !=
+               utilities::to_lowercase_copy(operation_name))
+        {
+          ++it;
+        }
+
+      if (it == graph.get_nodes().cend())
+        return;
+
+      for (auto const &successor :
+           graph.get_dependencies()[it->get_id()].second)
+        {
+          graph.set_weigth(device, {it->get_id(), successor}, tmp_weight);
+        }
+
+      ++it;
+    }
+
+  file_in.close();
+}
+
+
+void
+IO_Manager::import_weights_from_csv_multi_operation_time(
+  graph_type              &graph,
+  std::vector<std::size_t> device,
+  const std::string       &path)
+{
+  std::fstream file_in;
+  file_in.open(path, std::ios_base::in);
+  weight_type tmp_weight;
+
+  auto it = graph.get_nodes().cbegin();
+
+  std::string tmp_line;
+  std::getline(file_in, tmp_line);
+
+  while (!file_in.eof())
+    {
+      std::getline(file_in, tmp_line);
+      std::stringstream stream_line(tmp_line);
+
+      std::getline(stream_line, tmp_line, ',');
+      auto const operation_name = tmp_line;
+
+      while (it != graph.get_nodes().cend() &&
+             utilities::to_lowercase_copy(it->content.operation_id) !=
+               utilities::to_lowercase_copy(operation_name))
+        {
+          ++it;
+        }
+
+      if (it == graph.get_nodes().cend())
+        return;
+
+      std::size_t j = 0;
+      while (std::getline(stream_line, tmp_line, ','))
+        {
+          tmp_weight = ::atof(tmp_line.c_str());
+
+          for (auto const &successor :
+               graph.get_dependencies()[it->get_id()].second)
+            {
+              graph.set_weigth(device[j],
+                               {it->get_id(), successor},
+                               tmp_weight);
+            }
+
+          ++it;
+          ++j;
+        }
+    }
+
+  file_in.close();
+}
+
+
 Parameters
 IO_Manager::read_parameters(const std::string &path)
 {
@@ -370,6 +478,16 @@ IO_Manager::read_parameters(const std::string &path)
   res.backward_connections_allowed =
     file(basic_infos + "/backward_connections_allowed", false);
 
+  std::string const weight_import_method =
+    utilities::trim_copy(utilities::to_lowercase_copy(
+      file(basic_infos + "/weight_import_mode", "aMLLibrary")));
+
+  if(weight_import_method == "aMLLibrary")
+    res.weight_import_mode = Weight_Import_Mode::aMLLibrary;
+  else if(weight_import_method == "multi_operation_time")
+    res.weight_import_mode = Weight_Import_Mode::multi_operation_time;
+  else
+    res.weight_import_mode = Weight_Import_Mode::operation_time;
 
   res.memory_constraint = file(basic_infos + "/memory_constraint", false);
   if (res.memory_constraint)
@@ -433,7 +551,6 @@ IO_Manager::read_parameters(const std::string &path)
             }
         }
     }
-
 
   return res;
 }

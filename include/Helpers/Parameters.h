@@ -7,6 +7,13 @@
 
 #include "Traits/Graph_traits.h"
 
+/// Enumerator for the weight import modes
+enum Weight_Import_Mode {
+  aMLLibrary,
+  operation_time,
+  multi_operation_time
+};
+
 /// Collection of parameters for a device
 struct Device {
   // Device id
@@ -51,6 +58,9 @@ struct Parameters {
 
   // Are backward collection allowed? (i.e. can device i send data to device j with i>j?)
   bool backward_connections_allowed;
+
+  // Mode for weight import
+  Weight_Import_Mode weight_import_mode;
 
   // Do we have to check for memory constraints?
   bool memory_constraint;

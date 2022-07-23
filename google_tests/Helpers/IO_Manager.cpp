@@ -14,8 +14,9 @@ TEST(IOManagerTestSuit, ImportWeightsFromCsvTest)
 {
   auto graph = std::get<0>(
     IO_Manager::import_from_onnx("version-RFB-640-inferred.onnx", true, 3));
-  IO_Manager::import_weights_from_csv(graph, 0, "prediction_tegra.csv");
+  IO_Manager::import_weights_from_csv_aMLLibrary(
+    graph, 0, "aMLLibrary_prediction_tegra.csv");
 
-  ASSERT_EQ(graph.get_weigth(0, {73,74}), 0.018818040739131837);
-  ASSERT_EQ(graph.get_weigth(0, {0,1}), -1.);
+  ASSERT_EQ(graph.get_weigth(0, {73, 74}), 0.018818040739131837);
+  ASSERT_EQ(graph.get_weigth(0, {0, 1}), -1.);
 }

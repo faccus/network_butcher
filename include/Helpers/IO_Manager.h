@@ -104,9 +104,29 @@ public:
   /// \param device The device id
   /// \param path The path of the file to be "imported"
   static void
-  import_weights_from_csv(graph_type        &graph,
+  import_weights_from_csv_aMLLibrary(graph_type        &graph,
                           std::size_t        device,
                           std::string const &path);
+
+  /// It will read from a .csv file the collection of weights for the given
+  /// graph on the specified device
+  /// \param graph The graph
+  /// \param device The device id
+  /// \param path The path of the file to be "imported"
+  static void
+  import_weights_from_csv_operation_time(graph_type        &graph,
+                                         std::size_t        device,
+                                         std::string const &path);
+
+  /// It will read from a .csv file the collection of weights for the given
+  /// graph on the specified device
+  /// \param graph The graph
+  /// \param device The device id
+  /// \param path The path of the file to be "imported"
+  static void
+  import_weights_from_csv_multi_operation_time(graph_type              &graph,
+                                               std::vector<std::size_t> device,
+                                               std::string const       &path);
 
   /// Based on the graph and the partitions device/nodes, it will prodice the
   /// "butchered" models.
