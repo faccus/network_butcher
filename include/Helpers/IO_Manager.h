@@ -18,12 +18,25 @@ class IO_Manager
 private:
   using Map_IO = std::unordered_map<std::string, type_info_pointer>;
 
+  /// Inserts into the input_map the valid elements contained in collection and
+  /// whether they are initialized or not
+  /// \param input_map The input_map
+  /// \param collection The collection of IO elements
+  /// \param initialized The collection of names of the initialized IO elements
   static void
   onnx_io_read(
     Map_IO                                                         &input_map,
     google::protobuf::RepeatedPtrField<onnx::ValueInfoProto> const &collection,
     std::set<std::string> const &initialized);
 
+  /// It will add to either io_collection or parameters_collection the different
+  /// elements of io_name if they are contained into value_infos
+  /// \param io_names The collection of names of IO identifiers
+  /// \param io_collection The collection of Type_info associated to the IO
+  /// elements for the given node
+  /// \param parameters_collection The collection of Type_info associated to the
+  /// parameters elements for the given node
+  /// \param value_infos The collection of IO and parameters elements
   static void
   onnx_process_node(
     google::protobuf::RepeatedPtrField<std::basic_string<char>> const &io_names,
@@ -31,46 +44,95 @@ private:
     io_collection_type<type_info_pointer> &parameters_collection,
     Map_IO const                          &value_infos);
 
+  /// It will insert into onnx_io_ids the names of the elements of onnx_io
+  /// \param onnx_io A collection of onnx::ValueInfoProto
+  /// \param onnx_io_ids The collection of names
   static void
   onnx_populate_id_collection(
     const google::protobuf::RepeatedPtrField<::onnx::ValueInfoProto> &onnx_io,
     std::set<std::string> &onnx_io_ids);
 
+  /// It will produce the collection of strings that are contained in
+  /// onnx_io_ids and that have an element with the same name in io_collection
+  /// \param onnx_io_ids The collection of IO ids
+  /// \param io_collection The collection IO/parameters for the given node
+  /// \return The collection of "common" names
   static std::vector<std::string>
   get_common_elements(const std::set<std::string>           &onnx_io_ids,
                       io_collection_type<type_info_pointer> &io_collection);
 
 public:
+  /// It will return the parameters read from the given file
+  /// \param path The configuration file path
+  /// \return The collection of parameters
   static Parameters read_parameters(std::string const &path);
 
+  /// It will import a neural network as a graph from a given .onnx file
+  /// \param path The file path of the .onnx file
+  /// \param add_padding_nodes If true, two "fake" nodes will be added at the
+  /// beginning of the network and at the end, so that the resulting graph has
+  /// a single input and a single output
+  /// \param num_devices The number of devices
+  /// \return A tuple made by the graph, the onnx::ModelProto for the .onnx file
+  /// and a map associating every node in the graph to every node in the model
   static std::
     tuple<graph_type, onnx::ModelProto, std::map<node_id_type, node_id_type>>
     import_from_onnx(std::string const &path,
                      bool               add_padding_nodes = true,
                      std::size_t        num_devices       = 1);
 
+  /// It will export a given onnx::ModelProto to a file
+  /// \param model The onnx::ModelProto
+  /// \param path The export file path
   static void
   export_to_onnx(onnx::ModelProto const &model, std::string path);
 
+  /// From a given graph and the associated onnx::ModelProto, it will export the
+  /// basic information about every convolutional node in the network
+  /// \param graph The graph
+  /// \param model The onnx::ModelProto
+  /// \param path The export file path
   static void
   export_network_infos_to_csv(
     graph_type const       &graph,
     onnx::ModelProto const &model,
     std::string const      &path = "butcher_predict.csv");
 
+  /// It will read from a .csv file the collection of weights for the given
+  /// graph on the specified device
+  /// \param graph The graph
+  /// \param device The device id
+  /// \param path The path of the file to be "imported"
   static void
   import_weights_from_csv(graph_type        &graph,
                           std::size_t        device,
                           std::string const &path);
 
+  /// Based on the graph and the partitions device/nodes, it will prodice the
+  /// "butchered" models.
+  /// \tparam Graph The type of the graph
+  /// \param partitions The partitions device/nodes
+  /// \param original_model The original imported model
+  /// \param graph The graph
+  /// \param link_id_nodeproto The map that associated every node of the graph to
+  /// a node in the imported model
+  /// \return The collection of models and the related device
   template <class Graph>
   static std::vector<std::pair<onnx::ModelProto, std::size_t>>
   reconstruct_model(
     Real_Path const                            &partitions,
     onnx::ModelProto const                     &original_model,
     Graph const                                &graph,
-    std::map<node_id_type, node_id_type> const &node_collection);
+    std::map<node_id_type, node_id_type> const &link_id_nodeproto);
 
+  /// It will reconstruct the ModelProto objects associated to the different
+  /// partitions and it will export them to the directory paths
+  /// \param params The collection of parameters
+  /// \param graph The graph
+  /// \param model The original model
+  /// \param link_id_nodeproto The map that associated every node of the graph to
+  /// a node in the imported model
+  /// \param paths The different partitions to be exported
   static void
   export_network_partitions(
     const Parameters                           &params,
@@ -86,7 +148,7 @@ IO_Manager::reconstruct_model(
   Real_Path const                      &partitions,
   onnx::ModelProto const               &original_model,
   Graph const                          &graph,
-  std::map<node_id_type, node_id_type> const &node_collection)
+  std::map<node_id_type, node_id_type> const &link_id_nodeproto)
 {
   std::vector<std::pair<onnx::ModelProto, std::size_t>> res;
 
@@ -184,9 +246,9 @@ IO_Manager::reconstruct_model(
                     onnx::GraphProto             *current_edited_graph) {
       for (auto const &node : nodes)
         {
-          auto const it = node_collection.find(node);
+          auto const it = link_id_nodeproto.find(node);
 
-          if(it == node_collection.cend())
+          if(it == link_id_nodeproto.cend())
             continue;
 
           auto const tmp = current_edited_graph->add_node();
