@@ -125,38 +125,7 @@ protected:
 
   /// Compute node dependencies
   void
-  compute_dependencies()
-  {
-    // Reset the dependency vector.
-    dependencies = std::vector<
-      std::pair<node_id_collection_type, node_id_collection_type>>();
-    dependencies.resize(nodes.size());
-
-    // Compute appearances of inputs/outputs for a node
-    std::unordered_map<std::string, node_id_collection_type> input_appearances;
-    std::unordered_map<std::string, node_id_collection_type> output_appearances;
-
-    // Check which node has which input/output
-    for (auto const &node : nodes)
-      {
-        auto const &content = node.content;
-        for (auto &in : content.get_input())
-          input_appearances[in.first].insert(node.get_id());
-        for (auto &out : content.get_output())
-          output_appearances[out.first].insert(node.get_id());
-      }
-
-    // Matched the input of a node to his outputs and viceversa
-    for (auto const &appearance : input_appearances)
-      {
-        auto const &neib = output_appearances[appearance.first];
-        for (auto node_id : appearance.second)
-          dependencies[node_id].first.insert(neib.cbegin(), neib.cend());
-        for (auto node_id : neib)
-          dependencies[node_id].second.insert(appearance.second.cbegin(),
-                                              appearance.second.cend());
-      }
-  }
+  compute_dependencies();
 
 public:
 
@@ -257,5 +226,40 @@ public:
 
   virtual ~Graph() = default;
 };
+
+template <class T>
+void
+Graph<Content<T>>::compute_dependencies()
+{
+  // Reset the dependency vector.
+  dependencies = std::vector<
+    std::pair<node_id_collection_type, node_id_collection_type>>();
+  dependencies.resize(nodes.size());
+
+  // Compute appearances of inputs/outputs for a node
+  std::unordered_map<std::string, node_id_collection_type> input_appearances;
+  std::unordered_map<std::string, node_id_collection_type> output_appearances;
+
+  // Check which node has which input/output
+  for (auto const &node : nodes)
+  {
+    auto const &content = node.content;
+    for (auto &in : content.get_input())
+      input_appearances[in.first].insert(node.get_id());
+    for (auto &out : content.get_output())
+      output_appearances[out.first].insert(node.get_id());
+  }
+
+  // Matched the input of a node to his outputs and viceversa
+  for (auto const &appearance : input_appearances)
+  {
+    auto const &neib = output_appearances[appearance.first];
+    for (auto node_id : appearance.second)
+      dependencies[node_id].first.insert(neib.cbegin(), neib.cend());
+    for (auto node_id : neib)
+      dependencies[node_id].second.insert(appearance.second.cbegin(),
+                                          appearance.second.cend());
+  }
+}
 
 #endif // NETWORK_BUTCHER_GRAPH_H

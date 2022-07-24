@@ -30,14 +30,14 @@ if ( BUILD_TESTS )
     include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
     # Add model for tests
-    FILE(COPY ${CMAKE_SOURCE_DIR}/src/Models/resnet18-v2-7-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR})
-    FILE(COPY ${CMAKE_SOURCE_DIR}/src/Models/version-RFB-640-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR})
+    FILE(COPY ${CMAKE_SOURCE_DIR}/models/resnet18-v2-7-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR})
+    FILE(COPY ${CMAKE_SOURCE_DIR}/models/version-RFB-640-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR})
 
-    FILE(COPY ${CMAKE_SOURCE_DIR}/src/Models/aMLLibrary_prediction_tegra.csv DESTINATION ${CMAKE_BINARY_DIR})
-    FILE(COPY ${CMAKE_SOURCE_DIR}/src/Models/aMLLibrary_prediction_pi.csv DESTINATION ${CMAKE_BINARY_DIR})
+    FILE(COPY ${CMAKE_SOURCE_DIR}/models/aMLLibrary_prediction_tegra.csv DESTINATION ${CMAKE_BINARY_DIR})
+    FILE(COPY ${CMAKE_SOURCE_DIR}/models/aMLLibrary_prediction_pi.csv DESTINATION ${CMAKE_BINARY_DIR})
 
-    FILE(COPY ${CMAKE_SOURCE_DIR}/src/Models/operation_time_cloud.csv DESTINATION ${CMAKE_BINARY_DIR})
-    FILE(COPY ${CMAKE_SOURCE_DIR}/src/Models/operation_time_edge.csv DESTINATION ${CMAKE_BINARY_DIR})
+    FILE(COPY ${CMAKE_SOURCE_DIR}/models/operation_time_cloud.csv DESTINATION ${CMAKE_BINARY_DIR})
+    FILE(COPY ${CMAKE_SOURCE_DIR}/models/operation_time_edge.csv DESTINATION ${CMAKE_BINARY_DIR})
 endif ()
 
 #find_package(Boost REQUIRED COMPONENTS)

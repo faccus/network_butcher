@@ -4,7 +4,7 @@
 #include "../../include/Helpers/Utilities.h"
 
 memory_type
-utilities::compute_memory_usage_from_enum(type_info_id_type input) {
+network_butcher_utilities::compute_memory_usage_from_enum(type_info_id_type input) {
   if (onnx::TensorProto_DataType_IsValid(input))
     {
       switch (input)
@@ -49,7 +49,8 @@ utilities::compute_memory_usage_from_enum(type_info_id_type input) {
     return 0;
 }
 
-void utilities::parse_onnx_file(onnx::ModelProto & m, const std::string& model_path)
+void
+network_butcher_utilities::parse_onnx_file(onnx::ModelProto & m, const std::string& model_path)
 {
   std::fstream input(model_path, std::ios::in | std::ios::binary);
 
@@ -59,7 +60,7 @@ void utilities::parse_onnx_file(onnx::ModelProto & m, const std::string& model_p
 }
 
 void
-utilities::output_onnx_file(onnx::ModelProto const &m, const std::string &path)
+network_butcher_utilities::output_onnx_file(onnx::ModelProto const &m, const std::string &path)
 {
   std::fstream output(path, std::ios::out | std::ios::trunc | std::ios::binary);
 
@@ -68,7 +69,7 @@ utilities::output_onnx_file(onnx::ModelProto const &m, const std::string &path)
 }
 
 onnx::ModelProto
-utilities::parse_onnx_file(const std::string& model_path)
+network_butcher_utilities::parse_onnx_file(const std::string& model_path)
 {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
   onnx::ModelProto model;

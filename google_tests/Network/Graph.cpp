@@ -14,7 +14,7 @@ TEST(GraphTests, Constructor)
 
   onnx::ModelProto  model_test;
   const std::string model_path = "version-RFB-640-inferred.onnx";
-  utilities::parse_onnx_file(model_test, model_path);
+  network_butcher_utilities::parse_onnx_file(model_test, model_path);
 
   MWGraph graph = std::get<0>(IO_Manager::import_from_onnx(model_path));
 }

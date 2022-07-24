@@ -16,7 +16,7 @@
 #include "Types/Type_info.h"
 
 
-namespace utilities
+namespace network_butcher_utilities
 {
   /// From onnx::TensorProto_DataType_*, it will return the size of the respective type in bytes
   /// \return Size of the type in bytes

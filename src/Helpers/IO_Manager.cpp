@@ -14,7 +14,8 @@ IO_Manager::import_from_onnx(const std::string &path,
 {
   std::map<node_id_type, node_id_type> link_id_nodeproto;
 
-  onnx::ModelProto onnx_model      = utilities::parse_onnx_file(path);
+  onnx::ModelProto onnx_model      =
+    network_butcher_utilities::parse_onnx_file(path);
   auto const &onnx_graph = onnx_model.graph();
   auto const &onnx_input = onnx_graph.input();
   auto const &onnx_output = onnx_graph.output();
@@ -244,7 +245,7 @@ IO_Manager::onnx_process_node(
 void
 IO_Manager::export_to_onnx(const onnx::ModelProto &model, std::string path)
 {
-  utilities::output_onnx_file(model, path);
+  network_butcher_utilities::output_onnx_file(model, path);
 }
 
 void
@@ -376,8 +377,8 @@ IO_Manager::import_weights_from_csv_operation_time(graph_type        &graph,
       tmp_weight = ::atof(tmp_line.c_str());
 
       while (it != graph.get_nodes().cend() &&
-             utilities::to_lowercase_copy(it->content.operation_id) !=
-               utilities::to_lowercase_copy(operation_name))
+             network_butcher_utilities::to_lowercase_copy(it->content.operation_id) !=
+               network_butcher_utilities::to_lowercase_copy(operation_name))
         {
           ++it;
         }
@@ -422,8 +423,8 @@ IO_Manager::import_weights_from_csv_multi_operation_time(
       auto const operation_name = tmp_line;
 
       while (it != graph.get_nodes().cend() &&
-             utilities::to_lowercase_copy(it->content.operation_id) !=
-               utilities::to_lowercase_copy(operation_name))
+             network_butcher_utilities::to_lowercase_copy(it->content.operation_id) !=
+               network_butcher_utilities::to_lowercase_copy(operation_name))
         {
           ++it;
         }
@@ -467,8 +468,8 @@ IO_Manager::read_parameters(const std::string &path)
 
 
   res.K                    = file(basic_infos + "/K", 100);
-  std::string const method = utilities::trim_copy(
-    utilities::to_lowercase_copy(file(basic_infos + "/method", "")));
+  std::string const method = network_butcher_utilities::trim_copy(
+    network_butcher_utilities::to_lowercase_copy(file(basic_infos + "/method", "")));
 
   if (method == "Eppstein")
     res.method = KSP_Method::Eppstein;
@@ -478,8 +479,8 @@ IO_Manager::read_parameters(const std::string &path)
   res.backward_connections_allowed =
     file(basic_infos + "/backward_connections_allowed", false);
 
-  std::string const weight_import_method =
-    utilities::trim_copy(utilities::to_lowercase_copy(
+  std::string const weight_import_method = network_butcher_utilities::trim_copy(
+    network_butcher_utilities::to_lowercase_copy(
       file(basic_infos + "/weight_import_mode", "aMLLibrary")));
 
   if(weight_import_method == "aMLLibrary")
@@ -493,7 +494,8 @@ IO_Manager::read_parameters(const std::string &path)
   if (res.memory_constraint)
     {
       std::string const memory_constraint_type =
-        utilities::trim_copy(utilities::to_lowercase_copy(
+        network_butcher_utilities::trim_copy(
+          network_butcher_utilities::to_lowercase_copy(
           file(basic_infos + "/memory_constraint_type", "none")));
 
       if (memory_constraint_type == "none")
@@ -563,10 +565,10 @@ IO_Manager::export_network_partitions(
   std::map<node_id_type, node_id_type> const &link_id_nodeproto,
   const Weighted_Real_Paths                  &paths)
 {
-  utilities::create_directory(params.export_directory);
+  network_butcher_utilities::create_directory(params.export_directory);
   for (std::size_t j = 0; j < paths.size(); ++j)
     {
-      utilities::create_directory(params.export_directory + "/" +
+      network_butcher_utilities::create_directory(params.export_directory + "/" +
                                   std::to_string(j));
 
       auto const model_device = reconstruct_model(

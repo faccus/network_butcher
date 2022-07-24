@@ -430,11 +430,11 @@ namespace butcher_benchmark_test_namespace
 
 
     std::string const p = "output_final_network_test";
-    utilities::create_directory(p);
+    network_butcher_utilities::create_directory(p);
 
     for (std::size_t j = 0; j < lazy_eppstein_res.size(); ++j)
       {
-        utilities::create_directory(p + "/" + std::to_string(j));
+        network_butcher_utilities::create_directory(p + "/" + std::to_string(j));
 
         auto const model_device =
           IO_Manager::reconstruct_model(lazy_eppstein_res[j].second,
