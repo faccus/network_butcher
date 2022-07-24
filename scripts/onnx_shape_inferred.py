@@ -1,7 +1,7 @@
 import onnx
 
-base_name = 'resnet18-v2-7'
-model_path_no_ext = '../src/Models/' + base_name
+base_name = 'mobilenet_v2'
+model_path_no_ext = '../models/' + base_name
 ext_name = '.onnx'
 model_path = model_path_no_ext + ext_name
 inferred_model_path = model_path_no_ext + '-inferred' + ext_name

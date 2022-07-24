@@ -376,9 +376,13 @@ IO_Manager::import_weights_from_csv_operation_time(graph_type        &graph,
       std::getline(stream_line, tmp_line, ',');
       tmp_weight = ::atof(tmp_line.c_str());
 
+
       while (it != graph.get_nodes().cend() &&
-             network_butcher_utilities::to_lowercase_copy(it->content.operation_id) !=
-               network_butcher_utilities::to_lowercase_copy(operation_name))
+             network_butcher_utilities::trim_copy(
+               network_butcher_utilities::to_lowercase_copy(operation_name)) !=
+               network_butcher_utilities::trim_copy(
+                 network_butcher_utilities::to_lowercase_copy(
+                   it->content.operation_id)))
         {
           ++it;
         }
