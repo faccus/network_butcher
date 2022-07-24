@@ -33,39 +33,35 @@ General_Manager::generate_bandwidth_transmission_function(
   return transmission_weights;
 }
 
+
 void
 General_Manager::import_weights(graph_type &graph, const Parameters &params)
 {
   switch (params.weight_import_mode)
     {
-        case Weight_Import_Mode::aMLLibrary: {
-          for (auto const &device : params.devices)
-            {
-              IO_Manager::import_weights_from_csv_aMLLibrary(
-                graph, device.id, device.weights_path);
-            }
+      case Weight_Import_Mode::operation_time:
+      case Weight_Import_Mode::aMLLibrary:
+        for (auto const &device : params.devices)
+          {
+            IO_Manager::import_weights(params.weight_import_mode,
+                                       graph,
+                                       device.weights_path,
+                                       device.id);
+          }
 
-          break;
-        }
-        case Weight_Import_Mode::operation_time: {
-          for (auto const &device : params.devices)
-            {
-              IO_Manager::import_weights_from_csv_operation_time(
-                graph, device.id, device.weights_path);
-            }
+        break;
+      case Weight_Import_Mode::multi_operation_time: {
+        std::vector<std::size_t> devices;
+        for (auto const &device : params.devices)
+          devices.push_back(device.id);
 
-          break;
-        }
-        case Weight_Import_Mode::multi_operation_time: {
-          std::vector<std::size_t> devices;
-          for (auto const &device : params.devices)
-            devices.push_back(device.id);
+        IO_Manager::import_weights(params.weight_import_mode,
+                                   graph,
+                                   params.devices.front().weights_path,
+                                   devices);
 
-          IO_Manager::import_weights_from_csv_multi_operation_time(
-            graph, devices, params.devices.front().weights_path);
-
-          break;
-        }
+        break;
+      }
     }
 }
 

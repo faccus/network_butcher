@@ -600,12 +600,20 @@ namespace butcher_benchmark_test_namespace
     auto  tuple = IO_Manager::import_from_onnx(path, true, 3);
     auto &graph = std::get<0>(tuple);
 
-    IO_Manager::import_weights_from_csv_aMLLibrary(
-      graph, 0, "aMLLibrary_prediction_pi.csv");
-    IO_Manager::import_weights_from_csv_aMLLibrary(
-      graph, 1, "aMLLibrary_prediction_tegra.csv");
-    IO_Manager::import_weights_from_csv_aMLLibrary(
-      graph, 2, "aMLLibrary_prediction_tegra.csv");
+    IO_Manager::import_weights(Weight_Import_Mode::aMLLibrary,
+                               graph,
+                               "aMLLibrary_prediction_pi.csv",
+                               0);
+
+    IO_Manager::import_weights(Weight_Import_Mode::aMLLibrary,
+                               graph,
+                               "aMLLibrary_prediction_tegra.csv",
+                               1);
+
+    IO_Manager::import_weights(Weight_Import_Mode::aMLLibrary,
+                               graph,
+                               "aMLLibrary_prediction_tegra.csv",
+                               2);
 
     complete_weights(graph);
 

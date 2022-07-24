@@ -557,6 +557,7 @@ IO_Manager::read_parameters(const std::string &path)
   return res;
 }
 
+
 void
 IO_Manager::export_network_partitions(
   const Parameters                           &params,
@@ -580,5 +581,52 @@ IO_Manager::export_network_partitions(
           params.export_directory + "/" + std::to_string(j) + "/" +
             params.model_name + "-" + std::to_string(i) + "-device-" +
             std::to_string(model_device[i].second) + ".onnx");
+    }
+}
+
+
+void
+IO_Manager::import_weights(Weight_Import_Mode const &weight_mode,
+                           graph_type               &graph,
+                           std::string const        &path,
+                           std::size_t               device)
+{
+  switch (weight_mode)
+    {
+      case Weight_Import_Mode::aMLLibrary:
+        import_weights_from_csv_aMLLibrary(graph, device, path);
+        break;
+      case Weight_Import_Mode::operation_time:
+        import_weights_from_csv_operation_time(graph, device, path);
+        break;
+      case Weight_Import_Mode::multi_operation_time:
+        import_weights_from_csv_multi_operation_time(graph, {device}, path);
+        break;
+      default:
+        break;
+    }
+}
+
+
+void
+IO_Manager::import_weights(Weight_Import_Mode const &weight_mode,
+                           graph_type               &graph,
+                           std::string const        &path,
+                           std::vector<std::size_t>  devices,
+                           std::size_t               index)
+{
+  switch (weight_mode)
+    {
+      case Weight_Import_Mode::multi_operation_time:
+        import_weights_from_csv_multi_operation_time(graph, devices, path);
+        break;
+      case Weight_Import_Mode::aMLLibrary:
+        import_weights_from_csv_aMLLibrary(graph, devices[index], path);
+        break;
+      case Weight_Import_Mode::operation_time:
+        import_weights_from_csv_operation_time(graph, devices[index], path);
+        break;
+      default:
+        break;
     }
 }

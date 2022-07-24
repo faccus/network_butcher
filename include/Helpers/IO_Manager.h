@@ -61,6 +61,36 @@ private:
   get_common_elements(const std::set<std::string>           &onnx_io_ids,
                       io_collection_type<type_info_pointer> &io_collection);
 
+  /// It will read from a .csv file the collection of weights for the given
+  /// graph on the specified device
+  /// \param graph The graph
+  /// \param device The device id
+  /// \param path The path of the file to be "imported"
+  static void
+  import_weights_from_csv_aMLLibrary(graph_type        &graph,
+                                     std::size_t        device,
+                                     std::string const &path);
+
+  /// It will read from a .csv file the collection of weights for the given
+  /// graph on the specified device
+  /// \param graph The graph
+  /// \param device The device id
+  /// \param path The path of the file to be "imported"
+  static void
+  import_weights_from_csv_operation_time(graph_type        &graph,
+                                         std::size_t        device,
+                                         std::string const &path);
+
+  /// It will read from a .csv file the collection of weights for the given
+  /// graph on the specified device
+  /// \param graph The graph
+  /// \param device The device id
+  /// \param path The path of the file to be "imported"
+  static void
+  import_weights_from_csv_multi_operation_time(graph_type              &graph,
+                                               std::vector<std::size_t> device,
+                                               std::string const       &path);
+
 public:
   /// It will return the parameters read from the given file
   /// \param path The configuration file path
@@ -98,35 +128,31 @@ public:
     onnx::ModelProto const &model,
     std::string const      &path = "butcher_predict.csv");
 
-  /// It will read from a .csv file the collection of weights for the given
-  /// graph on the specified device
-  /// \param graph The graph
-  /// \param device The device id
-  /// \param path The path of the file to be "imported"
-  static void
-  import_weights_from_csv_aMLLibrary(graph_type        &graph,
-                          std::size_t        device,
-                          std::string const &path);
 
   /// It will read from a .csv file the collection of weights for the given
   /// graph on the specified device
+  /// \param weight_mode The type of .csv file to be imported
   /// \param graph The graph
   /// \param device The device id
   /// \param path The path of the file to be "imported"
   static void
-  import_weights_from_csv_operation_time(graph_type        &graph,
-                                         std::size_t        device,
-                                         std::string const &path);
+  import_weights(Weight_Import_Mode const &weight_mode,
+                 graph_type               &graph,
+                 std::string const        &path,
+                 std::size_t               device);
 
   /// It will read from a .csv file the collection of weights for the given
   /// graph on the specified device
+  /// \param weight_mode The type of .csv file to be imported
   /// \param graph The graph
   /// \param device The device id
   /// \param path The path of the file to be "imported"
   static void
-  import_weights_from_csv_multi_operation_time(graph_type              &graph,
-                                               std::vector<std::size_t> device,
-                                               std::string const       &path);
+  import_weights(Weight_Import_Mode const &weight_mode,
+                 graph_type               &graph,
+                 std::string const        &path,
+                 std::vector<std::size_t>  devices,
+                 std::size_t               index = 0);
 
   /// Based on the graph and the partitions device/nodes, it will prodice the
   /// "butchered" models.
