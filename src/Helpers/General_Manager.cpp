@@ -18,7 +18,7 @@ General_Manager::generate_bandwidth_transmission_function(
                             mbps](node_id_type const &node_id,
                                   std::size_t         first_device,
                                   std::size_t         second_device) {
-      if (first_device == second_device)
+      if (first_device >= second_device)
         {
           return .0;
         }

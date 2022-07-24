@@ -483,7 +483,7 @@ IO_Manager::read_parameters(const std::string &path)
     network_butcher_utilities::to_lowercase_copy(
       file(basic_infos + "/weight_import_mode", "aMLLibrary")));
 
-  if(weight_import_method == "aMLLibrary")
+  if(weight_import_method == "amllibrary")
     res.weight_import_mode = Weight_Import_Mode::aMLLibrary;
   else if(weight_import_method == "multi_operation_time")
     res.weight_import_mode = Weight_Import_Mode::multi_operation_time;
@@ -500,7 +500,7 @@ IO_Manager::read_parameters(const std::string &path)
 
       if (memory_constraint_type == "none")
         {
-          res.memory_constraint = Memory_Constraint_Type::None;
+          res.memory_constraint_type = Memory_Constraint_Type::None;
         }
       else if (memory_constraint_type == "max")
         {
@@ -508,7 +508,7 @@ IO_Manager::read_parameters(const std::string &path)
         }
       else if (memory_constraint_type == "preload_parameters")
         {
-          res.memory_constraint = Memory_Constraint_Type::Preload_Parameters;
+          res.memory_constraint_type = Memory_Constraint_Type::Preload_Parameters;
         }
     }
 

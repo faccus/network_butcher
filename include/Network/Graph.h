@@ -26,7 +26,8 @@ class Graph
 public:
   using Node_Type = Node<T>;
   using Dependencies_Type = std::vector<std::pair<node_id_collection_type, node_id_collection_type>>;
-  using Node_collection_Type = std::vector<Node_Type>;
+  using Node_Collection_Type = std::vector<Node_Type>;
+  using Node_Content_Type = T;
 
   Graph() = default;
 
@@ -42,8 +43,7 @@ public:
   /// the id. To work with butcher, the nodes must be sorted in
   /// topological order, according to the Onnx IR specifications.
   /// \param dependencies Node dependencies (input and outputs of every node)
-  explicit Graph(
-    Node_collection_Type v,
+  explicit Graph(Node_Collection_Type v,
     Dependencies_Type dep = {})
     : nodes(std::move(v))
     , dependencies(std::move(dep))
@@ -54,7 +54,7 @@ public:
 
   /// Get the collection of nodes
   /// \return The vector of nodes
-  inline const Node_collection_Type &
+  inline const Node_Collection_Type &
   get_nodes() const
   {
     return nodes;
@@ -103,7 +103,7 @@ public:
     Dependencies_Type new_dependencies;
     new_dependencies.reserve(nodes.size() - nodes_to_remove.size());
 
-    Node_collection_Type new_node_collection;
+    Node_Collection_Type new_node_collection;
     new_node_collection.reserve(nodes.size() - nodes_to_remove.size());
 
     for (std::size_t i = 0, j = 0; i < nodes.size(); ++i)
@@ -136,11 +136,12 @@ public:
     std::swap(dependencies, new_dependencies);
   }
 
+
   virtual ~Graph() = default;
 
 protected:
   /// Vector of all the nodes
-  Node_collection_Type nodes;
+  Node_Collection_Type nodes;
 
   /// Vector that contains all the neighbours of every node (first input, then
   /// output)
@@ -153,8 +154,8 @@ class Graph<Content<T>>
 public:
   using Dependencies_Type = std::vector<std::pair<node_id_collection_type, node_id_collection_type>>;
   using Node_Type = Node<Content<T>>;
-  using Node_collection_Type = std::vector<Node_Type>;
-
+  using Node_Collection_Type = std::vector<Node_Type>;
+  using Node_Content_Type = T;
 
 
   Graph()              = default;
@@ -171,8 +172,7 @@ public:
   /// the id. To work with butcher, the nodes must be sorted in
   /// topological order, according to the Onnx IR specifications.
   /// \param dependencies Node dependencies (input and outputs of every node)
-  explicit Graph(
-    Node_collection_Type v,
+  explicit Graph(Node_Collection_Type v,
     Dependencies_Type dep)
     : nodes(std::move(v))
     , dependencies(std::move(dep))
@@ -186,7 +186,7 @@ public:
   /// \param v The collection of nodes ordered in an ascending order based on
   /// the id. To work with butcher, the nodes must be sorted in
   /// topological order, according to the Onnx IR specifications.
-  explicit Graph(Node_collection_Type const &v)
+  explicit Graph(Node_Collection_Type const &v)
     : nodes(v)
   {
     for (node_id_type i = 0; i < nodes.size(); ++i)
@@ -200,7 +200,7 @@ public:
   /// \param v The collection of nodes ordered in an ascending order based on
   /// the id. To work with butcher, the nodes must be sorted in
   /// topological order, according to the Onnx IR specifications.
-  explicit Graph(Node_collection_Type &&v)
+  explicit Graph(Node_Collection_Type &&v)
     : nodes(std::move(v))
   {
     for (node_id_type i = 0; i < nodes.size(); ++i)
@@ -211,7 +211,7 @@ public:
 
   /// Get the collection of nodes
   /// \return The vector of nodes
-  inline const Node_collection_Type &
+  inline const Node_Collection_Type &
   get_nodes() const
   {
     return nodes;
@@ -260,7 +260,7 @@ public:
     Dependencies_Type new_dependencies;
     new_dependencies.reserve(nodes.size() - nodes_to_remove.size());
 
-    Node_collection_Type new_node_collection;
+    Node_Collection_Type new_node_collection;
     new_node_collection.reserve(nodes.size() - nodes_to_remove.size());
 
     for (std::size_t i = 0, j = 0; i < nodes.size(); ++i)
@@ -298,7 +298,7 @@ public:
 protected:
 
   /// Vector of all the nodes
-  Node_collection_Type nodes;
+  Node_Collection_Type nodes;
 
   /// Vector that contains all the neighbours of every node (first input, then
   /// output)

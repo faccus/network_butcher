@@ -45,7 +45,7 @@ public:
     auto const &map = weigth_map[device];
     auto const  p   = map.find(edge);
     if (p == map.cend())
-      return -1.;
+      return 0.;
     else
       return p->second;
   }
@@ -121,7 +121,7 @@ public:
     auto const &map = weigth_map[device];
     auto const  p   = map.find(edge);
     if (p == map.cend())
-      return -1.;
+      return 0.;
     else
       return p->second;
   }

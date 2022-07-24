@@ -69,8 +69,6 @@ TEST(GraphTests, ConstructorFromCustomClass)
   nodes.emplace_back(std::move(content));
 
   Graph<Content<Input>> graph(nodes);
-
-  std::cout << std::endl;
 }
 
 TEST(GraphTests, RemoveNodes)

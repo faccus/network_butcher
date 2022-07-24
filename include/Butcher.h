@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <forward_list>
+#include <memory>
 
 #include "Helpers/Traits/Graph_traits.h"
 #include "Helpers/Traits/Hardware_traits.h"
@@ -31,7 +32,8 @@ class Butcher
 {
 public:
   using network     = GraphType;
-  using new_network = WGraph<node_id_collection_type>;
+  using new_network =
+    WGraph<std::pair<std::size_t, std::shared_ptr<node_id_collection_type>>>;
 
 private:
   network graph;
@@ -158,20 +160,6 @@ private:
     new_network                                   &new_graph) const;
 
 
-  /// Returns the device id based on the node id
-  /// \param node_id The node id
-  /// \return The device id
-  [[nodiscard]] std::size_t
-  get_device_id(node_id_type const &node_id) const;
-
-  /// Returns the id of the node with content in the linearized graph
-  /// \param current_node_id The id of the node in the linearized graph
-  /// \param device_id The device id
-  /// \return The id of the node of the linearized graph with content
-  [[nodiscard]] node_id_type
-  get_base_node_id(node_id_type const &current_node_id,
-                   std::size_t const  &device_id) const;
-
   /// It will produce the set of nodes associated to a given device
   /// \param new_path The path
   /// \param new_graph The linearized graph
@@ -286,6 +274,8 @@ Butcher<GraphType>::compute_basic_routes() const
 
   return basic_routes;
 }
+
+
 template <class GraphType>
 bool
 Butcher<GraphType>::partition_checker(
@@ -301,6 +291,7 @@ Butcher<GraphType>::partition_checker(
   return true;
 }
 
+
 template <class GraphType>
 std::pair<typename Butcher<GraphType>::new_network,
           std::map<node_id_type, node_id_type>>
@@ -308,11 +299,10 @@ Butcher<GraphType>::block_graph(bool backward_connections_allowed) const
 {
   auto const num_of_devices = graph.get_num_devices();
 
-  std::vector<Node<node_id_collection_type>> new_nodes;
+  new_network::Node_Collection_Type          new_nodes;
   std::map<node_id_type, node_id_type>       old_to_new; // Old node -> New node
 
-  std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
-    new_dependencies;
+  new_network::Dependencies_Type new_dependencies;
 
   auto const &old_dependencies = graph.get_dependencies();
   auto const &old_nodes        = graph.get_nodes();
@@ -328,8 +318,9 @@ Butcher<GraphType>::block_graph(bool backward_connections_allowed) const
   // Add the source node with content equal to the id of the first node in the
   // original graph
   new_nodes.reserve(old_nodes.size());
-  new_nodes.emplace_back(node_id_collection_type{});
-  new_nodes.back().content = node_id_collection_type{0};
+  new_nodes.emplace_back(new_network::Node_Content_Type{0, nullptr});
+  new_nodes.back().content.second =
+    std::make_shared<node_id_collection_type>(node_id_collection_type{0});
 
   old_to_new[old_nodes.begin()->get_id()] = id;
   ++id;
@@ -345,9 +336,10 @@ Butcher<GraphType>::block_graph(bool backward_connections_allowed) const
       // Add new node
       if (local_counter <= 0 && counter == 0)
         {
-          new_nodes.emplace_back(node_id_collection_type{});
-          new_nodes.back().content.insert(new_nodes.back().content.end(),
-                                          node.get_id());
+          new_nodes.emplace_back(new_network::Node_Content_Type{0, nullptr});
+          new_nodes.back().content.second =
+            std::make_shared<node_id_collection_type>(
+              node_id_collection_type{node.get_id()});
 
           old_to_new[node.get_id()] = id;
 
@@ -356,12 +348,16 @@ Butcher<GraphType>::block_graph(bool backward_connections_allowed) const
       // Add new node and add master node for next steps
       else if (local_counter > 0 && counter == 0)
         {
-          new_nodes.emplace_back(node_id_collection_type{});
-          new_nodes.back().content.insert(new_nodes.back().content.end(),
-                                          node.get_id());
+          new_nodes.emplace_back(new_network::Node_Content_Type{0, nullptr});
+          new_nodes.back().content.second =
+            std::make_shared<node_id_collection_type>(
+              node_id_collection_type{node.get_id()});
+
           old_to_new[node.get_id()] = id;
 
-          new_nodes.emplace_back(node_id_collection_type{});
+          new_nodes.emplace_back(new_network::Node_Content_Type{0, nullptr});
+          new_nodes.back().content.second =
+            std::make_shared<node_id_collection_type>();
           old_to_new[++id];
 
           counter += local_counter;
@@ -371,8 +367,8 @@ Butcher<GraphType>::block_graph(bool backward_connections_allowed) const
                 local_counter > 0 && dep.first.size() <= 1) &&
                counter > 0)
         {
-          new_nodes.back().content.insert(new_nodes.back().content.end(),
-                                          node.get_id());
+          new_nodes.back().content.second->insert(
+            new_nodes.back().content.second->end(), node.get_id());
 
           counter += local_counter;
 
@@ -386,15 +382,20 @@ Butcher<GraphType>::block_graph(bool backward_connections_allowed) const
           // End of the master node
           if (counter == 0)
             {
-              new_nodes.emplace_back(node_id_collection_type{});
+              new_nodes.emplace_back(
+                new_network::Node_Content_Type{0, nullptr});
               old_to_new[node.get_id()] = ++id;
-              new_nodes.back().content.insert(new_nodes.back().content.end(),
-                                              node.get_id());
+              new_nodes.back().content.second =
+                std::make_shared<node_id_collection_type>(
+                  node_id_collection_type{node.get_id()});
 
               // Do we have to add another master node?
               if (local_counter >= 0)
                 {
-                  new_nodes.emplace_back(node_id_collection_type{});
+                  new_nodes.emplace_back(
+                    new_network::Node_Content_Type{0, nullptr});
+                  new_nodes.back().content.second =
+                    std::make_shared<node_id_collection_type>();
                   old_to_new[++id];
                 }
               else
@@ -403,8 +404,8 @@ Butcher<GraphType>::block_graph(bool backward_connections_allowed) const
           else
             {
               old_to_new[node.get_id()] = id;
-              new_nodes.back().content.insert(new_nodes.back().content.end(),
-                                              node.get_id());
+              new_nodes.back().content.second->insert(
+                new_nodes.back().content.second->end(), node.get_id());
             }
 
           counter += (dep.second.size() - 1);
@@ -427,25 +428,32 @@ Butcher<GraphType>::block_graph(bool backward_connections_allowed) const
   new_nodes.reserve(2 + supp_size * num_of_devices);
   new_dependencies.reserve(2 + supp_size * num_of_devices);
 
+
   // Add the other nodes. Their content is not needed since it can be
   // recovered from the nodes of the first device
   for (std::size_t k = 1; k < num_of_devices; ++k)
     for (std::size_t i = 1; i < basic_size - 1; ++i)
       {
-        new_nodes.emplace_back(node_id_collection_type{});
+        new_nodes.emplace_back(new_network::Node_Content_Type{k, nullptr});
         ++id;
       }
 
   // Move the content of the first nodes to their appropriate final position
   for (std::size_t i = basic_size - 1; i > 1; --i)
     {
-      new_nodes[1 + num_of_devices * (i - 1)].content =
-        std::move(new_nodes[i].content);
+      new_nodes[1 + num_of_devices * (i - 1)].content = new_nodes[i].content;
+    }
+
+  for (std::size_t i = 1; i < basic_size - 1; ++i)
+    {
+      for (std::size_t k = 1; k < num_of_devices; ++k)
+        new_nodes[1 + (i - 1) * num_of_devices + k].content =
+          new_network::Node_Content_Type{
+            k, new_nodes[1 + (i - 1) * num_of_devices].content.second};
     }
 
   {
-    new_dependencies.emplace_back(
-      std::make_pair<node_id_collection_type, node_id_collection_type>({}, {}));
+    new_dependencies.emplace_back();
 
     auto &out = new_dependencies.back().second;
     for (std::size_t k = 0; k < num_of_devices; ++k)
@@ -547,6 +555,7 @@ Butcher<GraphType>::block_graph(bool backward_connections_allowed) const
   return {new_network(new_nodes, new_dependencies), old_to_new};
 }
 
+
 template <class GraphType>
 std::tuple<memory_type, memory_type>
 Butcher<GraphType>::estimate_maximum_memory_usage(
@@ -604,6 +613,7 @@ Butcher<GraphType>::estimate_maximum_memory_usage(
   return {result_memory * qty, fixed_memory};
 }
 
+
 template <class GraphType>
 void
 Butcher<GraphType>::remove_unfeasible_paths(
@@ -613,6 +623,8 @@ Butcher<GraphType>::remove_unfeasible_paths(
 {
   if (constraint_type == Memory_Constraint_Type::None)
     return;
+
+  std::set<node_id_type> to_remove;
 
   auto const input_memory =
     Computer_memory::compute_nodes_memory_usage_input(graph);
@@ -653,6 +665,7 @@ Butcher<GraphType>::remove_unfeasible_paths(
         {
           available[k] = false;
           dependencies_clear(basic_node_id + k);
+          to_remove.insert(basic_node_id + k);
         }
       }
     }
@@ -673,13 +686,14 @@ Butcher<GraphType>::remove_unfeasible_paths(
       {
         available[k] = false;
         dependencies_clear(basic_node_id + k);
+        to_remove.insert(basic_node_id + k);
       }
     }
   };
 
   for (std::size_t i = 1; i < new_graph.size() - 1; i += devices.size())
   {
-    auto const &new_node_content = new_graph[i].content;
+    auto const &new_node_content = *new_graph[i].content.second;
     bool        easy_content     = new_node_content.size() == 1;
 
     if (easy_content)
@@ -722,7 +736,10 @@ Butcher<GraphType>::remove_unfeasible_paths(
       }
     }
   }
+
+  new_graph.remove_nodes(to_remove);
 }
+
 
 template <class GraphType>
 void
@@ -737,41 +754,32 @@ Butcher<GraphType>::block_graph_weights(
     nodes.cbegin(),
     nodes.cend(),
     [&new_graph, &graph = graph, &transmission_weights](
-      Node<node_id_collection_type> const &node) {
-      auto const num_devices = graph.get_num_devices();
-      auto const size  = (new_graph.get_nodes().size() - 2) / num_devices + 2;
+      new_network::Node_Type const &node) {
       auto const first = node.get_id();
-
-      // The index of the input node on the linearized graph
-      auto const input_index =
-        first == 0 ? 0 : first - (first - 1) % num_devices;
 
       for (auto const &second :
         new_graph.get_dependencies()[node.get_id()].second)
       {
+        auto const &out_node = new_graph[second];
+
         edge_type const edge = {first, second};
-        auto const      output_index =
-          edge.second == 0 ? 0 :
-          edge.second - (edge.second - 1) % num_devices;
 
         // The device id of the input node (=0 starting device, >0 other
         // device)
-        auto const in_device_id =
-          edge.first == 0 ? 0 : (edge.first - 1) % num_devices;
+        auto const in_device_id = node.content.first;
         // The device id of the output node (=0 starting device, >0 other
         // device)
-        auto const out_device_id =
-          edge.second == 0 ? 0 : (edge.second - 1) % num_devices;
+        auto const out_device_id = out_node.content.first;
 
         // Look for the nodes of the original graph that are
         // represented by the output node (in the linearized
         // graph)
-        auto const &outputs = new_graph.get_nodes()[output_index].content;
+        auto const &outputs = *out_node.content.second;
 
         // Look for the nodes of the original graph that are
         // represented by the input node (in the linearized
         // graph)
-        auto const &inputs = new_graph.get_nodes()[input_index].content;
+        auto const &inputs = *node.content.second;
 
         double final_cost = -1.;
 
@@ -791,7 +799,7 @@ Butcher<GraphType>::block_graph_weights(
         }
           // (2+)-1 correspondence. The idea is that the input nodes must
           // transmit to the output node the different values. Thus, the
-          // transmission cost is paid serveral times.
+          // transmission cost is paid several times.
         else if (outputs.size() == 1)
         {
           weight_type weight_cost        = .0;
@@ -811,7 +819,7 @@ Butcher<GraphType>::block_graph_weights(
                                std::make_pair(input, output));
           }
 
-          final_cost = weight_cost + weight_cost;
+          final_cost = transmission_costs + weight_cost;
         }
           // 1-(2+). In this case, the input is sent to the device of the
           // output nodes a single time. Thus, this transmission cost is taken
@@ -850,26 +858,15 @@ Butcher<GraphType>::block_graph_weights(
 
           final_cost = weight_costs + transmission_cost;
         }
+        else {
+            std::cout << "Warning: we couldn't determine a weight!" << std::endl;
+          }
 
         new_graph.set_weigth(edge, final_cost);
       }
     });
 }
 
-template <class GraphType>
-std::size_t
-Butcher<GraphType>::get_device_id(const node_id_type &node_id) const
-{
-  return node_id == 0 ? 0 : (node_id - 1) % graph.get_num_devices();
-}
-
-template <class GraphType>
-node_id_type
-Butcher<GraphType>::get_base_node_id(const node_id_type &current_node_id,
-                                     const size_t       &device_id) const
-{
-  return current_node_id == 0 ? 0 : current_node_id - device_id;
-}
 
 template <class GraphType>
 Real_Path
@@ -886,26 +883,23 @@ Butcher<GraphType>::get_network_slices(
   auto const &path_nodes     = new_path.path;
 
   for (std::size_t i = 0; i < path_nodes.size(); ++i)
-  {
-    auto const  node_id_new_graph = path_nodes[i];
-    std::size_t device_id         = get_device_id(node_id_new_graph);
-
-    auto const base_node_id_new_graph =
-      get_base_node_id(node_id_new_graph, device_id);
-
-    if (device_id != current_model_device)
     {
-      current_model_device = device_id;
-      res.emplace_back(current_model_device, std::set<node_id_type>());
-    }
+      auto const  node_id_new_graph = path_nodes[i];
+      auto const &node              = new_graph[node_id_new_graph];
 
-    auto it_nodes = new_graph.get_nodes()[base_node_id_new_graph];
-    res.back().second.insert(it_nodes.content.begin(),
-                             it_nodes.content.end());
-  }
+      if (node.content.first != current_model_device)
+        {
+          current_model_device = node.content.first;
+          res.emplace_back(current_model_device, std::set<node_id_type>());
+        }
+
+      res.back().second.insert(node.content.second->begin(),
+                               node.content.second->end());
+    }
 
   return res;
 }
+
 
 template <class GraphType>
 std::vector<Real_Path>
@@ -925,6 +919,7 @@ Butcher<GraphType>::get_network_slices(
   return res;
 }
 
+
 template <class GraphType>
 Weighted_Real_Paths
 Butcher<GraphType>::get_weighted_network_slice(
@@ -941,6 +936,7 @@ Butcher<GraphType>::get_weighted_network_slice(
   return final_res;
 }
 
+
 template <class GraphType>
 Weighted_Real_Paths
 Butcher<GraphType>::get_weighted_network_slice(
@@ -954,6 +950,7 @@ Butcher<GraphType>::get_weighted_network_slice(
     final_res.emplace_back(new_paths[i].length, network_slice[i]);
   return final_res;
 }
+
 
 template <class GraphType>
 bool
@@ -1009,6 +1006,7 @@ Butcher<GraphType>::partition_memory_checker(const Real_Path &real_path,
 
   return true;
 }
+
 
 template <class GraphType>
 Weighted_Real_Paths
