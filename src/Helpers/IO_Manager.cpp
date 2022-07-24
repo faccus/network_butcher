@@ -20,6 +20,7 @@ IO_Manager::import_from_onnx(const std::string &path,
   auto const &onnx_input = onnx_graph.input();
   auto const &onnx_output = onnx_graph.output();
   auto const &onnx_value_info = onnx_graph.value_info();
+  auto const &onnx_initializer = onnx_graph.initializer();
 
   std::set<std::string> onnx_inputs_ids;
   std::set<std::string> onnx_outputs_ids;
@@ -33,7 +34,7 @@ IO_Manager::import_from_onnx(const std::string &path,
     onnx_populate_id_collection(onnx_input, tmp_onnx_inputs_ids);
     std::set<std::string> initialized;
     // Values that are given by the network
-    for (auto const &p : onnx_graph.initializer())
+    for (auto const &p : onnx_initializer)
       {
         initialized.insert(p.name());
       }
@@ -52,6 +53,8 @@ IO_Manager::import_from_onnx(const std::string &path,
     onnx_io_read(value_infos, onnx_input, initialized);
     onnx_io_read(value_infos, onnx_output, initialized);
     onnx_io_read(value_infos, onnx_value_info, initialized);
+
+    onnx_io_read(value_infos, onnx_initializer, initialized);
   }
 
   auto const            &onnx_nodes = onnx_graph.node();
@@ -216,6 +219,24 @@ IO_Manager::onnx_io_read(
               input_map[param.name()] = std::make_shared<Dense_tensor>(
                 param, initialized.contains(param.name()));
             }
+        }
+    }
+}
+
+void
+IO_Manager::onnx_io_read(
+  IO_Manager::Map_IO                                          &input_map,
+  const google::protobuf::RepeatedPtrField<onnx::TensorProto> &collection,
+  const std::set<std::string>                                 &initialized)
+{
+  for (const auto &param : collection)
+    {
+      if (param.IsInitialized() &&
+          input_map.find(param.name()) == input_map.cend())
+        {
+          input_map[param.name()] =
+            std::make_shared<Dense_tensor>(param,
+                                           initialized.contains(param.name()));
         }
     }
 }

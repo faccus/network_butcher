@@ -29,6 +29,17 @@ private:
     google::protobuf::RepeatedPtrField<onnx::ValueInfoProto> const &collection,
     std::set<std::string> const &initialized);
 
+  /// Inserts into the input_map the valid elements contained in collection and
+  /// whether they are initialized or not
+  /// \param input_map The input_map
+  /// \param collection The collection of IO elements
+  /// \param initialized The collection of names of the initialized IO elements
+  static void
+  onnx_io_read(
+    Map_IO                                                         &input_map,
+    google::protobuf::RepeatedPtrField<onnx::TensorProto> const &collection,
+    std::set<std::string> const &initialized);
+
   /// It will add to either io_collection or parameters_collection the different
   /// elements of io_name if they are contained into value_infos
   /// \param io_names The collection of names of IO identifiers

@@ -40,6 +40,12 @@ public:
                bool                        given    = false,
                bool                        constant = false);
 
+  /// Construct the tensor from a onnx::TensorProto object
+  /// \param info onnx::ValueInfoProto object
+  Dense_tensor(const onnx::TensorProto &info,
+               bool                        given    = false,
+               bool                        constant = false);
+
   /// Compute the total memory of the type
   /// \return Memory usage of the associated type
   memory_type

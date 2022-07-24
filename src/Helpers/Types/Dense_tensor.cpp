@@ -38,6 +38,24 @@ Dense_tensor::Dense_tensor(const onnx::ValueInfoProto &info,
   this->constant = constant;
 }
 
+Dense_tensor::Dense_tensor(const onnx::TensorProto &info,
+                           bool                        given,
+                           bool                        constant)
+{
+  name             = info.name();
+  if (info.IsInitialized())
+    {
+      type_id              = info.data_type();
+      const auto &in_shape = info.dims();
+
+      for (int i = 0; i < in_shape.size(); ++i)
+        shape.push_back(in_shape[i]);
+    }
+
+  t_initialized = given;
+  this->constant = constant;
+}
+
 memory_type
 Dense_tensor::compute_memory_usage() const
 {
