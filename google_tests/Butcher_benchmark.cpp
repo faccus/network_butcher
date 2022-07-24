@@ -407,52 +407,6 @@ namespace butcher_benchmark_test_namespace
   }
 
 
-  TEST(ButcherBenchmarkTest, final_network_test)
-  {
-    std::size_t const k           = 1000;
-
-    std::vector<type_collection_weights> weight_maps;
-    auto                                 model_butcher = real_butcher();
-
-    auto const &model   = std::get<1>(model_butcher);
-    auto       &butcher = std::get<0>(model_butcher);
-
-    auto       &graph = butcher.get_graph_ref();
-    auto const &nodes = graph.get_nodes();
-
-    auto transmission_fun = real_transmission(graph);
-
-    Chrono crono;
-    crono.start();
-    auto lazy_eppstein_res = butcher.compute_k_shortest_path(
-      transmission_fun, real_parameters(k, false));
-    crono.stop();
-
-
-    std::string const p = "output_final_network_test";
-    network_butcher_utilities::create_directory(p);
-
-    for (std::size_t j = 0; j < lazy_eppstein_res.size(); ++j)
-      {
-        network_butcher_utilities::create_directory(p + "/" + std::to_string(j));
-
-        auto const model_device =
-          IO_Manager::reconstruct_model(lazy_eppstein_res[j].second,
-                                        model,
-                                        graph,
-                                        std::get<2>(model_butcher));
-
-        for (std::size_t i = 0; i < model_device.size(); ++i)
-          IO_Manager::export_to_onnx(model_device[i].first,
-                                     p + "/" + std::to_string(j) +
-                                       "/version-RFB-640-inferred-" +
-                                       std::to_string(i) + "-device-" +
-                                       std::to_string(model_device[i].second) +
-                                       ".onnx");
-      }
-  }
-
-
   Butcher<Graph_type>
   basic_butcher(int num_nodes)
   {
