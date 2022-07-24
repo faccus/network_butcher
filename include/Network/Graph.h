@@ -26,15 +26,7 @@ class Graph
 public:
   using Node_Type = Node<T>;
   using Dependencies_Type = std::vector<std::pair<node_id_collection_type, node_id_collection_type>>;
-protected:
-  /// Vector of all the nodes
-  std::vector<Node_Type> nodes;
-
-  /// Vector that contains all the neighbours of every node (first input, then
-  /// output)
-  Dependencies_Type dependencies;
-
-public:
+  using Node_collection_Type = std::vector<Node_Type>;
 
   Graph() = default;
 
@@ -51,7 +43,7 @@ public:
   /// topological order, according to the Onnx IR specifications.
   /// \param dependencies Node dependencies (input and outputs of every node)
   explicit Graph(
-    std::vector<Node_Type> v,
+    Node_collection_Type v,
     Dependencies_Type dep = {})
     : nodes(std::move(v))
     , dependencies(std::move(dep))
@@ -62,7 +54,7 @@ public:
 
   /// Get the collection of nodes
   /// \return The vector of nodes
-  inline const std::vector<Node_Type> &
+  inline const Node_collection_Type &
   get_nodes() const
   {
     return nodes;
@@ -103,7 +95,56 @@ public:
     return nodes[id];
   }
 
+
+  void remove_nodes(std::set<node_id_type> const &nodes_to_remove) {
+    std::unordered_map<node_id_type, node_id_type> old_to_new;
+    std::set<node_id_type> keys;
+
+    Dependencies_Type new_dependencies;
+    new_dependencies.reserve(nodes.size() - nodes_to_remove.size());
+
+    Node_collection_Type new_node_collection;
+    new_node_collection.reserve(nodes.size() - nodes_to_remove.size());
+
+    for (std::size_t i = 0, j = 0; i < nodes.size(); ++i)
+      {
+        if(!nodes_to_remove.contains(i)) {
+            keys.insert(i);
+            old_to_new[i] = j;
+            new_node_collection.emplace_back(std::move(nodes[i]));
+            new_node_collection.back().id = j++;
+          }
+      }
+
+    for(auto const &key : keys) {
+        new_dependencies.emplace_back();
+
+        for(auto const &in : dependencies[key].first) {
+            auto const it = old_to_new.find(in);
+            if(it != old_to_new.cend())
+              new_dependencies.back().first.emplace(it->second);
+          }
+
+        for(auto const &out : dependencies[key].second) {
+            auto const it = old_to_new.find(out);
+            if(it != old_to_new.cend())
+              new_dependencies.back().second.emplace(it->second);
+          }
+      }
+
+    std::swap(new_node_collection, nodes);
+    std::swap(dependencies, new_dependencies);
+  }
+
   virtual ~Graph() = default;
+
+protected:
+  /// Vector of all the nodes
+  Node_collection_Type nodes;
+
+  /// Vector that contains all the neighbours of every node (first input, then
+  /// output)
+  Dependencies_Type dependencies;
 };
 
 template <class T>
@@ -112,22 +153,9 @@ class Graph<Content<T>>
 public:
   using Dependencies_Type = std::vector<std::pair<node_id_collection_type, node_id_collection_type>>;
   using Node_Type = Node<Content<T>>;
-
-protected:
-
-  /// Vector of all the nodes
-  std::vector<Node_Type> nodes;
-
-  /// Vector that contains all the neighbours of every node (first input, then
-  /// output)
-  Dependencies_Type dependencies;
+  using Node_collection_Type = std::vector<Node_Type>;
 
 
-  /// Compute node dependencies
-  void
-  compute_dependencies();
-
-public:
 
   Graph()              = default;
 
@@ -144,7 +172,7 @@ public:
   /// topological order, according to the Onnx IR specifications.
   /// \param dependencies Node dependencies (input and outputs of every node)
   explicit Graph(
-    std::vector<Node_Type> v,
+    Node_collection_Type v,
     Dependencies_Type dep)
     : nodes(std::move(v))
     , dependencies(std::move(dep))
@@ -158,7 +186,7 @@ public:
   /// \param v The collection of nodes ordered in an ascending order based on
   /// the id. To work with butcher, the nodes must be sorted in
   /// topological order, according to the Onnx IR specifications.
-  explicit Graph(std::vector<Node_Type> const &v)
+  explicit Graph(Node_collection_Type const &v)
     : nodes(v)
   {
     for (node_id_type i = 0; i < nodes.size(); ++i)
@@ -172,7 +200,7 @@ public:
   /// \param v The collection of nodes ordered in an ascending order based on
   /// the id. To work with butcher, the nodes must be sorted in
   /// topological order, according to the Onnx IR specifications.
-  explicit Graph(std::vector<Node_Type> &&v)
+  explicit Graph(Node_collection_Type &&v)
     : nodes(std::move(v))
   {
     for (node_id_type i = 0; i < nodes.size(); ++i)
@@ -183,7 +211,7 @@ public:
 
   /// Get the collection of nodes
   /// \return The vector of nodes
-  inline const std::vector<Node_Type> &
+  inline const Node_collection_Type &
   get_nodes() const
   {
     return nodes;
@@ -224,7 +252,62 @@ public:
     return nodes[id];
   }
 
+
+  void remove_nodes(std::set<node_id_type> const &nodes_to_remove) {
+    std::unordered_map<node_id_type, node_id_type> old_to_new;
+    std::set<node_id_type> keys;
+
+    Dependencies_Type new_dependencies;
+    new_dependencies.reserve(nodes.size() - nodes_to_remove.size());
+
+    Node_collection_Type new_node_collection;
+    new_node_collection.reserve(nodes.size() - nodes_to_remove.size());
+
+    for (std::size_t i = 0, j = 0; i < nodes.size(); ++i)
+      {
+        if(!nodes_to_remove.contains(i)) {
+            keys.insert(i);
+            old_to_new[i] = j;
+            new_node_collection.emplace_back(std::move(nodes[i]));
+            new_node_collection.back().id = j++;
+          }
+      }
+
+    for(auto const &key : keys) {
+        new_dependencies.emplace_back();
+
+        for(auto const &in : dependencies[key].first) {
+            auto const it = old_to_new.find(in);
+            if(it != old_to_new.cend())
+              new_dependencies.back().first.emplace(it->second);
+          }
+
+        for(auto const &out : dependencies[key].second) {
+            auto const it = old_to_new.find(out);
+            if(it != old_to_new.cend())
+              new_dependencies.back().second.emplace(it->second);
+          }
+      }
+
+    std::swap(new_node_collection, nodes);
+    std::swap(dependencies, new_dependencies);
+  }
+
   virtual ~Graph() = default;
+
+protected:
+
+  /// Vector of all the nodes
+  Node_collection_Type nodes;
+
+  /// Vector that contains all the neighbours of every node (first input, then
+  /// output)
+  Dependencies_Type dependencies;
+
+
+  /// Compute node dependencies
+  void
+  compute_dependencies();
 };
 
 template <class T>
@@ -232,8 +315,7 @@ void
 Graph<Content<T>>::compute_dependencies()
 {
   // Reset the dependency vector.
-  dependencies = std::vector<
-    std::pair<node_id_collection_type, node_id_collection_type>>();
+  dependencies = Dependencies_Type();
   dependencies.resize(nodes.size());
 
   // Compute appearances of inputs/outputs for a node

@@ -39,6 +39,7 @@ public:
   /// Node content
   T content;
 
+
   /// Basic move constructor for a node
   explicit Node(T && starting_content)
     : id(std::numeric_limits<node_id_type>::max())
