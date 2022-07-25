@@ -25,13 +25,20 @@ Dense_tensor::Dense_tensor(const onnx::ValueInfoProto &info,
 {
   const auto &type = info.type();
   name             = info.name();
+
   if (type.has_tensor_type())
     {
       type_id              = type.tensor_type().elem_type();
       const auto &in_shape = type.tensor_type().shape();
 
-      for (int i = 0; i < in_shape.dim_size(); ++i)
-        shape.push_back(in_shape.dim(i).dim_value());
+      for (int i = 0; i < in_shape.dim_size(); ++i) {
+          auto const &tm = in_shape.dim(i);
+
+          if(!tm.has_dim_value())
+            shape.push_back(1);
+          else
+            shape.push_back(tm.dim_value());
+        }
     }
 
   t_initialized = given;
@@ -43,6 +50,7 @@ Dense_tensor::Dense_tensor(const onnx::TensorProto &info,
                            bool                        constant)
 {
   name             = info.name();
+
   if (info.IsInitialized())
     {
       type_id              = info.data_type();
