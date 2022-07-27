@@ -32,9 +32,9 @@ add_subdirectory(src)
 
 add_subdirectory(google_tests)
 
-add_executable(network_butcher_run src/main.cpp ${BASE_SOURCE} ${BASE_HEADER})
+add_executable(network_butcher src/main.cpp ${BASE_SOURCE} ${BASE_HEADER})
 
-target_link_libraries(network_butcher_run  ${RUN_LIBRARIES_LOCATION})
+target_link_libraries(network_butcher  ${RUN_LIBRARIES_LOCATION})
 
 if( BUILD_TESTS )
     if( BUILD_BENCHMARK )
