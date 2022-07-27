@@ -607,7 +607,7 @@ Butcher<GraphType>::estimate_maximum_memory_usage(
     }
 
     if (children.size() > parents.size())
-      qty = qty + dependencies[id].second.size() - parents.size() - 1;
+      qty = qty + children.size() - parents.size();
   }
 
   return {result_memory * qty, fixed_memory};
