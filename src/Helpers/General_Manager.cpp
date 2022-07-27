@@ -67,28 +67,51 @@ General_Manager::import_weights(graph_type &graph, const Parameters &params)
 
 
 void
-General_Manager::boot(std::string const &path)
+General_Manager::boot(std::string const &path, bool performance)
 {
   Parameters params = IO_Manager::read_parameters(path);
-  boot(params);
+  boot(params, performance);
 }
 
 void
-General_Manager::boot(const Parameters &params)
+General_Manager::boot(const Parameters &params, bool performance)
 {
+  Chrono crono;
+  crono.start();
+
   auto [graph, model, link_graph_model] =
     IO_Manager::import_from_onnx(params.model_path,
                                  true,
                                  params.devices.size());
+  crono.stop();
+
+  if (performance)
+    std::cout << "Network import: " << crono.wallTime() << " ns" << std::endl;
+
+  crono.start();
   import_weights(graph, params);
+  crono.stop();
+
+  if (performance)
+    std::cout << "Weight import: " << crono.wallTime() << " ns" << std::endl;
 
   Butcher butcher(std::move(graph));
 
+  crono.start();
   auto const paths = butcher.compute_k_shortest_path(
     General_Manager::generate_bandwidth_transmission_function(
       params, butcher.get_graph()),
     params);
+  crono.stop();
 
+  if (performance)
+    std::cout << "Butchering: " << crono.wallTime() << " ns" << std::endl;
+
+  crono.start();
   IO_Manager::export_network_partitions(
     params, graph, model, link_graph_model, paths);
+  crono.stop();
+
+  if (performance)
+    std::cout << "Export: " << crono.wallTime() << " ns" << std::endl;
 }

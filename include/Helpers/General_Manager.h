@@ -6,6 +6,7 @@
 #define NETWORK_BUTCHER_MANAGER_H
 
 #include "IO_Manager.h"
+#include "APSC/chrono.h"
 
 class General_Manager {
 private:
@@ -31,7 +32,7 @@ public:
   /// network will be produced and exported to the specified location.
   /// \param path The input configuration file
   static void
-  boot(std::string const &path);
+  boot(std::string const &path, bool performance = false);
 
 
   /// Boot! It will firstly import the specified network from the .onnx file.
@@ -40,7 +41,7 @@ public:
   /// specified location.
   /// \param path The input configuration file
   static void
-  boot(Parameters const &params);
+  boot(Parameters const &params, bool performance = false);
 };
 
 #endif // NETWORK_BUTCHER_MANAGER_H
