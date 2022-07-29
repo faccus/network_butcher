@@ -32,7 +32,7 @@ namespace KspTestNamespace
   TEST(KspTests, DijkstraSourceSink)
   {
     auto const graph = basic_graph();
-    auto       res   = Shortest_path_finder<Graph_type>::dijkstra(graph);
+    auto       res   = network_butcher_kfinder::Shortest_path_finder<Graph_type>::dijkstra(graph);
 
     std::vector<node_id_type> theoretical_res = {0, 2, 0, 1, 3, 2, 5};
 
@@ -43,7 +43,7 @@ namespace KspTestNamespace
   {
     auto const graph = basic_graph();
 
-    auto res = Shortest_path_finder<Graph_type>::dijkstra(graph, 6, true);
+    auto res = network_butcher_kfinder::Shortest_path_finder<Graph_type>::dijkstra(graph, 6, true);
 
     std::vector<node_id_type> theoretical_res = {2, 3, 5, 4, 5, 6, 6};
 
@@ -54,7 +54,7 @@ namespace KspTestNamespace
   TEST(KspTests, EppsteinOriginalNetwork)
   {
     auto const       graph = eppstein_graph();
-    KFinder_Eppstein kfinder(graph);
+    network_butcher_kfinder::KFinder_Eppstein kfinder(graph);
 
     int k = 100; // Up to 10
 
@@ -82,7 +82,7 @@ namespace KspTestNamespace
   TEST(KspTests, LazyEppsteinOriginalNetwork)
   {
     auto const            graph = eppstein_graph();
-    KFinder_Lazy_Eppstein kfinder(graph);
+    network_butcher_kfinder::KFinder_Lazy_Eppstein kfinder(graph);
 
     int k = 100; // Up to 10
 

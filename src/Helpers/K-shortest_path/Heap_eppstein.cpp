@@ -6,8 +6,8 @@
 
 
 bool
-operator<(std::shared_ptr<H_out<edge_info>> const &lhs,
-          std::shared_ptr<H_out<edge_info>> const &rhs)
+network_butcher_kfinder::operator<(std::shared_ptr<H_out<edge_info>> const &lhs,
+                                   std::shared_ptr<H_out<edge_info>> const &rhs)
 {
   return *lhs < *rhs;
 };

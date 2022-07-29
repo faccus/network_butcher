@@ -36,22 +36,9 @@ public:
     WGraph<std::pair<std::size_t, std::shared_ptr<node_id_collection_type>>>;
 
 private:
+  using path_info = network_butcher_kfinder::path_info;
+
   network graph;
-
-  /// Compute the minimal connected graphs (with dependencies) containing every
-  /// node
-  /// \return returns the smallest connected sub-graph (with dependencies)
-  /// that connects the first node with the n-th node
-  [[nodiscard]] std::vector<Slice_Type>
-  compute_basic_routes() const;
-
-  /// Given a vector of Real_Partition, verify which ones applied to tester
-  /// return true. \param partitions The vector of input Real_Partition \param
-  /// tester The tester function \return True if the tester function returns
-  /// true for every Real_Partition
-  static bool
-  partition_checker(Real_Path const                                   &path,
-                    const std::function<bool(const Real_Partition &)> &tester);
 
 
   /// It will produce a linearized version of the current graph (with multiple
@@ -81,60 +68,6 @@ private:
     std::vector<memory_type> const &output_memory,
     std::vector<memory_type> const &params_memory) const;
 
-  /*
-  // WIP
-  memory_type
-  remove_unfeasible_paths(std::vector<Device> const      &devices,
-                          Memory_Constraint_Type          constraint_type,
-                          std::set<node_id_type> const   &ids,
-                          std::vector<memory_type> const &output_memory,
-                          std::vector<memory_type> const &params_memory) const
-  {
-    memory_type current_memory_res = 0, real_memory_res = 0;
-
-    if (constraint_type == Preload_Parameters)
-      {
-        current_memory_res = real_memory_res =
-          std::reduce(std::next(params_memory.begin(), *ids.cbegin()),
-                      std::next(params_memory.begin(), *ids.crbegin()));
-      }
-
-    std::map<node_id_type, std::set<node_id_type>> visited_ids;
-    auto const &dependencies = graph.get_dependencies();
-
-    for (auto const &id : ids)
-      {
-        auto const &node    = graph[id];
-        auto const &parents = dependencies[id].first;
-
-        for (auto const &parent : parents)
-          {
-            auto const it = visited_ids.find(parent);
-            if (it != visited_ids.cend())
-              {
-                it->second.insert(id);
-                if (it->second.size() == dependencies[parent].second.size())
-                  {
-                    current_memory_res -= output_memory[parent];
-                  }
-              }
-          }
-
-        if (constraint_type == Memory_Constraint_Type::Preload_Parameters)
-          {
-            real_memory_res = std::max(current_memory_res,
-                                       current_memory_res += output_memory[id]);
-          }
-        else if (constraint_type == Memory_Constraint_Type::Max)
-          {}
-
-        visited_ids[id] = std::set<node_id_type>();
-      }
-
-    return current_memory_res;
-  }
-
-  */
 
   /// Removes the "unfeasible" paths due to memory constraints
   /// \param devices The set of devices
@@ -168,6 +101,7 @@ private:
   get_network_slices(path_info const   &new_path,
                      new_network const &new_graph) const;
 
+
   /// It will produce the set of nodes associated to a given device for every
   /// new_path
   /// \param new_paths The collection of paths
@@ -178,6 +112,7 @@ private:
   get_network_slices(std::vector<path_info> const &new_paths,
                      new_network const            &new_graph) const;
 
+
   /// It will produce the set of nodes associated to a given device for every
   /// new_path with the associated path weight
   /// \param new_paths The collection of paths
@@ -187,6 +122,7 @@ private:
   [[nodiscard]] Weighted_Real_Paths
   get_weighted_network_slice(std::vector<path_info> const &new_paths,
                              new_network const            &new_graph) const;
+
 
   /// It will produce the set of nodes associated to a given device for every
   /// new_path with the associated path weight
@@ -208,6 +144,7 @@ public:
   explicit Butcher(network const &g)
     : graph(g){};
 
+
   /// Basic getter for graph
   /// \return The graph (const reference)
   network const &
@@ -215,6 +152,7 @@ public:
   {
     return graph;
   }
+
 
   /// Ref getter for graph
   /// \return Reference to the stored graph
@@ -224,13 +162,6 @@ public:
     return graph;
   }
 
-  /// Check if a given partition satisfies the memory constraints
-  /// \param real_path A real path
-  /// \param devices Collection of devices
-  /// \return True if the partition satisfies the memory constraint
-  bool
-  partition_memory_checker(Real_Path const                &real_path,
-                           std::vector<Device> const &devices);
 
   /// Computes the k shortest paths for the given graph
   /// \param transmission_weights The transmission weight function
@@ -243,53 +174,6 @@ public:
                               std::size_t)> const &transmission_weights,
     Parameters const                              &params) const;
 };
-
-template <class GraphType>
-std::vector<Slice_Type>
-Butcher<GraphType>::compute_basic_routes() const
-{
-  std::vector<Slice_Type> basic_routes;
-  basic_routes.reserve(graph.get_nodes().size());
-
-  {
-    Slice_Type tmp;
-    tmp.insert(0);
-    basic_routes.push_back(tmp);
-  }
-
-  for (int i = 1; i < graph.get_nodes().size(); ++i)
-  {
-    Slice_Type partial_res;
-    partial_res.insert(i);
-
-    const auto &input_nodes = graph.get_dependencies()[i].first;
-
-    // Construct the current basic_route the i (just add {i} to the basic
-    // routes of the parents).
-    for (auto &node : input_nodes)
-      partial_res.insert(basic_routes[node].begin(),
-                         basic_routes[node].end());
-    basic_routes.push_back(partial_res);
-  }
-
-  return basic_routes;
-}
-
-
-template <class GraphType>
-bool
-Butcher<GraphType>::partition_checker(
-  const Real_Path                                   &path,
-  const std::function<bool(const Real_Partition &)> &tester)
-{
-  std::vector<Slice_Type> res;
-
-  for (auto const &partition : path)
-    if (!tester(partition))
-      return false;
-
-  return true;
-}
 
 
 template <class GraphType>
@@ -953,62 +837,6 @@ Butcher<GraphType>::get_weighted_network_slice(
 
 
 template <class GraphType>
-bool
-Butcher<GraphType>::partition_memory_checker(const Real_Path &real_path,
-                                             const std::vector<Device> &devices)
-{
-  auto const nodes_memory_usage =
-    Computer_memory::compute_nodes_memory_usage_output(graph, true);
-
-  for (auto const &[model_id, nodes] : real_path)
-  {
-    memory_type memory = 0, branch_memory = 0, tmp_memory = 0;
-    std::map<node_id_type, std::size_t> node_occupancy;
-
-    for (auto const &node : nodes)
-    {
-      node_occupancy[node] = graph.get_dependencies()[node].second.size();
-      tmp_memory           = nodes_memory_usage[node];
-
-      for (auto const &ins : graph.get_dependencies()[node].first)
-      {
-        auto it = node_occupancy.find(ins);
-        it->second -= 1;
-        if (it->second == 0)
-          node_occupancy.erase(it);
-      }
-
-      if (node_occupancy.size() <= 1)
-      {
-        branch_memory = std::max(branch_memory, tmp_memory);
-        memory        = std::max(memory, branch_memory);
-        branch_memory = 0, tmp_memory = 0;
-      }
-      else
-      {
-        for (auto it = ++node_occupancy.crbegin();
-             it != node_occupancy.crend();
-             ++it)
-        {
-          tmp_memory += nodes_memory_usage[it->first];
-        }
-
-        branch_memory = std::max(branch_memory, tmp_memory);
-      }
-    }
-
-    branch_memory = std::max(branch_memory, tmp_memory);
-    memory        = std::max(memory, branch_memory);
-
-    if (memory > devices[model_id].maximum_memory)
-      return false;
-  }
-
-  return true;
-}
-
-
-template <class GraphType>
 Weighted_Real_Paths
 Butcher<GraphType>::compute_k_shortest_path(
   const std::function<weight_type(const node_id_type &,
@@ -1029,20 +857,22 @@ Butcher<GraphType>::compute_k_shortest_path(
 
   block_graph_weights(transmission_weights, new_graph);
 
-  std::unique_ptr<KFinder<new_network>> kFinder;
+  std::unique_ptr<network_butcher_kfinder::KFinder<new_network>> kFinder;
 
   switch (params.method)
-  {
-    case KSP_Method::Eppstein:
-      kFinder = std::make_unique<KFinder_Eppstein<new_network>>(new_graph);
-      break;
-    case KSP_Method::Lazy_Eppstein:
-      kFinder =
-        std::make_unique<KFinder_Lazy_Eppstein<new_network>>(new_graph);
-      break;
-    default:
-      return {};
-  }
+    {
+      case KSP_Method::Eppstein:
+        kFinder = std::make_unique<
+          network_butcher_kfinder::KFinder_Eppstein<new_network>>(new_graph);
+        break;
+      case KSP_Method::Lazy_Eppstein:
+        kFinder = std::make_unique<
+          network_butcher_kfinder::KFinder_Lazy_Eppstein<new_network>>(
+          new_graph);
+        break;
+      default:
+        return {};
+    }
 
   auto const res = kFinder->compute(params.K);
   return get_weighted_network_slice(res, new_graph);

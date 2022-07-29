@@ -11,22 +11,25 @@
 #include <utility>
 #include <vector>
 
-template <class T>
-class Heap
+namespace network_butcher_kfinder
 {
-public:
-  using container_type = std::set<T>;
+  template <class T>
+  class Heap
+  {
+  public:
+    using container_type = std::set<T>;
 
-  node_id_type   id;
-  container_type children;
+    node_id_type   id;
+    container_type children;
 
-  Heap() = default;
+    Heap() = default;
 
-  explicit Heap(node_id_type id, container_type children)
-    : id(id)
-    , children{std::move(children)}
-  {}
-};
+    explicit Heap(node_id_type id, container_type children)
+      : id(id)
+      , children{std::move(children)}
+    {}
+  };
+} // namespace network_butcher_kfinder
 
 
 #endif // NETWORK_BUTCHER_HEAP_H
