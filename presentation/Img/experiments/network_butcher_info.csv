@@ -1,0 +1,4 @@
+﻿Name;backward_connections;num_devices;K;Network import [ns];Weight import [ns];Butchering [ns];Export [ns]
+RFB_640_inferred;false;3;1000;11834,8;445,198;60270,1;2,68E+07
+MobileNet;false;2;1000 (actual 100);17611,8;639,706;4332,4;981519
+MobileNet;false;3;1000;18059,8;760;41282,7;1,47E+08

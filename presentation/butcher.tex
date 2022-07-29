@@ -22,15 +22,15 @@
     
     For this reason, we construct a second graph of type WGraph$<$std::set$<$node\_id\_type$>>$. Every node of this graph contains at least a node of the original graph. We insert in the same node of the new graph all the nodes of the original graph between which a partition cannot be formed.
     
-    \framebreak
-    
-    After this graph is constructed, extra nodes are added based on the number of devices: every node in the new graph should represent a specific collection of nodes in the original graph and a specific device. In this way, during the execution of the K shortest path algorithm, a path in the new graph will represent different partition elements of the network and the devices onto which they should be executed.
-    
         \begin{figure}[h]
         \centering
     \includegraphics[width=0.4\linewidth]{Img/butcher/basic_graph.png}
     \caption{A graph. The vertical lines represent the different possible ways of partitioning the graph}
     \end{figure}
+    
+    \framebreak
+    
+    After this graph is constructed, extra nodes are added based on the number of devices: every node in the new graph should represent a specific collection of nodes in the original graph and a specific device. In this way, during the execution of the K shortest path algorithm, a path in the new graph will represent different partition elements of the network and the devices onto which they should be executed.
     
     \framebreak
     
@@ -65,7 +65,9 @@
     
     If a node in the block graph corresponds to a single node in the original graph, we just measure the memory required by the input and output tensors. 
     
-    If the node corresponds to multiple node in the original graph, we estimate the maximum memory required overall by this "block". This estimate is done by computing the maximum input and output tensor dimensions and multiplying their sum by the number of tensors that, in the worst case, must be stored in memory.
+    If the node corresponds to multiple node in the original graph, we estimate the maximum memory required overall by this "block". 
+    
+    This estimate is done by computing the maximum input and output tensor dimensions and multiplying their sum by the number of tensors that, in the worst case, must be stored in memory.
 \end{frame}
 
 \begin{frame}{Import weights}
@@ -82,7 +84,7 @@
     
     This cost is related to the memory space of the tensor to be sent. Moreover, this depends on the type of connection between the devices. 
     
-    To simplify this process, we consider a transmission function that, based on the bandwidth parameters and the dimension of the tensor to be sent, will produce the related weight if communication between two devices has to occur.
+    To simplify this process, we consider a transmission function that, based on the bandwidth parameters and the dimension of the tensor to be transmitted, will produce the related weight.
 \end{frame}
 
 \begin{frame}[allowframebreaks]{Weight generation}

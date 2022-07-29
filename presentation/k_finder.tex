@@ -65,7 +65,7 @@
             \item For $k = 2$ to K:
             \begin{enumerate}
                 \item If $Q$ is empty, stop (no more paths exist); else, extract $S^k$, the element in $Q$ with the lowest score. Let $e$ be the last sidetrack of $S^k$.
-                \item Insert $S^k \cdot f$ in $Q$ with score $L(S^k) + \delta(f)$, where $f$ is the sidetrack $h(head(e))$ and $L(S^k)$ is the sum of all the sidetrack weights of all the sidetrack edges in $S^k$
+                \item Insert $S^k \cdot f$ in $Q$ with score $L(S^k) + \delta(f)$, where $f$ is the sidetrack $h(head(e))$ and $L(S^k)$ is the sum of the sidetrack weights of all the sidetrack edges in $S^k$
                 \item For each sidetrack $f$ such that $(e,f)$ is an arc in the graph $D(G)$, insert $prefix(S^k) \cdot f$ in $Q$ with score $L(S^k)-\delta(e)+\delta(f)$, where $prefix(S^k)$ is the sequence $S^k$ except its last sidetrack
             \end{enumerate}
         \end{enumerate}
