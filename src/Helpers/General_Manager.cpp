@@ -5,15 +5,13 @@
 
 std::function<weight_type(const node_id_type &, size_t, size_t)>
 General_Manager::generate_bandwidth_transmission_function(
-  const Parameters          &params,
+  const Parameters &params,
   const graph_type &graph)
 {
-  Computer_memory cm;
-  auto const      mbps = 1000. / 8;
+  auto const mbps = 1000. / 8;
 
   std::function<weight_type(node_id_type const &, std::size_t, std::size_t)>
     transmission_weights = [&params,
-                            &cm,
                             &graph,
                             mbps](node_id_type const &node_id,
                                   std::size_t         first_device,
@@ -24,8 +22,9 @@ General_Manager::generate_bandwidth_transmission_function(
         }
       else
         {
-          auto const mem = cm.compute_memory_usage_output(graph[node_id]);
-          auto const it  = params.bandwidth.find({first_device, second_device});
+          auto const mem = network_butcher_computer::Computer_memory::
+            compute_memory_usage_output(graph[node_id]);
+          auto const it = params.bandwidth.find({first_device, second_device});
 
           return mem / (it->second * mbps);
         }

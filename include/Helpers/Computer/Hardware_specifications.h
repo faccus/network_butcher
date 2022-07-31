@@ -11,28 +11,31 @@
 #include <string>
 #include <unordered_map>
 
-class Hardware_specifications
+namespace network_butcher_computer
 {
-  hardware_id_type id;
+  class Hardware_specifications
+  {
+    hardware_id_type id;
 
 
-  std::unordered_map<operation_id_type, std::pair<time_type, time_type>>
-    regression_coefficients;
+    std::unordered_map<operation_id_type, std::pair<time_type, time_type>>
+      regression_coefficients;
 
-public:
-  explicit Hardware_specifications(hardware_id_type);
-
-
-  [[nodiscard]] const std::string &
-  getName() const;
+  public:
+    explicit Hardware_specifications(hardware_id_type);
 
 
-  [[nodiscard]] std::pair<time_type, time_type>
-    get_regression_coefficients(operation_id_type) const;
+    [[nodiscard]] const std::string &
+    getName() const;
 
 
-  void set_regression_coefficient(operation_id_type,
-                                  std::pair<time_type, time_type>);
-};
+    [[nodiscard]] std::pair<time_type, time_type>
+      get_regression_coefficients(operation_id_type) const;
+
+
+    void set_regression_coefficient(operation_id_type,
+                                    std::pair<time_type, time_type>);
+  };
+} // namespace network_butcher_computer
 
 #endif // NETWORK_BUTCHER_HARDWARE_SPECIFICATIONS_H

@@ -6,22 +6,25 @@
 
 #include <utility>
 
-Dense_tensor::Dense_tensor(type_info_id_type       in_type_id,
-                           std::vector<shape_type> in_shape,
-                           bool                    given,
-                           bool constant)
+
+network_butcher_types::Dense_tensor::Dense_tensor(
+  type_info_id_type       in_type_id,
+  std::vector<shape_type> in_shape,
+  bool                    given,
+  bool                    constant)
   : Type_info()
   , type_id(in_type_id)
   , shape(std::move(in_shape))
 {
-  t_initialized = given;
+  t_initialized  = given;
   this->constant = constant;
 }
 
 
-Dense_tensor::Dense_tensor(const onnx::ValueInfoProto &info,
-                           bool                        given,
-                           bool                        constant)
+network_butcher_types::Dense_tensor::Dense_tensor(
+  const onnx::ValueInfoProto &info,
+  bool                        given,
+  bool                        constant)
 {
   const auto &type = info.type();
   name             = info.name();
@@ -31,25 +34,26 @@ Dense_tensor::Dense_tensor(const onnx::ValueInfoProto &info,
       type_id              = type.tensor_type().elem_type();
       const auto &in_shape = type.tensor_type().shape();
 
-      for (int i = 0; i < in_shape.dim_size(); ++i) {
+      for (int i = 0; i < in_shape.dim_size(); ++i)
+        {
           auto const &tm = in_shape.dim(i);
 
-          if(!tm.has_dim_value())
+          if (!tm.has_dim_value())
             shape.push_back(1);
           else
             shape.push_back(tm.dim_value());
         }
     }
 
-  t_initialized = given;
+  t_initialized  = given;
   this->constant = constant;
 }
 
-Dense_tensor::Dense_tensor(const onnx::TensorProto &info,
-                           bool                        given,
-                           bool                        constant)
+network_butcher_types::Dense_tensor::Dense_tensor(const onnx::TensorProto &info,
+                                                  bool given,
+                                                  bool constant)
 {
-  name             = info.name();
+  name = info.name();
 
   if (info.IsInitialized())
     {
@@ -60,12 +64,12 @@ Dense_tensor::Dense_tensor(const onnx::TensorProto &info,
         shape.push_back(in_shape[i]);
     }
 
-  t_initialized = given;
+  t_initialized  = given;
   this->constant = constant;
 }
 
 memory_type
-Dense_tensor::compute_memory_usage() const
+network_butcher_types::Dense_tensor::compute_memory_usage() const
 {
   memory_type num_entries = 1;
   for (auto &e : shape)

@@ -21,6 +21,9 @@ PrintInputOutput(const onnx::ModelProto &);
 
 namespace butcher_test_namespace
 {
+  using namespace network_butcher_computer;
+  using namespace network_butcher_types;
+
   using type_weight = double;
   using type_collection_weights =
     std::map<std::pair<node_id_type, node_id_type>, type_weight>;

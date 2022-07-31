@@ -3,19 +3,20 @@
 //
 #include "../../../include/Helpers/Computer/Hardware_specifications.h"
 
-Hardware_specifications::Hardware_specifications(hardware_id_type in_id)
+network_butcher_computer::Hardware_specifications::Hardware_specifications(
+  hardware_id_type in_id)
   : id(in_id)
 {}
 
 const std::string &
-Hardware_specifications::getName() const
+network_butcher_computer::Hardware_specifications::getName() const
 {
   return id;
 }
 
 
 std::pair<time_type, time_type>
-Hardware_specifications::get_regression_coefficients(
+network_butcher_computer::Hardware_specifications::get_regression_coefficients(
   operation_id_type operation_id) const
 {
   auto const it = regression_coefficients.find(operation_id);
@@ -27,7 +28,7 @@ Hardware_specifications::get_regression_coefficients(
 
 
 void
-Hardware_specifications::set_regression_coefficient(
+network_butcher_computer::Hardware_specifications::set_regression_coefficient(
   operation_id_type               op_id,
   std::pair<time_type, time_type> coeff)
 {

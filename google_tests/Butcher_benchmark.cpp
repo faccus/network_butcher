@@ -14,6 +14,8 @@
 
 namespace butcher_benchmark_test_namespace
 {
+  using namespace network_butcher_computer;
+  using namespace network_butcher_types;
 
   using type_weight = double;
   using type_collection_weights =

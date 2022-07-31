@@ -32,8 +32,8 @@ class Butcher
 {
 public:
   using network     = GraphType;
-  using new_network =
-    WGraph<std::pair<std::size_t, std::shared_ptr<node_id_collection_type>>>;
+  using new_network = network_butcher_types::WGraph<
+    std::pair<std::size_t, std::shared_ptr<node_id_collection_type>>>;
 
 private:
   using path_info = network_butcher_kfinder::path_info;
@@ -97,7 +97,7 @@ private:
   /// \param new_path The path
   /// \param new_graph The linearized graph
   /// \return The "real" path
-  [[nodiscard]] Real_Path
+  [[nodiscard]] network_butcher_types::Real_Path
   get_network_slices(path_info const   &new_path,
                      new_network const &new_graph) const;
 
@@ -108,7 +108,7 @@ private:
   /// \param new_graph The
   /// linearized graph
   /// \return The "real" path
-  [[nodiscard]] std::vector<Real_Path>
+  [[nodiscard]] std::vector<network_butcher_types::Real_Path>
   get_network_slices(std::vector<path_info> const &new_paths,
                      new_network const            &new_graph) const;
 
@@ -119,7 +119,7 @@ private:
   /// \param new_graph The
   /// linearized graph
   /// \return The "real" path
-  [[nodiscard]] Weighted_Real_Paths
+  [[nodiscard]] network_butcher_types::Weighted_Real_Paths
   get_weighted_network_slice(std::vector<path_info> const &new_paths,
                              new_network const            &new_graph) const;
 
@@ -129,7 +129,7 @@ private:
   /// \param new_paths The collection of paths
   /// \param network_slice The network slices
   /// \return The "real" weighted paths
-  [[nodiscard]] Weighted_Real_Paths
+  [[nodiscard]] network_butcher_types::Weighted_Real_Paths
   get_weighted_network_slice(
     std::vector<path_info> const &new_paths,
     std::vector<std::vector<std::pair<size_t, std::set<node_id_type>>>> const
@@ -167,7 +167,7 @@ public:
   /// \param transmission_weights The transmission weight function
   /// \param params The set of parameters
   /// \return The set of "best" paths
-  Weighted_Real_Paths
+  network_butcher_types::Weighted_Real_Paths
   compute_k_shortest_path(
     std::function<weight_type(node_id_type const &,
                               std::size_t,
@@ -202,7 +202,7 @@ Butcher<GraphType>::block_graph(bool backward_connections_allowed) const
   // Add the source node with content equal to the id of the first node in the
   // original graph
   new_nodes.reserve(old_nodes.size());
-  new_nodes.emplace_back(new_network::Node_Content_Type{0, nullptr});
+  new_nodes.emplace_back(new_network::Node_Internal_Type{0, nullptr});
   new_nodes.back().content.second =
     std::make_shared<node_id_collection_type>(node_id_collection_type{0});
 
@@ -220,7 +220,7 @@ Butcher<GraphType>::block_graph(bool backward_connections_allowed) const
       // Add new node
       if (local_counter <= 0 && counter == 0)
         {
-          new_nodes.emplace_back(new_network::Node_Content_Type{0, nullptr});
+          new_nodes.emplace_back(new_network::Node_Internal_Type{0, nullptr});
           new_nodes.back().content.second =
             std::make_shared<node_id_collection_type>(
               node_id_collection_type{node.get_id()});
@@ -232,14 +232,14 @@ Butcher<GraphType>::block_graph(bool backward_connections_allowed) const
       // Add new node and add master node for next steps
       else if (local_counter > 0 && counter == 0)
         {
-          new_nodes.emplace_back(new_network::Node_Content_Type{0, nullptr});
+          new_nodes.emplace_back(new_network::Node_Internal_Type{0, nullptr});
           new_nodes.back().content.second =
             std::make_shared<node_id_collection_type>(
               node_id_collection_type{node.get_id()});
 
           old_to_new[node.get_id()] = id;
 
-          new_nodes.emplace_back(new_network::Node_Content_Type{0, nullptr});
+          new_nodes.emplace_back(new_network::Node_Internal_Type{0, nullptr});
           new_nodes.back().content.second =
             std::make_shared<node_id_collection_type>();
           old_to_new[++id];
@@ -267,7 +267,7 @@ Butcher<GraphType>::block_graph(bool backward_connections_allowed) const
           if (counter == 0)
             {
               new_nodes.emplace_back(
-                new_network::Node_Content_Type{0, nullptr});
+                new_network::Node_Internal_Type{0, nullptr});
               old_to_new[node.get_id()] = ++id;
               new_nodes.back().content.second =
                 std::make_shared<node_id_collection_type>(
@@ -277,7 +277,7 @@ Butcher<GraphType>::block_graph(bool backward_connections_allowed) const
               if (local_counter >= 0)
                 {
                   new_nodes.emplace_back(
-                    new_network::Node_Content_Type{0, nullptr});
+                    new_network::Node_Internal_Type{0, nullptr});
                   new_nodes.back().content.second =
                     std::make_shared<node_id_collection_type>();
                   old_to_new[++id];
@@ -318,7 +318,7 @@ Butcher<GraphType>::block_graph(bool backward_connections_allowed) const
   for (std::size_t k = 1; k < num_of_devices; ++k)
     for (std::size_t i = 1; i < basic_size - 1; ++i)
       {
-        new_nodes.emplace_back(new_network::Node_Content_Type{k, nullptr});
+        new_nodes.emplace_back(new_network::Node_Internal_Type{k, nullptr});
         ++id;
       }
 
@@ -332,7 +332,7 @@ Butcher<GraphType>::block_graph(bool backward_connections_allowed) const
     {
       for (std::size_t k = 1; k < num_of_devices; ++k)
         new_nodes[1 + (i - 1) * num_of_devices + k].content =
-          new_network::Node_Content_Type{
+          new_network::Node_Internal_Type{
             k, new_nodes[1 + (i - 1) * num_of_devices].content.second};
     }
 
@@ -510,12 +510,14 @@ Butcher<GraphType>::remove_unfeasible_paths(
 
   std::set<node_id_type> to_remove;
 
+
   auto const input_memory =
-    Computer_memory::compute_nodes_memory_usage_input(graph);
-  auto const output_memory =
-    Computer_memory::compute_nodes_memory_usage_output(graph);
-  auto const params_memory =
-    Computer_memory::compute_nodes_memory_usage_parameters(graph);
+    network_butcher_computer::Computer_memory::compute_nodes_memory_usage_input(
+      graph);
+  auto const output_memory = network_butcher_computer::Computer_memory::
+    compute_nodes_memory_usage_output(graph);
+  auto const params_memory = network_butcher_computer::Computer_memory::
+    compute_nodes_memory_usage_parameters(graph);
 
   std::vector<bool> available(devices.size(), true);
   memory_type       memory_graph = 0;
@@ -753,12 +755,12 @@ Butcher<GraphType>::block_graph_weights(
 
 
 template <class GraphType>
-Real_Path
+network_butcher_types::Real_Path
 Butcher<GraphType>::get_network_slices(
   const path_info            &new_path,
   const Butcher::new_network &new_graph) const
 {
-  Real_Path   res;
+  network_butcher_types::Real_Path   res;
   std::size_t current_model_device = 0;
 
   res.emplace_back(current_model_device, std::set<node_id_type>());
@@ -786,12 +788,12 @@ Butcher<GraphType>::get_network_slices(
 
 
 template <class GraphType>
-std::vector<Real_Path>
+std::vector<network_butcher_types::Real_Path>
 Butcher<GraphType>::get_network_slices(
   const std::vector<path_info> &new_paths,
   const Butcher::new_network   &new_graph) const
 {
-  std::vector<Real_Path> res(new_paths.size());
+  std::vector<network_butcher_types::Real_Path> res(new_paths.size());
 
   std::transform(new_paths.begin(),
                  new_paths.end(),
@@ -805,13 +807,13 @@ Butcher<GraphType>::get_network_slices(
 
 
 template <class GraphType>
-Weighted_Real_Paths
+network_butcher_types::Weighted_Real_Paths
 Butcher<GraphType>::get_weighted_network_slice(
   const std::vector<path_info> &new_paths,
   const Butcher::new_network   &new_graph) const
 {
   auto network_slice = get_network_slices(new_paths, new_graph);
-  Weighted_Real_Paths final_res;
+  network_butcher_types::Weighted_Real_Paths final_res;
 
   final_res.reserve(network_slice.size());
 
@@ -822,13 +824,13 @@ Butcher<GraphType>::get_weighted_network_slice(
 
 
 template <class GraphType>
-Weighted_Real_Paths
+network_butcher_types::Weighted_Real_Paths
 Butcher<GraphType>::get_weighted_network_slice(
   const std::vector<path_info> &new_paths,
   const std::vector<std::vector<std::pair<size_t, std::set<node_id_type>>>>
     &network_slice) const
 {
-  Weighted_Real_Paths final_res;
+  network_butcher_types::Weighted_Real_Paths final_res;
   final_res.reserve(network_slice.size());
   for (std::size_t i = 0; i < network_slice.size(); ++i)
     final_res.emplace_back(new_paths[i].length, network_slice[i]);
@@ -837,7 +839,7 @@ Butcher<GraphType>::get_weighted_network_slice(
 
 
 template <class GraphType>
-Weighted_Real_Paths
+network_butcher_types::Weighted_Real_Paths
 Butcher<GraphType>::compute_k_shortest_path(
   const std::function<weight_type(const node_id_type &,
                                   std::size_t,

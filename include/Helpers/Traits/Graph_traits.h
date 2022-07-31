@@ -9,6 +9,6 @@
 #include "../../Network/WGraph.h"
 
 // using layer_type = Graph<node_type>;
-using graph_type = MWGraph<graph_input_type>;
+using graph_type = network_butcher_types::MWGraph<graph_input_type>;
 
 #endif // NETWORK_BUTCHER_GRAPH_TRAITS_H

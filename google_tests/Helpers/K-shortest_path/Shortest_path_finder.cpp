@@ -10,13 +10,17 @@
 
 namespace KspTestNamespace
 {
+  using namespace network_butcher_types;
+  using namespace network_butcher_kfinder;
+
   using basic_type  = int;
   using type_weight = double;
 
   using Input         = TestMemoryUsage<basic_type>;
-  using Content_input = Content<Input>;
-  using Node_type     = Node<Content<Input>>;
-  using Graph_type = WGraph<Content_input>;
+  using Content_input = network_butcher_types::Content<Input>;
+  using Node_type =
+    network_butcher_types::Node<network_butcher_types::Content<Input>>;
+  using Graph_type = network_butcher_types::WGraph<Content_input>;
 
   using weights_collection_type =
     std::map<std::pair<node_id_type, node_id_type>, type_weight>;
@@ -32,7 +36,7 @@ namespace KspTestNamespace
   TEST(KspTests, DijkstraSourceSink)
   {
     auto const graph = basic_graph();
-    auto       res   = network_butcher_kfinder::Shortest_path_finder<Graph_type>::dijkstra(graph);
+    auto       res   = Shortest_path_finder<Graph_type>::dijkstra(graph);
 
     std::vector<node_id_type> theoretical_res = {0, 2, 0, 1, 3, 2, 5};
 
@@ -43,7 +47,7 @@ namespace KspTestNamespace
   {
     auto const graph = basic_graph();
 
-    auto res = network_butcher_kfinder::Shortest_path_finder<Graph_type>::dijkstra(graph, 6, true);
+    auto res = Shortest_path_finder<Graph_type>::dijkstra(graph, 6, true);
 
     std::vector<node_id_type> theoretical_res = {2, 3, 5, 4, 5, 6, 6};
 
@@ -54,7 +58,7 @@ namespace KspTestNamespace
   TEST(KspTests, EppsteinOriginalNetwork)
   {
     auto const       graph = eppstein_graph();
-    network_butcher_kfinder::KFinder_Eppstein kfinder(graph);
+    KFinder_Eppstein kfinder(graph);
 
     int k = 100; // Up to 10
 
@@ -108,23 +112,25 @@ namespace KspTestNamespace
   }
 
 
-  WGraph<Content_input>
+  network_butcher_types::WGraph<Content_input>
   basic_graph()
   {
+    using content_in = network_butcher_types::Content<Input>;
+
     std::vector<Node_type> nodes;
 
-    nodes.emplace_back(Content<Input>(io_collection_type<Input>{},
-                                      io_collection_type<Input>{{"X0", 0}}));
+    nodes.emplace_back(content_in(io_collection_type<Input>{},
+                                  io_collection_type<Input>{{"X0", 0}}));
     nodes.emplace_back(
-      Content<Input>({{"X0", 0}, {"X2", 2}, {"X4", 4}}, {{"X1", 1}}));
-    nodes.emplace_back(Content<Input>({{"X0", 0}, {"X3", 3}}, {{"X2", {2}}}));
-    nodes.emplace_back(Content<Input>({{"X1", 1}, {"X5", 5}}, {{"X3", 3}}));
+      content_in({{"X0", 0}, {"X2", 2}, {"X4", 4}}, {{"X1", 1}}));
+    nodes.emplace_back(content_in({{"X0", 0}, {"X3", 3}}, {{"X2", {2}}}));
+    nodes.emplace_back(content_in({{"X1", 1}, {"X5", 5}}, {{"X3", 3}}));
     nodes.emplace_back(
-      Content<Input>({{"X2", 2}, {"X3", 3}, {"X6", 6}}, {{"X4", 4}}));
-    nodes.emplace_back(Content<Input>({{"X2", 2}, {"X4", 4}}, {{"X5", 5}}));
-    nodes.emplace_back(Content<Input>({{"X5", 5}}, {{"X6", 6}}));
+      content_in({{"X2", 2}, {"X3", 3}, {"X6", 6}}, {{"X4", 4}}));
+    nodes.emplace_back(content_in({{"X2", 2}, {"X4", 4}}, {{"X5", 5}}));
+    nodes.emplace_back(content_in({{"X5", 5}}, {{"X6", 6}}));
 
-    WGraph<Content_input> graph(nodes);
+    network_butcher_types::WGraph<Content_input> graph(nodes);
 
     graph.set_weigth({0, 1}, 4);
     graph.set_weigth({0, 2}, 1);
@@ -144,36 +150,35 @@ namespace KspTestNamespace
   }
 
 
-  WGraph<Content_input>
+  network_butcher_types::WGraph<Content_input>
   eppstein_graph()
   {
+    using content_in = network_butcher_types::Content<Input>;
     std::vector<Node_type> nodes;
 
-    nodes.emplace_back(Content<Input>({}, {{"X0", 0}}));
+    nodes.emplace_back(content_in({}, {{"X0", 0}}));
 
     for (int i = 1; i < 12; ++i)
       {
         if (i < 4)
-          nodes.emplace_back(
-            Content<Input>({{"X" + std::to_string(i - 1), i - 1}},
-                           {{"X" + std::to_string(i), i}}));
+          nodes.emplace_back(content_in({{"X" + std::to_string(i - 1), i - 1}},
+                                        {{"X" + std::to_string(i), i}}));
         else if (i == 4)
-          nodes.emplace_back(Content<Input>({{"X0", 0}}, {{"X4", 4}}));
+          nodes.emplace_back(content_in({{"X0", 0}}, {{"X4", 4}}));
         else if (4 < i && i < 8)
-          nodes.emplace_back(
-            Content<Input>({{"X" + std::to_string(i % 4), i % 4},
-                            {"X" + std::to_string(i - 1), i - 1}},
-                           {{"X" + std::to_string(i), i}}));
+          nodes.emplace_back(content_in({{"X" + std::to_string(i % 4), i % 4},
+                                         {"X" + std::to_string(i - 1), i - 1}},
+                                        {{"X" + std::to_string(i), i}}));
         else if (i == 8)
-          nodes.emplace_back(Content<Input>({{"X4", 4}}, {{"X8", 8}}));
+          nodes.emplace_back(content_in({{"X4", 4}}, {{"X8", 8}}));
         else if (i > 8)
           nodes.emplace_back(
-            Content<Input>({{"X" + std::to_string(i % 4 + 4), i % 4 + 4},
-                            {"X" + std::to_string(i - 1), i - 1}},
-                           {{"X" + std::to_string(i), i}}));
+            content_in({{"X" + std::to_string(i % 4 + 4), i % 4 + 4},
+                        {"X" + std::to_string(i - 1), i - 1}},
+                       {{"X" + std::to_string(i), i}}));
       }
 
-    WGraph<Content_input> graph(std::move(nodes));
+    network_butcher_types::WGraph<Content_input> graph(std::move(nodes));
 
     graph.set_weigth({0, 1}, 2);
     graph.set_weigth({1, 2}, 20);

@@ -7,6 +7,8 @@
 #include "../TestClass.h"
 #include <gtest/gtest.h>
 
+using namespace network_butcher_types;
+
 TEST(GraphTests, Constructor)
 {
   using Input = graph_input_type;

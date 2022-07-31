@@ -4,13 +4,13 @@
 
 #include "../../../include/Helpers/Computer/Computer_time.h"
 
-Computer_time::Computer_time()
+network_butcher_computer::Computer_time::Computer_time()
 {
   setup();
 }
 
 void
-Computer_time::setup() const
+network_butcher_computer::Computer_time::setup() const
 {
   static bool initialized = false;
   if (!initialized)
@@ -113,7 +113,7 @@ Computer_time::setup() const
             auto const &out_shape    = outs.begin()->second->get_shape();
             auto const &kernel_shape = kernel_iterator->second;
 
-            std::size_t const C_out         = out_shape[1];
+            std::size_t const C_out = out_shape[1];
             std::size_t const H_f_times_W_f =
               kernel_shape[0].get_int() * kernel_shape[1].get_int();
             res = forward ? H_f_times_W_f * C_out : (H_f_times_W_f + 1) * C_out;
@@ -141,8 +141,9 @@ Computer_time::setup() const
 }
 
 time_type
-Computer_time::compute_operation_time(const node_type               &node,
-                                      const Hardware_specifications &hw)
+network_butcher_computer::Computer_time::compute_operation_time(
+  const node_type               &node,
+  const Hardware_specifications &hw)
 {
   time_type   res          = .0;
   auto const &operation_id = node.content.get_operation_id();

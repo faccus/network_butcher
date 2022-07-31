@@ -12,7 +12,7 @@
 #include "../Types/Type_info.h"
 
 
-using type_info_pointer = std::shared_ptr<Type_info>;
+using type_info_pointer = std::shared_ptr<network_butcher_types::Type_info>;
 
 template <class T = type_info_pointer>
 using io_collection_type = std::map<std::string, T>;

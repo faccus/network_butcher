@@ -12,6 +12,9 @@
 
 namespace ComputerMemoryTests
 {
+  using namespace network_butcher_types;
+  using namespace network_butcher_computer;
+
   using basic_type = int;
   using Input      = TestMemoryUsage<basic_type>;
   using IO_collection = io_collection_type<Input>;
@@ -100,6 +103,9 @@ namespace ComputerMemoryTests
 
 namespace ComputerTimeTests
 {
+  using namespace network_butcher_computer;
+  using namespace network_butcher_types;
+
   MWGraph<graph_input_type>
   basic_graph();
 

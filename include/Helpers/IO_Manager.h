@@ -177,7 +177,7 @@ public:
   template <class Graph>
   static std::vector<std::pair<onnx::ModelProto, std::size_t>>
   reconstruct_model(
-    Real_Path const                            &partitions,
+    network_butcher_types::Real_Path const                            &partitions,
     onnx::ModelProto const                     &original_model,
     Graph const                                &graph,
     std::map<node_id_type, node_id_type> const &link_id_nodeproto);
@@ -196,13 +196,13 @@ public:
     const graph_type                           &graph,
     const onnx::ModelProto                     &model,
     std::map<node_id_type, node_id_type> const &link_id_nodeproto,
-    const Weighted_Real_Paths                  &paths);
+    const network_butcher_types::Weighted_Real_Paths                  &paths);
 };
 
 template <class Graph>
 std::vector<std::pair<onnx::ModelProto, std::size_t>>
 IO_Manager::reconstruct_model(
-  Real_Path const                      &partitions,
+  network_butcher_types::Real_Path const                      &partitions,
   onnx::ModelProto const               &original_model,
   Graph const                          &graph,
   std::map<node_id_type, node_id_type> const &link_id_nodeproto)

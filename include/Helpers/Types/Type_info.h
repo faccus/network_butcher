@@ -11,55 +11,59 @@
 #include "../Traits/Hardware_traits.h"
 #include "../Traits/Type_info_traits.h"
 
-/// Generic type contained in a onnx model (only type info, no values are
-/// actually stored)
-class Type_info
+
+namespace network_butcher_types
 {
-protected:
-  /// Name of the type
-  std::string name;
-
-  /// Is the value of this type given by the network?
-  bool t_initialized;
-  bool constant;
-
-public:
-  /// Get the name of the type
-  /// \return The name
-  std::string
-  get_name()
+  /// Generic type contained in a onnx model (only type info, no values are
+  /// actually stored)
+  class Type_info
   {
-    return name;
-  }
+  protected:
+    /// Name of the type
+    std::string name;
 
-  /// Get if the value of this type is given by the network
-  /// \return True if it has been already initialized
-  bool
-  initialized()
-  {
-    return t_initialized;
-  }
+    /// Is the value of this type given by the network?
+    bool t_initialized;
+    bool constant;
 
-  void
-  set_initialized(bool const &val)
-  {
-    t_initialized = val;
-  }
+  public:
+    /// Get the name of the type
+    /// \return The name
+    std::string
+    get_name()
+    {
+      return name;
+    }
 
-  Type_info() = default;
+    /// Get if the value of this type is given by the network
+    /// \return True if it has been already initialized
+    bool
+    initialized()
+    {
+      return t_initialized;
+    }
 
-  /// Virtual method to compute the total memory of the type
-  /// \return Memory usage of the associated type
-  virtual memory_type
-  compute_memory_usage() const = 0;
+    void
+    set_initialized(bool const &val)
+    {
+      t_initialized = val;
+    }
 
-  /// Basic getter for shape
-  /// \return The shape
-  virtual std::vector<shape_type> const &
-  get_shape() const = 0;
+    Type_info() = default;
 
-  /// Default deconstructor
-  virtual ~Type_info() = default;
-};
+    /// Virtual method to compute the total memory of the type
+    /// \return Memory usage of the associated type
+    virtual memory_type
+    compute_memory_usage() const = 0;
+
+    /// Basic getter for shape
+    /// \return The shape
+    virtual std::vector<shape_type> const &
+    get_shape() const = 0;
+
+    /// Default deconstructor
+    virtual ~Type_info() = default;
+  };
+} // namespace network_butcher_types
 
 #endif // NETWORK_BUTCHER_TYPE_INFO_H
