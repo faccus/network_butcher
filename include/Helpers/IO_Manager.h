@@ -6,7 +6,7 @@
 #define NETWORK_BUTCHER_IO_MANAGER_H
 
 #include "Traits/Graph_traits.h"
-#include "Parameters.h"
+#include "Types/Parameters.h"
 #include "../Butcher.h"
 
 #include "APSC/GetPot"

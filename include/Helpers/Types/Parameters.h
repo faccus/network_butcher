@@ -5,7 +5,7 @@
 #ifndef NETWORK_BUTCHER_PARAMETERS_H
 #define NETWORK_BUTCHER_PARAMETERS_H
 
-#include "Traits/Graph_traits.h"
+#include "../Traits/Graph_traits.h"
 
 /// Enumerator for the weight import modes
 enum Weight_Import_Mode {

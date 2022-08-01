@@ -22,7 +22,7 @@
 
 #include "Helpers/Types/Type_info.h"
 
-#include "Helpers/Parameters.h"
+#include "Helpers/Types/Parameters.h"
 #include "Helpers/Types/Paths.h"
 #include "Helpers/Utilities.h"
 
