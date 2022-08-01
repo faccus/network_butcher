@@ -204,7 +204,13 @@ namespace network_butcher_kfinder
       };
 
     return base::general_algo_eppstein(
-      K, dij_res, sidetrack_distances_res, h_g, h_out, true, fun);
+      K,
+      dij_res,
+      sidetrack_distances_res,
+      h_g,
+      h_out,
+      typename base::callback_function_helper_ptr_eppstein(
+        new typename base::callback_function_helper_eppstein(std::move(fun))));
   }
 
   template <class Graph_type>

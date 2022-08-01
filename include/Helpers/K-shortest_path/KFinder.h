@@ -23,6 +23,9 @@ namespace network_butcher_kfinder
                          std::vector<node_id_type> const &,
                          node_id_type)>;
 
+    using callback_function_helper_ptr_eppstein =
+      std::unique_ptr<callback_function_helper_eppstein>;
+
     /// It extracts the first sidetrack associated to the given node
     /// \param j The index of the node
     /// \param h_g The h_g map
@@ -80,9 +83,7 @@ namespace network_butcher_kfinder
       weights_collection_type const           &sidetrack_distances_res,
       H_g_collection                          &h_g,
       H_out_collection                        &h_out,
-      bool const                              &callback_fun_activation = false,
-      callback_function_helper_eppstein const &callback_fun =
-        callback_function_helper_eppstein()) const;
+      callback_function_helper_ptr_eppstein const &callback_fun_ptr = nullptr) const;
 
 
   public:
@@ -268,8 +269,7 @@ namespace network_butcher_kfinder
     const weights_collection_type                    &sidetrack_distances_res,
     H_g_collection                                   &h_g,
     H_out_collection                                 &h_out,
-    const bool                                       &callback_fun_activation,
-    const KFinder::callback_function_helper_eppstein &callback_fun) const
+    const KFinder::callback_function_helper_ptr_eppstein &callback_fun_ptr) const
   {
     auto const &successors = dij_res.first;
 
@@ -315,8 +315,8 @@ namespace network_butcher_kfinder
             continue;
           }
 
-        if (callback_fun_activation)
-          callback_fun(
+        if (callback_fun_ptr != nullptr)
+          (*callback_fun_ptr)(
             h_g, h_out, sidetrack_distances_res, successors, e_edge.second);
 
         auto const f_res = extrack_first_sidetrack_edge(e_edge.second, h_g);
