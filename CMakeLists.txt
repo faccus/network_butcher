@@ -8,6 +8,9 @@ set(CMAKE_CXX_STANDARD 20)
 option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
 message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
 
+option(USE_YAML_CPP "Use yaml-cpp" ON)
+message(STATUS "It will use the yaml-cpp library to read yaml files: " ${USE_YAML_CPP})
+
 
 option(BUILD_DOC "Build documentation" OFF)
 message(STATUS "Build documentation: ${BUILD_DOC}")
@@ -30,13 +33,14 @@ add_subdirectory(cmake)
 add_subdirectory(include)
 add_subdirectory(src)
 
-add_subdirectory(google_tests)
 
 add_executable(network_butcher src/main.cpp ${BASE_SOURCE} ${BASE_HEADER})
 
 target_link_libraries(network_butcher  ${RUN_LIBRARIES_LOCATION})
 
 if( BUILD_TESTS )
+    add_subdirectory(google_tests)
+
     if( BUILD_BENCHMARK )
         set(FINAL_TESTS_SOURCE ${TESTS_SOURCE} ${BENCHMARK_TESTS_SOURCE})
 

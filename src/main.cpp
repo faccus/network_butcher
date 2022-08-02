@@ -1,3 +1,4 @@
+/*
 #include "../include/Helpers/APSC/GetPot"
 #include "../include/Helpers/General_Manager.h"
 
@@ -9,5 +10,17 @@ main(int argc, char** argv)
 
   General_Manager::boot(config_path, true);
 
+  return 0;
+}
+*/
+
+#include "yaml-cpp/yaml.h"
+
+int main()
+{
+  YAML::Emitter out;
+  out << "Hello, World!";
+
+  std::cout << "Here's the output YAML:\n" << out.c_str(); // prints "Hello, World!"
   return 0;
 }
