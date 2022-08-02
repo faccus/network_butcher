@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD 20)
 option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
 message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
 
-option(USE_YAML_CPP "Use yaml-cpp" ON)
+option(USE_YAML_CPP "Use yaml-cpp" OFF)
 message(STATUS "It will use the yaml-cpp library to read yaml files: " ${USE_YAML_CPP})
 
 
