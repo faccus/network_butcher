@@ -4,20 +4,23 @@ if( BUILD_PROTOBUF_SOURCE )
     set ( Protobuf_USE_STATIC_LIBS ON )
 
     FetchContent_Declare(
-            protobuf
-            URL https://github.com/protocolbuffers/protobuf/releases/download/v21.4/protobuf-cpp-3.21.4.zip
+            Protobuf
+            URL https://github.com/protocolbuffers/protobuf/releases/download/v3.20.1/protobuf-cpp-3.20.1.zip
+            #SOURCE_SUBDIR cmake
+            OVERRIDE_FIND_PACKAGE
     )
     option(protobuf_BUILD_TESTS OFF)
     option(protobuf_BUILD_PROTOC_BINARIES OFF)
-    FetchContent_MakeAvailable(protobuf)
+endif()
 
-    set(PROTOBUF_LIBRARY_LOCATION protobuf::libprotobuf)
-else()
-    find_package(Protobuf REQUIRED)
-    set(PROTOBUF_LIBRARY_LOCATION ${Protobuf_LIBRARIES})
+find_package(Protobuf REQUIRED)
+set(PROTOBUF_LIBRARY_LOCATION ${Protobuf_LIBRARIES})
 
-    message(STATUS "Found protobuf version ${Protobuf_VERSION}")
-endif ()
+message(STATUS "Found protobuf version ${Protobuf_VERSION}")
+
+set(PROTOBUF_LIBRARY_LOCATION ${Protobuf_LIBRARY})
+include_directories(${Protobuf_INCLUDE_DIR})
+
 
 if( USE_YAML_CPP )
 
