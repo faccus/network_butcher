@@ -5,7 +5,7 @@ if( BUILD_PROTOBUF_SOURCE )
 
     FetchContent_Declare(
             protobuf
-            https://github.com/protocolbuffers/protobuf/releases/download/v21.4/protobuf-cpp-3.21.4.zip
+            URL https://github.com/protocolbuffers/protobuf/releases/download/v21.4/protobuf-cpp-3.21.4.zip
     )
     option(protobuf_BUILD_TESTS OFF)
     option(protobuf_BUILD_PROTOC_BINARIES OFF)
@@ -22,7 +22,8 @@ if ( BUILD_TESTS )
     # Add google test library from git
     FetchContent_Declare(
             googletest
-            URL https://github.com/google/googletest/archive/e2239ee6043f73722e7aa812a459f54a28552929.zip
+            GIT_REPOSITORY https://github.com/google/googletest.git
+            GIT_TAG release-1.12.1
     )
     FetchContent_MakeAvailable(googletest)
 
@@ -40,10 +41,7 @@ if ( BUILD_TESTS )
     FILE(COPY ${CMAKE_SOURCE_DIR}/models/operation_time_edge.csv DESTINATION ${CMAKE_BINARY_DIR})
 endif ()
 
-#find_package(Boost REQUIRED COMPONENTS)
-#include_directories(${Boost_INCLUDE_DIRS})
 
-
-set(TMP_LIBRARIES_LOCATION ${PROTOBUF_LIBRARY_LOCATION})# ${Boost_LIBRARIES})
+set(TMP_LIBRARIES_LOCATION ${PROTOBUF_LIBRARY_LOCATION})
 set(RUN_LIBRARIES_LOCATION ${TMP_LIBRARIES_LOCATION} PARENT_SCOPE)
 set(TEST_LIBRARIES_LOCATION ${TMP_LIBRARIES_LOCATION} gtest gtest_main PARENT_SCOPE)

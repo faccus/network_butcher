@@ -33,10 +33,6 @@ message(STATUS "Build benchmark tests: ${BUILD_BENCHMARK}")
 # Dependencies manager
 add_subdirectory(cmake)
 
-if( BUILD_PROTOC_COMPILER )
-    protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS onnx)
-endif()
-
 # Download onnx file and create source files
 add_subdirectory(include)
 add_subdirectory(src)
