@@ -1,4 +1,4 @@
-/*
+
 #include "../include/Helpers/APSC/GetPot"
 #include "../include/Helpers/General_Manager.h"
 
@@ -12,15 +12,17 @@ main(int argc, char** argv)
 
   return 0;
 }
-*/
 
+/*
 #include "yaml-cpp/yaml.h"
+#include <iostream>
 
 int main()
 {
-  YAML::Emitter out;
-  out << "Hello, World!";
+  YAML::Node config = YAML::LoadFile("CandidateResources.yaml");
 
-  std::cout << "Here's the output YAML:\n" << out.c_str(); // prints "Hello, World!"
+
+  std::cout << "Test" << std::endl;
+
   return 0;
-}
+}*/

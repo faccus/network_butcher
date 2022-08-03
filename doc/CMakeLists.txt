@@ -2,10 +2,10 @@ if( BUILD_DOC )
     if( BUILD_DOC_GRAPH )
         find_package(Doxygen
                 REQUIRED dot
-                OPTIONAL_COMPONENTS mscgen dia)
+                OPTIONAL_COMPONENTS mscgen dia) # doxygen
     else()
         find_package(Doxygen
-                OPTIONAL_COMPONENTS dot mscgen dia)
+                OPTIONAL_COMPONENTS dot mscgen dia) # doxygen, graphviz
     endif()
 
     if ( DOXYGEN_FOUND )

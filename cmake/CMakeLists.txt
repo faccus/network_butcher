@@ -5,8 +5,7 @@ if( BUILD_PROTOBUF_SOURCE )
 
     FetchContent_Declare(
             protobuf
-            URL https://github.com/protocolbuffers/protobuf/releases/download/v3.17.3/protobuf-cpp-3.17.3.zip
-            SOURCE_SUBDIR cmake
+            URL https://github.com/protocolbuffers/protobuf/releases/download/v21.4/protobuf-cpp-3.21.4.zip
     )
     option(protobuf_BUILD_TESTS OFF)
     option(protobuf_BUILD_PROTOC_BINARIES OFF)
@@ -16,8 +15,6 @@ if( BUILD_PROTOBUF_SOURCE )
 else()
     find_package(Protobuf REQUIRED)
     set(PROTOBUF_LIBRARY_LOCATION ${Protobuf_LIBRARIES})
-
-    include_directories(${Protobuf_INCLUDE_DIRS})
 
     message(STATUS "Found protobuf version ${Protobuf_VERSION}")
 endif ()
