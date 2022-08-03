@@ -4,48 +4,25 @@ if( BUILD_PROTOBUF_SOURCE )
     set ( Protobuf_USE_STATIC_LIBS ON )
 
     FetchContent_Declare(
-            Protobuf
-            URL https://github.com/protocolbuffers/protobuf/releases/download/v21.4/protobuf-cpp-3.21.4.zip
-            #SOURCE_SUBDIR cmake
-            OVERRIDE_FIND_PACKAGE
+            protobuf
+            https://github.com/protocolbuffers/protobuf/releases/download/v21.4/protobuf-cpp-3.21.4.zip
     )
-    option(protobuf_BUILD_TESTS ON)
-
-    if( BUILD_PROTOC_COMPILER )
-        option(protobuf_BUILD_PROTOC_BINARIES ON)
-        set(PROTOBUF_PROTOC_EXECUTABLE ${PROTOBUF_PROTOC_EXECUTABLE} PARENT_SCOPE)
-    else()
-        option(protobuf_BUILD_PROTOC_BINARIES OFF)
-    endif()
-else()
+    option(protobuf_BUILD_TESTS OFF)
     option(protobuf_BUILD_PROTOC_BINARIES OFF)
-endif()
+    FetchContent_MakeAvailable(protobuf)
 
-find_package(Protobuf REQUIRED)
-set(PROTOBUF_LIBRARY_LOCATION ${Protobuf_LIBRARIES})
-
-message(STATUS "Found protobuf version ${Protobuf_VERSION}")
-
-set(PROTOBUF_LIBRARY_LOCATION ${Protobuf_LIBRARY})
-include_directories(${Protobuf_INCLUDE_DIR})
-
-
-if( USE_YAML_CPP )
-
-    find_package(yaml-cpp REQUIRED)
-    set(YAML_CPP_LIBRARY_LOCATION ${YAML_CPP_LIBRARIES})
+    set(PROTOBUF_LIBRARY_LOCATION protobuf::libprotobuf)
+else()
+    find_package(Protobuf REQUIRED)
+    set(PROTOBUF_LIBRARY_LOCATION ${Protobuf_LIBRARIES})
     message(STATUS "Found protobuf version ${Protobuf_VERSION}")
-
-    include_directories(${YAML_CPP_INCLUDE_DIRS})
-endif()
-
+endif ()
 
 if ( BUILD_TESTS )
     # Add google test library from git
     FetchContent_Declare(
             googletest
-            GIT_REPOSITORY https://github.com/google/googletest.git
-            GIT_TAG release-1.12.1
+            URL https://github.com/google/googletest/archive/e2239ee6043f73722e7aa812a459f54a28552929.zip
     )
     FetchContent_MakeAvailable(googletest)
 
@@ -67,7 +44,6 @@ endif ()
 #include_directories(${Boost_INCLUDE_DIRS})
 
 
-set(TMP_LIBRARIES_LOCATION ${PROTOBUF_LIBRARY_LOCATION} ${YAML_CPP_LIBRARY_LOCATION})# ${Boost_LIBRARIES})
-
+set(TMP_LIBRARIES_LOCATION ${PROTOBUF_LIBRARY_LOCATION})# ${Boost_LIBRARIES})
 set(RUN_LIBRARIES_LOCATION ${TMP_LIBRARIES_LOCATION} PARENT_SCOPE)
 set(TEST_LIBRARIES_LOCATION ${TMP_LIBRARIES_LOCATION} gtest gtest_main PARENT_SCOPE)
