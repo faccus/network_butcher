@@ -3,7 +3,7 @@
 //
 
 #include "../../include/Network/Graph.h"
-#include "../../include/Helpers/IO_Manager.h"
+#include "../../include/IO_Manager.h"
 #include "../TestClass.h"
 #include <gtest/gtest.h>
 

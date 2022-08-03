@@ -1,7 +1,7 @@
 //
 // Created by faccus on 7/12/22.
 //
-#include "../../include/Helpers/General_Manager.h"
+#include "../include/General_Manager.h"
 
 std::function<weight_type(const node_id_type &, size_t, size_t)>
 General_Manager::generate_bandwidth_transmission_function(

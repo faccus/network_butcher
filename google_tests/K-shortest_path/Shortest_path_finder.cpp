@@ -2,10 +2,10 @@
 // Created by faccus on 26/10/21.
 //
 
-#include "../../../include/Helpers/K-shortest_path/KEppstein.h"
-#include "../../../include/Helpers/K-shortest_path/KEppstein_lazy.h"
+#include "../../include/K-shortest_path/KEppstein.h"
+#include "../../include/K-shortest_path/KEppstein_lazy.h"
 
-#include "../../TestClass.h"
+#include "../TestClass.h"
 #include <gtest/gtest.h>
 
 namespace KspTestNamespace

@@ -10,7 +10,7 @@
 
 #include "Traits/Basic_traits.h"
 #include "Traits/Type_info_traits.h"
-#include "../../src/Onnx_model/onnx.pb.h"
+#include "../src/Onnx_model/onnx.pb.h"
 
 #include "Types/Dense_tensor.h"
 #include "Types/Type_info.h"

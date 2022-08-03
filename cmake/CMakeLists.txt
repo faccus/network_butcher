@@ -5,11 +5,19 @@ if( BUILD_PROTOBUF_SOURCE )
 
     FetchContent_Declare(
             Protobuf
-            URL https://github.com/protocolbuffers/protobuf/releases/download/v3.20.1/protobuf-cpp-3.20.1.zip
+            URL https://github.com/protocolbuffers/protobuf/releases/download/v21.4/protobuf-cpp-3.21.4.zip
             #SOURCE_SUBDIR cmake
             OVERRIDE_FIND_PACKAGE
     )
-    option(protobuf_BUILD_TESTS OFF)
+    option(protobuf_BUILD_TESTS ON)
+
+    if( BUILD_PROTOC_COMPILER )
+        option(protobuf_BUILD_PROTOC_BINARIES ON)
+        set(PROTOBUF_PROTOC_EXECUTABLE ${PROTOBUF_PROTOC_EXECUTABLE} PARENT_SCOPE)
+    else()
+        option(protobuf_BUILD_PROTOC_BINARIES OFF)
+    endif()
+else()
     option(protobuf_BUILD_PROTOC_BINARIES OFF)
 endif()
 

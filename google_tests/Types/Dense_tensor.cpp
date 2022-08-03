@@ -2,7 +2,7 @@
 // Created by faccus on 30/08/21.
 //
 
-#include "../../../include/Helpers/Types/Dense_tensor.h"
+#include "../../include/Types/Dense_tensor.h"
 #include <gtest/gtest.h>
 
 using namespace network_butcher_types;

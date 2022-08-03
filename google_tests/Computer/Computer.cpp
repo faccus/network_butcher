@@ -5,10 +5,10 @@
 #include <gtest/gtest.h>
 #include <memory>
 
-#include "../../../include/Helpers/Computer/Computer_memory.h"
-#include "../../../include/Helpers/Computer/Computer_time.h"
-#include "../../../include/Helpers/IO_Manager.h"
-#include "../../TestClass.h"
+#include "../../include/Computer/Computer_memory.h"
+#include "../../include/Computer/Computer_time.h"
+#include "../../include/IO_Manager.h"
+#include "../TestClass.h"
 
 namespace ComputerMemoryTests
 {

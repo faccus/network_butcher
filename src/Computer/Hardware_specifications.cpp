@@ -1,7 +1,7 @@
 //
 // Created by faccus on 07/11/21.
 //
-#include "../../../include/Helpers/Computer/Hardware_specifications.h"
+#include "../../include/Computer/Hardware_specifications.h"
 
 network_butcher_computer::Hardware_specifications::Hardware_specifications(
   hardware_id_type in_id)

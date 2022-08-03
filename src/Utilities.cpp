@@ -1,7 +1,7 @@
 //
 // Created by faccus on 28/08/21.
 //
-#include "../../include/Helpers/Utilities.h"
+#include "../include/Utilities.h"
 
 memory_type
 network_butcher_utilities::compute_memory_usage_from_enum(type_info_id_type input) {

@@ -8,7 +8,7 @@
 // #include <boost/functional/hash.hpp>
 #include <memory>
 
-#include "../../Network/Node.h"
+#include "../Network/Node.h"
 #include "../Types/Content.h"
 #include "../Types/Type_info.h"
 

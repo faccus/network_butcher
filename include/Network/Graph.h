@@ -14,8 +14,8 @@
 
 #include "../../src/Onnx_model/onnx.pb.h"
 
-#include "../Helpers/Traits/Node_traits.h"
-#include "../Helpers/Types/Content.h"
+#include "../Traits/Node_traits.h"
+#include "../Types/Content.h"
 #include "Node.h"
 
 namespace network_butcher_types

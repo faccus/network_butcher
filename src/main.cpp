@@ -1,6 +1,6 @@
 
-#include "../include/Helpers/APSC/GetPot"
-#include "../include/Helpers/General_Manager.h"
+#include "../include/APSC/GetPot"
+#include "../include/General_Manager.h"
 
 int
 main(int argc, char** argv)

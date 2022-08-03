@@ -6,7 +6,7 @@
 #include <memory>
 
 #include "../../include/Network/Node.h"
-#include "../../include/Helpers/Traits/Node_traits.h"
+#include "../../include/Traits/Node_traits.h"
 
 using namespace network_butcher_types;
 

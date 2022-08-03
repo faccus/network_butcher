@@ -9,22 +9,22 @@
 #include <forward_list>
 #include <memory>
 
-#include "Helpers/Traits/Graph_traits.h"
-#include "Helpers/Traits/Hardware_traits.h"
+#include "Traits/Graph_traits.h"
+#include "Traits/Hardware_traits.h"
 
-#include "Helpers/Computer/Computer_memory.h"
+#include "Computer/Computer_memory.h"
 
 #include "Network/Graph.h"
 #include "Network/Node.h"
 
-#include "Helpers/K-shortest_path/KEppstein.h"
-#include "Helpers/K-shortest_path/KEppstein_lazy.h"
+#include "K-shortest_path/KEppstein.h"
+#include "K-shortest_path/KEppstein_lazy.h"
 
-#include "Helpers/Types/Type_info.h"
+#include "Types/Type_info.h"
 
-#include "Helpers/Types/Parameters.h"
-#include "Helpers/Types/Paths.h"
-#include "Helpers/Utilities.h"
+#include "Types/Parameters.h"
+#include "Types/Paths.h"
+#include "Utilities.h"
 
 /// Butcher butchers a given graph into slices
 template <class GraphType>

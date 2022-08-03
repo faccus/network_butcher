@@ -5,7 +5,7 @@
 #ifndef NETWORK_BUTCHER_TESTCLASS_H
 #define NETWORK_BUTCHER_TESTCLASS_H
 
-#include "../include/Helpers/Traits/Basic_traits.h"
+#include "../include/Traits/Basic_traits.h"
 
 template<class T>
 class TestMemoryUsage

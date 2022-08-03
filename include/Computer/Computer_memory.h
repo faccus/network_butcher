@@ -5,7 +5,7 @@
 #ifndef NETWORK_BUTCHER_COMPUTER_MEMORY_H
 #define NETWORK_BUTCHER_COMPUTER_MEMORY_H
 
-#include "../../Network/WGraph.h"
+#include "../Network/WGraph.h"
 #include "../Traits/Hardware_traits.h"
 
 namespace network_butcher_computer
