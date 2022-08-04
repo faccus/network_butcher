@@ -8,8 +8,8 @@ set(CMAKE_CXX_STANDARD 20)
 option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
 message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
 
-option(BUILD_PROTOC_COMPILER "Build protoc and compile the .proto3 files" ON)
-message(STATUS "Should protoc be built and should it compile .proto3 files? " ${BUILD_PROTOC_COMPILER})
+#option(BUILD_PROTOC_COMPILER "Build protoc and compile the .proto3 files" ON)
+#message(STATUS "Should protoc be built and should it compile .proto3 files? " ${BUILD_PROTOC_COMPILER})
 
 
 option(USE_YAML_CPP "Use yaml-cpp" ON)
@@ -32,6 +32,7 @@ message(STATUS "Build benchmark tests: ${BUILD_BENCHMARK}")
 
 # Dependencies manager
 add_subdirectory(cmake)
+
 
 # Download onnx file and create source files
 add_subdirectory(include)

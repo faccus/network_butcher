@@ -8,7 +8,7 @@ if( BUILD_PROTOBUF_SOURCE )
             URL https://github.com/protocolbuffers/protobuf/releases/download/v21.4/protobuf-cpp-3.21.4.zip
     )
     option(protobuf_BUILD_TESTS OFF)
-    option(protobuf_BUILD_PROTOC_BINARIES OFF)
+
     FetchContent_MakeAvailable(protobuf)
 
     set(PROTOBUF_LIBRARY_LOCATION protobuf::libprotobuf)
