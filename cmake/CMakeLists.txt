@@ -19,6 +19,16 @@ else()
     message(STATUS "Found protobuf version ${Protobuf_VERSION}")
 endif ()
 
+if( USE_YAML_CPP )
+    find_package(yaml-cpp REQUIRED)
+
+    include_directories(${YAML_CPP_INCLUDE_DIR})
+
+    set(YAML_CPP_LIBRARY_LOCATION ${YAML_CPP_LIBRARIES})
+    message(STATUS "Found yaml-cpp version ${yaml-cpp_VERSION}")
+endif()
+
+
 if ( BUILD_TESTS )
     # Add google test library from git
     FetchContent_Declare(
@@ -43,6 +53,6 @@ if ( BUILD_TESTS )
 endif ()
 
 
-set(TMP_LIBRARIES_LOCATION ${PROTOBUF_LIBRARY_LOCATION})
+set(TMP_LIBRARIES_LOCATION ${PROTOBUF_LIBRARY_LOCATION} ${YAML_CPP_LIBRARY_LOCATION})
 set(RUN_LIBRARIES_LOCATION ${TMP_LIBRARIES_LOCATION} PARENT_SCOPE)
 set(TEST_LIBRARIES_LOCATION ${TMP_LIBRARIES_LOCATION} gtest gtest_main PARENT_SCOPE)

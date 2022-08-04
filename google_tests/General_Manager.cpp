@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
-#include "../../include/Helpers/General_Manager.h"
+#include "../include/General_Manager.h"
 
 
 namespace butcher_benchmark_test_namespace {
