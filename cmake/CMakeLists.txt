@@ -5,7 +5,8 @@ if( BUILD_PROTOBUF_SOURCE )
 
     FetchContent_Declare(
             protobuf
-            URL https://github.com/protocolbuffers/protobuf/releases/download/v21.4/protobuf-cpp-3.21.4.zip
+            URL https://github.com/protocolbuffers/protobuf/releases/download/v3.17.3/protobuf-cpp-3.17.3.zip
+            SOURCE_SUBDIR cmake
     )
     option(protobuf_BUILD_TESTS OFF)
 
