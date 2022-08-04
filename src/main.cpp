@@ -1,4 +1,4 @@
-
+/*
 #include "../include/APSC/GetPot"
 #include "../include/General_Manager.h"
 
@@ -12,8 +12,8 @@ main(int argc, char** argv)
 
   return 0;
 }
+*/
 
-/*
 #include "yaml-cpp/yaml.h"
 #include <iostream>
 
@@ -25,4 +25,4 @@ int main()
   std::cout << "Test" << std::endl;
 
   return 0;
-}*/
+}
