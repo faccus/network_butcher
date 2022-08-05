@@ -89,15 +89,15 @@ main()
 
   for (auto const &model_friendly_name : to_deploy)
     {
-      std::map<std::string, std::size_t> devices_ram;
-      std::set<std::size_t>              layers;
-
       for (YAML::const_iterator it = components.begin(); it != components.end(); ++it)
         {
           if (it->second["name"] &&
               it->second["name"].as<std::string>().find(model_friendly_name) != std::string::npos &&
               it->second["name"].as<std::string>().find("partitionX") != std::string::npos)
             {
+              std::map<std::string, std::size_t> devices_ram;
+              std::set<std::size_t>              layers;
+
               YAML::Node execution_layers = it->second["candidateExecutionLayers"];
 
 
@@ -113,21 +113,29 @@ main()
                   devices_ram[device_it->second["candidateExecutionResources"][0].as<std::string>()] =
                     device_it->second["memorySize"].as<std::size_t>();
                 }
+
+              Parameters params;
+              params.devices = std::vector<Device>(devices_ram.size());
+
+              {
+                std::size_t index = 0;
+                for (auto const &device : devices_ram)
+                  {
+                    auto &ref          = params.devices[index];
+                    ref.maximum_memory = device.second;
+                    ref.id             = index++;
+                  }
+              }
+
+              params.model_name         = "RFB_640_inferred";
+              params.model_path         = "version-RFB-640-inferred.onnx";
+              params.export_directory   = "ksp_result";
+              params.K                  = 10;
+              params.method             = Lazy_Eppstein;
+              params.starting_device_id = 0;
+              params.ending_device_id   = 1;
             }
         }
-
-      Parameters params;
-      params.devices = std::vector<Device>(devices_ram.size());
-
-      {
-        std::size_t index = 0;
-        for (auto const &device : devices_ram)
-          {
-            auto &ref          = params.devices[index];
-            ref.maximum_memory = device.second;
-            ref.id             = index++;
-          }
-      }
     }
 
 
