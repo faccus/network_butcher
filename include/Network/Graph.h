@@ -152,6 +152,13 @@ namespace network_butcher_types
       std::swap(dependencies, new_dependencies);
     }
 
+    void
+    clear()
+    {
+      nodes.clear();
+      dependencies.clear();
+    }
+
 
     virtual ~Graph() = default;
 
@@ -322,6 +329,13 @@ namespace network_butcher_types
 
       std::swap(new_node_collection, nodes);
       std::swap(dependencies, new_dependencies);
+    }
+
+    void
+    clear()
+    {
+      nodes.clear();
+      dependencies.clear();
     }
 
     virtual ~Graph() = default;

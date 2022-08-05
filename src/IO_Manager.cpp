@@ -519,6 +519,9 @@ IO_Manager::read_parameters(const std::string &path)
   else
     res.method = KSP_Method::Lazy_Eppstein;
 
+  res.starting_device_id = file(basic_infos + "/starting_device_id", 0);
+  res.ending_device_id = file(basic_infos + "/ending_device_id", 0);
+
   res.backward_connections_allowed =
     file(basic_infos + "/backward_connections_allowed", false);
 

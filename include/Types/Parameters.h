@@ -56,6 +56,12 @@ struct Parameters {
   // The KSP method
   KSP_Method method;
 
+  // Starting device
+  std::size_t starting_device_id;
+
+  // End device
+  std::size_t ending_device_id;
+
   // Are backward collection allowed? (i.e. can device i send data to device j with i>j?)
   bool backward_connections_allowed;
 

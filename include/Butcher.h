@@ -49,7 +49,9 @@ private:
   /// associated every node id of the original graph to the respective node id
   /// of the "new" graph
   [[nodiscard]] std::pair<new_network, std::map<node_id_type, node_id_type>>
-  block_graph(bool backward_connections_allowed) const;
+  block_graph(bool backward_connections_allowed,
+              std::size_t graph_in_device,
+              std::size_t graph_out_device) const;
 
   /// Helper function used to estimate the memory usage of a group of nodes
   /// \param devices The devices
@@ -144,6 +146,13 @@ public:
   explicit Butcher(network const &g)
     : graph(g){};
 
+  Butcher(Butcher const &) = delete;
+  Butcher(Butcher && d) : graph(std::move(d.graph)) {}
+
+  Butcher operator=(Butcher const &) = delete;
+  Butcher operator=(Butcher && d) {
+    graph = std::move(d.graph);
+  }
 
   /// Basic getter for graph
   /// \return The graph (const reference)
@@ -179,12 +188,14 @@ public:
 template <class GraphType>
 std::pair<typename Butcher<GraphType>::new_network,
           std::map<node_id_type, node_id_type>>
-Butcher<GraphType>::block_graph(bool backward_connections_allowed) const
+Butcher<GraphType>::block_graph(bool        backward_connections_allowed,
+                                std::size_t graph_in_device,
+                                std::size_t graph_out_device) const
 {
   auto const num_of_devices = graph.get_num_devices();
 
-  new_network::Node_Collection_Type          new_nodes;
-  std::map<node_id_type, node_id_type>       old_to_new; // Old node -> New node
+  new_network::Node_Collection_Type    new_nodes;
+  std::map<node_id_type, node_id_type> old_to_new; // Old node -> New node
 
   new_network::Dependencies_Type new_dependencies;
 
@@ -435,6 +446,9 @@ Butcher<GraphType>::block_graph(bool backward_connections_allowed) const
     for (std::size_t k = 0; k < num_of_devices; ++k)
       in.insert(in.end(), new_dependencies.size() - 1 - num_of_devices + k);
   }
+
+  new_nodes.front().content.first = graph_in_device;
+  new_nodes.back().content.first  = graph_out_device;
 
   return {new_network(new_nodes, new_dependencies), old_to_new};
 }
@@ -847,7 +861,9 @@ Butcher<GraphType>::compute_k_shortest_path(
   const Parameters                              &params) const
 {
   auto [new_graph, connection_map] =
-    block_graph(params.backward_connections_allowed);
+    block_graph(params.backward_connections_allowed,
+                params.starting_device_id,
+                params.ending_device_id);
 
 
   if (params.memory_constraint != Memory_Constraint_Type::None &&

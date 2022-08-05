@@ -243,6 +243,9 @@ namespace butcher_test_namespace
     res.devices                      = std::vector<Device>(num_devices);
     res.memory_constraint_type = Memory_Constraint_Type::None;
 
+    res.starting_device_id = 0;
+    res.ending_device_id = 0;
+
     return res;
   }
 
@@ -256,6 +259,9 @@ namespace butcher_test_namespace
     res.method                       = KSP_Method::Lazy_Eppstein;
     res.devices                      = std::vector<Device>(num_devices);
     res.memory_constraint_type = Memory_Constraint_Type::None;
+
+    res.starting_device_id = 0;
+    res.ending_device_id = 0;
 
     return res;
   }

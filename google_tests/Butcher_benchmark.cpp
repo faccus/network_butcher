@@ -514,8 +514,6 @@ namespace butcher_benchmark_test_namespace
                                cp.compute_operation_time(graph, tail, hws[i]));
           }
       }
-
-    return;
   }
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
@@ -585,6 +583,8 @@ namespace butcher_benchmark_test_namespace
     res.method                       = KSP_Method::Eppstein;
     res.devices                      = std::vector<Device>(num_devices);
     res.memory_constraint_type       = Memory_Constraint_Type::None;
+    res.starting_device_id = 0;
+    res.ending_device_id = 0;
 
     return res;
   }
@@ -600,29 +600,8 @@ namespace butcher_benchmark_test_namespace
     res.method                       = KSP_Method::Lazy_Eppstein;
     res.devices                      = std::vector<Device>(num_devices);
     res.memory_constraint_type       = Memory_Constraint_Type::None;
-
-    return res;
-  }
-
-  Parameters
-  real_parameters(std::size_t k, bool backward)
-  {
-    std::size_t num_devices = 3;
-
-    Parameters res;
-    res.K                            = k;
-    res.backward_connections_allowed = backward;
-    res.method                       = KSP_Method::Lazy_Eppstein;
-    res.devices                      = std::vector<Device>(num_devices);
-    res.memory_constraint_type = Memory_Constraint_Type::Preload_Parameters;
-
-    memory_type const MB = 1024 * 1024;
-
-    for (int i = 0; i < res.devices.size(); ++i)
-      {
-        res.devices[i].id             = i;
-        res.devices[i].maximum_memory = MB * 32 * std::pow(64, i);
-      }
+    res.starting_device_id = 0;
+    res.ending_device_id = 0;
 
     return res;
   }
