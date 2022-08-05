@@ -15,10 +15,10 @@ namespace ComputerMemoryTests
   using namespace network_butcher_types;
   using namespace network_butcher_computer;
 
-  using basic_type = int;
-  using Input      = TestMemoryUsage<basic_type>;
+  using basic_type    = int;
+  using Input         = TestMemoryUsage<basic_type>;
   using IO_collection = io_collection_type<Input>;
-  using Node_type = Node<Content<Input>>;
+  using Node_type     = Node<Content<Input>>;
 
   MWGraph<Content<Input>>
   basic_graph(int);
@@ -30,9 +30,8 @@ namespace ComputerMemoryTests
 
   TEST(ComputerTests, ComputeMemoryUsageTypeInfo)
   {
-    Dense_tensor    d(onnx::TensorProto_DataType_INT64,
-                   {1, 1, 2, 2}); // total memory 2*2*64=256 bits
-    auto            res = Computer_memory::compute_memory_usage(d);
+    Dense_tensor d(onnx::TensorProto_DataType_INT64, {1, 1, 2, 2}); // total memory 2*2*64=256 bits
+    auto         res = Computer_memory::compute_memory_usage(d);
     ASSERT_EQ(res, 4 * sizeof(int64_t));
 
     {
@@ -66,8 +65,7 @@ namespace ComputerMemoryTests
     auto graph_cons = basic_graph(number_of_nodes);
 
     auto lhs = Computer_memory::compute_memory_usage_input(graph_cons);
-    auto rhs = sizeof(basic_type) * 10 *
-               ((number_of_nodes - 2) * (number_of_nodes - 1) / 2);
+    auto rhs = sizeof(basic_type) * 10 * ((number_of_nodes - 2) * (number_of_nodes - 1) / 2);
 
     ASSERT_EQ(lhs, rhs);
   }
@@ -76,22 +74,20 @@ namespace ComputerMemoryTests
   basic_graph(int number_of_nodes)
   {
     std::vector<Node_type> nodes;
-    Content content(IO_collection(), IO_collection{{"X0", 0}}, IO_collection());
+    Content                content(IO_collection(), IO_collection{{"X0", 0}}, IO_collection());
 
     nodes.emplace_back(std::move(content));
 
     for (int i = 1; i < number_of_nodes - 1; ++i)
       {
-        content =
-          Content(IO_collection{{"X" + std::to_string(i - 1), (i - 1) * 10}},
-                  IO_collection{{"X" + std::to_string(i), i * 10}},
-                  IO_collection{});
+        content = Content(IO_collection{{"X" + std::to_string(i - 1), (i - 1) * 10}},
+                          IO_collection{{"X" + std::to_string(i), i * 10}},
+                          IO_collection{});
 
         nodes.emplace_back(std::move(content));
       }
 
-    content = Content(IO_collection{{"X" + std::to_string(number_of_nodes - 1),
-                                     (number_of_nodes - 2) * 10}},
+    content = Content(IO_collection{{"X" + std::to_string(number_of_nodes - 1), (number_of_nodes - 2) * 10}},
                       IO_collection{},
                       IO_collection{});
 
@@ -99,7 +95,7 @@ namespace ComputerMemoryTests
 
     return WGraph<Content<Input>>(nodes);
   }
-}
+} // namespace ComputerMemoryTests
 
 namespace ComputerTimeTests
 {
@@ -121,8 +117,7 @@ namespace ComputerTimeTests
 
     test_hw.set_regression_coefficient("batchnormalization", {1., .5});
     auto       graph = basic_graph();
-    auto const time =
-      computer.compute_operation_time(graph.get_nodes().front(), test_hw);
+    auto const time  = computer.compute_operation_time(graph.get_nodes().front(), test_hw);
 
     ASSERT_EQ(time, 9);
   }
@@ -130,7 +125,6 @@ namespace ComputerTimeTests
   MWGraph<graph_input_type>
   basic_graph()
   {
-    return std::get<0>(
-      IO_Manager::import_from_onnx("resnet18-v2-7-inferred.onnx", false));
+    return std::get<0>(network_butcher_io::IO_Manager::import_from_onnx("resnet18-v2-7-inferred.onnx", false));
   }
 } // namespace ComputerTimeTests

@@ -5,8 +5,8 @@
 #include <iostream>
 #include <random>
 
-#include "../include/Butcher.h"
 #include "../include/APSC/chrono.h"
+#include "../include/Butcher.h"
 #include "../include/IO_Manager.h"
 #include "TestClass.h"
 
@@ -24,9 +24,8 @@ namespace butcher_test_namespace
   using namespace network_butcher_computer;
   using namespace network_butcher_types;
 
-  using type_weight = double;
-  using type_collection_weights =
-    std::map<std::pair<node_id_type, node_id_type>, type_weight>;
+  using type_weight             = double;
+  using type_collection_weights = std::map<std::pair<node_id_type, node_id_type>, type_weight>;
 
   using basic_type   = int;
   using Input        = TestMemoryUsage<int>;
@@ -62,8 +61,8 @@ namespace butcher_test_namespace
   };
 
 
-  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
-    basic_transmission(std::size_t, std::size_t);
+  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)> basic_transmission(std::size_t,
+                                                                                                std::size_t);
 
 
   TEST(ButcherTest, compute_k_shortest_paths_eppstein_linear)
@@ -75,9 +74,8 @@ namespace butcher_test_namespace
     auto const &graph     = butcher.get_graph();
     auto const  num_nodes = graph.get_nodes().size();
 
-    auto const res = butcher.compute_k_shortest_path(
-      basic_transmission(graph.get_num_devices(), num_nodes),
-      eppstein_parameters(1000, num_devices));
+    auto const res = butcher.compute_k_shortest_path(basic_transmission(graph.get_num_devices(), num_nodes),
+                                                     eppstein_parameters(1000, num_devices));
 
     ASSERT_EQ(res.size(), 81);
   }
@@ -93,9 +91,8 @@ namespace butcher_test_namespace
 
     auto transmission_fun = basic_transmission(num_devices, num_nodes);
 
-    auto const res = butcher.compute_k_shortest_path(
-      basic_transmission(graph.get_num_devices(), num_nodes),
-      lazy_eppstein_parameters(1000, num_devices));
+    auto const res = butcher.compute_k_shortest_path(basic_transmission(graph.get_num_devices(), num_nodes),
+                                                     lazy_eppstein_parameters(1000, num_devices));
 
     ASSERT_EQ(res.size(), 81);
   }
@@ -114,17 +111,14 @@ namespace butcher_test_namespace
 
     Chrono crono;
     crono.start();
-    auto eppstein_res =
-      butcher.compute_k_shortest_path(transmission_fun,
-                                      eppstein_parameters(k, num_devices));
+    auto eppstein_res = butcher.compute_k_shortest_path(transmission_fun, eppstein_parameters(k, num_devices));
     crono.stop();
 
 
     Chrono crono2;
     crono2.start();
     auto lazy_eppstein_res =
-      butcher.compute_k_shortest_path(transmission_fun,
-                                      lazy_eppstein_parameters(k, num_devices));
+      butcher.compute_k_shortest_path(transmission_fun, lazy_eppstein_parameters(k, num_devices));
 
     crono2.stop();
     crono2.wallTime();
@@ -137,9 +131,7 @@ namespace butcher_test_namespace
     auto tmp_it  = --eppstein_res.end();
     auto tmp_it2 = --lazy_eppstein_res.end();
 
-    for (;
-         tmp_it != eppstein_res.begin() && tmp_it2 != lazy_eppstein_res.begin();
-         --tmp_it, --tmp_it2)
+    for (; tmp_it != eppstein_res.begin() && tmp_it2 != lazy_eppstein_res.begin(); --tmp_it, --tmp_it2)
       {
         if (tmp_it->first != last_weight_epp)
           break;
@@ -160,10 +152,8 @@ namespace butcher_test_namespace
     ASSERT_EQ(eppstein, lazy_eppstein);
 
 
-    std::cout << "Eppstein: " << crono.wallTime() / 1000 << " milliseconds"
-              << std::endl;
-    std::cout << "Lazy compute: " << crono2.wallTime() / 1000 << " milliseconds"
-              << std::endl;
+    std::cout << "Eppstein: " << crono.wallTime() / 1000 << " milliseconds" << std::endl;
+    std::cout << "Lazy compute: " << crono2.wallTime() / 1000 << " milliseconds" << std::endl;
   }
 
   Butcher<GraphType>
@@ -200,36 +190,33 @@ namespace butcher_test_namespace
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
   basic_transmission(std::size_t devices, std::size_t size)
   {
-    return
-      [devices,
-       size](node_id_type const &input, std::size_t first, std::size_t second) {
-        if (0 <= input && input < size && 0 <= first < devices && 0 <= second &&
-            second < devices)
-          {
-            auto in_device_id  = first;
-            auto out_device_id = second;
+    return [devices, size](node_id_type const &input, std::size_t first, std::size_t second) {
+      if (0 <= input && input < size && 0 <= first < devices && 0 <= second && second < devices)
+        {
+          auto in_device_id  = first;
+          auto out_device_id = second;
 
-            if (in_device_id > out_device_id)
-              std::swap(in_device_id, out_device_id);
+          if (in_device_id > out_device_id)
+            std::swap(in_device_id, out_device_id);
 
-            if (out_device_id - in_device_id == 2)
-              return 1000.;
-            else if (out_device_id - in_device_id == 1)
-              {
-                if (out_device_id == 2)
-                  return 700.;
-                else
-                  return 300.;
-              }
-            else
-              return 0.;
-          }
-        else
-          {
-            std::cout << "Incorrect device id or input id" << std::endl;
-            return -1.;
-          }
-      };
+          if (out_device_id - in_device_id == 2)
+            return 1000.;
+          else if (out_device_id - in_device_id == 1)
+            {
+              if (out_device_id == 2)
+                return 700.;
+              else
+                return 300.;
+            }
+          else
+            return 0.;
+        }
+      else
+        {
+          std::cout << "Incorrect device id or input id" << std::endl;
+          return -1.;
+        }
+    };
   }
 
   Parameters
@@ -241,10 +228,10 @@ namespace butcher_test_namespace
     res.backward_connections_allowed = true;
     res.method                       = KSP_Method::Eppstein;
     res.devices                      = std::vector<Device>(num_devices);
-    res.memory_constraint_type = Memory_Constraint_Type::None;
+    res.memory_constraint_type       = Memory_Constraint_Type::None;
 
     res.starting_device_id = 0;
-    res.ending_device_id = 0;
+    res.ending_device_id   = 0;
 
     return res;
   }
@@ -258,10 +245,10 @@ namespace butcher_test_namespace
     res.backward_connections_allowed = true;
     res.method                       = KSP_Method::Lazy_Eppstein;
     res.devices                      = std::vector<Device>(num_devices);
-    res.memory_constraint_type = Memory_Constraint_Type::None;
+    res.memory_constraint_type       = Memory_Constraint_Type::None;
 
     res.starting_device_id = 0;
-    res.ending_device_id = 0;
+    res.ending_device_id   = 0;
 
     return res;
   }

@@ -8,9 +8,9 @@
 #include <filesystem>
 #include <fstream>
 
+#include "../src/Onnx_model/onnx.pb.h"
 #include "Traits/Basic_traits.h"
 #include "Traits/Type_info_traits.h"
-#include "../src/Onnx_model/onnx.pb.h"
 
 #include "Types/Dense_tensor.h"
 #include "Types/Type_info.h"
@@ -20,8 +20,7 @@ namespace network_butcher_utilities
 {
   /// From onnx::TensorProto_DataType_*, it will return the size of the respective type in bytes
   /// \return Size of the type in bytes
-  memory_type
-  compute_memory_usage_from_enum(type_info_id_type);
+  memory_type compute_memory_usage_from_enum(type_info_id_type);
 
   /// Construct a ModelProto from an onnx file
   /// \param m Reference to the model that will be constructed
@@ -54,45 +53,53 @@ namespace network_butcher_utilities
   /// Creates a directory with the given path
   /// \param path The input string
   inline void
-  create_directory(const std::string &path) {
-    if(!std::filesystem::is_directory(path) || !std::filesystem::exists(path)) {
+  create_directory(const std::string &path)
+  {
+    if (!std::filesystem::is_directory(path) || !std::filesystem::exists(path))
+      {
         std::filesystem::create_directory(path);
       }
   }
 
   /// Left trim for the input string (modifies the input string)
   /// \param s The input string
-  static inline void ltrim(std::string &s) {
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
-              return !std::isspace(ch);
-            }));
+  static inline void
+  ltrim(std::string &s)
+  {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) { return !std::isspace(ch); }));
   }
 
   /// Right trim for the input string (modifies the input string)
   /// \param s The input string
-  static inline void rtrim(std::string &s) {
-    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
-              return !std::isspace(ch);
-            }).base(), s.end());
+  static inline void
+  rtrim(std::string &s)
+  {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), s.end());
   }
 
   /// Trim for the input string (modifies the input string)
   /// \param s The input string
-  static inline void trim(std::string &s) {
+  static inline void
+  trim(std::string &s)
+  {
     ltrim(s);
     rtrim(s);
   }
 
   /// Sets in lowercase the input string
   /// \param s The input string
-  static inline void to_lowercase(std::string &s) {
+  static inline void
+  to_lowercase(std::string &s)
+  {
     std::transform(s.begin(), s.end(), s.begin(), ::tolower);
   }
 
   /// Left trim for the input string (returns the modified string)
   /// \param s The input string
   /// \return The modified string
-  static inline std::string ltrim_copy(std::string s) {
+  static inline std::string
+  ltrim_copy(std::string s)
+  {
     ltrim(s);
     return s;
   }
@@ -100,7 +107,9 @@ namespace network_butcher_utilities
   /// Right trim for the input string (returns the modified string)
   /// \param s The input string
   /// \return The modified string
-  static inline std::string rtrim_copy(std::string s) {
+  static inline std::string
+  rtrim_copy(std::string s)
+  {
     rtrim(s);
     return s;
   }
@@ -108,7 +117,9 @@ namespace network_butcher_utilities
   /// Trim for the input string (returns the modified string)
   /// \param s The input string
   /// \return The modified string
-  static inline std::string trim_copy(std::string s) {
+  static inline std::string
+  trim_copy(std::string s)
+  {
     trim(s);
     return s;
   }
@@ -116,11 +127,13 @@ namespace network_butcher_utilities
   /// Returns in lowercase the input string
   /// \param s The input string
   /// \return The modified string
-  static inline std::string to_lowercase_copy(std::string s) {
+  static inline std::string
+  to_lowercase_copy(std::string s)
+  {
     to_lowercase(s);
     return s;
   }
 
-} // namespace utilities
+} // namespace network_butcher_utilities
 
 #endif // NETWORK_BUTCHER_UTILITIES_H

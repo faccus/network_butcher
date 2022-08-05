@@ -31,8 +31,7 @@ namespace network_butcher_kfinder
     constexpr bool
     operator<(const implicit_path_info &rhs) const
     {
-      return length < rhs.length ||
-             (length == rhs.length && sidetracks < rhs.sidetracks);
+      return length < rhs.length || (length == rhs.length && sidetracks < rhs.sidetracks);
     }
   };
 
@@ -49,8 +48,7 @@ namespace network_butcher_kfinder
     }
   };
 
-  using dijkstra_result_type =
-    std::pair<std::vector<node_id_type>, std::vector<weight_type>>;
+  using dijkstra_result_type = std::pair<std::vector<node_id_type>, std::vector<weight_type>>;
 } // namespace network_butcher_kfinder
 
 #endif // NETWORK_BUTCHER_PATH_INFO_H

@@ -38,8 +38,7 @@ namespace GenericFactory
   */
   template <typename AbstractProduct,
             typename Identifier,
-            typename Builder =
-              std::function<std::unique_ptr<AbstractProduct>()>>
+            typename Builder = std::function<std::unique_ptr<AbstractProduct>()>>
   class Factory
   {
   public:
@@ -131,8 +130,7 @@ namespace GenericFactory
 
   template <typename AbstractProduct, typename Identifier, typename Builder>
   Builder
-  Factory<AbstractProduct, Identifier, Builder>::get(
-    Identifier const &name) const
+  Factory<AbstractProduct, Identifier, Builder>::get(Identifier const &name) const
   {
     auto f = _storage.find(name);
     if (f == _storage.end())
@@ -140,8 +138,7 @@ namespace GenericFactory
         std::stringstream idAsString;
         // I am assuming that identifier has a output streaming operator
         idAsString << name;
-        std::string out =
-          "Identifier " + idAsString.str() + " is not stored in the factory";
+        std::string out = "Identifier " + idAsString.str() + " is not stored in the factory";
         throw std::invalid_argument(out);
       }
     else
@@ -153,19 +150,16 @@ namespace GenericFactory
   template <typename AbstractProduct, typename Identifier, typename Builder>
   template <typename... Args>
   std::unique_ptr<AbstractProduct>
-  Factory<AbstractProduct, Identifier, Builder>::create(Identifier const &name,
-                                                        Args &&...args) const
+  Factory<AbstractProduct, Identifier, Builder>::create(Identifier const &name, Args &&...args) const
   {
-    static_assert(!std::is_same_v<AbstractProduct, void>,
-                  "You should use get() not create() on FunctionFactories");
+    static_assert(!std::is_same_v<AbstractProduct, void>, "You should use get() not create() on FunctionFactories");
     // Use of std::forward to forward arguments to the constructor
     return this->get(name)(std::forward<Args>(args)...);
   }
 
   template <typename AbstractProduct, typename Identifier, typename Builder>
   void
-  Factory<AbstractProduct, Identifier, Builder>::add(Identifier const   &name,
-                                                     Builder_type const &func)
+  Factory<AbstractProduct, Identifier, Builder>::add(Identifier const &name, Builder_type const &func)
   {
     auto f = _storage.insert(std::make_pair(name, func));
     if (f.second == false)
@@ -173,8 +167,7 @@ namespace GenericFactory
         std::stringstream idAsString;
         idAsString << name;
         std::string message =
-          std::string("Double registration in Factory of id: ") +
-          idAsString.str() + std::string(" is not allowed");
+          std::string("Double registration in Factory of id: ") + idAsString.str() + std::string(" is not allowed");
         throw std::invalid_argument(message);
       }
   }
@@ -192,8 +185,7 @@ namespace GenericFactory
 
   template <typename AbstractProduct, typename Identifier, typename Builder>
   bool
-  Factory<AbstractProduct, Identifier, Builder>::registered(
-    Identifier const &id) const
+  Factory<AbstractProduct, Identifier, Builder>::registered(Identifier const &id) const
   {
     return _storage.find(id) != _storage.cend();
   }

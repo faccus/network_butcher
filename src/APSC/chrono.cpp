@@ -53,8 +53,7 @@ std::ostream &
 operator<<(std::ostream &out, Chrono const &c)
 {
   auto oldf = out.flags();
-  out << "Elapsed Time= " << std::scientific << c.wallTime() << " microsec"
-      << std::endl;
+  out << "Elapsed Time= " << std::scientific << c.wallTime() << " microsec" << std::endl;
   out.flags(oldf);
   return out;
 }

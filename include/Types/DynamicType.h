@@ -5,8 +5,8 @@
 #ifndef NETWORK_BUTCHER_DYNAMICTYPE_H
 #define NETWORK_BUTCHER_DYNAMICTYPE_H
 
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace network_butcher_types
 {

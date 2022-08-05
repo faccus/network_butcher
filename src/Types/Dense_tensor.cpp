@@ -7,11 +7,10 @@
 #include <utility>
 
 
-network_butcher_types::Dense_tensor::Dense_tensor(
-  type_info_id_type       in_type_id,
-  std::vector<shape_type> in_shape,
-  bool                    given,
-  bool                    constant)
+network_butcher_types::Dense_tensor::Dense_tensor(type_info_id_type       in_type_id,
+                                                  std::vector<shape_type> in_shape,
+                                                  bool                    given,
+                                                  bool                    constant)
   : Type_info()
   , type_id(in_type_id)
   , shape(std::move(in_shape))
@@ -21,10 +20,7 @@ network_butcher_types::Dense_tensor::Dense_tensor(
 }
 
 
-network_butcher_types::Dense_tensor::Dense_tensor(
-  const onnx::ValueInfoProto &info,
-  bool                        given,
-  bool                        constant)
+network_butcher_types::Dense_tensor::Dense_tensor(const onnx::ValueInfoProto &info, bool given, bool constant)
 {
   const auto &type = info.type();
   name             = info.name();
@@ -49,9 +45,7 @@ network_butcher_types::Dense_tensor::Dense_tensor(
   this->constant = constant;
 }
 
-network_butcher_types::Dense_tensor::Dense_tensor(const onnx::TensorProto &info,
-                                                  bool given,
-                                                  bool constant)
+network_butcher_types::Dense_tensor::Dense_tensor(const onnx::TensorProto &info, bool given, bool constant)
 {
   name = info.name();
 
@@ -75,6 +69,5 @@ network_butcher_types::Dense_tensor::compute_memory_usage() const
   for (auto &e : shape)
     num_entries *= e;
 
-  return num_entries *
-         network_butcher_utilities::compute_memory_usage_from_enum(type_id);
+  return num_entries * network_butcher_utilities::compute_memory_usage_from_enum(type_id);
 }

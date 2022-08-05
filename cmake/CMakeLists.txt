@@ -1,7 +1,7 @@
 include(FetchContent)
 
-if( BUILD_PROTOBUF_SOURCE )
-    set ( Protobuf_USE_STATIC_LIBS ON )
+if (BUILD_PROTOBUF_SOURCE)
+    set(Protobuf_USE_STATIC_LIBS ON)
 
     FetchContent_Declare(
             protobuf
@@ -13,23 +13,23 @@ if( BUILD_PROTOBUF_SOURCE )
     FetchContent_MakeAvailable(protobuf)
 
     set(PROTOBUF_LIBRARY_LOCATION protobuf::libprotobuf)
-else()
+else ()
     find_package(Protobuf REQUIRED)
     set(PROTOBUF_LIBRARY_LOCATION ${Protobuf_LIBRARIES})
     message(STATUS "Found protobuf version ${Protobuf_VERSION}")
 endif ()
 
-if( USE_YAML_CPP )
+if (USE_YAML_CPP)
     find_package(yaml-cpp REQUIRED)
 
     include_directories(${YAML_CPP_INCLUDE_DIR})
 
     set(YAML_CPP_LIBRARY_LOCATION ${YAML_CPP_LIBRARIES})
     message(STATUS "Found yaml-cpp version ${yaml-cpp_VERSION}")
-endif()
+endif ()
 
 
-if ( BUILD_TESTS )
+if (BUILD_TESTS)
     # Add google test library from git
     FetchContent_Declare(
             googletest

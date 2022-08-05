@@ -18,8 +18,7 @@ namespace network_butcher_computer
     hardware_id_type id;
 
 
-    std::unordered_map<operation_id_type, std::pair<time_type, time_type>>
-      regression_coefficients;
+    std::unordered_map<operation_id_type, std::pair<time_type, time_type>> regression_coefficients;
 
   public:
     explicit Hardware_specifications(hardware_id_type);
@@ -29,12 +28,10 @@ namespace network_butcher_computer
     getName() const;
 
 
-    [[nodiscard]] std::pair<time_type, time_type>
-      get_regression_coefficients(operation_id_type) const;
+    [[nodiscard]] std::pair<time_type, time_type> get_regression_coefficients(operation_id_type) const;
 
 
-    void set_regression_coefficient(operation_id_type,
-                                    std::pair<time_type, time_type>);
+    void set_regression_coefficient(operation_id_type, std::pair<time_type, time_type>);
   };
 } // namespace network_butcher_computer
 

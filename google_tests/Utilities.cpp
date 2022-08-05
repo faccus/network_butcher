@@ -27,9 +27,7 @@ TEST(UtilitiesTestSuit, OutputOnnxFileTest)
   if (network_butcher_utilities::file_exists(model_path_copy))
     std::filesystem::remove(model_path_copy);
 
-  network_butcher_utilities::output_onnx_file(
-    network_butcher_utilities::parse_onnx_file(model_path),
-                              model_path_copy);
+  network_butcher_utilities::output_onnx_file(network_butcher_utilities::parse_onnx_file(model_path), model_path_copy);
 
   EXPECT_TRUE(network_butcher_utilities::file_exists(model_path_copy));
   std::filesystem::remove(model_path_copy);

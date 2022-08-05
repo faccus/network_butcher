@@ -8,8 +8,8 @@
 #include "../Traits/Basic_traits.h"
 #include "../Types/Dense_tensor.h"
 
-#include <utility>
 #include <memory>
+#include <utility>
 
 namespace network_butcher_types
 {
@@ -61,6 +61,6 @@ namespace network_butcher_types
       return id;
     }
   };
-}
+} // namespace network_butcher_types
 
 #endif // NETWORK_BUTCHER_NODE_H

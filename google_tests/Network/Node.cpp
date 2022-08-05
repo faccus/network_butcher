@@ -15,11 +15,12 @@ TEST(NodeTests, Conctructor)
   Node node(1);
 }
 
-TEST(NodeTests, MoveConstructible) {
+TEST(NodeTests, MoveConstructible)
+{
   ASSERT_TRUE(std::is_move_constructible_v<node_type>);
 }
 
-TEST(NodeTests, MoveAssignable) {
+TEST(NodeTests, MoveAssignable)
+{
   ASSERT_TRUE(std::is_move_assignable_v<node_type>);
 }
-

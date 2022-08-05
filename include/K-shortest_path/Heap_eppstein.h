@@ -23,8 +23,7 @@ namespace network_butcher_kfinder
       , delta_weight(in_delta_weight)
     {}
 
-    edge_info(std::shared_ptr<edge_type> in_edge,
-              weight_type const         &in_delta_weight)
+    edge_info(std::shared_ptr<edge_type> in_edge, weight_type const &in_delta_weight)
       : edge(std::move(in_edge))
       , delta_weight(in_delta_weight)
     {}
@@ -32,15 +31,13 @@ namespace network_butcher_kfinder
     constexpr bool
     operator<(const edge_info &rhs) const
     {
-      return delta_weight < rhs.delta_weight ||
-             (delta_weight == rhs.delta_weight && *edge < *rhs.edge);
+      return delta_weight < rhs.delta_weight || (delta_weight == rhs.delta_weight && *edge < *rhs.edge);
     }
 
     constexpr bool
     operator>(const edge_info &rhs) const
     {
-      return delta_weight > rhs.delta_weight ||
-             (delta_weight == rhs.delta_weight && *edge > *rhs.edge);
+      return delta_weight > rhs.delta_weight || (delta_weight == rhs.delta_weight && *edge > *rhs.edge);
     }
   };
 
@@ -64,8 +61,7 @@ namespace network_butcher_kfinder
   };
 
 
-    bool
-    operator<(std::shared_ptr<H_out<edge_info>> const &lhs,
-              std::shared_ptr<H_out<edge_info>> const &rhs);
+  bool
+  operator<(std::shared_ptr<H_out<edge_info>> const &lhs, std::shared_ptr<H_out<edge_info>> const &rhs);
 } // namespace network_butcher_kfinder
 #endif // NETWORK_BUTCHER_HEAP_EPPSTEIN_H

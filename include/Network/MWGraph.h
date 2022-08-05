@@ -26,11 +26,9 @@ namespace network_butcher_types
     MWGraph &
     operator=(MWGraph &&) = default;
 
-    explicit MWGraph(
-      std::size_t          num_maps,
-      std::vector<Node<T>> v,
-      std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
-        dep = {})
+    explicit MWGraph(std::size_t                                                              num_maps,
+                     std::vector<Node<T>>                                                     v,
+                     std::vector<std::pair<node_id_collection_type, node_id_collection_type>> dep = {})
       : Graph<T>(v, dep)
       , weigth_map{}
     {
@@ -89,11 +87,9 @@ namespace network_butcher_types
     MWGraph &
     operator=(MWGraph &&) = default;
 
-    explicit MWGraph(
-      std::size_t                   num_maps,
-      std::vector<Node<Content<T>>> v,
-      std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
-        dep)
+    explicit MWGraph(std::size_t                                                              num_maps,
+                     std::vector<Node<Content<T>>>                                            v,
+                     std::vector<std::pair<node_id_collection_type, node_id_collection_type>> dep)
       : Graph<Content<T>>(v, dep)
       , weigth_map{}
     {

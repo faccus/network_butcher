@@ -8,14 +8,16 @@
 #include "../Traits/Graph_traits.h"
 
 /// Enumerator for the weight import modes
-enum Weight_Import_Mode {
+enum Weight_Import_Mode
+{
   aMLLibrary,
   operation_time,
   multi_operation_time
 };
 
 /// Collection of parameters for a device
-struct Device {
+struct Device
+{
   // Device id
   std::size_t id;
   // Device name
@@ -27,20 +29,23 @@ struct Device {
 };
 
 /// Enumerator for the different KSP methods
-enum KSP_Method {
+enum KSP_Method
+{
   Eppstein,
   Lazy_Eppstein
 };
 
 /// The memory constraints possibilities
-enum Memory_Constraint_Type {
+enum Memory_Constraint_Type
+{
   None,
   Max,
   Preload_Parameters
 };
 
 /// The collection of parameters
-struct Parameters {
+struct Parameters
+{
   // The model name
   std::string model_name;
 

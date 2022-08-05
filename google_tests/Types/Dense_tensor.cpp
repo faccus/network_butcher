@@ -7,16 +7,17 @@
 
 using namespace network_butcher_types;
 
-TEST(DenseTensorTest, ConstuctorAndMemoryUsage) {
-  Dense_tensor d(onnx::TensorProto_DataType_INT64,
-                 {1, 1, 2, 2}); // total memory 2*2*64=256 bits
+TEST(DenseTensorTest, ConstuctorAndMemoryUsage)
+{
+  Dense_tensor d(onnx::TensorProto_DataType_INT64, {1, 1, 2, 2}); // total memory 2*2*64=256 bits
 
   auto res = d.compute_memory_usage();
 
   ASSERT_EQ(res, 4 * sizeof(int64_t));
 }
 
-TEST(DenseTensorTest, ConstuctorValueInfoProto) {
+TEST(DenseTensorTest, ConstuctorValueInfoProto)
+{
   memory_type lhs = 0;
 
   {
@@ -31,12 +32,10 @@ TEST(DenseTensorTest, ConstuctorValueInfoProto) {
         dim->set_dim_value(i + 1);
       }
 
-    tensor.set_allocated_shape(
-      new onnx::TensorShapeProto(std::move(shapeProto)));
+    tensor.set_allocated_shape(new onnx::TensorShapeProto(std::move(shapeProto)));
     tensor.set_elem_type(onnx::TensorProto_DataType_INT64);
 
-    typeProto.set_allocated_tensor_type(
-      new onnx::TypeProto_Tensor(std::move(tensor)));
+    typeProto.set_allocated_tensor_type(new onnx::TypeProto_Tensor(std::move(tensor)));
 
     value.set_allocated_type(new onnx::TypeProto(std::move(typeProto)));
     value.set_name("Test");

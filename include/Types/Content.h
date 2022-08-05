@@ -29,19 +29,17 @@ namespace network_butcher_types
     std::string operation_id;
 
     inline void
-    set_attribute(std::string const              &name,
-                  std::vector<std::size_t> const &tensor)
+    set_attribute(std::string const &name, std::vector<std::size_t> const &tensor)
     {
       attributes.emplace(name, tensor);
     }
 
   public:
-    Content(io_collection_type<T> in     = {},
-            io_collection_type<T> out    = {},
-            io_collection_type<T> params = {},
-            std::unordered_map<std::string, std::vector<DynamicType>>
-                        in_attributes  = {},
-            std::string operation_name = "")
+    Content(io_collection_type<T>                                     in             = {},
+            io_collection_type<T>                                     out            = {},
+            io_collection_type<T>                                     params         = {},
+            std::unordered_map<std::string, std::vector<DynamicType>> in_attributes  = {},
+            std::string                                               operation_name = "")
       : input(std::move(in))
       , output(std::move(out))
       , parameters(std::move(params))

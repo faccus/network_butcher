@@ -6,19 +6,18 @@
 
 
 std::tuple<graph_type, onnx::ModelProto, std::map<node_id_type, node_id_type>>
-IO_Manager::import_from_onnx(const std::string &path,
-                             bool               add_padding_nodes,
-                             std::size_t        num_devices)
+network_butcher_io::IO_Manager::import_from_onnx(const std::string &path,
+                                                 bool               add_padding_nodes,
+                                                 std::size_t        num_devices)
 {
   std::map<node_id_type, node_id_type> link_id_nodeproto;
 
-  onnx::ModelProto onnx_model =
-    network_butcher_utilities::parse_onnx_file(path);
-  auto const &onnx_graph       = onnx_model.graph();
-  auto const &onnx_input       = onnx_graph.input();
-  auto const &onnx_output      = onnx_graph.output();
-  auto const &onnx_value_info  = onnx_graph.value_info();
-  auto const &onnx_initializer = onnx_graph.initializer();
+  onnx::ModelProto onnx_model       = network_butcher_utilities::parse_onnx_file(path);
+  auto const      &onnx_graph       = onnx_model.graph();
+  auto const      &onnx_input       = onnx_graph.input();
+  auto const      &onnx_output      = onnx_graph.output();
+  auto const      &onnx_value_info  = onnx_graph.value_info();
+  auto const      &onnx_initializer = onnx_graph.initializer();
 
   std::set<std::string> onnx_inputs_ids;
   std::set<std::string> onnx_outputs_ids;
@@ -38,9 +37,8 @@ IO_Manager::import_from_onnx(const std::string &path,
       }
 
 
-    std::vector<std::string> int_res(
-      std::min(tmp_onnx_inputs_ids.size(), initialized.size()));
-    auto it = std::set_difference(tmp_onnx_inputs_ids.cbegin(),
+    std::vector<std::string> int_res(std::min(tmp_onnx_inputs_ids.size(), initialized.size()));
+    auto                     it = std::set_difference(tmp_onnx_inputs_ids.cbegin(),
                                   tmp_onnx_inputs_ids.cend(),
                                   initialized.cbegin(),
                                   initialized.cend(),
@@ -59,12 +57,8 @@ IO_Manager::import_from_onnx(const std::string &path,
   std::vector<node_type> nodes;
   nodes.reserve(onnx_nodes.size() + 2);
 
-  auto const pointer_output =
-    std::make_shared<network_butcher_types::Dense_tensor>(
-      0, std::vector<shape_type>{});
-  auto const pointer_input =
-    std::make_shared<network_butcher_types::Dense_tensor>(
-      0, std::vector<shape_type>{});
+  auto const pointer_output = std::make_shared<network_butcher_types::Dense_tensor>(0, std::vector<shape_type>{});
+  auto const pointer_input  = std::make_shared<network_butcher_types::Dense_tensor>(0, std::vector<shape_type>{});
 
   auto const fake_output = "__fake__output__";
   auto const fake_input  = "__fake__input__";
@@ -82,11 +76,9 @@ IO_Manager::import_from_onnx(const std::string &path,
     }
 
   auto const help_func =
-    [](std::string const &name,
-       auto const        &array,
-       std::unordered_map<std::string,
-                          std::vector<network_butcher_types::DynamicType>>
-         &attributes) {
+    [](std::string const                                                                &name,
+       auto const                                                                       &array,
+       std::unordered_map<std::string, std::vector<network_butcher_types::DynamicType>> &attributes) {
       std::vector<network_butcher_types::DynamicType> add;
       for (auto it = array.cbegin(); it != array.cend(); ++it)
         add.emplace_back(*it);
@@ -104,9 +96,7 @@ IO_Manager::import_from_onnx(const std::string &path,
       io_collection_type<type_info_pointer> outputs;
       onnx_process_node(node.output(), outputs, parameters, value_infos);
 
-      std::unordered_map<std::string,
-                         std::vector<network_butcher_types::DynamicType>>
-        attributes;
+      std::unordered_map<std::string, std::vector<network_butcher_types::DynamicType>> attributes;
 
       for (auto const &attribute : node.attribute())
         {
@@ -138,10 +128,7 @@ IO_Manager::import_from_onnx(const std::string &path,
             }
         }
 
-      std::transform(operation_type.begin(),
-                     operation_type.end(),
-                     operation_type.begin(),
-                     ::tolower);
+      std::transform(operation_type.begin(), operation_type.end(), operation_type.begin(), ::tolower);
 
       if (add_padding_nodes)
         {
@@ -168,16 +155,13 @@ IO_Manager::import_from_onnx(const std::string &path,
       ++node_id;
     }
 
-  return {network_butcher_types::MWGraph(num_devices, nodes),
-          onnx_model,
-          link_id_nodeproto};
+  return {network_butcher_types::MWGraph(num_devices, nodes), onnx_model, link_id_nodeproto};
 }
 
 
 std::vector<std::string>
-IO_Manager::get_common_elements(
-  const std::set<std::string>           &onnx_io_ids,
-  io_collection_type<type_info_pointer> &io_collection)
+network_butcher_io::IO_Manager::get_common_elements(const std::set<std::string>           &onnx_io_ids,
+                                                    io_collection_type<type_info_pointer> &io_collection)
 {
   std::set<std::string>    in_keys;
   std::vector<std::string> tmp;
@@ -189,33 +173,28 @@ IO_Manager::get_common_elements(
 
   tmp.resize(std::min(onnx_io_ids.size(), in_keys.size()));
 
-  auto it = std::set_intersection(onnx_io_ids.cbegin(),
-                                  onnx_io_ids.cend(),
-                                  in_keys.cbegin(),
-                                  in_keys.cend(),
-                                  tmp.begin());
+  auto it =
+    std::set_intersection(onnx_io_ids.cbegin(), onnx_io_ids.cend(), in_keys.cbegin(), in_keys.cend(), tmp.begin());
   tmp.resize(it - tmp.begin());
   return tmp;
 }
 
 
 void
-IO_Manager::onnx_populate_id_collection(
+network_butcher_io::IO_Manager::onnx_populate_id_collection(
   const google::protobuf::RepeatedPtrField<::onnx::ValueInfoProto> &onnx_io,
   std::set<std::string>                                            &onnx_io_ids)
 {
-  std::transform(onnx_io.begin(),
-                 onnx_io.end(),
-                 std::inserter(onnx_io_ids, onnx_io_ids.end()),
-                 [](auto const &el) { return el.name(); });
+  std::transform(onnx_io.begin(), onnx_io.end(), std::inserter(onnx_io_ids, onnx_io_ids.end()), [](auto const &el) {
+    return el.name();
+  });
 }
 
 
 void
-IO_Manager::onnx_io_read(
-  IO_Manager::Map_IO                                             &input_map,
-  const google::protobuf::RepeatedPtrField<onnx::ValueInfoProto> &collection,
-  const std::set<std::string>                                    &initialized)
+network_butcher_io::IO_Manager::onnx_io_read(network_butcher_io::IO_Manager::Map_IO                         &input_map,
+                                             const google::protobuf::RepeatedPtrField<onnx::ValueInfoProto> &collection,
+                                             const std::set<std::string> &initialized)
 {
   for (const auto &param : collection)
     {
@@ -226,8 +205,7 @@ IO_Manager::onnx_io_read(
           if (type.has_tensor_type() && !input_map.contains(param.name()))
             {
               input_map[param.name()] =
-                std::make_shared<network_butcher_types::Dense_tensor>(
-                  param, initialized.contains(param.name()));
+                std::make_shared<network_butcher_types::Dense_tensor>(param, initialized.contains(param.name()));
             }
         }
     }
@@ -235,30 +213,27 @@ IO_Manager::onnx_io_read(
 
 
 void
-IO_Manager::onnx_io_read(
-  IO_Manager::Map_IO                                          &input_map,
-  const google::protobuf::RepeatedPtrField<onnx::TensorProto> &collection,
-  const std::set<std::string>                                 &initialized)
+network_butcher_io::IO_Manager::onnx_io_read(network_butcher_io::IO_Manager::Map_IO                      &input_map,
+                                             const google::protobuf::RepeatedPtrField<onnx::TensorProto> &collection,
+                                             const std::set<std::string>                                 &initialized)
 {
   for (const auto &param : collection)
     {
-      if (param.IsInitialized() &&
-          input_map.find(param.name()) == input_map.cend())
+      if (param.IsInitialized() && input_map.find(param.name()) == input_map.cend())
         {
           input_map[param.name()] =
-            std::make_shared<network_butcher_types::Dense_tensor>(
-              param, initialized.contains(param.name()));
+            std::make_shared<network_butcher_types::Dense_tensor>(param, initialized.contains(param.name()));
         }
     }
 }
 
 
 void
-IO_Manager::onnx_process_node(
+network_butcher_io::IO_Manager::onnx_process_node(
   const google::protobuf::RepeatedPtrField<std::basic_string<char>> &io_names,
-  io_collection_type<type_info_pointer> &io_collection,
-  io_collection_type<type_info_pointer> &parameters_collection,
-  Map_IO const                          &value_infos)
+  io_collection_type<type_info_pointer>                             &io_collection,
+  io_collection_type<type_info_pointer>                             &parameters_collection,
+  Map_IO const                                                      &value_infos)
 {
   for (auto const &io_name : io_names)
     {
@@ -277,16 +252,16 @@ IO_Manager::onnx_process_node(
 
 
 void
-IO_Manager::export_to_onnx(const onnx::ModelProto &model, std::string path)
+network_butcher_io::IO_Manager::export_to_onnx(const onnx::ModelProto &model, std::string path)
 {
   network_butcher_utilities::output_onnx_file(model, path);
 }
 
 
 void
-IO_Manager::export_network_infos_to_csv(graph_type const       &graph,
-                                        onnx::ModelProto const &model,
-                                        std::string const      &path)
+network_butcher_io::IO_Manager::export_network_infos_to_csv(graph_type const       &graph,
+                                                            onnx::ModelProto const &model,
+                                                            std::string const      &path)
 {
   std::fstream file_out;
   file_out.open(path, std::ios_base::out);
@@ -299,16 +274,14 @@ IO_Manager::export_network_infos_to_csv(graph_type const       &graph,
         {
           auto const &content = node.content;
 
-          auto       ins  = content.get_input();
-          auto       outs = content.get_output();
-          auto const kernel_iterator =
-            content.get_attributes().find("kernel_shape");
+          auto       ins             = content.get_input();
+          auto       outs            = content.get_output();
+          auto const kernel_iterator = content.get_attributes().find("kernel_shape");
 
           if (kernel_iterator != content.get_attributes().cend())
             {
               auto out_it = outs.cbegin();
-              while (out_it != outs.cend() &&
-                     out_it->first == "__fake__output__")
+              while (out_it != outs.cend() && out_it->first == "__fake__output__")
                 ++out_it;
 
               auto in_it = ins.cbegin();
@@ -331,9 +304,8 @@ IO_Manager::export_network_infos_to_csv(graph_type const       &graph,
 
               auto const flops = H_f * W_f * C_in * C_out * in_pixels;
 
-              file_out << node.get_id() << "," << H_f << "," << W_f << ","
-                       << C_in << "," << C_out << "," << flops << ",0"
-                       << std::endl;
+              file_out << node.get_id() << "," << H_f << "," << W_f << "," << C_in << "," << C_out << "," << flops
+                       << ",0" << std::endl;
             }
         }
     }
@@ -343,9 +315,9 @@ IO_Manager::export_network_infos_to_csv(graph_type const       &graph,
 
 
 void
-IO_Manager::import_weights_from_csv_aMLLibrary(graph_type        &graph,
-                                               std::size_t        device,
-                                               std::string const &path)
+network_butcher_io::IO_Manager::import_weights_from_csv_aMLLibrary(graph_type        &graph,
+                                                                   std::size_t        device,
+                                                                   std::string const &path)
 {
   std::fstream file_in;
   file_in.open(path, std::ios_base::in);
@@ -366,8 +338,7 @@ IO_Manager::import_weights_from_csv_aMLLibrary(graph_type        &graph,
 
       while (it != graph.get_nodes().cend() &&
              !(it->content.get_operation_id() == "conv" &&
-               it->content.get_attributes().find("kernel_shape") !=
-                 it->content.get_attributes().cend()))
+               it->content.get_attributes().find("kernel_shape") != it->content.get_attributes().cend()))
         {
           ++it;
         }
@@ -375,8 +346,7 @@ IO_Manager::import_weights_from_csv_aMLLibrary(graph_type        &graph,
       if (it == graph.get_nodes().cend())
         return;
 
-      for (auto const &successor :
-           graph.get_dependencies()[it->get_id()].second)
+      for (auto const &successor : graph.get_dependencies()[it->get_id()].second)
         {
           graph.set_weigth(device, {it->get_id(), successor}, tmp_weight);
         }
@@ -389,9 +359,9 @@ IO_Manager::import_weights_from_csv_aMLLibrary(graph_type        &graph,
 
 
 void
-IO_Manager::import_weights_from_csv_operation_time(graph_type        &graph,
-                                                   std::size_t        device,
-                                                   const std::string &path)
+network_butcher_io::IO_Manager::import_weights_from_csv_operation_time(graph_type        &graph,
+                                                                       std::size_t        device,
+                                                                       const std::string &path)
 {
   std::fstream file_in;
   file_in.open(path, std::ios_base::in);
@@ -415,11 +385,9 @@ IO_Manager::import_weights_from_csv_operation_time(graph_type        &graph,
 
 
       while (it != graph.get_nodes().cend() &&
-             network_butcher_utilities::trim_copy(
-               network_butcher_utilities::to_lowercase_copy(operation_name)) !=
+             network_butcher_utilities::trim_copy(network_butcher_utilities::to_lowercase_copy(operation_name)) !=
                network_butcher_utilities::trim_copy(
-                 network_butcher_utilities::to_lowercase_copy(
-                   it->content.get_operation_id())))
+                 network_butcher_utilities::to_lowercase_copy(it->content.get_operation_id())))
         {
           ++it;
         }
@@ -427,8 +395,7 @@ IO_Manager::import_weights_from_csv_operation_time(graph_type        &graph,
       if (it == graph.get_nodes().cend())
         return;
 
-      for (auto const &successor :
-           graph.get_dependencies()[it->get_id()].second)
+      for (auto const &successor : graph.get_dependencies()[it->get_id()].second)
         {
           graph.set_weigth(device, {it->get_id(), successor}, tmp_weight);
         }
@@ -441,10 +408,9 @@ IO_Manager::import_weights_from_csv_operation_time(graph_type        &graph,
 
 
 void
-IO_Manager::import_weights_from_csv_multi_operation_time(
-  graph_type              &graph,
-  std::vector<std::size_t> device,
-  const std::string       &path)
+network_butcher_io::IO_Manager::import_weights_from_csv_multi_operation_time(graph_type              &graph,
+                                                                             std::vector<std::size_t> device,
+                                                                             const std::string       &path)
 {
   std::fstream file_in;
   file_in.open(path, std::ios_base::in);
@@ -464,8 +430,7 @@ IO_Manager::import_weights_from_csv_multi_operation_time(
       auto const operation_name = tmp_line;
 
       while (it != graph.get_nodes().cend() &&
-             network_butcher_utilities::to_lowercase_copy(
-               it->content.get_operation_id()) !=
+             network_butcher_utilities::to_lowercase_copy(it->content.get_operation_id()) !=
                network_butcher_utilities::to_lowercase_copy(operation_name))
         {
           ++it;
@@ -479,12 +444,9 @@ IO_Manager::import_weights_from_csv_multi_operation_time(
         {
           tmp_weight = ::atof(tmp_line.c_str());
 
-          for (auto const &successor :
-               graph.get_dependencies()[it->get_id()].second)
+          for (auto const &successor : graph.get_dependencies()[it->get_id()].second)
             {
-              graph.set_weigth(device[j],
-                               {it->get_id(), successor},
-                               tmp_weight);
+              graph.set_weigth(device[j], {it->get_id(), successor}, tmp_weight);
             }
 
           ++it;
@@ -497,7 +459,7 @@ IO_Manager::import_weights_from_csv_multi_operation_time(
 
 
 Parameters
-IO_Manager::read_parameters(const std::string &path)
+network_butcher_io::IO_Manager::read_parameters(const std::string &path)
 {
   GetPot file(path);
 
@@ -511,8 +473,7 @@ IO_Manager::read_parameters(const std::string &path)
 
   res.K                    = file(basic_infos + "/K", 100);
   std::string const method = network_butcher_utilities::trim_copy(
-    network_butcher_utilities::to_lowercase_copy(
-      file(basic_infos + "/method", "")));
+    network_butcher_utilities::to_lowercase_copy(file(basic_infos + "/method", "")));
 
   if (method == "Eppstein")
     res.method = KSP_Method::Eppstein;
@@ -520,14 +481,12 @@ IO_Manager::read_parameters(const std::string &path)
     res.method = KSP_Method::Lazy_Eppstein;
 
   res.starting_device_id = file(basic_infos + "/starting_device_id", 0);
-  res.ending_device_id = file(basic_infos + "/ending_device_id", 0);
+  res.ending_device_id   = file(basic_infos + "/ending_device_id", 0);
 
-  res.backward_connections_allowed =
-    file(basic_infos + "/backward_connections_allowed", false);
+  res.backward_connections_allowed = file(basic_infos + "/backward_connections_allowed", false);
 
   std::string const weight_import_method = network_butcher_utilities::trim_copy(
-    network_butcher_utilities::to_lowercase_copy(
-      file(basic_infos + "/weight_import_mode", "aMLLibrary")));
+    network_butcher_utilities::to_lowercase_copy(file(basic_infos + "/weight_import_mode", "aMLLibrary")));
 
   if (weight_import_method == "amllibrary")
     res.weight_import_mode = Weight_Import_Mode::aMLLibrary;
@@ -539,10 +498,8 @@ IO_Manager::read_parameters(const std::string &path)
   res.memory_constraint = file(basic_infos + "/memory_constraint", false);
   if (res.memory_constraint)
     {
-      std::string const memory_constraint_type =
-        network_butcher_utilities::trim_copy(
-          network_butcher_utilities::to_lowercase_copy(
-            file(basic_infos + "/memory_constraint_type", "none")));
+      std::string const memory_constraint_type = network_butcher_utilities::trim_copy(
+        network_butcher_utilities::to_lowercase_copy(file(basic_infos + "/memory_constraint_type", "none")));
 
       if (memory_constraint_type == "none")
         {
@@ -554,8 +511,7 @@ IO_Manager::read_parameters(const std::string &path)
         }
       else if (memory_constraint_type == "preload_parameters")
         {
-          res.memory_constraint_type =
-            Memory_Constraint_Type::Preload_Parameters;
+          res.memory_constraint_type = Memory_Constraint_Type::Preload_Parameters;
         }
     }
 
@@ -582,9 +538,7 @@ IO_Manager::read_parameters(const std::string &path)
     {
       for (std::size_t j = i + 1; j < num_devices; ++j)
         {
-          res.bandwidth[{i, j}] = file(bndw + "/from_" + std::to_string(i) +
-                                         "_to_" + std::to_string(j),
-                                       .0);
+          res.bandwidth[{i, j}] = file(bndw + "/from_" + std::to_string(i) + "_to_" + std::to_string(j), .0);
         }
     }
 
@@ -594,9 +548,7 @@ IO_Manager::read_parameters(const std::string &path)
         {
           for (std::size_t j = i - 1; j >= 0; --j)
             {
-              res.bandwidth[{i, j}] = file(bndw + "/from_" + std::to_string(i) +
-                                             "_to_" + std::to_string(j),
-                                           .0);
+              res.bandwidth[{i, j}] = file(bndw + "/from_" + std::to_string(i) + "_to_" + std::to_string(j), .0);
             }
         }
     }
@@ -606,37 +558,32 @@ IO_Manager::read_parameters(const std::string &path)
 
 
 void
-IO_Manager::export_network_partitions(
-  const Parameters                                 &params,
-  graph_type const                                 &graph,
-  onnx::ModelProto const                           &model,
-  std::map<node_id_type, node_id_type> const       &link_id_nodeproto,
-  const network_butcher_types::Weighted_Real_Paths &paths)
+network_butcher_io::IO_Manager::export_network_partitions(const Parameters                           &params,
+                                                          graph_type const                           &graph,
+                                                          onnx::ModelProto const                     &model,
+                                                          std::map<node_id_type, node_id_type> const &link_id_nodeproto,
+                                                          const network_butcher_types::Weighted_Real_Paths &paths)
 {
   network_butcher_utilities::create_directory(params.export_directory);
   for (std::size_t j = 0; j < paths.size(); ++j)
     {
-      network_butcher_utilities::create_directory(params.export_directory +
-                                                  "/" + std::to_string(j));
+      network_butcher_utilities::create_directory(params.export_directory + "/" + std::to_string(j));
 
-      auto const model_device =
-        reconstruct_model(paths[j].second, model, graph, link_id_nodeproto);
+      auto const model_device = reconstruct_model(paths[j].second, model, graph, link_id_nodeproto);
 
       for (std::size_t i = 0; i < model_device.size(); ++i)
         export_to_onnx(model_device[i].first,
-                       params.export_directory + "/" + std::to_string(j) + "/" +
-                         params.model_name + "-" + std::to_string(i) +
-                         "-device-" + std::to_string(model_device[i].second) +
-                         ".onnx");
+                       params.export_directory + "/" + std::to_string(j) + "/" + params.model_name + "-" +
+                         std::to_string(i) + "-device-" + std::to_string(model_device[i].second) + ".onnx");
     }
 }
 
 
 void
-IO_Manager::import_weights(Weight_Import_Mode const &weight_mode,
-                           graph_type               &graph,
-                           std::string const        &path,
-                           std::size_t               device)
+network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode const &weight_mode,
+                                               graph_type               &graph,
+                                               std::string const        &path,
+                                               std::size_t               device)
 {
   switch (weight_mode)
     {
@@ -656,11 +603,11 @@ IO_Manager::import_weights(Weight_Import_Mode const &weight_mode,
 
 
 void
-IO_Manager::import_weights(Weight_Import_Mode const &weight_mode,
-                           graph_type               &graph,
-                           std::string const        &path,
-                           std::vector<std::size_t>  devices,
-                           std::size_t               index)
+network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode const &weight_mode,
+                                               graph_type               &graph,
+                                               std::string const        &path,
+                                               std::vector<std::size_t>  devices,
+                                               std::size_t               index)
 {
   switch (weight_mode)
     {

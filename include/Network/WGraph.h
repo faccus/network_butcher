@@ -25,10 +25,8 @@ namespace network_butcher_types
     WGraph &
     operator=(WGraph &&) = default;
 
-    explicit WGraph(
-      std::vector<Node<T>> v,
-      std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
-        dep = {})
+    explicit WGraph(std::vector<Node<T>>                                                     v,
+                    std::vector<std::pair<node_id_collection_type, node_id_collection_type>> dep = {})
       : Parent_type(1, v, dep)
     {}
 
@@ -70,10 +68,8 @@ namespace network_butcher_types
     WGraph &
     operator=(WGraph &&) = default;
 
-    explicit WGraph(
-      std::vector<Node<Content<T>>> v,
-      std::vector<std::pair<node_id_collection_type, node_id_collection_type>>
-        dep)
+    explicit WGraph(std::vector<Node<Content<T>>>                                            v,
+                    std::vector<std::pair<node_id_collection_type, node_id_collection_type>> dep)
       : Parent_type(1, v, dep){};
 
     explicit WGraph(std::vector<Node_Type> const &v)

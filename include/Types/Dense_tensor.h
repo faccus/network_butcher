@@ -7,8 +7,8 @@
 
 #include "../Traits/Type_info_traits.h"
 #include "../Utilities.h"
-#include "Type_info.h"
 #include "DynamicType.h"
+#include "Type_info.h"
 
 #include <vector>
 
@@ -20,8 +20,7 @@ namespace network_butcher_types
   private:
     /// (onnx::TensorProto_DataType_*) Type id for the variables stored in the
     /// tensor
-    type_info_id_type type_id =
-      -1; // Maybe, it can be changed to the dimension of the type
+    type_info_id_type type_id = -1; // Maybe, it can be changed to the dimension of the type
 
     /// Shape of the tensor
     std::vector<shape_type> shape;
@@ -39,15 +38,11 @@ namespace network_butcher_types
 
     /// Construct the tensor from a onnx::ValueInfoProto object
     /// \param info onnx::ValueInfoProto object
-    Dense_tensor(const onnx::ValueInfoProto &info,
-                 bool                        given    = false,
-                 bool                        constant = false);
+    Dense_tensor(const onnx::ValueInfoProto &info, bool given = false, bool constant = false);
 
     /// Construct the tensor from a onnx::TensorProto object
     /// \param info onnx::ValueInfoProto object
-    Dense_tensor(const onnx::TensorProto &info,
-                 bool                     given    = false,
-                 bool                     constant = false);
+    Dense_tensor(const onnx::TensorProto &info, bool given = false, bool constant = false);
 
     /// Compute the total memory of the type
     /// \return Memory usage of the associated type

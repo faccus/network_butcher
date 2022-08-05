@@ -26,9 +26,8 @@ namespace network_butcher_types
   class Graph
   {
   public:
-    using Node_Type = Node<T>;
-    using Dependencies_Type =
-      std::vector<std::pair<node_id_collection_type, node_id_collection_type>>;
+    using Node_Type            = Node<T>;
+    using Dependencies_Type    = std::vector<std::pair<node_id_collection_type, node_id_collection_type>>;
     using Node_Collection_Type = std::vector<Node_Type>;
     using Node_Internal_Type   = T;
 
@@ -175,11 +174,10 @@ namespace network_butcher_types
   class Graph<Content<T>>
   {
   public:
-    using Dependencies_Type =
-      std::vector<std::pair<node_id_collection_type, node_id_collection_type>>;
+    using Dependencies_Type    = std::vector<std::pair<node_id_collection_type, node_id_collection_type>>;
     using Node_Type            = Node<Content<T>>;
     using Node_Collection_Type = std::vector<Node_Type>;
-    using Node_Content_Type = Content<T>;
+    using Node_Content_Type    = Content<T>;
     using Node_Internal_Type   = T;
 
 
@@ -383,8 +381,7 @@ namespace network_butcher_types
         for (auto node_id : appearance.second)
           dependencies[node_id].first.insert(neib.cbegin(), neib.cend());
         for (auto node_id : neib)
-          dependencies[node_id].second.insert(appearance.second.cbegin(),
-                                              appearance.second.cend());
+          dependencies[node_id].second.insert(appearance.second.cbegin(), appearance.second.cend());
       }
   }
 } // namespace network_butcher_types

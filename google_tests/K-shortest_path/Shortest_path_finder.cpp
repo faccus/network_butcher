@@ -18,12 +18,10 @@ namespace KspTestNamespace
 
   using Input         = TestMemoryUsage<basic_type>;
   using Content_input = network_butcher_types::Content<Input>;
-  using Node_type =
-    network_butcher_types::Node<network_butcher_types::Content<Input>>;
-  using Graph_type = network_butcher_types::WGraph<Content_input>;
+  using Node_type     = network_butcher_types::Node<network_butcher_types::Content<Input>>;
+  using Graph_type    = network_butcher_types::WGraph<Content_input>;
 
-  using weights_collection_type =
-    std::map<std::pair<node_id_type, node_id_type>, type_weight>;
+  using weights_collection_type = std::map<std::pair<node_id_type, node_id_type>, type_weight>;
 
 
   Graph_type
@@ -62,9 +60,8 @@ namespace KspTestNamespace
 
     int k = 100; // Up to 10
 
-    std::vector<type_weight> real_sol = {
-      55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
-    auto res = kfinder.compute(real_sol.size());
+    std::vector<type_weight> real_sol = {55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
+    auto                     res      = kfinder.compute(real_sol.size());
 
     std::vector<type_weight> real_path_lengths;
     std::vector<type_weight> path_lengths;
@@ -85,14 +82,13 @@ namespace KspTestNamespace
 
   TEST(KspTests, LazyEppsteinOriginalNetwork)
   {
-    auto const            graph = eppstein_graph();
+    auto const                                     graph = eppstein_graph();
     network_butcher_kfinder::KFinder_Lazy_Eppstein kfinder(graph);
 
     int k = 100; // Up to 10
 
-    std::vector<type_weight> real_sol = {
-      55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
-    auto res = kfinder.compute(real_sol.size());
+    std::vector<type_weight> real_sol = {55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
+    auto                     res      = kfinder.compute(real_sol.size());
 
     std::vector<type_weight> real_path_lengths;
     std::vector<type_weight> path_lengths;
@@ -119,14 +115,11 @@ namespace KspTestNamespace
 
     std::vector<Node_type> nodes;
 
-    nodes.emplace_back(content_in(io_collection_type<Input>{},
-                                  io_collection_type<Input>{{"X0", 0}}));
-    nodes.emplace_back(
-      content_in({{"X0", 0}, {"X2", 2}, {"X4", 4}}, {{"X1", 1}}));
+    nodes.emplace_back(content_in(io_collection_type<Input>{}, io_collection_type<Input>{{"X0", 0}}));
+    nodes.emplace_back(content_in({{"X0", 0}, {"X2", 2}, {"X4", 4}}, {{"X1", 1}}));
     nodes.emplace_back(content_in({{"X0", 0}, {"X3", 3}}, {{"X2", {2}}}));
     nodes.emplace_back(content_in({{"X1", 1}, {"X5", 5}}, {{"X3", 3}}));
-    nodes.emplace_back(
-      content_in({{"X2", 2}, {"X3", 3}, {"X6", 6}}, {{"X4", 4}}));
+    nodes.emplace_back(content_in({{"X2", 2}, {"X3", 3}, {"X6", 6}}, {{"X4", 4}}));
     nodes.emplace_back(content_in({{"X2", 2}, {"X4", 4}}, {{"X5", 5}}));
     nodes.emplace_back(content_in({{"X5", 5}}, {{"X6", 6}}));
 
@@ -161,20 +154,17 @@ namespace KspTestNamespace
     for (int i = 1; i < 12; ++i)
       {
         if (i < 4)
-          nodes.emplace_back(content_in({{"X" + std::to_string(i - 1), i - 1}},
-                                        {{"X" + std::to_string(i), i}}));
+          nodes.emplace_back(content_in({{"X" + std::to_string(i - 1), i - 1}}, {{"X" + std::to_string(i), i}}));
         else if (i == 4)
           nodes.emplace_back(content_in({{"X0", 0}}, {{"X4", 4}}));
         else if (4 < i && i < 8)
-          nodes.emplace_back(content_in({{"X" + std::to_string(i % 4), i % 4},
-                                         {"X" + std::to_string(i - 1), i - 1}},
+          nodes.emplace_back(content_in({{"X" + std::to_string(i % 4), i % 4}, {"X" + std::to_string(i - 1), i - 1}},
                                         {{"X" + std::to_string(i), i}}));
         else if (i == 8)
           nodes.emplace_back(content_in({{"X4", 4}}, {{"X8", 8}}));
         else if (i > 8)
           nodes.emplace_back(
-            content_in({{"X" + std::to_string(i % 4 + 4), i % 4 + 4},
-                        {"X" + std::to_string(i - 1), i - 1}},
+            content_in({{"X" + std::to_string(i % 4 + 4), i % 4 + 4}, {"X" + std::to_string(i - 1), i - 1}},
                        {{"X" + std::to_string(i), i}}));
       }
 

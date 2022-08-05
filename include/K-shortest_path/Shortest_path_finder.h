@@ -30,16 +30,15 @@ namespace network_butcher_kfinder
     /// shortest path length from the root to every node
     [[nodiscard]] static dijkstra_result_type
     dijkstra(Graph_type const &graph,
-             node_id_type      root = 0,
-             bool reversed          = false) // time: ((N+E)log(N)), space: O(N)
+             node_id_type      root     = 0,
+             bool              reversed = false) // time: ((N+E)log(N)), space: O(N)
     {
       auto const &nodes = graph.get_nodes();
 
       if (nodes.empty())
         return {{}, {}};
 
-      std::vector<weight_type> total_distance(
-        nodes.size(), std::numeric_limits<double>::max());
+      std::vector<weight_type> total_distance(nodes.size(), std::numeric_limits<double>::max());
       total_distance[root] = 0;
 
       std::vector<node_id_type>        predecessors(nodes.size(), root);
@@ -53,49 +52,42 @@ namespace network_butcher_kfinder
           auto const &start_distance = total_distance[current_node.id];
           if (start_distance == std::numeric_limits<weight_type>::max())
             {
-              std::cout << "Dijkstra error: the current distance is +inf"
-                        << std::endl;
+              std::cout << "Dijkstra error: the current distance is +inf" << std::endl;
               return {predecessors, total_distance};
             }
 
           to_visit.erase(to_visit.begin()); // O(log(N))
 
-          auto const &children =
-            extract_children(graph, current_node.id, reversed);
+          auto const &children = extract_children(graph, current_node.id, reversed);
           if (!children.empty())
             {
               for (auto const &head_node : children)
                 {
                   auto      &base_distance = total_distance[head_node]; // O(1)
-                  auto const weight =
-                    get_weight(graph, current_node.id, head_node, reversed);
+                  auto const weight        = get_weight(graph, current_node.id, head_node, reversed);
 
                   if (weight < 0)
                     {
                       if (!reversed)
-                        std::cout << "Error: missing weight ("
-                                  << current_node.id << ", " << head_node << ")"
+                        std::cout << "Error: missing weight (" << current_node.id << ", " << head_node << ")"
                                   << std::endl;
                       else
-                        std::cout << "Error: missing weight (" << head_node
-                                  << ", " << current_node.id << ")"
+                        std::cout << "Error: missing weight (" << head_node << ", " << current_node.id << ")"
                                   << std::endl;
                       return {predecessors, total_distance};
                     }
 
-                  auto const candidate_distance =
-                    start_distance + weight;              // O(1)
-                  if (candidate_distance < base_distance) // O(1)
+                  auto const candidate_distance = start_distance + weight; // O(1)
+                  if (candidate_distance < base_distance)                  // O(1)
                     {
                       auto it = to_visit.find({base_distance, head_node});
 
                       if (it != to_visit.end())
                         to_visit.erase(it); // O(log(N))
 
-                      predecessors[head_node] = current_node.id;    // O(1)
-                      base_distance           = candidate_distance; // O(1)
-                      to_visit.insert(
-                        {candidate_distance, head_node}); // O(log(N))
+                      predecessors[head_node] = current_node.id;        // O(1)
+                      base_distance           = candidate_distance;     // O(1)
+                      to_visit.insert({candidate_distance, head_node}); // O(log(N))
                     }
                 }
             }
@@ -123,10 +115,9 @@ namespace network_butcher_kfinder
     /// \param root The starting node
     /// \return The shortest path
     static path_info
-    shortest_path_finder(Graph_type const                          &graph,
-                         std::pair<std::vector<node_id_type>,
-                                   std::vector<weight_type>> const &dij_res,
-                         node_id_type                               root)
+    shortest_path_finder(Graph_type const                                                     &graph,
+                         std::pair<std::vector<node_id_type>, std::vector<weight_type>> const &dij_res,
+                         node_id_type                                                          root)
     {
       path_info info;
       info.length = dij_res.second[root];
@@ -150,13 +141,10 @@ namespace network_butcher_kfinder
     /// \param reversed If true, every edge is considered reversed
     /// \return The children of the given node
     [[nodiscard]] static std::set<node_id_type> const &
-    extract_children(Graph_type const   &graph,
-                     node_id_type const &node_id,
-                     bool const         &reversed)
+    extract_children(Graph_type const &graph, node_id_type const &node_id, bool const &reversed)
     {
       auto const &dependencies = graph.get_dependencies();
-      return reversed ? dependencies[node_id].first :
-                        dependencies[node_id].second;
+      return reversed ? dependencies[node_id].first : dependencies[node_id].second;
     }
 
     /// Given the tail and the head of the edge, it will produce the associated
@@ -168,13 +156,9 @@ namespace network_butcher_kfinder
     /// \param reversed If true, every edge is considered reversed
     /// \return The corresponding weight
     static weight_type
-    get_weight(Graph_type const &graph,
-               std::size_t       tail,
-               std::size_t       head,
-               bool const       &reversed)
+    get_weight(Graph_type const &graph, std::size_t tail, std::size_t head, bool const &reversed)
     {
-      edge_type edge =
-        reversed ? std::make_pair(head, tail) : std::make_pair(tail, head);
+      edge_type edge = reversed ? std::make_pair(head, tail) : std::make_pair(tail, head);
 
       return graph.get_weigth(edge);
     }
