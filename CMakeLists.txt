@@ -11,21 +11,21 @@ message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURC
 #message(STATUS "Should protoc be built and should it compile .proto3 files? " ${BUILD_PROTOC_COMPILER})
 
 
-option(USE_YAML_CPP "Use yaml-cpp" ON)
+option(USE_YAML_CPP "Use yaml-cpp" OFF)
 message(STATUS "It will use the yaml-cpp library to read yaml files: " ${USE_YAML_CPP})
 
 
-option(BUILD_DOC "Build documentation" ON)
+option(BUILD_DOC "Build documentation" OFF)
 message(STATUS "Build documentation: ${BUILD_DOC}")
 
-option(BUILD_DOC_GRAPH "Build documentation graphs" ON)
+option(BUILD_DOC_GRAPH "Build documentation graphs" OFF)
 message(STATUS "Build documentation graphs: ${BUILD_DOC_GRAPH}")
 
 
 option(BUILD_TESTS "Build tests" ON)
 message(STATUS "Build tests: ${BUILD_TESTS}")
 
-option(BUILD_BENCHMARK "Build benchmark tests" ON)
+option(BUILD_BENCHMARK "Build benchmark tests" OFF)
 message(STATUS "Build benchmark tests: ${BUILD_BENCHMARK}")
 
 
