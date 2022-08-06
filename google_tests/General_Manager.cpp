@@ -15,12 +15,12 @@ namespace butcher_benchmark_test_namespace
   TEST(GeneralManagerTest, boot_test)
   {
     std::string const path = "test_parameters.conf";
-    General_Manager::boot(path);
+    General_Manager::boot(path, true);
   }
 
   TEST(GeneralManagerTest, boot_test2)
   {
     std::string const path = "test2_parameters.conf";
-    General_Manager::boot(path);
+    General_Manager::boot(path, true);
   }
 } // namespace butcher_benchmark_test_namespace

@@ -20,7 +20,10 @@ network_butcher_io::General_Manager::generate_bandwidth_transmission_function(co
           auto const mem = network_butcher_computer::Computer_memory::compute_memory_usage_output(graph[node_id]);
           auto const it  = params.bandwidth.find({first_device, second_device});
 
-          return mem / (it->second * mbps);
+          auto const bdw = it->second.first;
+          auto const acc = it->second.second;
+
+          return mem / (bdw * mbps) + acc;
         }
     };
   return transmission_weights;

@@ -534,11 +534,13 @@ network_butcher_io::IO_Manager::read_parameters(const std::string &path)
     }
 
   std::string const bndw = "bandwidth";
+  std::string const accc = "access_delay";
   for (std::size_t i = 0; i < num_devices; ++i)
     {
       for (std::size_t j = i + 1; j < num_devices; ++j)
         {
-          res.bandwidth[{i, j}] = file(bndw + "/from_" + std::to_string(i) + "_to_" + std::to_string(j), .0);
+          auto const basic      = "/from_" + std::to_string(i) + "_to_" + std::to_string(j);
+          res.bandwidth[{i, j}] = {file(bndw + basic, .0), file(accc + basic, .0)};
         }
     }
 
@@ -548,7 +550,8 @@ network_butcher_io::IO_Manager::read_parameters(const std::string &path)
         {
           for (std::size_t j = i - 1; j >= 0; --j)
             {
-              res.bandwidth[{i, j}] = file(bndw + "/from_" + std::to_string(i) + "_to_" + std::to_string(j), .0);
+              auto const basic      = "/from_" + std::to_string(i) + "_to_" + std::to_string(j);
+              res.bandwidth[{i, j}] = {file(bndw + basic, .0), file(accc + basic, .0)};
             }
         }
     }

@@ -83,7 +83,7 @@ struct Parameters
   std::vector<Device> devices;
 
   // The bandwidth information between the different devices (in Mbps)
-  std::map<std::pair<std::size_t, std::size_t>, bandwidth_type> bandwidth;
+  std::map<std::pair<std::size_t, std::size_t>, std::pair<bandwidth_type, bandwidth_type>> bandwidth;
 };
 
 
