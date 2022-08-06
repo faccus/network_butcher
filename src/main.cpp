@@ -27,6 +27,7 @@ struct network_domain
   double      access_delay;
 };
 
+
 int
 main()
 {
@@ -89,52 +90,100 @@ main()
 
   for (auto const &model_friendly_name : to_deploy)
     {
+      std::vector<std::map<std::string, std::size_t>> devices_ram;
+      std::vector<std::set<std::size_t>>              layers;
+      std::size_t                                     exe_layer = 0;
+
       for (YAML::const_iterator it = components.begin(); it != components.end(); ++it)
         {
           if (it->second["name"] &&
               it->second["name"].as<std::string>().find(model_friendly_name) != std::string::npos &&
               it->second["name"].as<std::string>().find("partitionX") != std::string::npos)
             {
-              std::map<std::string, std::size_t> devices_ram;
-              std::set<std::size_t>              layers;
+              devices_ram.emplace_back();
+              layers.emplace_back();
 
               YAML::Node execution_layers = it->second["candidateExecutionLayers"];
 
 
               for (auto const &idw : execution_layers)
                 {
-                  layers.emplace(idw.as<std::size_t>());
+                  layers[exe_layer].emplace(idw.as<std::size_t>());
                 }
 
               YAML::Node devices = it->second["Containers"];
 
               for (YAML::const_iterator device_it = devices.begin(); device_it != devices.end(); ++device_it)
                 {
-                  devices_ram[device_it->second["candidateExecutionResources"][0].as<std::string>()] =
+                  devices_ram.back()[device_it->second["candidateExecutionResources"][0].as<std::string>()] =
                     device_it->second["memorySize"].as<std::size_t>();
                 }
 
-              Parameters params;
-              params.devices = std::vector<Device>(devices_ram.size());
-
-              {
-                std::size_t index = 0;
-                for (auto const &device : devices_ram)
-                  {
-                    auto &ref          = params.devices[index];
-                    ref.maximum_memory = device.second;
-                    ref.id             = index++;
-                  }
-              }
-
-              params.model_name         = "RFB_640_inferred";
-              params.model_path         = "version-RFB-640-inferred.onnx";
-              params.export_directory   = "ksp_result";
-              params.K                  = 10;
-              params.method             = Lazy_Eppstein;
-              params.starting_device_id = 0;
-              params.ending_device_id   = 1;
+              ++exe_layer;
             }
+        }
+
+      if (devices_ram.size() > 1)
+        {
+          std::vector<std::vector<std::pair<std::string, std::size_t>>> device_for_partitions;
+          device_for_partitions.emplace_back();
+
+          for (std::size_t i = 0; i < devices_ram.size(); ++i)
+            {
+              auto const size = device_for_partitions.size();
+              for (std::size_t k = 0; k < size; ++k)
+                {
+                  auto &partition = device_for_partitions[k];
+                  if (!devices_ram[i].empty())
+                    {
+                      auto const copy = partition;
+                      auto       it   = devices_ram[i].begin();
+                      partition.push_back({it->first, it->second});
+                      ++it;
+                      for (; it != devices_ram[i].end(); ++it)
+                        {
+                          device_for_partitions.push_back(copy);
+                          device_for_partitions.back().push_back({it->first, it->second});
+                        }
+                    }
+                }
+            }
+
+          for(auto const devices : device_for_partitions) {
+              Parameters params;
+              params.model_name = model_friendly_name;
+              params.model_path = "";
+
+              params.starting_device_id = 0;
+              params.ending_device_id = 0;
+
+              params.method = Lazy_Eppstein;
+              params.K = 100;
+              params.backward_connections_allowed = false;
+
+
+              std::vector<std::string> domains;
+              domains.reserve(devices.size());
+
+              std::size_t k = 0;
+              for(auto const &device : devices) {
+
+                  domains.push_back(layer_to_domain[name_to_layer[device.first]]);
+                  params.devices.emplace_back();
+
+                  auto &dev = params.devices.back();
+                  dev.id = k++;
+                  dev.maximum_memory = device.second;
+                  dev.name = device.first;
+                  dev.weights_path = "";
+                }
+
+
+            }
+
+
+
+          std::cout << std::endl;
         }
     }
 
