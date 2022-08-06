@@ -149,16 +149,17 @@ main()
                 }
             }
 
-          for(auto const devices : device_for_partitions) {
+          for (auto const devices : device_for_partitions)
+            {
               Parameters params;
               params.model_name = model_friendly_name;
               params.model_path = "";
 
               params.starting_device_id = 0;
-              params.ending_device_id = 0;
+              params.ending_device_id   = 0;
 
-              params.method = Lazy_Eppstein;
-              params.K = 100;
+              params.method                       = Lazy_Eppstein;
+              params.K                            = 100;
               params.backward_connections_allowed = false;
 
 
@@ -166,21 +167,36 @@ main()
               domains.reserve(devices.size());
 
               std::size_t k = 0;
-              for(auto const &device : devices) {
-
+              for (auto const &device : devices)
+                {
                   domains.push_back(layer_to_domain[name_to_layer[device.first]]);
                   params.devices.emplace_back();
 
-                  auto &dev = params.devices.back();
-                  dev.id = k++;
+                  auto &dev          = params.devices.back();
+                  dev.id             = k++;
                   dev.maximum_memory = device.second;
-                  dev.name = device.first;
-                  dev.weights_path = "";
+                  dev.name           = device.first;
+                  dev.weights_path   = "";
                 }
 
+              for (std::size_t i = 0; i < params.devices.size(); ++i)
+                {
+                  for (std::size_t j = i + 1; j < params.devices.size(); ++j)
+                    {
+                      if (domains[i] == domains[j])
+                        {
+                          auto const &dom          = network_domains[domains[i]];
+                          params.bandwidth[{i, j}] = {dom.bandwidth, dom.access_delay};
+                        }
+                      else
+                        {
+                          // Add research of parent ND...
+                        }
+                    }
+                }
 
+              std::cout << std::endl;
             }
-
 
 
           std::cout << std::endl;
