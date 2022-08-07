@@ -12,7 +12,7 @@
 #include "../include/IO_Manager.h"
 #include "TestClass.h"
 
-namespace butcher_benchmark_test_namespace
+namespace
 {
   using namespace network_butcher_computer;
   using namespace network_butcher_types;
@@ -551,4 +551,4 @@ namespace butcher_benchmark_test_namespace
     return res;
   }
 
-}; // namespace butcher_benchmark_test_namespace
+}; // namespace

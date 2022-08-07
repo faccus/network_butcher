@@ -19,7 +19,7 @@ void
 PrintInputOutput(const onnx::ModelProto &);
 */
 
-namespace butcher_test_namespace
+namespace
 {
   using namespace network_butcher_computer;
   using namespace network_butcher_types;
@@ -252,4 +252,4 @@ namespace butcher_test_namespace
 
     return res;
   }
-} // namespace butcher_test_namespace
+} // namespace

@@ -8,19 +8,22 @@
 #include "../../include/Network/Node.h"
 #include "../../include/Traits/Node_traits.h"
 
-using namespace network_butcher_types;
 
-TEST(NodeTests, Conctructor)
-{
-  Node node(1);
-}
+namespace {
+  using namespace network_butcher_types;
 
-TEST(NodeTests, MoveConstructible)
-{
-  ASSERT_TRUE(std::is_move_constructible_v<node_type>);
-}
+  TEST(NodeTests, Conctructor)
+  {
+    Node node(1);
+  }
 
-TEST(NodeTests, MoveAssignable)
-{
-  ASSERT_TRUE(std::is_move_assignable_v<node_type>);
+  TEST(NodeTests, MoveConstructible)
+  {
+    ASSERT_TRUE(std::is_move_constructible_v<node_type>);
+  }
+
+  TEST(NodeTests, MoveAssignable)
+  {
+    ASSERT_TRUE(std::is_move_assignable_v<node_type>);
+  }
 }

@@ -34,17 +34,31 @@ namespace network_butcher_types
       attributes.emplace(name, tensor);
     }
 
+
   public:
-    Content(io_collection_type<T>                                     in             = {},
-            io_collection_type<T>                                     out            = {},
-            io_collection_type<T>                                     params         = {},
-            std::unordered_map<std::string, std::vector<DynamicType>> in_attributes  = {},
-            std::string                                               operation_name = "")
-      : input(std::move(in))
-      , output(std::move(out))
-      , parameters(std::move(params))
-      , attributes(std::move(in_attributes))
-      , operation_id(std::move(operation_name))
+    /// Generic make content class (only usable if T has default constructor)
+    /// \tparam Arg The parameters
+    /// \param arg The input parameters (if some of the fields are not provided, they are default initialized)
+    /// \return The Content<T>
+    template <typename... Arg>
+    static Content<T>
+    make_content(Arg &&...arg)
+    {
+      return Content<T>(std::forward<Arg>(arg)...);
+    }
+
+
+    template <class A = io_collection_type<T>,
+              class B = io_collection_type<T>,
+              class C = io_collection_type<T>,
+              class D = std::unordered_map<std::string, std::vector<DynamicType>>,
+              class E = std::string>
+    Content(A &&in = A(), B &&out = B(), C &&params = C(), D &&in_attributes = D(), E &&operation_name = E())
+      : input(std::forward<A>(in))
+      , output(std::forward<B>(out))
+      , parameters(std::forward<C>(params))
+      , attributes(std::forward<D>(in_attributes))
+      , operation_id(std::forward<E>(operation_name))
     {}
 
     /// Read-only getter for input

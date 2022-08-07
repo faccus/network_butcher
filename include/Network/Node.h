@@ -37,6 +37,9 @@ namespace network_butcher_types
 
 
   public:
+    using Content_Type = T;
+
+
     /// Node content
     T content;
 

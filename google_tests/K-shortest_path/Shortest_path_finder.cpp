@@ -8,7 +8,7 @@
 #include "../TestClass.h"
 #include <gtest/gtest.h>
 
-namespace KspTestNamespace
+namespace
 {
   using namespace network_butcher_types;
   using namespace network_butcher_kfinder;
@@ -190,4 +190,4 @@ namespace KspTestNamespace
 
     return graph;
   }
-} // namespace KspTestNamespace
+} // namespace

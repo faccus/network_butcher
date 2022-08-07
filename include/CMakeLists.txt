@@ -1,7 +1,8 @@
 set(BASE_HEADER
         include/Network/Node.h include/Network/Graph.h include/Network/WGraph.h include/Network/MWGraph.h
         include/Butcher.h include/Types/Paths.h
-        include/Utilities.h include/General_Manager.h include/Types/Parameters.h include/IO_Manager.h
+        include/Utilities.h include/General_Manager.h include/Types/Parameters.h
+        include/IO_Manager.h include/Onnx_importer.h include/Model_reconstructor.h
         include/Types/Type_info.h include/Types/Dense_tensor.h include/Types/Content.h include/Types/DynamicType.h
         include/Traits/Graph_traits.h include/Traits/Node_traits.h include/Traits/Basic_traits.h
         include/Traits/Type_info_traits.h include/Traits/Hardware_traits.h include/Traits/Heap_traits.h

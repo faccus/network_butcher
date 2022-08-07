@@ -16,6 +16,8 @@ namespace network_butcher_types
     using Parent_type = MWGraph<T>;
 
   public:
+    using Node_Type = typename Parent_type::Node_Type;
+
     WGraph()               = default;
     WGraph(WGraph const &) = default;
     WGraph &
@@ -55,10 +57,9 @@ namespace network_butcher_types
   private:
     using Parent_type = MWGraph<Content<T>>;
 
-  protected:
+  public:
     using Node_Type = typename Parent_type::Node_Type;
 
-  public:
     WGraph()               = default;
     WGraph(WGraph const &) = default;
     WGraph &
