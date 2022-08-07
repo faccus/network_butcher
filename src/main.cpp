@@ -1,4 +1,4 @@
-/*
+
 #include "../include/APSC/GetPot"
 #include "../include/General_Manager.h"
 
@@ -12,8 +12,7 @@ main(int argc, char **argv)
 
   return 0;
 }
-*/
-
+/*
 #include "../include/IO_Manager.h"
 
 #include <iostream>
@@ -205,4 +204,4 @@ main()
 
 
   return 0;
-}
+}*/
