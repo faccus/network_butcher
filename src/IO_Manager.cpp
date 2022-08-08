@@ -10,7 +10,82 @@ network_butcher_io::IO_Manager::import_from_onnx(const std::string &path,
                                                  bool               add_padding_nodes,
                                                  std::size_t        num_devices)
 {
-  return Onnx_importer::import_from_onnx(path, add_padding_nodes, num_devices);
+  std::map<node_id_type, node_id_type> link_id_nodeproto;
+
+  // Parse from the file the onnx::ModelProto
+  onnx::ModelProto onnx_model = network_butcher_utilities::parse_onnx_file(path);
+
+  // Simple renaming
+  auto const &onnx_graph = onnx_model.graph();
+  auto const &onnx_nodes = onnx_graph.node();
+
+  // Generate value_infos and the ids (names) of the inputs and outputs
+  auto [value_infos, onnx_inputs_ids, onnx_outputs_ids] = Onnx_importer_helpers::compute_value_infos(
+    onnx_graph.input(), onnx_graph.output(), onnx_graph.value_info(), onnx_graph.initializer());
+
+  // Prepare the node vector for the graph
+  std::vector<node_type> nodes;
+  nodes.reserve(onnx_nodes.size() + 2);
+
+  auto const pointer_output = std::make_shared<network_butcher_types::Dense_tensor>(0, std::vector<shape_type>{});
+  auto const pointer_input  = std::make_shared<network_butcher_types::Dense_tensor>(0, std::vector<shape_type>{});
+
+  auto const fake_output = "__fake__output__";
+  auto const fake_input  = "__fake__input__";
+
+  node_id_type node_id      = 0;
+  node_id_type onnx_node_id = 0;
+
+  // If add_padding_nodes, then we will add a "fake" input node
+  if (add_padding_nodes)
+    {
+      io_collection_type<type_info_pointer> tt;
+      tt[fake_input] = pointer_input;
+
+      nodes.emplace_back(network_butcher_types::Content<type_info_pointer>({}, std::move(tt)));
+      ++node_id;
+    }
+
+  // Populate every node
+  for (auto const &node : onnx_nodes)
+    {
+      auto operation_type = network_butcher_utilities::to_lowercase_copy(node.op_type());
+
+      io_collection_type<type_info_pointer> parameters;
+      auto inputs  = Onnx_importer_helpers::process_node_ios(node.input(), parameters, value_infos);
+      auto outputs = Onnx_importer_helpers::process_node_ios(node.output(), parameters, value_infos);
+
+      if (add_padding_nodes)
+        {
+          if (!Onnx_importer_helpers::get_common_elements(onnx_inputs_ids, inputs).empty())
+            inputs[fake_input] = pointer_input;
+
+          if (!Onnx_importer_helpers::get_common_elements(onnx_outputs_ids, outputs).empty())
+            outputs[fake_output] = pointer_output;
+        }
+
+      auto content =
+        network_butcher_types::Content<type_info_pointer>::make_content(std::move(inputs),
+                                                                        std::move(outputs),
+                                                                        std::move(parameters),
+                                                                        Onnx_importer_helpers::process_node_attributes(
+                                                                          node),
+                                                                        std::move(operation_type));
+      nodes.emplace_back(std::move(content));
+
+      link_id_nodeproto.emplace(node_id++, onnx_node_id++);
+    }
+
+  if (add_padding_nodes)
+    {
+      io_collection_type<type_info_pointer> tt;
+      tt[fake_output] = pointer_output;
+
+      nodes.emplace_back(network_butcher_types::Content<type_info_pointer>(std::move(tt)));
+      ++node_id;
+    }
+
+  return {network_butcher_types::MWGraph(num_devices, nodes), onnx_model, link_id_nodeproto};
 }
 
 

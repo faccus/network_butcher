@@ -5,8 +5,8 @@
 #ifndef NETWORK_BUTCHER_IO_MANAGER_H
 #define NETWORK_BUTCHER_IO_MANAGER_H
 
-#include "Model_reconstructor.h"
-#include "Onnx_importer.h"
+#include "Onnx_interaction/Onnx_importer_helpers.h"
+#include "Onnx_interaction/Onnx_model_reconstructor_helpers.h"
 
 #include "APSC/GetPot"
 
@@ -141,7 +141,30 @@ namespace network_butcher_io
                                                     const Graph                                &graph,
                                                     const std::map<node_id_type, node_id_type> &link_id_nodeproto)
   {
-    return Model_reconstructor::reconstruct_model(partitions, original_model, graph, link_id_nodeproto);
+    std::vector<std::pair<onnx::ModelProto, std::size_t>> res;
+
+    auto const &model_graph = original_model.graph();
+
+    for (const auto &partition : partitions)
+      {
+        auto const &device_id = partition.first;
+        auto const &node_ids  = partition.second;
+
+        res.emplace_back(onnx::ModelProto(), device_id);
+
+        Onnx_model_reconstructor_helpers::prepare_new_model(original_model, res.back().first);
+
+        auto current_edited_graph = Onnx_model_reconstructor_helpers::prepare_new_graph(original_model);
+
+        Onnx_model_reconstructor_helpers::add_nodes(link_id_nodeproto, model_graph, node_ids, current_edited_graph);
+
+        Onnx_model_reconstructor_helpers::add_missing_inputs(original_model, current_edited_graph);
+        Onnx_model_reconstructor_helpers::add_missing_outputs(original_model, current_edited_graph);
+
+        res.back().first.set_allocated_graph(current_edited_graph);
+      }
+
+    return res;
   }
 
 } // namespace network_butcher_io

@@ -1,10 +1,10 @@
 //
 // Created by faccus on 8/7/22.
 //
-#include "../include/Onnx_importer.h"
+#include "../../include/Onnx_interaction/Onnx_importer_helpers.h"
 
 std::unordered_map<std::string, std::vector<network_butcher_types::DynamicType>>
-network_butcher_io::Onnx_importer::process_node_attributes(const onnx::NodeProto &node)
+network_butcher_io::Onnx_importer_helpers::process_node_attributes(const onnx::NodeProto &node)
 {
   auto const help_func =
     [](std::string const                                                                &name,
@@ -51,8 +51,8 @@ network_butcher_io::Onnx_importer::process_node_attributes(const onnx::NodeProto
 }
 
 
-std::tuple<network_butcher_io::Onnx_importer::Map_IO, std::set<std::string>, std::set<std::string>>
-network_butcher_io::Onnx_importer::compute_value_infos(
+std::tuple<network_butcher_io::Onnx_importer_helpers::Map_IO, std::set<std::string>, std::set<std::string>>
+network_butcher_io::Onnx_importer_helpers::compute_value_infos(
   const google::protobuf::RepeatedPtrField<::onnx::ValueInfoProto> &onnx_input,
   const google::protobuf::RepeatedPtrField<::onnx::ValueInfoProto> &onnx_output,
   const google::protobuf::RepeatedPtrField<::onnx::ValueInfoProto> &onnx_value_info,
@@ -100,8 +100,8 @@ network_butcher_io::Onnx_importer::compute_value_infos(
 
 
 std::vector<std::string>
-network_butcher_io::Onnx_importer::get_common_elements(const std::set<std::string>           &onnx_io_ids,
-                                                       io_collection_type<type_info_pointer> &io_collection)
+network_butcher_io::Onnx_importer_helpers::get_common_elements(const std::set<std::string>           &onnx_io_ids,
+                                                               io_collection_type<type_info_pointer> &io_collection)
 {
   std::set<std::string>    in_keys;
   std::vector<std::string> tmp;
@@ -122,7 +122,7 @@ network_butcher_io::Onnx_importer::get_common_elements(const std::set<std::strin
 
 
 void
-network_butcher_io::Onnx_importer::populate_id_collection(
+network_butcher_io::Onnx_importer_helpers::populate_id_collection(
   const google::protobuf::RepeatedPtrField<::onnx::ValueInfoProto> &onnx_io,
   std::set<std::string>                                            &onnx_io_ids)
 {
@@ -133,9 +133,10 @@ network_butcher_io::Onnx_importer::populate_id_collection(
 
 
 void
-network_butcher_io::Onnx_importer::read_ios(network_butcher_io::Onnx_importer::Map_IO                      &input_map,
-                                            const google::protobuf::RepeatedPtrField<onnx::ValueInfoProto> &collection,
-                                            const std::set<std::string>                                    &initialized)
+network_butcher_io::Onnx_importer_helpers::read_ios(
+  network_butcher_io::Onnx_importer_helpers::Map_IO              &input_map,
+  const google::protobuf::RepeatedPtrField<onnx::ValueInfoProto> &collection,
+  const std::set<std::string>                                    &initialized)
 {
   for (const auto &value_info : collection)
     {
@@ -151,9 +152,10 @@ network_butcher_io::Onnx_importer::read_ios(network_butcher_io::Onnx_importer::M
 
 
 void
-network_butcher_io::Onnx_importer::read_ios(network_butcher_io::Onnx_importer::Map_IO                   &input_map,
-                                            const google::protobuf::RepeatedPtrField<onnx::TensorProto> &collection,
-                                            const std::set<std::string>                                 &initialized)
+network_butcher_io::Onnx_importer_helpers::read_ios(
+  network_butcher_io::Onnx_importer_helpers::Map_IO           &input_map,
+  const google::protobuf::RepeatedPtrField<onnx::TensorProto> &collection,
+  const std::set<std::string>                                 &initialized)
 {
   for (const auto &tensor : collection)
     {
@@ -169,7 +171,7 @@ network_butcher_io::Onnx_importer::read_ios(network_butcher_io::Onnx_importer::M
 
 
 io_collection_type<type_info_pointer>
-network_butcher_io::Onnx_importer::process_node_ios(
+network_butcher_io::Onnx_importer_helpers::process_node_ios(
   const google::protobuf::RepeatedPtrField<std::basic_string<char>> &io_names,
   io_collection_type<type_info_pointer>                             &parameters_collection,
   Map_IO const                                                      &value_infos)
@@ -189,90 +191,4 @@ network_butcher_io::Onnx_importer::process_node_ios(
     }
 
   return res;
-}
-
-
-std::tuple<graph_type, onnx::ModelProto, std::map<node_id_type, node_id_type>>
-network_butcher_io::Onnx_importer::import_from_onnx(const std::string &path,
-                                                    bool               add_padding_nodes,
-                                                    std::size_t        num_devices)
-{
-  std::map<node_id_type, node_id_type> link_id_nodeproto;
-
-  // Parse from the file the onnx::ModelProto
-  onnx::ModelProto onnx_model = network_butcher_utilities::parse_onnx_file(path);
-
-  // Simple renaming
-  auto const &onnx_graph       = onnx_model.graph();
-  auto const &onnx_input       = onnx_graph.input();
-  auto const &onnx_output      = onnx_graph.output();
-  auto const &onnx_value_info  = onnx_graph.value_info();
-  auto const &onnx_initializer = onnx_graph.initializer();
-  auto const &onnx_nodes       = onnx_graph.node();
-
-  // Generate value_infos and the ids (names) of the inputs and outputs
-  auto [value_infos, onnx_inputs_ids, onnx_outputs_ids] =
-    compute_value_infos(onnx_input, onnx_output, onnx_value_info, onnx_initializer);
-
-  // Prepare the node vector for the graph
-  std::vector<node_type> nodes;
-  nodes.reserve(onnx_nodes.size() + 2);
-
-  auto const pointer_output = std::make_shared<network_butcher_types::Dense_tensor>(0, std::vector<shape_type>{});
-  auto const pointer_input  = std::make_shared<network_butcher_types::Dense_tensor>(0, std::vector<shape_type>{});
-
-  auto const fake_output = "__fake__output__";
-  auto const fake_input  = "__fake__input__";
-
-  node_id_type node_id      = 0;
-  node_id_type onnx_node_id = 0;
-
-  // If add_padding_nodes, then we will add a "fake" input node
-  if (add_padding_nodes)
-    {
-      io_collection_type<type_info_pointer> tt;
-      tt[fake_input] = pointer_input;
-
-      nodes.emplace_back(network_butcher_types::Content<type_info_pointer>({}, std::move(tt)));
-      ++node_id;
-    }
-
-  // Populate every node
-  for (auto const &node : onnx_nodes)
-    {
-      auto operation_type = network_butcher_utilities::to_lowercase_copy(node.op_type());
-
-      io_collection_type<type_info_pointer> parameters;
-      auto                                  inputs  = process_node_ios(node.input(), parameters, value_infos);
-      auto                                  outputs = process_node_ios(node.output(), parameters, value_infos);
-
-      if (add_padding_nodes)
-        {
-          if (!get_common_elements(onnx_inputs_ids, inputs).empty())
-            inputs[fake_input] = pointer_input;
-
-          if (!get_common_elements(onnx_outputs_ids, outputs).empty())
-            outputs[fake_output] = pointer_output;
-        }
-
-      auto content = network_butcher_types::Content<type_info_pointer>::make_content(std::move(inputs),
-                                                                                     std::move(outputs),
-                                                                                     std::move(parameters),
-                                                                                     process_node_attributes(node),
-                                                                                     std::move(operation_type));
-      nodes.emplace_back(std::move(content));
-
-      link_id_nodeproto.emplace(node_id++, onnx_node_id++);
-    }
-
-  if (add_padding_nodes)
-    {
-      io_collection_type<type_info_pointer> tt;
-      tt[fake_output] = pointer_output;
-
-      nodes.emplace_back(network_butcher_types::Content<type_info_pointer>(std::move(tt)));
-      ++node_id;
-    }
-
-  return {network_butcher_types::MWGraph(num_devices, nodes), onnx_model, link_id_nodeproto};
 }

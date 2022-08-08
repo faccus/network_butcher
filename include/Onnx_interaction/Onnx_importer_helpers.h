@@ -2,20 +2,20 @@
 // Created by faccus on 8/7/22.
 //
 
-#ifndef NETWORK_BUTCHER_ONNX_IMPORTER_H
-#define NETWORK_BUTCHER_ONNX_IMPORTER_H
+#ifndef NETWORK_BUTCHER_ONNX_IMPORTER_HELPERS_H
+#define NETWORK_BUTCHER_ONNX_IMPORTER_HELPERS_H
 
-#include "Butcher.h"
-#include "Traits/Graph_traits.h"
-#include "Types/Parameters.h"
+#include "../Butcher.h"
+#include "../Traits/Graph_traits.h"
+#include "../Types/Parameters.h"
 
 
 namespace network_butcher_io
 {
 
-  class Onnx_importer
+  class Onnx_importer_helpers
   {
-  private:
+  public:
     using Map_IO = std::unordered_map<std::string, type_info_pointer>;
 
     /// Inserts into the input_map the valid elements (onnx::ValueInfoProto) contained in collection and
@@ -84,19 +84,7 @@ namespace network_butcher_io
     /// \return The attribute map
     static std::unordered_map<std::string, std::vector<network_butcher_types::DynamicType>>
     process_node_attributes(const onnx::NodeProto &node);
-
-  public:
-    /// It will import a neural network as a graph from a given .onnx file
-    /// \param path The file path of the .onnx file
-    /// \param add_padding_nodes If true, two "fake" nodes will be added at the
-    /// beginning of the network and at the end, so that the resulting graph has
-    /// a single input and a single output
-    /// \param num_devices The number of devices
-    /// \return A tuple made by the graph, the onnx::ModelProto for the .onnx file
-    /// and a map associating every node in the graph to every node in the model
-    static std::tuple<graph_type, onnx::ModelProto, std::map<node_id_type, node_id_type>>
-    import_from_onnx(std::string const &path, bool add_padding_nodes, std::size_t num_devices);
   };
 } // namespace network_butcher_io
 
-#endif // NETWORK_BUTCHER_ONNX_IMPORTER_H
+#endif // NETWORK_BUTCHER_ONNX_IMPORTER_HELPERS_H

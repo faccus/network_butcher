@@ -5,6 +5,10 @@
 #include <gtest/gtest.h>
 
 namespace {
+  TEST(UtilitiesTestSuit, VerifyProtobufVersionTest) {
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
+  }
+
   TEST(UtilitiesTestSuit, ComputeMemoryUsageFromEnumTest)
   {
     auto res = network_butcher_utilities::compute_memory_usage_from_enum(1);

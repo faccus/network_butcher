@@ -3,36 +3,12 @@
 //
 
 #include "../../include/Network/Graph.h"
-#include "../../include/IO_Manager.h"
 #include "../TestClass.h"
 #include <gtest/gtest.h>
 
 namespace
 {
   using namespace network_butcher_types;
-
-  TEST(GraphTests, Constructor)
-  {
-    using Input = graph_input_type;
-    GOOGLE_PROTOBUF_VERIFY_VERSION;
-
-    onnx::ModelProto  model_test;
-    const std::string model_path = "version-RFB-640-inferred.onnx";
-    network_butcher_utilities::parse_onnx_file(model_test, model_path);
-
-    MWGraph graph = std::get<0>(network_butcher_io::IO_Manager::import_from_onnx(model_path));
-  }
-
-  TEST(GraphTests, ConstructorFromGraph)
-  {
-    using Input = graph_input_type;
-    GOOGLE_PROTOBUF_VERIFY_VERSION;
-
-    const std::string model_path = "resnet18-v2-7-inferred.onnx";
-
-    MWGraph graph = std::get<0>(network_butcher_io::IO_Manager::import_from_onnx(model_path));
-    MWGraph graph2(std::move(graph));
-  }
 
   TEST(GraphTests, DefaultConstructors)
   {

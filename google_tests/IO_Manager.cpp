@@ -4,7 +4,8 @@
 #include "../include/IO_Manager.h"
 #include <gtest/gtest.h>
 
-namespace {
+namespace
+{
   TEST(IOManagerTestSuit, RegressionParamtersToExcelTest)
   {
     auto const out = network_butcher_io::IO_Manager::import_from_onnx("version-RFB-640-inferred.onnx");
@@ -13,7 +14,8 @@ namespace {
 
   TEST(IOManagerTestSuit, ImportWeightsFromCsvTest)
   {
-    auto graph = std::get<0>(network_butcher_io::IO_Manager::import_from_onnx("version-RFB-640-inferred.onnx", true, 3));
+    auto graph =
+      std::get<0>(network_butcher_io::IO_Manager::import_from_onnx("version-RFB-640-inferred.onnx", true, 3));
 
     network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode::aMLLibrary,
                                                    graph,
@@ -23,4 +25,15 @@ namespace {
     ASSERT_EQ(graph.get_weigth(0, {73, 74}), 0.018818040739131837);
     ASSERT_EQ(graph.get_weigth(0, {0, 1}), 0.);
   }
-}
+
+  TEST(IOManagerTestSuit, ImportOnnxTest)
+  {
+    using Input = graph_input_type;
+
+    onnx::ModelProto  model_test;
+    const std::string model_path = "version-RFB-640-inferred.onnx";
+    network_butcher_utilities::parse_onnx_file(model_test, model_path);
+
+    network_butcher_io::IO_Manager::import_from_onnx(model_path);
+  }
+} // namespace

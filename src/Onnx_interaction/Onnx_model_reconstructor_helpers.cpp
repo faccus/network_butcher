@@ -1,11 +1,11 @@
 //
 // Created by faccus on 8/7/22.
 //
-#include "../include/Model_reconstructor.h"
+#include "../../include/Onnx_interaction/Onnx_model_reconstructor_helpers.h"
 
 std::pair<bool, google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator>
-network_butcher_io::Model_reconstructor::get_type(const onnx::ModelProto &original_model,
-                                                  const std::string      &communication_node_name)
+network_butcher_io::Onnx_model_reconstructor_helpers::get_type(const onnx::ModelProto &original_model,
+                                                               const std::string      &communication_node_name)
 {
   auto const &input      = original_model.graph().input();
   auto const &output     = original_model.graph().output();
@@ -33,8 +33,8 @@ network_butcher_io::Model_reconstructor::get_type(const onnx::ModelProto &origin
 }
 
 void
-network_butcher_io::Model_reconstructor::prepare_new_model(const onnx::ModelProto &original_model,
-                                                           onnx::ModelProto       &new_model)
+network_butcher_io::Onnx_model_reconstructor_helpers::prepare_new_model(const onnx::ModelProto &original_model,
+                                                                        onnx::ModelProto       &new_model)
 {
   new_model.set_doc_string(original_model.doc_string());
   new_model.set_domain(original_model.domain());
@@ -43,7 +43,7 @@ network_butcher_io::Model_reconstructor::prepare_new_model(const onnx::ModelProt
 }
 
 onnx::GraphProto *
-network_butcher_io::Model_reconstructor::prepare_new_graph(const onnx::ModelProto &original_model)
+network_butcher_io::Onnx_model_reconstructor_helpers::prepare_new_graph(const onnx::ModelProto &original_model)
 {
   auto new_graph_pointer = new onnx::GraphProto;
   new_graph_pointer->set_name(original_model.graph().name());
@@ -52,8 +52,8 @@ network_butcher_io::Model_reconstructor::prepare_new_graph(const onnx::ModelProt
 }
 
 std::pair<bool, google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>
-network_butcher_io::Model_reconstructor::get_initializer(const onnx::ModelProto &original_model,
-                                                         const std::string      &name)
+network_butcher_io::Onnx_model_reconstructor_helpers::get_initializer(const onnx::ModelProto &original_model,
+                                                                      const std::string      &name)
 {
   auto const &initializer = original_model.graph().initializer();
   auto const  it          = std::find_if(initializer.begin(), initializer.end(), [&name](auto const &proto_tensor) {
@@ -63,9 +63,9 @@ network_butcher_io::Model_reconstructor::get_initializer(const onnx::ModelProto 
 }
 
 void
-network_butcher_io::Model_reconstructor::add_node_ios_nodes(const onnx::GraphProto &model_graph,
-                                                            onnx::GraphProto       *sup_graph,
-                                                            const onnx::NodeProto  *node)
+network_butcher_io::Onnx_model_reconstructor_helpers::add_node_ios_nodes(const onnx::GraphProto &model_graph,
+                                                                         onnx::GraphProto       *sup_graph,
+                                                                         const onnx::NodeProto  *node)
 {
   for (int i = 0; i < node->input_size(); ++i)
     {
@@ -103,10 +103,11 @@ network_butcher_io::Model_reconstructor::add_node_ios_nodes(const onnx::GraphPro
 }
 
 void
-network_butcher_io::Model_reconstructor::add_nodes(const std::map<node_id_type, node_id_type> &link_id_nodeproto,
-                                                   const onnx::GraphProto                     &model_graph,
-                                                   const std::set<node_id_type>               &nodes,
-                                                   onnx::GraphProto                           *current_edited_graph)
+network_butcher_io::Onnx_model_reconstructor_helpers::add_nodes(
+  const std::map<node_id_type, node_id_type> &link_id_nodeproto,
+  const onnx::GraphProto                     &model_graph,
+  const std::set<node_id_type>               &nodes,
+  onnx::GraphProto                           *current_edited_graph)
 {
   for (auto const &node : nodes)
     {
@@ -123,8 +124,8 @@ network_butcher_io::Model_reconstructor::add_nodes(const std::map<node_id_type, 
 }
 
 void
-network_butcher_io::Model_reconstructor::add_missing_inputs(const onnx::ModelProto &original_model,
-                                                            onnx::GraphProto       *current_edited_graph)
+network_butcher_io::Onnx_model_reconstructor_helpers::add_missing_inputs(const onnx::ModelProto &original_model,
+                                                                         onnx::GraphProto       *current_edited_graph)
 {
   for (auto it = current_edited_graph->mutable_node()->begin(); it != current_edited_graph->mutable_node()->end(); ++it)
     {
@@ -185,8 +186,8 @@ network_butcher_io::Model_reconstructor::add_missing_inputs(const onnx::ModelPro
 }
 
 void
-network_butcher_io::Model_reconstructor::add_missing_outputs(const onnx::ModelProto &original_model,
-                                                             onnx::GraphProto       *current_edited_graph)
+network_butcher_io::Onnx_model_reconstructor_helpers::add_missing_outputs(const onnx::ModelProto &original_model,
+                                                                          onnx::GraphProto       *current_edited_graph)
 {
   for (auto it = current_edited_graph->mutable_node()->rbegin(); it != current_edited_graph->mutable_node()->rend();
        ++it)
