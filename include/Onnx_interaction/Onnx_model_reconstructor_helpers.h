@@ -15,20 +15,35 @@ namespace network_butcher_io
   class Onnx_model_reconstructor_helpers
   {
   public:
+    /// From the model and the name of the Tensor, it will return if its found and the position
+    /// \param original_model The model
+    /// \param communication_node_name THe name of the tensor
+    /// \return Found and the position
     static std::pair<bool, google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator>
     get_type(const onnx::ModelProto &original_model, const std::string &communication_node_name);
 
+    /// From the original model, it will add basic information to the new_model
+    /// \param original_model THe original model
+    /// \param new_model The model to be prepared
     static void
     prepare_new_model(const onnx::ModelProto &original_model, onnx::ModelProto &new_model);
 
+    /// From the original model, it will return a new graph with the same name and documentation string of the graph of
+    /// the original model
+    /// \param original_model The original model
+    /// \return The "new" graph
     static onnx::GraphProto *
     prepare_new_graph(const onnx::ModelProto &original_model);
 
     static std::pair<bool, google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>
     get_initializer(const onnx::ModelProto &original_model, const std::string &name);
 
+    /// It will add to the graph the inputs of the node to either to input, to value_info or to initializer
+    /// \param model_graph The model
+    /// \param graph The graph
+    /// \param node The node
     static void
-    add_node_ios_nodes(const onnx::GraphProto &model_graph, onnx::GraphProto *sup_graph, const onnx::NodeProto *node);
+    add_node_ios_nodes(const onnx::GraphProto &model_graph, onnx::GraphProto *graph, const onnx::NodeProto *node);
 
     static void
     add_nodes(const std::map<node_id_type, node_id_type> &link_id_nodeproto,

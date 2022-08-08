@@ -7,29 +7,34 @@ std::pair<bool, google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_
 network_butcher_io::Onnx_model_reconstructor_helpers::get_type(const onnx::ModelProto &original_model,
                                                                const std::string      &communication_node_name)
 {
-  auto const &input      = original_model.graph().input();
-  auto const &output     = original_model.graph().output();
-  auto const &value_info = original_model.graph().value_info();
-
-  auto tmp_res = std::find_if(input.cbegin(), input.cend(), [communication_node_name](auto const &ref) {
-    return ref.name() == communication_node_name;
-  });
-
-  if (tmp_res == original_model.graph().input().end())
-    tmp_res = std::find_if(output.cbegin(), output.cend(), [communication_node_name](auto const &ref) {
+  {
+    auto const &input      = original_model.graph().input();
+    auto const tmp_res = std::find_if(input.cbegin(), input.cend(), [communication_node_name](auto const &ref) {
       return ref.name() == communication_node_name;
     });
-  else
-    return std::pair{true, tmp_res};
 
-  if (tmp_res == original_model.graph().output().end())
-    tmp_res = std::find_if(value_info.cbegin(), value_info.cend(), [communication_node_name](auto const &ref) {
+    if(tmp_res != original_model.graph().input().end())
+      return std::pair{true, tmp_res};
+  }
+
+  {
+    auto const &output     = original_model.graph().output();
+    auto const tmp_res = std::find_if(output.cbegin(), output.cend(), [communication_node_name](auto const &ref) {
       return ref.name() == communication_node_name;
     });
-  else
-    return std::pair{true, tmp_res};
 
-  return std::pair{tmp_res != value_info.cend(), tmp_res};
+    if(tmp_res != original_model.graph().output().end())
+      return std::pair{true, tmp_res};
+  }
+
+  {
+    auto const &value_info = original_model.graph().value_info();
+    auto const tmp_res = std::find_if(value_info.cbegin(), value_info.cend(), [communication_node_name](auto const &ref) {
+      return ref.name() == communication_node_name;
+    });
+
+    return std::pair{tmp_res != value_info.cend(), tmp_res};
+  }
 }
 
 void
@@ -64,7 +69,7 @@ network_butcher_io::Onnx_model_reconstructor_helpers::get_initializer(const onnx
 
 void
 network_butcher_io::Onnx_model_reconstructor_helpers::add_node_ios_nodes(const onnx::GraphProto &model_graph,
-                                                                         onnx::GraphProto       *sup_graph,
+                                                                         onnx::GraphProto       *graph,
                                                                          const onnx::NodeProto  *node)
 {
   for (int i = 0; i < node->input_size(); ++i)
@@ -75,7 +80,7 @@ network_butcher_io::Onnx_model_reconstructor_helpers::add_node_ios_nodes(const o
 
       if (it != model_graph.input().end())
         {
-          auto const tmp = sup_graph->add_input();
+          auto const tmp = graph->add_input();
           *tmp           = *it;
         }
       else
@@ -86,7 +91,7 @@ network_butcher_io::Onnx_model_reconstructor_helpers::add_node_ios_nodes(const o
 
           if (it != model_graph.value_info().end())
             {
-              auto const tmp = sup_graph->add_value_info();
+              auto const tmp = graph->add_value_info();
               *tmp           = *it;
             }
         }
@@ -96,7 +101,7 @@ network_butcher_io::Onnx_model_reconstructor_helpers::add_node_ios_nodes(const o
                                [&node, &i](onnx::TensorProto const &ref) { return node->input(i) == ref.name(); });
       if (init != model_graph.initializer().end())
         {
-          auto const tmp = sup_graph->add_initializer();
+          auto const tmp = graph->add_initializer();
           *tmp           = *init;
         }
     }
