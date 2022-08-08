@@ -57,9 +57,11 @@ network_butcher_io::IO_Manager::import_from_onnx(const std::string &path,
 
       if (add_padding_nodes)
         {
+          // If the inputs of the node are the inputs of the NN, then add the connection with the padding node
           if (!Onnx_importer_helpers::get_common_elements(onnx_inputs_ids, inputs).empty())
             inputs[fake_input] = pointer_input;
 
+          // If the inputs of the node are the outputs of the NN, then add the connection with the padding node
           if (!Onnx_importer_helpers::get_common_elements(onnx_outputs_ids, outputs).empty())
             outputs[fake_output] = pointer_output;
         }
@@ -76,6 +78,7 @@ network_butcher_io::IO_Manager::import_from_onnx(const std::string &path,
       link_id_nodeproto.emplace(node_id++, onnx_node_id++);
     }
 
+  // If add_padding_nodes, then we will add a "fake" output node
   if (add_padding_nodes)
     {
       io_collection_type<type_info_pointer> tt;
