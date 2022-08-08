@@ -282,7 +282,8 @@ namespace network_butcher_types
       return nodes[id];
     }
 
-
+    /// It will construct a new set of nodes and dependencies and switch them with the ones stored in the object
+    /// \param nodes_to_remove The collection of the nids of the nodes to remove
     void
     remove_nodes(std::set<node_id_type> const &nodes_to_remove)
     {
