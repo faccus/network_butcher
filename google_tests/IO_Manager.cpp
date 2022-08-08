@@ -30,10 +30,7 @@ namespace
   {
     using Input = graph_input_type;
 
-    onnx::ModelProto  model_test;
     const std::string model_path = "version-RFB-640-inferred.onnx";
-    network_butcher_utilities::parse_onnx_file(model_test, model_path);
-
     network_butcher_io::IO_Manager::import_from_onnx(model_path);
   }
 } // namespace
