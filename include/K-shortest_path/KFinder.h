@@ -55,8 +55,7 @@ namespace network_butcher_kfinder
                      edge_pointer const &edge) const;
 
 
-    /// Helper function for the Eppstein algorithm. It converts a vector of
-    /// implicit paths to a vector of explicit paths
+    /// Helper function for the Eppstein algorithm. It converts a vector of implicit paths to a vector of explicit paths
     /// \param dij_res The result of the Dijkstra result
     /// \param epp_res The result of basic_eppstein or basic_eppstein_linear
     /// \return The shortest paths
@@ -137,6 +136,15 @@ namespace network_butcher_kfinder
     std::vector<H_out<edge_info>::container_type::const_iterator> previous_steps;
     previous_steps.reserve(h_out->heap.children.size());
 
+    // Basic loop to find the children of the H_out heap (a node connected to a binary heap):
+    //
+    //             0
+    //             |
+    //             1
+    //           /   \
+    //          2     3
+    //         / \   / \
+    //        4  5  6   7
     for (auto it = h_out->heap.children.cbegin(); it != h_out->heap.children.cend(); ++it, ++j)
       {
         previous_steps.push_back(it);
@@ -173,19 +181,30 @@ namespace network_butcher_kfinder
     std::vector<H_g::container_type::const_iterator> previous_steps;
     previous_steps.reserve(h_g.children.size());
 
+
+    // Basic loop to find the children of the H_g heap (a binary heap):
+    //            H_g
+    //             0
+    //           /   \        "linked" H_out
+    //          1     2 ------------ 2
+    //         / \   / \             |
+    //        3  4  5   6            10
     for (auto it = h_g.children.cbegin(); it != h_g.children.cend(); ++it, ++j)
       {
         previous_steps.push_back(it);
 
         auto const associated_h_out    = (*it)->heap.id;
+
         auto       h_out_edge_edges_it = h_out_edge_edges.find(associated_h_out);
 
+        // If get_internal_edges was not called for associated_h_out, call it
         if (h_out_edge_edges_it == h_out_edge_edges.cend())
           {
             auto tmp            = h_out_edge_edges.insert({associated_h_out, get_internal_edges(*it)});
             h_out_edge_edges_it = tmp.first;
           }
 
+        // Add in the H_g map all the H_out dependencies for associated_h_out
         h_g_map.insert(h_out_edge_edges_it->second.cbegin(), h_out_edge_edges_it->second.cend());
 
         std::size_t parent = (j - 1) / 2;
@@ -209,6 +228,9 @@ namespace network_butcher_kfinder
     std::vector<path_info> res;
     res.reserve(epp_res.size());
 
+    // Basically, we start from the specified node and go along the shortest path until we meet a sidetrack edge
+    // contained in the implicit path. In that case, we add the sidetrack edge and proceed along the "new" shortest
+    // path until either the "sink" node is reached or another sidetrack edge is met
     for (auto implicit_path = epp_res.cbegin(); implicit_path != epp_res.cend(); ++implicit_path)
       {
         auto const &nodes = graph.get_nodes();
@@ -256,6 +278,7 @@ namespace network_butcher_kfinder
     std::vector<implicit_path_info> res;
     res.push_back({{}, dij_res.second.front()});
 
+    // Find the first sidetrack edge
     auto const first_side_track_res = extrack_first_sidetrack_edge(0, h_g);
     if (!first_side_track_res.first)
       return res;
@@ -264,6 +287,7 @@ namespace network_butcher_kfinder
     edge_edges_type h_out_edge_edges;
     edge_edges_type h_g_edge_edges;
 
+    // Collection of "final" implicit paths
     std::set<implicit_path_info> Q;
 
     implicit_path_info first_path;
@@ -271,6 +295,7 @@ namespace network_butcher_kfinder
     first_path.sidetracks               = {first_side_track.edge};
     first_path.length                   = first_side_track.delta_weight + dij_res.second.front();
 
+    // First deviatory path
     Q.insert(std::move(first_path));
 
     auto print_missing_sidetrack_distance = [](edge_type const &e) {
@@ -278,6 +303,7 @@ namespace network_butcher_kfinder
                 << std::endl;
     };
 
+    // Loop through Q until either Q is empty or the number of paths found is K
     for (int k = 2; k <= K && !Q.empty(); ++k)
       {
         auto SK = *Q.begin();
@@ -287,6 +313,7 @@ namespace network_butcher_kfinder
         auto const  e      = SK.sidetracks.back();
         auto const &e_edge = *e;
 
+        // Find sidetrack weight
         auto const ot = sidetrack_distances_res.find(e_edge);
 
         if (ot == sidetrack_distances_res.cend())
@@ -295,9 +322,11 @@ namespace network_butcher_kfinder
             continue;
           }
 
+        // "Helper" function that can be called if needed
         if (callback_fun_ptr != nullptr)
           (*callback_fun_ptr)(h_g, h_out, sidetrack_distances_res, successors, e_edge.second);
 
+        // Extract the first sidetrack edge, if it exists
         auto const f_res = extrack_first_sidetrack_edge(e_edge.second, h_g);
 
         if (f_res.first)
