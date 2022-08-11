@@ -1,4 +1,4 @@
-
+/*
 #include "../include/APSC/GetPot"
 #include "../include/General_Manager.h"
 
@@ -12,7 +12,7 @@ main(int argc, char **argv)
 
   return 0;
 }
-/*
+*/
 #include "../include/IO_Manager.h"
 
 #include <iostream>
@@ -26,6 +26,16 @@ struct network_domain
   double      access_delay;
 };
 
+struct device
+{
+  std::string name;
+
+  std::size_t ram;
+  std::size_t vram;
+
+  std::size_t id;
+};
+
 
 int
 main()
@@ -34,10 +44,12 @@ main()
   std::map<std::string, std::set<std::string>> subdomains;
 
   std::map<std::size_t, std::string> layer_to_domain;
-  std::map<std::string, std::size_t> name_to_layer;
+  std::map<std::string, device>      name_to_layer;
 
   {
-    YAML::Node network_domains_yaml = YAML::LoadFile("candidate_resources.yaml")["System"]["NetworkDomains"];
+    auto resources_file = YAML::LoadFile("candidate_resources.yaml");
+    YAML::Node network_domains_yaml = resources_file["System"]["NetworkDomains"];
+
     for (auto const &domain : network_domains_yaml)
       {
         auto const name = domain.first.as<std::string>();
@@ -66,7 +78,29 @@ main()
                     for (YAML::const_iterator resource_it = resources.begin(); resource_it != resources.end();
                          ++resource_it)
                       {
-                        name_to_layer[resource_it->second["name"].as<std::string>()] = id;
+                        device dev;
+
+                        dev.name = resource_it->second["name"].as<std::string>();
+                        dev.id   = id;
+
+                        dev.ram  = 0;
+                        dev.vram = 0;
+
+                        if (resource_it->second["memorySize"])
+                          {
+                            dev.ram = resource_it->second["memorySize"].as<std::size_t>();
+                          }
+
+                        if (resource_it->second["accelerators"])
+                          {
+                            YAML::Node accelerators = resource_it->second["accelerators"];
+                            for (YAML::const_iterator it = accelerators.begin(); it != accelerators.end(); ++it)
+                              {
+                                dev.vram = std::max(dev.vram, it->second["memory"].as<std::size_t>());
+                              }
+                          }
+
+                        name_to_layer.insert({resource_it->second["name"].as<std::string>(), dev});
                       }
                   }
               }
@@ -77,18 +111,37 @@ main()
   YAML::Node annotations = YAML::LoadFile("annotations.yaml"); // candidate_deployments candidate_resources
   YAML::Node components  = YAML::LoadFile("candidate_deployments.yaml")["Components"];
 
-  std::set<std::string> to_deploy;
+  std::map<std::string, std::pair<std::size_t, std::size_t>> to_deploy;
 
   for (YAML::const_iterator it = annotations.begin(); it != annotations.end(); ++it)
-    if (it->second["partitionable_model"])
-      {
-        std::cout << it->first << ": " << it->second["component_name"]["name"] << std::endl;
-        to_deploy.emplace(it->second["component_name"]["name"].as<std::string>());
-      }
-
-
-  for (auto const &model_friendly_name : to_deploy)
     {
+      if (it->second["partitionable_model"])
+        {
+          std::cout << it->first << ": " << it->second["component_name"]["name"] << std::endl;
+
+          std::size_t ram  = 0;
+          std::size_t vram = 0;
+
+          if (it->second["device_constraints"])
+            {
+              YAML::Node n = it->second["device_constraints"];
+
+              if (n["ram"])
+                ram = n["ram"].as<std::size_t>();
+              if (n["vram"])
+                vram = n["vram"].as<std::size_t>();
+            }
+
+          to_deploy.insert({it->second["component_name"]["name"].as<std::string>(), {ram, vram}});
+        }
+    }
+
+
+  for (auto const &model : to_deploy)
+    {
+      auto const &[model_friendly_name, pair_ram_vram] = model;
+      auto const &[model_ram, model_vram]              = pair_ram_vram;
+
       std::vector<std::map<std::string, std::size_t>> devices_ram;
       std::vector<std::set<std::size_t>>              layers;
       std::size_t                                     exe_layer = 0;
@@ -104,7 +157,6 @@ main()
 
               YAML::Node execution_layers = it->second["candidateExecutionLayers"];
 
-
               for (auto const &idw : execution_layers)
                 {
                   layers[exe_layer].emplace(idw.as<std::size_t>());
@@ -115,10 +167,23 @@ main()
               for (YAML::const_iterator device_it = devices.begin(); device_it != devices.end(); ++device_it)
                 {
                   devices_ram.back()[device_it->second["candidateExecutionResources"][0].as<std::string>()] =
-                    device_it->second["memorySize"].as<std::size_t>();
+                    std::max(device_it->second["memorySize"].as<std::size_t>(), model_ram);
                 }
 
               ++exe_layer;
+            }
+        }
+
+      for(auto it = devices_ram.begin(); it != devices_ram.end(); ++it) {
+          std::set<std::string> to_remove;
+          for(auto const &[name, ram] : *it) {
+              auto const &dev = name_to_layer[name];
+              if(dev.ram < ram || dev.vram < model_vram)
+                to_remove.insert(name);
+            }
+
+          for(auto const &name : to_remove) {
+              it->erase(it->find(name));
             }
         }
 
@@ -168,7 +233,7 @@ main()
               std::size_t k = 0;
               for (auto const &device : devices)
                 {
-                  domains.push_back(layer_to_domain[name_to_layer[device.first]]);
+                  domains.push_back(layer_to_domain[name_to_layer[device.first].id]);
                   params.devices.emplace_back();
 
                   auto &dev          = params.devices.back();
@@ -204,4 +269,4 @@ main()
 
 
   return 0;
-}*/
+}

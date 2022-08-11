@@ -103,7 +103,7 @@ namespace network_butcher_kfinder
       }
 
 
-    std::vector<std::list<edge_info>> tmp_storage(num_nodes);
+    // std::vector<std::list<edge_info>> tmp_storage(num_nodes);
 
     // Loop through all the edges
     for (auto const &edge_pair : sidetrack_distances) // O(E)
@@ -119,25 +119,24 @@ namespace network_butcher_kfinder
             auto const &sidetrack_distance = edge_pair.second;
             edge_info   tmp(edge, sidetrack_distance);
 
-            //tmp_storage[tail].push_back(tmp); // O(1)
+            // tmp_storage[tail].push_back(tmp); // O(1)
 
 
-            auto       &children = h_out[tail]->heap.children;
+            auto &children = h_out[tail]->heap.children;
 
             children.insert(std::move(tmp)); // O(log(N))
-
           }
       }
-/*
-    // For every node, add an H_out
-    for (std::size_t i = 0; i < num_nodes; ++i) // O(N)
-      {
-        auto it             = h_out.insert(h_out.cend(), {i, std::make_shared<H_out<edge_info>>()});
-        it->second->heap.id = i;
+    /*
+        // For every node, add an H_out
+        for (std::size_t i = 0; i < num_nodes; ++i) // O(N)
+          {
+            auto it             = h_out.insert(h_out.cend(), {i, std::make_shared<H_out<edge_info>>()});
+            it->second->heap.id = i;
 
-        auto &children = it->second->heap.children;
-        children.insert(tmp_storage[i].cbegin(), tmp_storage[i].cend()); // N*log(N)
-      }*/
+            auto &children = it->second->heap.children;
+            children.insert(tmp_storage[i].cbegin(), tmp_storage[i].cend()); // N*log(N)
+          }*/
 
 
     return h_out;
