@@ -14,6 +14,9 @@ message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURC
 option(USE_YAML_CPP "Use yaml-cpp" ON)
 message(STATUS "It will use the yaml-cpp library to read yaml files: " ${USE_YAML_CPP})
 
+option(BUILD_YAML_CPP_SOURCE "Download and compile yaml-cpp from git" ON)
+message(STATUS "Download and compile yaml-cpp from git: " ${BUILD_YAML_CPP_SOURCE})
+
 
 option(BUILD_DOC "Build documentation" OFF)
 message(STATUS "Build documentation: ${BUILD_DOC}")
