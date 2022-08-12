@@ -41,7 +41,7 @@ int
 main()
 {
   std::map<std::string, network_domain>        network_domains;
-  std::map<std::string, std::set<std::string>> subdomains;
+  std::map<std::string, std::string> subdomain_to_domain;
 
   std::map<std::size_t, std::string> layer_to_domain;
   std::map<std::string, device>      name_to_layer;
@@ -61,7 +61,7 @@ main()
         if (domain.second["subNetworkDomains"].size() > 0)
           {
             for (auto const &subdomain : domain.second["subNetworkDomains"])
-              subdomains[name].insert(subdomain.as<std::string>());
+              subdomain_to_domain[subdomain.as<std::string>()] = name;
           }
 
         if (domain.second["ComputationalLayers"])
@@ -252,9 +252,12 @@ main()
                           auto const &dom          = network_domains[domains[i]];
                           params.bandwidth[{i, j}] = {dom.bandwidth, dom.access_delay};
                         }
-                      else
+                      else if(subdomain_to_domain[domains[i]] == subdomain_to_domain[domains[j]])
                         {
-                          // Add research of parent ND...
+                          auto const &name = subdomain_to_domain[domains[i]];
+                          auto const& dom = network_domains[name];
+
+                          params.bandwidth[{i, j}] = {dom.bandwidth, dom.access_delay};
                         }
                     }
                 }
