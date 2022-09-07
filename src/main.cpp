@@ -40,14 +40,16 @@ struct device
 int
 main()
 {
-  std::map<std::string, network_domain>        network_domains;
-  std::map<std::string, std::string> subdomain_to_domain;
+  std::map<std::string, network_domain> network_domains;
+  std::map<std::string, std::string>    subdomain_to_domain;
 
   std::map<std::size_t, std::string> layer_to_domain;
   std::map<std::string, device>      name_to_layer;
 
+  // Reads the candidate_resources file and tries to construct the network domain hierarchy. Moreover, it will produce
+  // the list of avaible resources
   {
-    auto resources_file = YAML::LoadFile("candidate_resources.yaml");
+    auto       resources_file       = YAML::LoadFile("candidate_resources.yaml");
     YAML::Node network_domains_yaml = resources_file["System"]["NetworkDomains"];
 
     for (auto const &domain : network_domains_yaml)
@@ -113,6 +115,7 @@ main()
 
   std::map<std::string, std::pair<std::size_t, std::size_t>> to_deploy;
 
+  // It will list the different models that have to be partitioned
   for (YAML::const_iterator it = annotations.begin(); it != annotations.end(); ++it)
     {
       if (it->second["partitionable_model"])
@@ -155,15 +158,15 @@ main()
               devices_ram.emplace_back();
               layers.emplace_back();
 
+              // Execution layers
               YAML::Node execution_layers = it->second["candidateExecutionLayers"];
-
               for (auto const &idw : execution_layers)
                 {
                   layers[exe_layer].emplace(idw.as<std::size_t>());
                 }
 
+              // Containers that can be deployed on the different resources
               YAML::Node devices = it->second["Containers"];
-
               for (YAML::const_iterator device_it = devices.begin(); device_it != devices.end(); ++device_it)
                 {
                   devices_ram.back()[device_it->second["candidateExecutionResources"][0].as<std::string>()] =
@@ -174,19 +177,24 @@ main()
             }
         }
 
-      for(auto it = devices_ram.begin(); it != devices_ram.end(); ++it) {
+      // Remove the devices with insufficient ram and vram
+      for (auto it = devices_ram.begin(); it != devices_ram.end(); ++it)
+        {
           std::set<std::string> to_remove;
-          for(auto const &[name, ram] : *it) {
+          for (auto const &[name, ram] : *it)
+            {
               auto const &dev = name_to_layer[name];
-              if(dev.ram < ram || dev.vram < model_vram)
+              if (dev.ram < ram || dev.vram < model_vram)
                 to_remove.insert(name);
             }
 
-          for(auto const &name : to_remove) {
+          for (auto const &name : to_remove)
+            {
               it->erase(it->find(name));
             }
         }
 
+      // If there is more than one "feasible" device
       if (devices_ram.size() > 1)
         {
           std::vector<std::vector<std::pair<std::string, std::size_t>>> device_for_partitions;
@@ -213,6 +221,7 @@ main()
                 }
             }
 
+          // Prepare the collection of parameters for the current set of devices
           for (auto const devices : device_for_partitions)
             {
               Parameters params;
@@ -252,10 +261,10 @@ main()
                           auto const &dom          = network_domains[domains[i]];
                           params.bandwidth[{i, j}] = {dom.bandwidth, dom.access_delay};
                         }
-                      else if(subdomain_to_domain[domains[i]] == subdomain_to_domain[domains[j]])
+                      else if (subdomain_to_domain[domains[i]] == subdomain_to_domain[domains[j]])
                         {
                           auto const &name = subdomain_to_domain[domains[i]];
-                          auto const& dom = network_domains[name];
+                          auto const &dom  = network_domains[name];
 
                           params.bandwidth[{i, j}] = {dom.bandwidth, dom.access_delay};
                         }
