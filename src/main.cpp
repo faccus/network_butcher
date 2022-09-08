@@ -29,6 +29,7 @@ struct network_domain
 struct device
 {
   std::string name;
+  std::string domain_name;
 
   std::size_t ram;
   std::size_t vram;
@@ -42,9 +43,9 @@ main()
 {
   std::map<std::string, network_domain> network_domains;
   std::map<std::string, std::string>    subdomain_to_domain;
+  std::map<std::string, std::size_t>    domain_to_depth;
 
-  std::map<std::size_t, std::string> layer_to_domain;
-  std::map<std::string, device>      name_to_layer;
+  std::map<std::string, device> devices_map;
 
   // Reads the candidate_resources file and tries to construct the network domain hierarchy. Moreover, it will produce
   // the list of avaible resources
@@ -60,10 +61,18 @@ main()
                                  domain.second["Bandwidth"].as<std::size_t>(),
                                  domain.second["AccessDelay"].as<double>()};
 
+        if (domain_to_depth.find(name) == domain_to_depth.cend())
+          domain_to_depth[name] = 0;
+
         if (domain.second["subNetworkDomains"].size() > 0)
           {
             for (auto const &subdomain : domain.second["subNetworkDomains"])
-              subdomain_to_domain[subdomain.as<std::string>()] = name;
+              {
+                auto const subdomain_name = subdomain.as<std::string>();
+
+                subdomain_to_domain[subdomain_name] = name;
+                domain_to_depth[subdomain_name]     = domain_to_depth[name] + 1;
+              }
           }
 
         if (domain.second["ComputationalLayers"])
@@ -71,8 +80,7 @@ main()
             YAML::Node layers = domain.second["ComputationalLayers"];
             for (YAML::const_iterator layer_it = layers.begin(); layer_it != layers.end(); ++layer_it)
               {
-                auto const id       = layer_it->second["number"].as<std::size_t>();
-                layer_to_domain[id] = name;
+                auto const id = layer_it->second["number"].as<std::size_t>();
 
                 if (layer_it->second["Resources"])
                   {
@@ -85,8 +93,9 @@ main()
                         dev.name = resource_it->second["name"].as<std::string>();
                         dev.id   = id;
 
-                        dev.ram  = 0;
-                        dev.vram = 0;
+                        dev.ram         = 0;
+                        dev.vram        = 0;
+                        dev.domain_name = name;
 
                         if (resource_it->second["memorySize"])
                           {
@@ -102,7 +111,7 @@ main()
                               }
                           }
 
-                        name_to_layer.insert({resource_it->second["name"].as<std::string>(), dev});
+                        devices_map.insert({resource_it->second["name"].as<std::string>(), dev});
                       }
                   }
               }
@@ -140,14 +149,62 @@ main()
     }
 
 
+  auto const find_bandwidth = [&network_domains, &domain_to_depth, &subdomain_to_domain](std::string first_domain,
+                                                                                         std::string second_domain) {
+    auto first_domain_depth  = domain_to_depth[first_domain];
+    auto second_domain_depth = domain_to_depth[second_domain];
+
+    if (second_domain_depth > first_domain_depth)
+      {
+        std::swap(first_domain_depth, second_domain_depth);
+        std::swap(first_domain, second_domain);
+      }
+
+    while (first_domain_depth > second_domain_depth)
+      {
+        if (first_domain == second_domain)
+          {
+            auto const &dom = network_domains[first_domain];
+            return std::pair{dom.bandwidth, dom.access_delay};
+          }
+
+        --first_domain_depth;
+        first_domain = subdomain_to_domain[first_domain];
+      }
+
+    while (first_domain_depth > 0)
+      {
+        if (first_domain == second_domain)
+          {
+            auto const &dom = network_domains[first_domain];
+            return std::pair{dom.bandwidth, dom.access_delay};
+          }
+
+        --first_domain_depth;
+        first_domain  = subdomain_to_domain[first_domain];
+        second_domain = subdomain_to_domain[second_domain];
+      }
+
+    if (first_domain == second_domain)
+      {
+        auto const &dom = network_domains[first_domain];
+        return std::pair{dom.bandwidth, dom.access_delay};
+      }
+    else
+      {
+        std::size_t const n  = 0;
+        double const      ty = -1.;
+
+        return std::pair{n, ty};
+      }
+  };
+
   for (auto const &model : to_deploy)
     {
       auto const &[model_friendly_name, pair_ram_vram] = model;
       auto const &[model_ram, model_vram]              = pair_ram_vram;
 
       std::vector<std::map<std::string, std::size_t>> devices_ram;
-      std::vector<std::set<std::size_t>>              layers;
-      std::size_t                                     exe_layer = 0;
 
       for (YAML::const_iterator it = components.begin(); it != components.end(); ++it)
         {
@@ -156,14 +213,6 @@ main()
               it->second["name"].as<std::string>().find("partitionX") != std::string::npos)
             {
               devices_ram.emplace_back();
-              layers.emplace_back();
-
-              // Execution layers
-              YAML::Node execution_layers = it->second["candidateExecutionLayers"];
-              for (auto const &idw : execution_layers)
-                {
-                  layers[exe_layer].emplace(idw.as<std::size_t>());
-                }
 
               // Containers that can be deployed on the different resources
               YAML::Node devices = it->second["Containers"];
@@ -172,8 +221,6 @@ main()
                   devices_ram.back()[device_it->second["candidateExecutionResources"][0].as<std::string>()] =
                     std::max(device_it->second["memorySize"].as<std::size_t>(), model_ram);
                 }
-
-              ++exe_layer;
             }
         }
 
@@ -183,7 +230,7 @@ main()
           std::set<std::string> to_remove;
           for (auto const &[name, ram] : *it)
             {
-              auto const &dev = name_to_layer[name];
+              auto const &dev = devices_map[name];
               if (dev.ram < ram || dev.vram < model_vram)
                 to_remove.insert(name);
             }
@@ -222,7 +269,7 @@ main()
             }
 
           // Prepare the collection of parameters for the current set of devices
-          for (auto const devices : device_for_partitions)
+          for (auto const &devices : device_for_partitions)
             {
               Parameters params;
               params.model_name = model_friendly_name;
@@ -235,14 +282,9 @@ main()
               params.K                            = 100;
               params.backward_connections_allowed = false;
 
-
-              std::vector<std::string> domains;
-              domains.reserve(devices.size());
-
               std::size_t k = 0;
               for (auto const &device : devices)
                 {
-                  domains.push_back(layer_to_domain[name_to_layer[device.first].id]);
                   params.devices.emplace_back();
 
                   auto &dev          = params.devices.back();
@@ -256,18 +298,10 @@ main()
                 {
                   for (std::size_t j = i + 1; j < params.devices.size(); ++j)
                     {
-                      if (domains[i] == domains[j])
-                        {
-                          auto const &dom          = network_domains[domains[i]];
-                          params.bandwidth[{i, j}] = {dom.bandwidth, dom.access_delay};
-                        }
-                      else if (subdomain_to_domain[domains[i]] == subdomain_to_domain[domains[j]])
-                        {
-                          auto const &name = subdomain_to_domain[domains[i]];
-                          auto const &dom  = network_domains[name];
+                      auto const &first_domain  = devices_map[devices[i].first].domain_name;
+                      auto const &second_domain = devices_map[devices[j].first].domain_name;
 
-                          params.bandwidth[{i, j}] = {dom.bandwidth, dom.access_delay};
-                        }
+                      params.bandwidth[{i, j}] = find_bandwidth(first_domain, second_domain);
                     }
                 }
 
