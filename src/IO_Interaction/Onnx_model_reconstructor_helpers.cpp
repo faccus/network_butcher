@@ -1,37 +1,38 @@
 //
 // Created by faccus on 8/7/22.
 //
-#include "../../include/Onnx_interaction/Onnx_model_reconstructor_helpers.h"
+#include "../../include/IO_Interaction/Onnx_model_reconstructor_helpers.h"
 
 std::pair<bool, google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator>
 network_butcher_io::Onnx_model_reconstructor_helpers::get_type(const onnx::ModelProto &original_model,
                                                                const std::string      &communication_node_name)
 {
   {
-    auto const &input      = original_model.graph().input();
-    auto const tmp_res = std::find_if(input.cbegin(), input.cend(), [communication_node_name](auto const &ref) {
+    auto const &input   = original_model.graph().input();
+    auto const  tmp_res = std::find_if(input.cbegin(), input.cend(), [communication_node_name](auto const &ref) {
       return ref.name() == communication_node_name;
     });
 
-    if(tmp_res != original_model.graph().input().end())
+    if (tmp_res != original_model.graph().input().end())
       return std::pair{true, tmp_res};
   }
 
   {
-    auto const &output     = original_model.graph().output();
-    auto const tmp_res = std::find_if(output.cbegin(), output.cend(), [communication_node_name](auto const &ref) {
+    auto const &output  = original_model.graph().output();
+    auto const  tmp_res = std::find_if(output.cbegin(), output.cend(), [communication_node_name](auto const &ref) {
       return ref.name() == communication_node_name;
     });
 
-    if(tmp_res != original_model.graph().output().end())
+    if (tmp_res != original_model.graph().output().end())
       return std::pair{true, tmp_res};
   }
 
   {
     auto const &value_info = original_model.graph().value_info();
-    auto const tmp_res = std::find_if(value_info.cbegin(), value_info.cend(), [communication_node_name](auto const &ref) {
-      return ref.name() == communication_node_name;
-    });
+    auto const  tmp_res =
+      std::find_if(value_info.cbegin(), value_info.cend(), [communication_node_name](auto const &ref) {
+        return ref.name() == communication_node_name;
+      });
 
     return std::pair{tmp_res != value_info.cend(), tmp_res};
   }

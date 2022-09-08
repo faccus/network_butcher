@@ -12,7 +12,6 @@
 
 namespace network_butcher_io
 {
-
   class Onnx_importer_helpers
   {
   public:

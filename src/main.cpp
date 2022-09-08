@@ -15,10 +15,6 @@ main(int argc, char **argv)
 */
 #include "../include/IO_Manager.h"
 
-#include <iostream>
-#include <yaml-cpp/yaml.h>
-
-
 int
 main()
 {
