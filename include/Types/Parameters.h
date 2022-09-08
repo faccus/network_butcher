@@ -28,6 +28,27 @@ struct Device
   std::string weights_path;
 };
 
+struct network_domain
+{
+  std::string name;
+
+  std::size_t bandwidth;
+  double      access_delay;
+
+  std::size_t depth;
+};
+
+struct device
+{
+  std::string name;
+  std::string domain_name;
+
+  std::size_t ram;
+  std::size_t vram;
+
+  std::size_t id;
+};
+
 /// Enumerator for the different KSP methods
 enum KSP_Method
 {

@@ -9,6 +9,7 @@
 #include "Onnx_interaction/Onnx_model_reconstructor_helpers.h"
 
 #include "APSC/GetPot"
+#include <yaml-cpp/yaml.h>
 
 namespace network_butcher_io
 {
@@ -41,13 +42,43 @@ namespace network_butcher_io
                                                  std::vector<std::size_t> device,
                                                  std::string const       &path);
 
+    static std::
+      tuple<std::map<std::string, network_domain>, std::map<std::string, std::string>, std::map<std::string, device>>
+      read_candidate_resources(const std::string &candidate_resources_path);
 
-  public:
+    static std::pair<bandwidth_type, bandwidth_type>
+    find_bandwidth(std::map<std::string, network_domain> const &network_domains,
+                   std::map<std::string, std::string> const    &subdomain_to_domain,
+                   std::string                                  first_domain,
+                   std::string                                  second_domain);
+
+    static std::map<std::string, std::pair<std::size_t, std::size_t>>
+    read_annotations(const std::string &annotations_path);
+
+
+    static std::vector<std::map<std::string, std::size_t>>
+    read_candidate_deployments(YAML::Node const                    &components,
+                               std::string const                   &model_name,
+                               std::size_t                          model_ram,
+                               std::size_t                          model_vram,
+                               std::map<std::string, device> const &devices_map);
+
+    static std::vector<std::vector<std::pair<std::string, std::size_t>>>
+    get_devices_for_partitions(const std::vector<std::map<std::string, std::size_t>> &devices_ram);
+
+      public:
     /// It will return the parameters read from the given file
     /// \param path The configuration file path
     /// \return The collection of parameters
     static Parameters
     read_parameters(std::string const &path);
+
+
+    static std::vector<Parameters>
+    read_parameters_yaml(std::string const &candidate_resources_path,
+                         std::string const &candidate_deployments_path,
+                         std::string const &annotations_path);
+
 
     /// It will import a neural network as a graph from a given .onnx file
     /// \param path The file path of the .onnx file
@@ -59,6 +90,7 @@ namespace network_butcher_io
     /// and a map associating every node in the graph to every node in the model
     static std::tuple<graph_type, onnx::ModelProto, std::map<node_id_type, node_id_type>>
     import_from_onnx(std::string const &path, bool add_padding_nodes = true, std::size_t num_devices = 1);
+
 
     /// It will export a given onnx::ModelProto to a file
     /// \param model The onnx::ModelProto
