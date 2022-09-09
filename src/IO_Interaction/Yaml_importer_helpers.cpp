@@ -41,7 +41,8 @@ network_butcher_io::Yaml_importer_helpers::read_candidate_deployments(YAML::Node
                                                                       std::size_t                          model_vram,
                                                                       std::map<std::string, device> const &devices_map)
 {
-  std::vector<std::map<std::string, std::size_t>> devices_ram;
+  std::list<std::map<std::string, std::size_t>>   devices_ram;
+  std::vector<std::map<std::string, std::size_t>> res;
 
   for (YAML::const_iterator it = components.begin(); it != components.end(); ++it)
     {
@@ -54,8 +55,14 @@ network_butcher_io::Yaml_importer_helpers::read_candidate_deployments(YAML::Node
           YAML::Node devices = it->second["Containers"];
           for (YAML::const_iterator device_it = devices.begin(); device_it != devices.end(); ++device_it)
             {
-              devices_ram.back()[device_it->second["candidateExecutionResources"][0].as<std::string>()] =
-                std::max(device_it->second["memorySize"].as<std::size_t>(), model_ram);
+              auto &candidate_execution_resources = device_it->second["candidateExecutionResources"];
+              for (YAML::const_iterator itt = candidate_execution_resources.begin();
+                   itt != candidate_execution_resources.end();
+                   ++itt)
+                {
+                  devices_ram.back()[itt->as<std::string>()] =
+                    std::max(device_it->second["memorySize"].as<std::size_t>(), model_ram);
+                }
             }
         }
     }
@@ -75,9 +82,13 @@ network_butcher_io::Yaml_importer_helpers::read_candidate_deployments(YAML::Node
         {
           it->erase(it->find(name));
         }
+
+      if (!it->empty())
+        res.emplace_back(std::move(*it));
     }
 
-  return devices_ram;
+
+  return res;
 }
 
 std::map<std::string, std::pair<std::size_t, std::size_t>>
@@ -92,7 +103,7 @@ network_butcher_io::Yaml_importer_helpers::read_annotations(const std::string &a
     {
       if (it->second["partitionable_model"])
         {
-          std::cout << it->first << ": " << it->second["component_name"]["name"] << std::endl;
+          // std::cout << it->first << ": " << it->second["component_name"]["name"] << std::endl;
 
           std::size_t ram  = 0;
           std::size_t vram = 0;
