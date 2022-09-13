@@ -28,7 +28,7 @@ message(STATUS "Build documentation graphs: ${BUILD_DOC_GRAPH}")
 option(BUILD_TESTS "Build tests" ON)
 message(STATUS "Build tests: ${BUILD_TESTS}")
 
-option(BUILD_BENCHMARK "Build benchmark tests" OFF)
+option(BUILD_BENCHMARK "Build benchmark tests" ON)
 message(STATUS "Build benchmark tests: ${BUILD_BENCHMARK}")
 
 
@@ -53,6 +53,7 @@ if (BUILD_TESTS)
 
         FILE(COPY ${CMAKE_SOURCE_DIR}/models/test_parameters.conf DESTINATION ${CMAKE_BINARY_DIR})
         FILE(COPY ${CMAKE_SOURCE_DIR}/models/test2_parameters.conf DESTINATION ${CMAKE_BINARY_DIR})
+        FILE(COPY ${CMAKE_SOURCE_DIR}/models/test3_parameters.conf DESTINATION ${CMAKE_BINARY_DIR})
     else ()
         set(FINAL_TESTS_SOURCE ${TESTS_SOURCE})
     endif ()

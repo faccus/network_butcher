@@ -12,7 +12,8 @@ enum Weight_Import_Mode
 {
   aMLLibrary,
   operation_time,
-  multi_operation_time
+  multi_operation_time,
+  official_operation_time
 };
 
 /// Collection of parameters for a device

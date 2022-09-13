@@ -391,7 +391,7 @@ namespace
   basic_transmission(std::size_t devices, std::size_t size)
   {
     return [devices, size](node_id_type const &input, std::size_t first, std::size_t second) {
-      if (0 <= input && input < size && 0 <= first < devices && 0 <= second && second < devices)
+      if (0 <= input && input < size && first < devices && second < devices)
         {
           auto in_device_id  = first;
           auto out_device_id = second;

@@ -17,13 +17,12 @@ namespace network_butcher_io
   class IO_Manager
   {
   private:
-    /// It will read from a .csv file the collection of weights for the given
-    /// graph on the specified device
-    /// \param graph The graph
-    /// \param device The device id
-    /// \param path The path of the file to be "imported"
-    static void
-    import_weights_from_csv_aMLLibrary(graph_type &graph, std::size_t device, std::string const &path);
+    enum Index_Type
+    {
+      Edge,
+      Cloud,
+      Operation
+    };
 
     /// It will read from a .csv file the collection of weights for the given
     /// graph on the specified device
@@ -31,7 +30,7 @@ namespace network_butcher_io
     /// \param device The device id
     /// \param path The path of the file to be "imported"
     static void
-    import_weights_from_csv_operation_time(graph_type &graph, std::size_t device, std::string const &path);
+    import_weights_aMLLibrary(graph_type &graph, std::size_t device, std::string const &path);
 
     /// It will read from a .csv file the collection of weights for the given
     /// graph on the specified device
@@ -39,9 +38,27 @@ namespace network_butcher_io
     /// \param device The device id
     /// \param path The path of the file to be "imported"
     static void
-    import_weights_from_csv_multi_operation_time(graph_type              &graph,
-                                                 std::vector<std::size_t> device,
-                                                 std::string const       &path);
+    import_weights_custom_csv_operation_time(graph_type &graph, std::size_t device, std::string const &path);
+
+    /// It will read from a .csv file the collection of weights for the given
+    /// graph on the specified device
+    /// \param graph The graph
+    /// \param device The device id
+    /// \param path The path of the file to be "imported"
+    static void
+    import_weights_official_csv_multi_operation_time(graph_type              &graph,
+                                                     std::vector<std::size_t> device,
+                                                     std::string const       &path);
+
+    /// It will read from a .csv file the collection of weights for the given
+    /// graph on the specified device
+    /// \param graph The graph
+    /// \param device The device id
+    /// \param path The path of the file to be "imported"
+    static void
+    import_weights_custom_csv_multi_operation_time(graph_type              &graph,
+                                                   std::vector<std::size_t> device,
+                                                   std::string const       &path);
 
   public:
     /// It will return the parameters read from the given file

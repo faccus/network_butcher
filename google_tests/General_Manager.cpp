@@ -23,4 +23,10 @@ namespace
     std::string const path = "test2_parameters.conf";
     General_Manager::boot(path, true);
   }
+
+  TEST(GeneralManagerTest, boot_test3)
+  {
+    std::string const path = "test3_parameters.conf";
+    General_Manager::boot(path, true);
+  }
 } // namespace

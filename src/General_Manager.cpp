@@ -44,13 +44,15 @@ network_butcher_io::General_Manager::import_weights(graph_type &graph, const Par
   switch (params.weight_import_mode)
     {
       case Weight_Import_Mode::operation_time:
-      case Weight_Import_Mode::aMLLibrary:
-        for (auto const &device : params.devices)
-          {
-            IO_Manager::import_weights(params.weight_import_mode, graph, device.weights_path, device.id);
-          }
+        case Weight_Import_Mode::aMLLibrary: {
+          for (auto const &device : params.devices)
+            {
+              IO_Manager::import_weights(params.weight_import_mode, graph, device.weights_path, device.id);
+            }
 
-        break;
+          break;
+        }
+      case Weight_Import_Mode::official_operation_time:
         case Weight_Import_Mode::multi_operation_time: {
           std::vector<std::size_t> devices;
           for (auto const &device : params.devices)

@@ -156,9 +156,9 @@ network_butcher_io::IO_Manager::export_network_infos_to_csv(graph_type const    
 
 
 void
-network_butcher_io::IO_Manager::import_weights_from_csv_aMLLibrary(graph_type        &graph,
-                                                                   std::size_t        device,
-                                                                   std::string const &path)
+network_butcher_io::IO_Manager::import_weights_aMLLibrary(graph_type        &graph,
+                                                          std::size_t        device,
+                                                          std::string const &path)
 {
   std::fstream file_in;
   file_in.open(path, std::ios_base::in);
@@ -200,9 +200,9 @@ network_butcher_io::IO_Manager::import_weights_from_csv_aMLLibrary(graph_type   
 
 
 void
-network_butcher_io::IO_Manager::import_weights_from_csv_operation_time(graph_type        &graph,
-                                                                       std::size_t        device,
-                                                                       const std::string &path)
+network_butcher_io::IO_Manager::import_weights_custom_csv_operation_time(graph_type        &graph,
+                                                                         std::size_t        device,
+                                                                         const std::string &path)
 {
   std::fstream file_in;
   file_in.open(path, std::ios_base::in);
@@ -247,11 +247,122 @@ network_butcher_io::IO_Manager::import_weights_from_csv_operation_time(graph_typ
   file_in.close();
 }
 
+void
+network_butcher_io::IO_Manager::import_weights_official_csv_multi_operation_time(graph_type              &graph,
+                                                                                 std::vector<std::size_t> device,
+                                                                                 const std::string       &path)
+{
+  std::fstream file_in;
+  file_in.open(path, std::ios_base::in);
+  weight_type tmp_weight;
+
+
+  auto it = graph.get_nodes().cbegin();
+
+  std::string tmp_line;
+  std::getline(file_in, tmp_line);
+
+  std::map<std::size_t, Index_Type> indices;
+
+  {
+    std::stringstream stream_line(tmp_line);
+    std::size_t       jj = 0;
+    while (std::getline(stream_line, tmp_line, ','))
+      {
+        network_butcher_utilities::to_lowercase(tmp_line);
+
+        if (tmp_line.find("optype") != std::string::npos)
+          {
+            indices[jj] = Index_Type::Operation;
+          }
+        else if (tmp_line.find("cloud") != std::string::npos)
+          {
+            indices[jj] = Index_Type::Cloud;
+          }
+        else if (tmp_line.find("edge") != std::string::npos)
+          {
+            indices[jj] = Index_Type::Edge;
+          }
+
+        ++jj;
+      }
+
+    if (device.size() + 1 > indices.size())
+      {
+        std::cout << "Missing weights" << std::endl;
+        return;
+      }
+  }
+
+  while (!file_in.eof())
+    {
+      std::list<weight_type> tmp_weights;
+
+      std::getline(file_in, tmp_line);
+
+      if (tmp_line.empty())
+        continue;
+
+      std::stringstream stream_line(tmp_line);
+
+      std::getline(stream_line, tmp_line, ',');
+      std::size_t jj = 0;
+
+      for (auto indices_it = indices.cbegin(); indices_it != indices.cend(); ++indices_it)
+        {
+          while (jj < indices_it->first)
+            {
+              std::getline(stream_line, tmp_line, ',');
+              ++jj;
+            }
+
+          switch (indices_it->second)
+            {
+                case Operation: {
+                  while (it != graph.get_nodes().cend() &&
+                         network_butcher_utilities::to_lowercase_copy(it->content.get_operation_id()) !=
+                           network_butcher_utilities::to_lowercase_copy(tmp_line))
+                    {
+                      ++it;
+                    }
+                  break;
+                }
+              case Cloud:
+                case Edge: {
+                  tmp_weights.emplace_back(::atof(tmp_line.c_str()));
+                  break;
+                }
+                default: {
+                  std::cout << "Missing weights" << std::endl;
+                  return;
+                }
+            }
+        }
+
+      if (it == graph.get_nodes().cend())
+        {
+          std::cout << "Cannot find weight" << std::endl;
+          return;
+        }
+
+      std::size_t j = 0;
+      for (auto tmp_weights_it = tmp_weights.cbegin(); tmp_weights_it != tmp_weights.cend() && j < device.size();
+           ++tmp_weights_it, ++j)
+        {
+          for (auto const &successor : graph.get_dependencies()[it->get_id()].second)
+            {
+              graph.set_weigth(device[j], {it->get_id(), successor}, tmp_weight);
+            }
+        }
+
+      ++it;
+    }
+}
 
 void
-network_butcher_io::IO_Manager::import_weights_from_csv_multi_operation_time(graph_type              &graph,
-                                                                             std::vector<std::size_t> device,
-                                                                             const std::string       &path)
+network_butcher_io::IO_Manager::import_weights_custom_csv_multi_operation_time(graph_type              &graph,
+                                                                               std::vector<std::size_t> device,
+                                                                               const std::string       &path)
 {
   std::fstream file_in;
   file_in.open(path, std::ios_base::in);
@@ -333,6 +444,8 @@ network_butcher_io::IO_Manager::read_parameters(const std::string &path)
     res.weight_import_mode = Weight_Import_Mode::aMLLibrary;
   else if (weight_import_method == "multi_operation_time")
     res.weight_import_mode = Weight_Import_Mode::multi_operation_time;
+  else if (weight_import_method == "official_operation_time")
+    res.weight_import_mode = Weight_Import_Mode::official_operation_time;
   else
     res.weight_import_mode = Weight_Import_Mode::operation_time;
 
@@ -432,13 +545,16 @@ network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode const &weight_
   switch (weight_mode)
     {
       case Weight_Import_Mode::aMLLibrary:
-        import_weights_from_csv_aMLLibrary(graph, device, path);
+        import_weights_aMLLibrary(graph, device, path);
         break;
       case Weight_Import_Mode::operation_time:
-        import_weights_from_csv_operation_time(graph, device, path);
+        import_weights_custom_csv_operation_time(graph, device, path);
         break;
       case Weight_Import_Mode::multi_operation_time:
-        import_weights_from_csv_multi_operation_time(graph, {device}, path);
+        import_weights_custom_csv_multi_operation_time(graph, {device}, path);
+        break;
+      case Weight_Import_Mode::official_operation_time:
+        import_weights_official_csv_multi_operation_time(graph, {device}, path);
         break;
       default:
         break;
@@ -456,13 +572,16 @@ network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode const &weight_
   switch (weight_mode)
     {
       case Weight_Import_Mode::multi_operation_time:
-        import_weights_from_csv_multi_operation_time(graph, devices, path);
+        import_weights_custom_csv_multi_operation_time(graph, devices, path);
         break;
       case Weight_Import_Mode::aMLLibrary:
-        import_weights_from_csv_aMLLibrary(graph, devices[index], path);
+        import_weights_aMLLibrary(graph, devices[index], path);
         break;
       case Weight_Import_Mode::operation_time:
-        import_weights_from_csv_operation_time(graph, devices[index], path);
+        import_weights_custom_csv_operation_time(graph, devices[index], path);
+        break;
+      case Weight_Import_Mode::official_operation_time:
+        import_weights_official_csv_multi_operation_time(graph, devices, path);
         break;
       default:
         break;
