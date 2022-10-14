@@ -23,13 +23,13 @@ namespace network_butcher_kfinder
     /// following the current one in the shortest path)
     /// \param sidetrack_distances The collection of the sidetrack distances for
     /// all the sidetrack edges
-    /// \param real_num_nodes The real number of nodes (that is the number of
+    /// \param num_nodes The real number of nodes (that is the number of
     /// nodes taking into account the multiple devices)
     /// \return H_out map
     [[nodiscard]] H_out_collection
     helper_construct_h_out(std::vector<node_id_type> const &successors,
                            weights_collection_type const   &sidetrack_distances,
-                           std::size_t const                real_num_nodes) const;
+                           std::size_t const                num_nodes) const;
 
 
     /// Given the successors collection and the sidetrack distances, it will
@@ -63,22 +63,6 @@ namespace network_butcher_kfinder
     construct_h_g(H_out_collection const &h_out, std::vector<node_id_type> const &successors) const;
 
 
-    /// The final function called by the basic_eppstein and
-    /// basic_eppstein_linear. It will construct the actual shortest paths
-    /// \param K The number of shortest paths
-    /// \param dij_res The result of the dijkstra algorithm
-    /// \param sidetrack_distances_res The sidetrack distances of every edge
-    /// \param h_g The h_g map
-    /// \param edge_edges The edge_edges map
-    /// \return The (implicit) shortest paths
-    std::vector<implicit_path_info>
-    base_path_selector_eppstein(std::size_t                    K,
-                                dijkstra_result_type const    &dij_res,
-                                weights_collection_type const &sidetrack_distances_res,
-                                H_g_collection const          &h_g,
-                                H_out_collection const        &h_out) const;
-
-
     /// The basic function for the Eppstein algorithm
     /// \param weights The weights of the edges
     /// \param K The number of shortest paths
@@ -106,17 +90,22 @@ namespace network_butcher_kfinder
   H_out_collection
   KFinder_Eppstein<Graph_type>::helper_construct_h_out(const std::vector<node_id_type> &successors,
                                                        const weights_collection_type   &sidetrack_distances,
-                                                       const std::size_t                real_num_nodes) const
+                                                       const std::size_t                num_nodes) const
   {
     H_out_collection h_out;
     auto const      &graph = base::graph;
 
-    for (auto i = 0; i < real_num_nodes; ++i) // O(N)
+    // For every node, add an H_out
+    for (std::size_t i = 0; i < num_nodes; ++i) // O(N)
       {
         auto it             = h_out.insert(h_out.cend(), {i, std::make_shared<H_out<edge_info>>()});
         it->second->heap.id = i;
       }
 
+
+    // std::vector<std::list<edge_info>> tmp_storage(num_nodes);
+
+    // Loop through all the edges
     for (auto const &edge_pair : sidetrack_distances) // O(E)
       {
         auto const &edge = edge_pair.first;
@@ -124,15 +113,31 @@ namespace network_butcher_kfinder
         auto const &tail = edge.first;
         auto const &succ = successors[tail];
 
+        // If edge is a sidetrack edge, add it to the related H_out
         if (edge.second != succ)
           {
             auto const &sidetrack_distance = edge_pair.second;
             edge_info   tmp(edge, sidetrack_distance);
-            auto       &children = h_out[tail]->heap.children;
+
+            // tmp_storage[tail].push_back(tmp); // O(1)
+
+
+            auto &children = h_out[tail]->heap.children;
 
             children.insert(std::move(tmp)); // O(log(N))
           }
       }
+    /*
+        // For every node, add an H_out
+        for (std::size_t i = 0; i < num_nodes; ++i) // O(N)
+          {
+            auto it             = h_out.insert(h_out.cend(), {i, std::make_shared<H_out<edge_info>>()});
+            it->second->heap.id = i;
+
+            auto &children = it->second->heap.children;
+            children.insert(tmp_storage[i].cbegin(), tmp_storage[i].cend()); // N*log(N)
+          }*/
+
 
     return h_out;
   }
@@ -152,7 +157,7 @@ namespace network_butcher_kfinder
                                                      const std::vector<node_id_type> &successors,
                                                      const size_t                    &num_nodes) const // O(N*log(N))
   {
-    H_g_collection res;
+    H_g_collection h_g;
 
     auto const &graph = base::graph;
     auto const &nodes = graph.get_nodes();
@@ -160,58 +165,73 @@ namespace network_butcher_kfinder
     std::vector<std::set<node_id_type>> sp_dependencies;
     sp_dependencies.resize(num_nodes);
 
+    // Prepare the H_g map
     for (auto i = 0; i < num_nodes; ++i)
       {
-        auto it       = res.insert(res.cend(), {i, H_g()});
+        auto it       = h_g.insert(h_g.cend(), {i, H_g()});
         it->second.id = i;
       }
 
+    // sp_dependencies contains for every node its predecessors (the nodes that along the shortest path to the sink have
+    // as a successor the node itself). Notice that the sum of the sizes of all the stored sets is at most N since two
+    // nodes cannot share the same predecessor along the shortest path
     for (auto i = 0; i < num_nodes; ++i) // O(N)
       {
         auto const &tmp = successors[i];
 
         if (tmp != i)
-          sp_dependencies[tmp].insert(i);
+          sp_dependencies[tmp].insert(i); // O(log(N))
       }
 
     auto const sink = nodes.size() - 1;
 
-    auto iterator = h_out.find(sink);
+    auto iterator = h_out.find(sink); // O(1)
+
+    // Prepare the last H_g
     if (iterator != h_out.cend() && !iterator->second->heap.children.empty())
       {
-        res[sink].children.emplace(iterator->second); // O(log(N))
+        h_g[sink].children.emplace(iterator->second); // O(log(N))
       }
 
     std::queue<node_id_type> queue;
 
-    for (auto i = 0; i < res.size(); ++i)
+    for (auto i = 0; i < h_g.size(); ++i) // O(N)
       if (successors[i] == sink)
         queue.push(i);
 
+    // We loop though the queue in such a way that the H_g of the successor of every node in the queue itself has been
+    // already computed
     while (!queue.empty()) // O(N)
       {
-        auto &deps = sp_dependencies[queue.front()];
+        auto const &front_element = queue.front();
 
-        for (auto &n : deps)
-          queue.push(n);
+        auto &deps = sp_dependencies[front_element]; // O(1)
 
-        auto &heap_node = res[queue.front()]; // O(log(N))
+        auto &heap_node = h_g[front_element]; // O(log(N))
 
-        iterator = h_out.find(queue.front());
+        iterator = h_out.find(front_element);
+
+        // Add H_out and...
         if (iterator != h_out.cend() && !iterator->second->heap.children.empty())
           heap_node.children.emplace(iterator->second); // O(1)
 
-        auto const &tmo = res[successors[queue.front()]];
+        auto const &tmo = h_g[successors[front_element]];
 
+        // the H_g of the successor along the shortest path
         if (!tmo.children.empty())
           heap_node.children.insert(tmo.children.begin(),
                                     tmo.children.end()); // O(1)
 
+        // Among the different iterations, this loop is performed at most N times. Moreover every iteration of the loop
+        // will add a new node to the queue. This means that this loop doesn't change the worst case complexity of the
+        // overall method
+        for (auto &n : deps)
+          queue.push(n);
 
-        queue.pop();
+        queue.pop(); // O(1)
       }
 
-    return res;
+    return h_g;
   }
 
   template <class Graph_type>
@@ -220,111 +240,6 @@ namespace network_butcher_kfinder
                                               const std::vector<node_id_type> &successors) const // O(N*log(N))
   {
     return helper_construct_h_g(h_out, successors, base::graph.size());
-  }
-
-  template <class Graph_type>
-  std::vector<implicit_path_info>
-  KFinder_Eppstein<Graph_type>::base_path_selector_eppstein(std::size_t                    K,
-                                                            const dijkstra_result_type    &dij_res,
-                                                            const weights_collection_type &sidetrack_distances_res,
-                                                            const H_g_collection          &h_g,
-                                                            const H_out_collection        &h_out) const
-  {
-    // auto const &successors = dij_res.first;
-    auto const &graph = base::graph;
-
-    std::vector<implicit_path_info> res;
-    res.push_back({{}, dij_res.second.front()});
-
-    auto const first_side_track_res = base::extrack_first_sidetrack_edge(0, h_g);
-    if (!first_side_track_res.first)
-      return res;
-    res.reserve(K);
-
-    edge_edges_type h_out_edge_edges;
-    edge_edges_type h_g_edge_edges;
-
-    std::set<implicit_path_info> Q;
-
-    implicit_path_info first_path;
-    auto const        &first_side_track = first_side_track_res.second;
-    first_path.sidetracks               = {first_side_track.edge};
-    first_path.length                   = first_side_track.delta_weight + dij_res.second.front();
-
-    Q.insert(std::move(first_path));
-
-    auto print_missing_sidetrack_distance = [](edge_type const &e) {
-      std::cout << "Error: cannot find proper sidetrack distance for edge (" << e.first << ", " << e.second << ")"
-                << std::endl;
-    };
-
-    for (int k = 2; k <= K && !Q.empty(); ++k)
-      {
-        auto SK = *Q.begin();
-        Q.erase(Q.begin());
-        res.push_back(SK);
-
-        auto const  e      = SK.sidetracks.back();
-        auto const &e_edge = *e;
-
-        auto const ot = sidetrack_distances_res.find(e_edge);
-
-        if (ot == sidetrack_distances_res.cend())
-          {
-            print_missing_sidetrack_distance(e_edge);
-            continue;
-          }
-
-        auto const f_res = base::extrack_first_sidetrack_edge(e_edge.second, h_g);
-
-        if (f_res.first)
-          {
-            auto const &f = f_res.second;
-
-            auto mod_sk = SK;
-            mod_sk.sidetracks.push_back(f.edge);
-            mod_sk.length += f.delta_weight;
-            Q.insert(std::move(mod_sk));
-          }
-
-        node_id_type h_g_search;
-        if (SK.sidetracks.size() == 1)
-          h_g_search = 0;
-        else
-          {
-            auto const tmp_it = ++SK.sidetracks.crbegin();
-            h_g_search        = (*tmp_it)->second;
-          }
-
-        auto const alternatives =
-          base::get_alternatives(h_g.find(h_g_search)->second, h_g_edge_edges, h_out_edge_edges, e);
-
-        if (!alternatives.empty())
-          {
-            SK.sidetracks.pop_back();
-
-            for (auto const &f : alternatives)
-              {
-                auto const &f_edge = *f;
-
-                auto ut = sidetrack_distances_res.find(f_edge);
-
-                if (ut == sidetrack_distances_res.cend())
-                  {
-                    print_missing_sidetrack_distance(f_edge);
-                    continue;
-                  }
-
-                auto mod_sk = SK;
-                mod_sk.sidetracks.push_back(f);
-                mod_sk.length += (ut->second - ot->second);
-
-                Q.insert(std::move(mod_sk));
-              }
-          }
-      }
-
-    return res;
   }
 
   template <class Graph_type>

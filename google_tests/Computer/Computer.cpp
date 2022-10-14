@@ -17,10 +17,12 @@ namespace ComputerMemoryTests
 
   using basic_type    = int;
   using Input         = TestMemoryUsage<basic_type>;
+  using Content_type  = Content<Input>;
   using IO_collection = io_collection_type<Input>;
-  using Node_type     = Node<Content<Input>>;
+  using Graph_type    = MWGraph<Content_type>;
+  using Node_type     = Graph_type::Node_Type;
 
-  MWGraph<Content<Input>>
+  Graph_type
   basic_graph(int);
 
   TEST(ComputerTests, MemoryConctructorTest)
@@ -70,26 +72,26 @@ namespace ComputerMemoryTests
     ASSERT_EQ(lhs, rhs);
   }
 
-  MWGraph<Content<Input>>
+  Graph_type
   basic_graph(int number_of_nodes)
   {
     std::vector<Node_type> nodes;
-    Content                content(IO_collection(), IO_collection{{"X0", 0}}, IO_collection());
+    Content_type           content(IO_collection(), IO_collection{{"X0", 0}}, IO_collection());
 
     nodes.emplace_back(std::move(content));
 
     for (int i = 1; i < number_of_nodes - 1; ++i)
       {
-        content = Content(IO_collection{{"X" + std::to_string(i - 1), (i - 1) * 10}},
-                          IO_collection{{"X" + std::to_string(i), i * 10}},
-                          IO_collection{});
+        content = Content_type(IO_collection{{"X" + std::to_string(i - 1), (i - 1) * 10}},
+                               IO_collection{{"X" + std::to_string(i), i * 10}},
+                               IO_collection{});
 
         nodes.emplace_back(std::move(content));
       }
 
-    content = Content(IO_collection{{"X" + std::to_string(number_of_nodes - 1), (number_of_nodes - 2) * 10}},
-                      IO_collection{},
-                      IO_collection{});
+    content = Content_type(IO_collection{{"X" + std::to_string(number_of_nodes - 1), (number_of_nodes - 2) * 10}},
+                           IO_collection{},
+                           IO_collection{});
 
     nodes.emplace_back(std::move(content));
 

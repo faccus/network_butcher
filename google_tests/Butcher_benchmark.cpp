@@ -12,7 +12,7 @@
 #include "../include/IO_Manager.h"
 #include "TestClass.h"
 
-namespace butcher_benchmark_test_namespace
+namespace
 {
   using namespace network_butcher_computer;
   using namespace network_butcher_types;
@@ -301,7 +301,8 @@ namespace butcher_benchmark_test_namespace
         ASSERT_EQ(eppstein, lazy_eppstein);
 
         std::cout << "Test number #" << (num_test + 1) << ", Lazy: " << time_instance_lazy / 1000
-                  << " ms, Epp: " << time_instance_std / 1000 << " ms" << std::endl;
+                  << " ms, Epp: " << time_instance_std / 1000 << " ms"
+                  << "Average Lazy: " << time_lazy / ((num_test + 1) * 1000) << std::endl;
       }
 
     std::cout << "Lazy Eppstein: " << time_lazy / 1000 / number_of_tests << " milliseconds" << std::endl;
@@ -391,7 +392,7 @@ namespace butcher_benchmark_test_namespace
   basic_transmission(std::size_t devices, std::size_t size)
   {
     return [devices, size](node_id_type const &input, std::size_t first, std::size_t second) {
-      if (0 <= input && input < size && 0 <= first < devices && 0 <= second && second < devices)
+      if (0 <= input && input < size && first < devices && second < devices)
         {
           auto in_device_id  = first;
           auto out_device_id = second;
@@ -551,4 +552,4 @@ namespace butcher_benchmark_test_namespace
     return res;
   }
 
-}; // namespace butcher_benchmark_test_namespace
+}; // namespace

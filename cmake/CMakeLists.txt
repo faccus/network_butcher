@@ -20,12 +20,25 @@ else ()
 endif ()
 
 if (USE_YAML_CPP)
-    find_package(yaml-cpp REQUIRED)
 
-    include_directories(${YAML_CPP_INCLUDE_DIR})
+    if (BUILD_YAML_CPP_SOURCE)
+        FetchContent_Declare(
+                yaml-cpp
+                GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+                GIT_TAG 0579ae3d976091d7d664aa9d2527e0d0cff25763
+        )
+        set(YAML_CPP_BUILD_TESTS OFF)
+        FetchContent_MakeAvailable(yaml-cpp)
+        message(STATUS "Downloaded yaml-cpp version ${yaml-cpp_VERSION}")
 
-    set(YAML_CPP_LIBRARY_LOCATION ${YAML_CPP_LIBRARIES})
-    message(STATUS "Found yaml-cpp version ${yaml-cpp_VERSION}")
+        set(YAML_CPP_LIBRARY_LOCATION yaml-cpp)
+    else ()
+        find_package(yaml-cpp REQUIRED)
+
+        include_directories(${YAML_CPP_INCLUDE_DIR})
+        set(YAML_CPP_LIBRARY_LOCATION ${YAML_CPP_LIBRARIES})
+        message(STATUS "Found yaml-cpp version ${yaml-cpp_VERSION}")
+    endif ()
 endif ()
 
 
@@ -48,6 +61,7 @@ if (BUILD_TESTS)
     FILE(COPY ${CMAKE_SOURCE_DIR}/models/aMLLibrary_prediction_tegra.csv DESTINATION ${CMAKE_BINARY_DIR})
     FILE(COPY ${CMAKE_SOURCE_DIR}/models/aMLLibrary_prediction_pi.csv DESTINATION ${CMAKE_BINARY_DIR})
 
+    FILE(COPY ${CMAKE_SOURCE_DIR}/models/official_operation_time.csv DESTINATION ${CMAKE_BINARY_DIR})
     FILE(COPY ${CMAKE_SOURCE_DIR}/models/operation_time_cloud.csv DESTINATION ${CMAKE_BINARY_DIR})
     FILE(COPY ${CMAKE_SOURCE_DIR}/models/operation_time_edge.csv DESTINATION ${CMAKE_BINARY_DIR})
 endif ()

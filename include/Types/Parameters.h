@@ -12,7 +12,8 @@ enum Weight_Import_Mode
 {
   aMLLibrary,
   operation_time,
-  multi_operation_time
+  multi_operation_time,
+  official_operation_time
 };
 
 /// Collection of parameters for a device
@@ -26,6 +27,27 @@ struct Device
   memory_type maximum_memory;
   // The .csv file of weights
   std::string weights_path;
+};
+
+struct network_domain
+{
+  std::string name;
+
+  std::size_t bandwidth;
+  double      access_delay;
+
+  std::size_t depth;
+};
+
+struct device
+{
+  std::string name;
+  std::string domain_name;
+
+  std::size_t ram;
+  std::size_t vram;
+
+  std::size_t id;
 };
 
 /// Enumerator for the different KSP methods
@@ -83,7 +105,7 @@ struct Parameters
   std::vector<Device> devices;
 
   // The bandwidth information between the different devices (in Mbps)
-  std::map<std::pair<std::size_t, std::size_t>, bandwidth_type> bandwidth;
+  std::map<std::pair<std::size_t, std::size_t>, std::pair<bandwidth_type, bandwidth_type>> bandwidth;
 };
 
 

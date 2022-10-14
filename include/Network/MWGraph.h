@@ -13,10 +13,15 @@ namespace network_butcher_types
   template <class T>
   class MWGraph : public Graph<T>
   {
+  private:
+    using Parent_type = Graph<T>;
+
   protected:
     std::vector<weights_collection_type> weigth_map;
 
   public:
+    using Node_Type = typename Parent_type::Node_Type;
+
     MWGraph()                = default;
     MWGraph(MWGraph const &) = default;
     MWGraph &
@@ -73,11 +78,15 @@ namespace network_butcher_types
   template <class T>
   class MWGraph<Content<T>> : public Graph<Content<T>>
   {
+  private:
+    using Parent_type = Graph<Content<T>>;
+
   protected:
     std::vector<weights_collection_type> weigth_map;
-    using Node_Type = typename Graph<Content<T>>::Node_Type;
 
   public:
+    using Node_Type = typename Parent_type::Node_Type;
+
     MWGraph()                = default;
     MWGraph(MWGraph const &) = default;
     MWGraph &

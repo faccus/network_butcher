@@ -3,104 +3,90 @@
 //
 
 #include "../../include/Network/Graph.h"
-#include "../../include/IO_Manager.h"
 #include "../TestClass.h"
 #include <gtest/gtest.h>
 
-using namespace network_butcher_types;
-
-TEST(GraphTests, Constructor)
+namespace
 {
-  using Input = graph_input_type;
-  GOOGLE_PROTOBUF_VERIFY_VERSION;
+  using namespace network_butcher_types;
 
-  onnx::ModelProto  model_test;
-  const std::string model_path = "version-RFB-640-inferred.onnx";
-  network_butcher_utilities::parse_onnx_file(model_test, model_path);
+  TEST(GraphTests, DefaultConstructors)
+  {
+    using basic_type = int;
+    using Input      = TestMemoryUsage<basic_type>;
 
-  MWGraph graph = std::get<0>(network_butcher_io::IO_Manager::import_from_onnx(model_path));
-}
+    Graph<Input>            graph_empty;
+    Graph<graph_input_type> graph_empty2;
+  }
 
-TEST(GraphTests, ConstructorFromGraph)
-{
-  using Input = graph_input_type;
-  GOOGLE_PROTOBUF_VERIFY_VERSION;
+  TEST(GraphTests, ConstructorFromCustomClass)
+  {
+    using basic_type    = int;
+    using Input         = TestMemoryUsage<basic_type>;
+    using Content_type  = Content<Input>;
+    using Graph_type    = Graph<Content_type>;
+    using IO_collection = io_collection_type<Input>;
+    using Node_type     = Graph_type::Node_Type;
 
-  const std::string model_path = "resnet18-v2-7-inferred.onnx";
+    int number_of_nodes = 10;
 
-  MWGraph graph = std::get<0>(network_butcher_io::IO_Manager::import_from_onnx(model_path));
-  MWGraph graph2(std::move(graph));
-}
+    std::vector<Node_type> nodes;
 
-TEST(GraphTests, DefaultConstructors)
-{
-  using basic_type = int;
-  using Input      = TestMemoryUsage<basic_type>;
+    auto content = Content_type::make_content(IO_collection{}, IO_collection{{"X", 0}});
 
-  Graph<Input>            graph_empty;
-  Graph<graph_input_type> graph_empty2;
-}
+    nodes.emplace_back(std::move(content));
 
-TEST(GraphTests, ConstructorFromCustomClass)
-{
-  using basic_type    = int;
-  using Input         = TestMemoryUsage<basic_type>;
-  using IO_collection = io_collection_type<Input>;
-  using Node_type     = Node<Content<Input>>;
+    for (int i = 1; i < number_of_nodes - 1; ++i)
+      {
+        content = Content_type(IO_collection{{"X", (i - 1) * 10}}, IO_collection{{"X", i * 10}}, IO_collection{});
 
-  int number_of_nodes = 10;
+        nodes.emplace_back(std::move(content));
+      }
 
-  std::vector<Node_type> nodes;
-  Content                content(IO_collection(), IO_collection{{"X", 0}}, IO_collection());
+    content = Content_type(IO_collection{{"X", (number_of_nodes - 2) * 10}}, IO_collection{}, IO_collection{});
 
-  nodes.emplace_back(std::move(content));
+    nodes.emplace_back(std::move(content));
 
-  for (int i = 1; i < number_of_nodes - 1; ++i)
-    {
-      content = Content(IO_collection{{"X", (i - 1) * 10}}, IO_collection{{"X", i * 10}}, IO_collection{});
+    Graph_type graph(nodes);
+  }
 
-      nodes.emplace_back(std::move(content));
-    }
+  TEST(GraphTests, RemoveNodes)
+  {
+    using basic_type    = int;
+    using Input         = TestMemoryUsage<basic_type>;
+    using Content_type  = Content<Input>;
+    using Graph_type    = Graph<Content_type>;
+    using IO_collection = io_collection_type<Input>;
+    using Node_type     = Graph_type::Node_Type;
 
-  content = Content(IO_collection{{"X", (number_of_nodes - 2) * 10}}, IO_collection{}, IO_collection{});
+    int number_of_nodes = 10;
 
-  nodes.emplace_back(std::move(content));
+    std::vector<Node_type> nodes;
+    Content_type           content(IO_collection(), IO_collection{{"X0", 3}}, IO_collection());
 
-  Graph<Content<Input>> graph(nodes);
-}
+    nodes.emplace_back(std::move(content));
 
-TEST(GraphTests, RemoveNodes)
-{
-  using basic_type    = int;
-  using Input         = TestMemoryUsage<basic_type>;
-  using IO_collection = io_collection_type<Input>;
-  using Node_type     = Node<Content<Input>>;
+    for (int i = 1; i < number_of_nodes - 1; ++i)
+      {
+        content = Content_type(IO_collection{{"X" + std::to_string((i - 1) * 10), 0}},
+                               IO_collection{{"X" + std::to_string(i * 10), 1}},
+                               IO_collection{});
 
-  int number_of_nodes = 10;
+        nodes.emplace_back(std::move(content));
+      }
 
-  std::vector<Node_type> nodes;
-  Content                content(IO_collection(), IO_collection{{"X0", 3}}, IO_collection());
+    content = Content_type(IO_collection{{"X" + std::to_string((number_of_nodes - 2) * 10), 2}},
+                           IO_collection{},
+                           IO_collection{});
 
-  nodes.emplace_back(std::move(content));
+    nodes.emplace_back(std::move(content));
 
-  for (int i = 1; i < number_of_nodes - 1; ++i)
-    {
-      content = Content(IO_collection{{"X" + std::to_string((i - 1) * 10), 0}},
-                        IO_collection{{"X" + std::to_string(i * 10), 1}},
-                        IO_collection{});
+    Graph<Content<Input>> graph(nodes);
 
-      nodes.emplace_back(std::move(content));
-    }
+    graph.remove_nodes({3, 5, 6, 1, 11});
 
-  content =
-    Content(IO_collection{{"X" + std::to_string((number_of_nodes - 2) * 10), 2}}, IO_collection{}, IO_collection{});
+    EXPECT_TRUE(graph.size() == 6);
+    EXPECT_TRUE(graph[5].content.get_input().begin()->first == "X80");
+  }
 
-  nodes.emplace_back(std::move(content));
-
-  Graph<Content<Input>> graph(nodes);
-
-  graph.remove_nodes({3, 5, 6, 1, 11});
-
-  EXPECT_TRUE(graph.size() == 6);
-  EXPECT_TRUE(graph[5].content.get_input().begin()->first == "X80");
-}
+} // namespace

@@ -90,19 +90,24 @@ namespace network_butcher_kfinder
                                                              const std::vector<node_id_type> &successors,
                                                              node_id_type                     node) const
   {
+    // If we can find the required H_out, return it
     {
       auto it = h_out.find(node);
       if (it != h_out.cend())
         return it;
     }
 
+
     auto const &graph = base::graph;
 
+    // Prepare the new H_out
     auto it                   = h_out.emplace(node, std::make_shared<H_out<edge_info>>());
     it.first->second->heap.id = node;
 
+    // Find the "next" node in the shortest path from node to the end node
     auto const succ = successors[node];
 
+    // For every "sidetrack" node in the outer start of node
     for (auto const &exit : graph.get_dependencies()[node].second)
       if (exit != succ)
         {
@@ -117,6 +122,7 @@ namespace network_butcher_kfinder
           edge_info tmp(edge, it_dist->second);
           auto     &children = h_out[node]->heap.children;
 
+          // Add the sidetrack edge to H_out with weight equal to the sidetrack weight
           children.insert(children.cend(), std::move(tmp)); // O(log(N))
         }
 
@@ -131,17 +137,23 @@ namespace network_butcher_kfinder
                                                            const std::vector<node_id_type> &successors,
                                                            node_id_type                     node) const
   {
-    auto pair_iterator = find_h_g_in_map(h_g, node);
-    if (pair_iterator.first)
-      return pair_iterator.second;
+    // If H_g has been already computed, return it
+    {
+      auto pair_iterator = find_h_g_in_map(h_g, node);
+      if (pair_iterator.first)
+        return pair_iterator.second;
+    }
 
     auto const &graph = base::graph;
 
-
+    // If node is the last node in the graph
     if (node == graph.size() - 1)
       {
+        // Add a new H_g
         auto inserted_h_g = h_g.emplace(node, H_g()).first;
 
+        // Since node is the last node in the graph, H_out was never constructed. So we have to construct it and
+        // add it to the H_g
         auto to_insert_h_out = construct_partial_h_out(h_out, sidetrack_distances, successors, node);
 
         if (!to_insert_h_out->second->heap.children.empty())
@@ -152,11 +164,14 @@ namespace network_butcher_kfinder
 
     auto const successor = successors[node];
 
+    // Construct the H_g of the successor of node in the shortest path
     auto previous_inserted_h_g = construct_partial_h_g(h_g, h_out, sidetrack_distances, successors, successor);
 
+    // Prepare a new H_g
     auto inserted_h_g             = h_g.emplace(node, previous_inserted_h_g->second);
     inserted_h_g.first->second.id = node;
 
+    // Construct the associated H_out
     auto current_node_h_out = construct_partial_h_out(h_out, sidetrack_distances, successors, node);
 
 
@@ -180,8 +195,10 @@ namespace network_butcher_kfinder
 
     auto const &successors = dij_res.first;
 
+    // Firstly, compute the H_g for the source node
     construct_partial_h_g(h_g, h_out, sidetrack_distances_res, successors, 0);
 
+    // Prepare the callback function to be called in the Eppstein algorithm
     typename base::callback_function_helper_eppstein fun = [this](H_g_collection                  &h_g_,
                                                                   H_out_collection                &h_out_,
                                                                   weights_collection_type const   &sidetrack_distances_,
@@ -190,6 +207,7 @@ namespace network_butcher_kfinder
       construct_partial_h_g(h_g_, h_out_, sidetrack_distances_, successors_, node_);
     };
 
+    // Execute the Eppstein algorithm
     return base::general_algo_eppstein(K,
                                        dij_res,
                                        sidetrack_distances_res,
@@ -208,13 +226,17 @@ namespace network_butcher_kfinder
     if (graph.empty() || K == 0)
       return {};
 
+    // Compute the shortest path tree
     auto const dij_res = base_shortest::shortest_path_tree(graph); // time: ((N+E)log(N)), space: O(N)
 
+    // If a single path must be computed, we just have to return the shortest path from the source to the root
     if (K == 1)
       return {base_shortest::shortest_path_finder(graph, dij_res, 0)};
 
+    // Compute the K shortest paths in implicit form
     auto const epp_res = basic_lazy_eppstein(K, dij_res);
 
+    // Convert the implicitly defined path in an explicit path
     return base::helper_eppstein(dij_res, epp_res);
   }
 

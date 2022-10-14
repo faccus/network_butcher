@@ -11,8 +11,11 @@ message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURC
 #message(STATUS "Should protoc be built and should it compile .proto3 files? " ${BUILD_PROTOC_COMPILER})
 
 
-option(USE_YAML_CPP "Use yaml-cpp" OFF)
+option(USE_YAML_CPP "Use yaml-cpp" ON)
 message(STATUS "It will use the yaml-cpp library to read yaml files: " ${USE_YAML_CPP})
+
+option(BUILD_YAML_CPP_SOURCE "Download and compile yaml-cpp from git" ON)
+message(STATUS "Download and compile yaml-cpp from git: " ${BUILD_YAML_CPP_SOURCE})
 
 
 option(BUILD_DOC "Build documentation" OFF)
@@ -38,8 +41,11 @@ add_subdirectory(include)
 add_subdirectory(src)
 
 
-add_executable(network_butcher src/main.cpp ${BASE_SOURCE} ${BASE_HEADER})
+if (USE_YAML_CPP)
+    add_compile_definitions(YAML_CPP_ACTIVE)
+endif ()
 
+add_executable(network_butcher src/main.cpp ${BASE_SOURCE} ${BASE_HEADER})
 target_link_libraries(network_butcher ${RUN_LIBRARIES_LOCATION})
 
 if (BUILD_TESTS)
@@ -50,6 +56,7 @@ if (BUILD_TESTS)
 
         FILE(COPY ${CMAKE_SOURCE_DIR}/models/test_parameters.conf DESTINATION ${CMAKE_BINARY_DIR})
         FILE(COPY ${CMAKE_SOURCE_DIR}/models/test2_parameters.conf DESTINATION ${CMAKE_BINARY_DIR})
+        FILE(COPY ${CMAKE_SOURCE_DIR}/models/test3_parameters.conf DESTINATION ${CMAKE_BINARY_DIR})
     else ()
         set(FINAL_TESTS_SOURCE ${TESTS_SOURCE})
     endif ()

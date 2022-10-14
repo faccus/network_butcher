@@ -78,7 +78,7 @@ private:
 
 
   /// Given the current graph and the original weight function, it will produce
-  /// the weigths for the linearized graph
+  /// the weights for the linearized graph
   /// \param transmission_weights Used when we are switching from a device to
   /// another. The node is the source while the two size_t are the input and
   /// output device ids
@@ -186,13 +186,15 @@ Butcher<GraphType>::block_graph(bool        backward_connections_allowed,
 {
   auto const num_of_devices = graph.get_num_devices();
 
-  new_network::Node_Collection_Type    new_nodes;
-  std::map<node_id_type, node_id_type> old_to_new; // Old node -> New node
 
   new_network::Dependencies_Type new_dependencies;
 
   auto const &old_dependencies = graph.get_dependencies();
   auto const &old_nodes        = graph.get_nodes();
+
+
+  new_network::Node_Collection_Type    new_nodes;
+  std::map<node_id_type, node_id_type> old_to_new; // Old node -> New node
 
   // Counter is used to establish if the current node has more output
   // connections than the inputs one.
@@ -290,6 +292,7 @@ Butcher<GraphType>::block_graph(bool        backward_connections_allowed,
         }
     }
 
+
   auto const basic_size = new_nodes.size();
   auto const supp_size  = basic_size - 2;
 
@@ -299,7 +302,6 @@ Butcher<GraphType>::block_graph(bool        backward_connections_allowed,
       el.second = el.second * num_of_devices - (num_of_devices - 1);
 
   new_nodes.reserve(2 + supp_size * num_of_devices);
-  new_dependencies.reserve(2 + supp_size * num_of_devices);
 
 
   // Add the other nodes. Their content is not needed since it can be
@@ -324,6 +326,10 @@ Butcher<GraphType>::block_graph(bool        backward_connections_allowed,
           new_network::Node_Internal_Type{k, new_nodes[1 + (i - 1) * num_of_devices].content.second};
     }
 
+
+  new_dependencies.reserve(2 + supp_size * num_of_devices);
+
+  // The first node is fully connected with the first layer
   {
     new_dependencies.emplace_back();
 
@@ -332,6 +338,7 @@ Butcher<GraphType>::block_graph(bool        backward_connections_allowed,
       out.insert(out.end(), k + 1);
   }
 
+    // Inputs: first node, Outputs: following layer nodes
   {
     new_dependencies.emplace_back(std::make_pair<node_id_collection_type, node_id_collection_type>({0}, {}));
     auto &out = new_dependencies.back().second;
@@ -349,12 +356,12 @@ Butcher<GraphType>::block_graph(bool        backward_connections_allowed,
       }
   }
 
+  // Inputs: previous layer nodes, Outputs: following layer nodes
   {
     for (std::size_t i = 2; i < supp_size; ++i)
       {
         auto const id = new_dependencies.size();
         new_dependencies.emplace_back(std::make_pair<node_id_collection_type, node_id_collection_type>({}, {}));
-
 
         auto &in  = new_dependencies.back().first;
         auto &out = new_dependencies.back().second;
@@ -386,6 +393,7 @@ Butcher<GraphType>::block_graph(bool        backward_connections_allowed,
       }
   }
 
+  // Inputs: previous layer nodes, Outputs: last node
   {
     auto const id = new_dependencies.size();
 
@@ -410,6 +418,7 @@ Butcher<GraphType>::block_graph(bool        backward_connections_allowed,
       }
   }
 
+  // The last layer is fully connected with the last node
   {
     new_dependencies.emplace_back(std::make_pair<node_id_collection_type, node_id_collection_type>({}, {}));
 

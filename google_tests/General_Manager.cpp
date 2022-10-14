@@ -8,19 +8,25 @@
 #include "../include/General_Manager.h"
 
 
-namespace butcher_benchmark_test_namespace
+namespace
 {
   using namespace network_butcher_io;
 
   TEST(GeneralManagerTest, boot_test)
   {
     std::string const path = "test_parameters.conf";
-    General_Manager::boot(path);
+    General_Manager::boot(path, true);
   }
 
   TEST(GeneralManagerTest, boot_test2)
   {
     std::string const path = "test2_parameters.conf";
-    General_Manager::boot(path);
+    General_Manager::boot(path, true);
   }
-} // namespace butcher_benchmark_test_namespace
+
+  TEST(GeneralManagerTest, boot_test3)
+  {
+    std::string const path = "test3_parameters.conf";
+    General_Manager::boot(path, true);
+  }
+} // namespace
