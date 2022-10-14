@@ -20,8 +20,11 @@ namespace network_butcher_types
   template <class T>
   class Node
   {
+  public:
+    using Content_Type = T;    
+  
   private:
-    friend class Graph<T>;
+    friend class Graph<Content_Type>;
 
     /// Current node id
     node_id_type id;
@@ -30,28 +33,26 @@ namespace network_butcher_types
     /// Basic constructor for a node
     /// \param starting_id Initial node id
     /// \param starting_content Initial content
-    Node(node_id_type starting_id, T starting_content)
+    Node(node_id_type starting_id, Content_Type starting_content)
       : id(starting_id)
       , content(std::move(starting_content))
     {}
 
 
   public:
-    using Content_Type = T;
-
-
+  
     /// Node content
-    T content;
+    Content_Type content;
 
 
     /// Basic move constructor for a node
-    explicit Node(T &&starting_content)
+    explicit Node(Content_Type &&starting_content)
       : id(std::numeric_limits<node_id_type>::max())
       , content(std::move(starting_content))
     {}
 
     /// Basic move constructor for a node
-    explicit Node(T const &starting_content)
+    explicit Node(Content_Type const &starting_content)
       : id(std::numeric_limits<node_id_type>::max())
       , content(starting_content)
     {}
