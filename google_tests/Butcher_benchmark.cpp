@@ -301,7 +301,8 @@ namespace
         ASSERT_EQ(eppstein, lazy_eppstein);
 
         std::cout << "Test number #" << (num_test + 1) << ", Lazy: " << time_instance_lazy / 1000
-                  << " ms, Epp: " << time_instance_std / 1000 << " ms" << std::endl;
+                  << " ms, Epp: " << time_instance_std / 1000 << " ms"
+                  << "Average Lazy: " << time_lazy / ((num_test + 1) * 1000) << std::endl;
       }
 
     std::cout << "Lazy Eppstein: " << time_lazy / 1000 / number_of_tests << " milliseconds" << std::endl;

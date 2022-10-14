@@ -7,7 +7,9 @@
 
 #include "IO_Interaction/Onnx_importer_helpers.h"
 #include "IO_Interaction/Onnx_model_reconstructor_helpers.h"
-#include "IO_Interaction/Yaml_importer_helpers.h"
+#if YAML_CPP_ACTIVE
+#  include "IO_Interaction/Yaml_importer_helpers.h"
+#endif
 
 #include "APSC/GetPot"
 #include <yaml-cpp/yaml.h>
@@ -67,12 +69,12 @@ namespace network_butcher_io
     static Parameters
     read_parameters(std::string const &path);
 
-
+#if YAML_CPP_ACTIVE
     static std::vector<Parameters>
     read_parameters_yaml(std::string const &candidate_resources_path,
                          std::string const &candidate_deployments_path,
                          std::string const &annotations_path);
-
+#endif
 
     /// It will import a neural network as a graph from a given .onnx file
     /// \param path The file path of the .onnx file

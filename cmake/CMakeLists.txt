@@ -20,6 +20,7 @@ else ()
 endif ()
 
 if (USE_YAML_CPP)
+
     if (BUILD_YAML_CPP_SOURCE)
         FetchContent_Declare(
                 yaml-cpp

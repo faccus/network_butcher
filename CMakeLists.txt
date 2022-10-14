@@ -28,7 +28,7 @@ message(STATUS "Build documentation graphs: ${BUILD_DOC_GRAPH}")
 option(BUILD_TESTS "Build tests" ON)
 message(STATUS "Build tests: ${BUILD_TESTS}")
 
-option(BUILD_BENCHMARK "Build benchmark tests" ON)
+option(BUILD_BENCHMARK "Build benchmark tests" OFF)
 message(STATUS "Build benchmark tests: ${BUILD_BENCHMARK}")
 
 
@@ -41,8 +41,11 @@ add_subdirectory(include)
 add_subdirectory(src)
 
 
-add_executable(network_butcher src/main.cpp ${BASE_SOURCE} ${BASE_HEADER})
+if (USE_YAML_CPP)
+    add_compile_definitions(YAML_CPP_ACTIVE)
+endif ()
 
+add_executable(network_butcher src/main.cpp ${BASE_SOURCE} ${BASE_HEADER})
 target_link_libraries(network_butcher ${RUN_LIBRARIES_LOCATION})
 
 if (BUILD_TESTS)

@@ -588,6 +588,7 @@ network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode const &weight_
     }
 }
 
+#if YAML_CPP_ACTIVE
 std::vector<Parameters>
 network_butcher_io::IO_Manager::read_parameters_yaml(std::string const &candidate_resources_path,
                                                      std::string const &candidate_deployments_path,
@@ -661,3 +662,4 @@ network_butcher_io::IO_Manager::read_parameters_yaml(std::string const &candidat
 
   return res;
 }
+#endif

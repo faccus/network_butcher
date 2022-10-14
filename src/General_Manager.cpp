@@ -83,8 +83,9 @@ network_butcher_io::General_Manager::boot(const Parameters &params, bool perform
   auto [graph, model, link_graph_model] = IO_Manager::import_from_onnx(params.model_path, true, params.devices.size());
   crono.stop();
 
+  double const import_time = crono.wallTime();
   if (performance)
-    std::cout << "Network import: " << crono.wallTime() << " ns" << std::endl;
+    std::cout << "Network import: " << import_time / 1000. << " ms" << std::endl;
 
   crono.start();
 
@@ -92,8 +93,9 @@ network_butcher_io::General_Manager::boot(const Parameters &params, bool perform
   import_weights(graph, params);
   crono.stop();
 
+  double const import_weights_time = crono.wallTime();
   if (performance)
-    std::cout << "Weight import: " << crono.wallTime() << " ns" << std::endl;
+    std::cout << "Weight import: " << import_weights_time / 1000. << " ms" << std::endl;
 
   // Prepare the butcher...
   Butcher butcher(std::move(graph));
@@ -105,8 +107,9 @@ network_butcher_io::General_Manager::boot(const Parameters &params, bool perform
     General_Manager::generate_bandwidth_transmission_function(params, butcher.get_graph()), params);
   crono.stop();
 
+  double const butcher_time = crono.wallTime();
   if (performance)
-    std::cout << "Butchering: " << crono.wallTime() << " ns" << std::endl;
+    std::cout << "Butchering: " << butcher_time / 1000. << " ms" << std::endl;
 
   crono.start();
   // Export the butchered networks... (export the different partitions)
@@ -114,5 +117,22 @@ network_butcher_io::General_Manager::boot(const Parameters &params, bool perform
   crono.stop();
 
   if (performance)
-    std::cout << "Export: " << crono.wallTime() << " ns" << std::endl;
+    {
+      double const export_time = crono.wallTime();
+      std::cout << "Export: " << export_time / 1000. << " ms" << std::endl;
+      
+      std::ofstream out_file;
+      out_file.open(params.export_directory + "/report.txt");
+
+      out_file << "Network import: " << import_time / 1000. << " ms" << std::endl;
+      out_file << "Weight import: " << import_weights_time / 1000. << " ms" << std::endl;
+      out_file << "Butchering: " << butcher_time / 1000. << " ms" << std::endl;
+      out_file << "Export: " << export_time / 1000. << " ms" << std::endl;
+
+      out_file << std::endl;
+
+      out_file << "Number of found paths: " << paths.size() << std::endl;
+
+      out_file.close();
+    }
 }
