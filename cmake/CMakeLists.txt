@@ -7,7 +7,6 @@ if (BUILD_PROTOBUF_SOURCE)
             protobuf
             URL https://github.com/protocolbuffers/protobuf/releases/download/v3.17.3/protobuf-cpp-3.17.3.zip
             SOURCE_SUBDIR cmake
-            DOWNLOAD_EXTRACT_TIMESTAMP
     )
     option(protobuf_BUILD_TESTS OFF)
 
