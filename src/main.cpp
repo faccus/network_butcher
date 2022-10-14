@@ -7,11 +7,24 @@ main(int argc, char **argv)
 {
   GetPot command_line(argc, argv);
 
+  std::cout << "Network Butcher v1.0" << std::endl;
+
   if (command_line.size() == 2)
     {
-      std::string const config_path = command_line("config_file", "config.conf");
+      if (command_line.argument_contains(0, "help"))
+        {
+          std::cout << std::endl << "Command usage: " << std::endl;
+          std::cout << "#1: ./network_butcher config_file=config.conf" << std::endl;
+          std::cout << "#2: ./network_butcher annotations=annotations.yaml "
+                       "candidate_deployments=candidate_deployments.yaml candidate_resources=candidate_resources.yaml"
+                    << std::endl;
+        }
+      else
+        {
+          std::string const config_path = command_line("config_file", "config.conf");
 
-      network_butcher_io::General_Manager::boot(config_path, true);
+          network_butcher_io::General_Manager::boot(config_path, true);
+        }
     }
 #if YAML_CPP_ACTIVE
   else if (command_line.size() == 4)
@@ -37,20 +50,3 @@ main(int argc, char **argv)
 
   return 0;
 }
-
-/*
-#include "../include/IO_Manager.h"
-
-int
-main()
-{
-  std::string const annotations_path           = "annotations.yaml";
-  std::string const candidate_deployments_path = "candidate_deployments.yaml";
-  std::string const candidate_resources_path   = "candidate_resources.yaml";
-
-
-
-
-  return 0;
-}
-*/
