@@ -526,12 +526,14 @@ network_butcher_io::IO_Manager::export_network_partitions(const Parameters      
     {
       network_butcher_utilities::create_directory(params.export_directory + "/" + std::to_string(j));
 
-      auto const model_device = reconstruct_model(paths[j].second, model, graph, link_id_nodeproto);
+      auto const model_devices = reconstruct_model(paths[j].second, model, graph, link_id_nodeproto);
 
-      for (std::size_t i = 0; i < model_device.size(); ++i)
-        export_to_onnx(model_device[i].first,
-                       params.export_directory + "/" + std::to_string(j) + "/" + params.model_name + "-" +
-                         std::to_string(i) + "-device-" + std::to_string(model_device[i].second) + ".onnx");
+      for (std::size_t i = 0; i < model_devices.size(); ++i) {
+
+          export_to_onnx(model_devices[i].first,
+                         params.export_directory + "/" + std::to_string(j) + "/" + params.model_name + "-" +
+                           std::to_string(i) + "-device-" + std::to_string(model_devices[i].second) + ".onnx");
+        }
     }
 }
 

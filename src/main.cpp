@@ -11,7 +11,7 @@ main(int argc, char **argv)
 
   if (command_line.size() == 2)
     {
-      if (command_line.argument_contains(0, "help"))
+      if (command_line.search("--help"))
         {
           std::cout << std::endl << "Command usage: " << std::endl;
           std::cout << "#1: ./network_butcher config_file=config.conf" << std::endl;

@@ -178,18 +178,20 @@ namespace network_butcher_io
         auto const &device_id = partition.first;
         auto const &node_ids  = partition.second;
 
-        res.emplace_back(onnx::ModelProto(), device_id);
+        if(!node_ids.empty()) {
+            res.emplace_back(onnx::ModelProto(), device_id);
 
-        Onnx_model_reconstructor_helpers::prepare_new_model(original_model, res.back().first);
+            Onnx_model_reconstructor_helpers::prepare_new_model(original_model, res.back().first);
 
-        auto current_edited_graph = Onnx_model_reconstructor_helpers::prepare_new_graph(original_model);
+            auto current_edited_graph = Onnx_model_reconstructor_helpers::prepare_new_graph(original_model);
 
-        Onnx_model_reconstructor_helpers::add_nodes(link_id_nodeproto, model_graph, node_ids, current_edited_graph);
+            Onnx_model_reconstructor_helpers::add_nodes(link_id_nodeproto, model_graph, node_ids, current_edited_graph);
 
-        Onnx_model_reconstructor_helpers::add_missing_inputs(original_model, current_edited_graph);
-        Onnx_model_reconstructor_helpers::add_missing_outputs(original_model, current_edited_graph);
+            Onnx_model_reconstructor_helpers::add_missing_inputs(original_model, current_edited_graph);
+            Onnx_model_reconstructor_helpers::add_missing_outputs(original_model, current_edited_graph);
 
-        res.back().first.set_allocated_graph(current_edited_graph);
+            res.back().first.set_allocated_graph(current_edited_graph);
+          }
       }
 
     return res;
