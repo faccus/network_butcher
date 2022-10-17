@@ -15,6 +15,16 @@ namespace network_butcher_io
   class Onnx_model_reconstructor_helpers
   {
   public:
+    enum IO_Type
+    {
+      Input,
+      ValueInfo,
+      Initializer,
+      Initializer_Input,
+      Initializer_ValueInfo,
+      NoConnection
+    };
+
     /// From the model and the name of the Tensor, it will return if its found and the position
     /// \param original_model The model
     /// \param communication_node_name THe name of the tensor
@@ -43,13 +53,34 @@ namespace network_butcher_io
     /// \param graph The graph
     /// \param node The node
     static void
-    add_node_ios_nodes(const onnx::GraphProto &model_graph, onnx::GraphProto *graph, const onnx::NodeProto *node);
+    add_node_ios_nodes(
+      onnx::GraphProto      *graph,
+      const onnx::NodeProto *node,
+      std::unordered_map<
+        std::string,
+        std::pair<network_butcher_io::Onnx_model_reconstructor_helpers::IO_Type,
+                  std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
+                            google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
+        &preprocessed_ios_nodes);
+
+    static std::unordered_map<
+      std::string,
+      std::pair<IO_Type,
+                std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
+                          google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>>
+    process_node_ios_nodes(const onnx::GraphProto &model_graph);
 
     static void
     add_nodes(const std::map<node_id_type, node_id_type> &link_id_nodeproto,
               const onnx::GraphProto                     &model_graph,
               const std::set<node_id_type>               &nodes,
-              onnx::GraphProto                           *current_edited_graph);
+              onnx::GraphProto                           *current_edited_graph,
+              std::unordered_map<
+                std::string,
+                std::pair<network_butcher_io::Onnx_model_reconstructor_helpers::IO_Type,
+                          std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
+                                    google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
+                &preprocessed_ios_nodes);
 
     static void
     add_missing_inputs(const onnx::ModelProto &original_model, onnx::GraphProto *current_edited_graph);

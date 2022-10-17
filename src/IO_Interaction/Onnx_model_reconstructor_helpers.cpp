@@ -69,51 +69,16 @@ network_butcher_io::Onnx_model_reconstructor_helpers::get_initializer(const onnx
 }
 
 void
-network_butcher_io::Onnx_model_reconstructor_helpers::add_node_ios_nodes(const onnx::GraphProto &model_graph,
-                                                                         onnx::GraphProto       *graph,
-                                                                         const onnx::NodeProto  *node)
-{
-  for (int i = 0; i < node->input_size(); ++i)
-    {
-      auto it = std::find_if(model_graph.input().begin(),
-                             model_graph.input().end(),
-                             [&node, &i](onnx::ValueInfoProto const &ref) { return node->input(i) == ref.name(); });
-
-      if (it != model_graph.input().end())
-        {
-          auto const tmp = graph->add_input();
-          *tmp           = *it;
-        }
-      else
-        {
-          it = std::find_if(model_graph.value_info().begin(),
-                            model_graph.value_info().end(),
-                            [&node, &i](onnx::ValueInfoProto const &ref) { return node->input(i) == ref.name(); });
-
-          if (it != model_graph.value_info().end())
-            {
-              auto const tmp = graph->add_value_info();
-              *tmp           = *it;
-            }
-        }
-
-      auto init = std::find_if(model_graph.initializer().begin(),
-                               model_graph.initializer().end(),
-                               [&node, &i](onnx::TensorProto const &ref) { return node->input(i) == ref.name(); });
-      if (init != model_graph.initializer().end())
-        {
-          auto const tmp = graph->add_initializer();
-          *tmp           = *init;
-        }
-    }
-}
-
-void
 network_butcher_io::Onnx_model_reconstructor_helpers::add_nodes(
   const std::map<node_id_type, node_id_type> &link_id_nodeproto,
   const onnx::GraphProto                     &model_graph,
   const std::set<node_id_type>               &nodes,
-  onnx::GraphProto                           *current_edited_graph)
+  onnx::GraphProto                           *current_edited_graph,
+  std::unordered_map<std::string,
+                     std::pair<network_butcher_io::Onnx_model_reconstructor_helpers::IO_Type,
+                               std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
+                                         google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
+    &preprocessed_ios_nodes)
 {
   for (auto const &node : nodes)
     {
@@ -125,7 +90,68 @@ network_butcher_io::Onnx_model_reconstructor_helpers::add_nodes(
       auto const tmp = current_edited_graph->add_node();
       *tmp           = model_graph.node(it->second);
 
-      add_node_ios_nodes(model_graph, current_edited_graph, tmp);
+      add_node_ios_nodes(current_edited_graph, tmp, preprocessed_ios_nodes);
+    }
+}
+
+void
+network_butcher_io::Onnx_model_reconstructor_helpers::add_node_ios_nodes(
+  onnx::GraphProto      *graph,
+  const onnx::NodeProto *node,
+  std::unordered_map<std::string,
+                     std::pair<network_butcher_io::Onnx_model_reconstructor_helpers::IO_Type,
+                               std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
+                                         google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
+    &preprocessed_ios_nodes)
+{
+  for (int i = 0; i < node->input_size(); ++i)
+    {
+      auto const it = preprocessed_ios_nodes.find(node->input(i));
+
+      if (it != preprocessed_ios_nodes.cend())
+        {
+          switch (it->second.first)
+            {
+                case Input: {
+                  auto new_input = graph->add_input();
+                  *new_input     = *it->second.second.first;
+                  break;
+                }
+
+                case ValueInfo: {
+                  auto new_valueinfo = graph->add_value_info();
+                  *new_valueinfo     = *it->second.second.first;
+                  break;
+                }
+                case Initializer: {
+                  auto new_initializer = graph->add_initializer();
+                  *new_initializer     = *it->second.second.second;
+                  break;
+                }
+
+                case Initializer_Input: {
+                  auto new_input       = graph->add_input();
+                  auto new_initializer = graph->add_initializer();
+
+                  *new_initializer = *it->second.second.second;
+                  *new_input       = *it->second.second.first;
+                  break;
+                }
+
+                case Initializer_ValueInfo: {
+                  auto new_valueinfo   = graph->add_value_info();
+                  auto new_initializer = graph->add_initializer();
+
+                  *new_initializer = *it->second.second.second;
+                  *new_valueinfo   = *it->second.second.first;
+                  break;
+                }
+
+                default: {
+                  break;
+                }
+            }
+        }
     }
 }
 
@@ -140,15 +166,15 @@ network_butcher_io::Onnx_model_reconstructor_helpers::add_missing_inputs(const o
         {
           bool ok = false;
 
-          // Cycle throught the inputs of the graph
+          // Cycle through the inputs of the graph
           for (int j = 0; j < current_edited_graph->input_size() && !ok; ++j)
             {
               if (current_edited_graph->input(j).name() == in)
                 ok = true;
             }
 
-          // Cycle throught the nodes of the graph
-          for (auto it2 = current_edited_graph->mutable_node()->begin(); it2 != it; ++it2)
+          // Cycle through the nodes of the graph
+          for (auto it2 = current_edited_graph->mutable_node()->begin(); it2 != it && !ok; ++it2)
             {
               for (int j = 0; j < it2->output_size() && !ok; ++j)
                 {
@@ -164,28 +190,10 @@ network_butcher_io::Onnx_model_reconstructor_helpers::add_missing_inputs(const o
               auto tmp_in           = current_edited_graph->add_input();
               tmp_in->set_name(in);
 
-              // Is the input a non-initializer?
               if (found && tmp_res->has_type())
                 {
                   tmp_in->set_allocated_type(new onnx::TypeProto(tmp_res->type()));
                 }
-              /*
-              else
-                {
-                  auto [found, tmp2_res] = get_initializer(in);
-                  if(found)
-                    {
-                      auto tmp_init = current_edited_graph->add_initializer();
-
-                      tmp_init->set_name(in);
-                      onnx::TensorProto tt;
-
-                      tt.
-                      tt.data_type();
-
-
-                    }
-                } */
             }
         }
     }
@@ -235,4 +243,73 @@ network_butcher_io::Onnx_model_reconstructor_helpers::add_missing_outputs(const 
             }
         }
     }
+}
+
+std::unordered_map<std::string,
+                   std::pair<network_butcher_io::Onnx_model_reconstructor_helpers::IO_Type,
+                             std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
+                                       google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>>
+network_butcher_io::Onnx_model_reconstructor_helpers::process_node_ios_nodes(const onnx::GraphProto &model_graph)
+{
+  std::unordered_map<std::string,
+                     std::pair<network_butcher_io::Onnx_model_reconstructor_helpers::IO_Type,
+                               std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
+                                         google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>>
+    res;
+
+  for (auto const &node : model_graph.node())
+    {
+      for (std::size_t i = 0; i < node.input_size(); ++i)
+        {
+
+          auto it = std::find_if(model_graph.input().begin(),
+                                 model_graph.input().end(),
+                                 [&node, &i](onnx::ValueInfoProto const &ref) { return node.input(i) == ref.name(); });
+
+          bool ok_in = it != model_graph.input().end();
+          bool ok_vi = false;
+
+          if (!ok_in)
+            {
+              it = std::find_if(model_graph.value_info().begin(),
+                                model_graph.value_info().end(),
+                                [&node, &i](onnx::ValueInfoProto const &ref) { return node.input(i) == ref.name(); });
+
+              ok_vi = it != model_graph.value_info().end();
+            }
+
+          auto init = std::find_if(model_graph.initializer().begin(),
+                                   model_graph.initializer().end(),
+                                   [&node, &i](onnx::TensorProto const &ref) { return node.input(i) == ref.name(); });
+
+          if (init != model_graph.initializer().end())
+            {
+              if(ok_in) {
+                  res.insert(std::pair{init->name(), std::pair{Initializer_Input, std::pair{it, init}}});
+                  continue;
+                }
+              else if(ok_vi) {
+                  res.insert(std::pair{init->name(), std::pair{Initializer_ValueInfo, std::pair{it, init}}});
+                  continue;
+                }
+              else {
+                  res.insert(std::pair{init->name(), std::pair{Initializer, std::pair{it, init}}});
+                  continue;
+                }
+            }
+          else if(ok_in) {
+              res.insert(std::pair{it->name(), std::pair{Input, std::pair{it, model_graph.initializer().cend()} } });
+              continue;
+            }
+          else if(ok_vi) {
+              res.insert(
+                std::pair{it->name(), std::pair{ValueInfo, std::pair{it, model_graph.initializer().cend()} } });
+              continue;
+            }
+          else
+            res.insert(std::pair{node.input(i), std::pair{NoConnection, std::pair{it, init} } });
+        }
+    }
+
+  return res;
 }

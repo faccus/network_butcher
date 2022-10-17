@@ -522,14 +522,17 @@ network_butcher_io::IO_Manager::export_network_partitions(const Parameters      
                                                           const network_butcher_types::Weighted_Real_Paths &paths)
 {
   network_butcher_utilities::create_directory(params.export_directory);
+  auto const preprocessed_node_ios = Onnx_model_reconstructor_helpers::process_node_ios_nodes(model.graph());
+
   for (std::size_t j = 0; j < paths.size(); ++j)
     {
       network_butcher_utilities::create_directory(params.export_directory + "/" + std::to_string(j));
 
-      auto const model_devices = reconstruct_model(paths[j].second, model, graph, link_id_nodeproto);
+      auto const model_devices =
+        reconstruct_model(paths[j].second, model, graph, link_id_nodeproto, preprocessed_node_ios);
 
-      for (std::size_t i = 0; i < model_devices.size(); ++i) {
-
+      for (std::size_t i = 0; i < model_devices.size(); ++i)
+        {
           export_to_onnx(model_devices[i].first,
                          params.export_directory + "/" + std::to_string(j) + "/" + params.model_name + "-" +
                            std::to_string(i) + "-device-" + std::to_string(model_devices[i].second) + ".onnx");
