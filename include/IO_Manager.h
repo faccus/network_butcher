@@ -189,10 +189,10 @@ namespace network_butcher_io
 
     auto const &model_graph = original_model.graph();
 
-    Chrono crono;
-    double add_nodes_time = .0;
-    double inputs_time    = .0;
-    double outputs_time   = .0;
+    // Chrono crono;
+    // double add_nodes_time = .0;
+    // double inputs_time    = .0;
+    // double outputs_time   = .0;
 
     for (const auto &partition : partitions)
       {
@@ -207,23 +207,23 @@ namespace network_butcher_io
 
             auto current_edited_graph = Onnx_model_reconstructor_helpers::prepare_new_graph(original_model);
 
-            crono.start();
+            // crono.start();
             Onnx_model_reconstructor_helpers::add_nodes(
               link_id_nodeproto, model_graph, node_ids, current_edited_graph, preprocessed_ios_nodes);
-            crono.stop();
-            add_nodes_time += crono.wallTime();
+            // crono.stop();
+            // add_nodes_time += crono.wallTime();
 
             if (model_graph.node_size() > 0)
               {
-                crono.start();
+                // crono.start();
                 Onnx_model_reconstructor_helpers::add_missing_inputs(original_model, current_edited_graph);
-                crono.stop();
-                inputs_time += crono.wallTime();
+                // crono.stop();
+                // inputs_time += crono.wallTime();
 
-                crono.start();
+                // crono.start();
                 Onnx_model_reconstructor_helpers::add_missing_outputs(original_model, current_edited_graph);
-                crono.stop();
-                outputs_time += crono.wallTime();
+                // crono.stop();
+                // outputs_time += crono.wallTime();
 
                 new_model.set_allocated_graph(current_edited_graph);
 
@@ -232,9 +232,9 @@ namespace network_butcher_io
           }
       }
 
-    std::cout << "Add nodes: " << add_nodes_time / 1000. << " ms" << std::endl;
-    std::cout << "Inputs: " << inputs_time / 1000. << " ms" << std::endl;
-    std::cout << "Outputs: " << outputs_time / 1000. << " ms" << std::endl;
+    // std::cout << "Add nodes: " << add_nodes_time / 1000. << " ms" << std::endl;
+    // std::cout << "Inputs: " << inputs_time / 1000. << " ms" << std::endl;
+    // std::cout << "Outputs: " << outputs_time / 1000. << " ms" << std::endl;
 
     return res;
   }
