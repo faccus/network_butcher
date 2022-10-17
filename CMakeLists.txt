@@ -28,7 +28,7 @@ message(STATUS "Build documentation graphs: ${BUILD_DOC_GRAPH}")
 option(BUILD_TESTS "Build tests" ON)
 message(STATUS "Build tests: ${BUILD_TESTS}")
 
-option(BUILD_BENCHMARK "Build benchmark tests" ON)
+option(BUILD_BENCHMARK "Build benchmark tests" OFF)
 message(STATUS "Build benchmark tests: ${BUILD_BENCHMARK}")
 
 
