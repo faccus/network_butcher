@@ -134,19 +134,15 @@ namespace network_butcher_io
 
     /// Based on the graph and the partitions device/nodes, it will prodice the
     /// "butchered" models.
-    /// \tparam Graph The type of the graph
     /// \param partitions The partitions device/nodes
     /// \param original_model The original imported model
-    /// \param graph The graph
     /// \param link_id_nodeproto The map that associated every node of the graph to
     /// a node in the imported model
     /// \return The collection of models and the related device
-    template <class Graph>
     static std::vector<std::pair<onnx::ModelProto, std::size_t>>
     reconstruct_model(
       network_butcher_types::Real_Path const     &partitions,
       onnx::ModelProto const                     &original_model,
-      Graph const                                &graph,
       std::map<node_id_type, node_id_type> const &link_id_nodeproto,
       std::unordered_map<
         std::string,
@@ -155,89 +151,46 @@ namespace network_butcher_io
                             google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
         &preprocessed_ios_nodes);
 
+    static void
+    reconstruct_model_and_export(
+      network_butcher_types::Real_Path const     &partitions,
+      onnx::ModelProto const                     &original_model,
+      std::map<node_id_type, node_id_type> const &link_id_nodeproto,
+      std::unordered_map<
+        std::string,
+        std::pair<network_butcher_io::Onnx_model_reconstructor_helpers::IO_Type,
+                  std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
+                            google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
+                        &preprocessed_ios_nodes,
+      const std::string &export_base_path);
+
     /// It will reconstruct the ModelProto objects associated to the different
     /// partitions and it will export them to the directory paths
     /// \param params The collection of parameters
-    /// \param graph The graph
     /// \param model The original model
     /// \param link_id_nodeproto The map that associated every node of the graph to
     /// a node in the imported model
     /// \param paths The different partitions to be exported
     static void
     export_network_partitions(const Parameters                                 &params,
-                              const graph_type                                 &graph,
                               const onnx::ModelProto                           &model,
                               std::map<node_id_type, node_id_type> const       &link_id_nodeproto,
                               const network_butcher_types::Weighted_Real_Paths &paths);
+
+
+    static std::pair<bool, onnx::ModelProto>
+    reconstruct_model_from_partition(
+      network_butcher_types::Real_Partition const &partition,
+      onnx::ModelProto const                      &original_model,
+      std::map<node_id_type, node_id_type> const  &link_id_nodeproto,
+      std::unordered_map<
+        std::string,
+        std::pair<network_butcher_io::Onnx_model_reconstructor_helpers::IO_Type,
+                  std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
+                            google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
+                             &preprocessed_ios_nodes,
+      onnx::GraphProto const &model_graph);
   };
-
-  template <class Graph>
-  std::vector<std::pair<onnx::ModelProto, std::size_t>>
-  network_butcher_io::IO_Manager::reconstruct_model(
-    const network_butcher_types::Real_Path     &partitions,
-    const onnx::ModelProto                     &original_model,
-    const Graph                                &graph,
-    const std::map<node_id_type, node_id_type> &link_id_nodeproto,
-    std::unordered_map<
-      std::string,
-      std::pair<network_butcher_io::Onnx_model_reconstructor_helpers::IO_Type,
-                std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
-                          google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
-      &preprocessed_ios_nodes)
-  {
-    std::vector<std::pair<onnx::ModelProto, std::size_t>> res;
-
-    auto const &model_graph = original_model.graph();
-
-    // Chrono crono;
-    // double add_nodes_time = .0;
-    // double inputs_time    = .0;
-    // double outputs_time   = .0;
-
-    for (const auto &partition : partitions)
-      {
-        auto const &device_id = partition.first;
-        auto const &node_ids  = partition.second;
-
-        if (!node_ids.empty())
-          {
-            onnx::ModelProto new_model;
-
-            Onnx_model_reconstructor_helpers::prepare_new_model(original_model, new_model);
-
-            auto current_edited_graph = Onnx_model_reconstructor_helpers::prepare_new_graph(original_model);
-
-            // crono.start();
-            Onnx_model_reconstructor_helpers::add_nodes(
-              link_id_nodeproto, model_graph, node_ids, current_edited_graph, preprocessed_ios_nodes);
-            // crono.stop();
-            // add_nodes_time += crono.wallTime();
-
-            if (model_graph.node_size() > 0)
-              {
-                // crono.start();
-                Onnx_model_reconstructor_helpers::add_missing_inputs(original_model, current_edited_graph);
-                // crono.stop();
-                // inputs_time += crono.wallTime();
-
-                // crono.start();
-                Onnx_model_reconstructor_helpers::add_missing_outputs(original_model, current_edited_graph);
-                // crono.stop();
-                // outputs_time += crono.wallTime();
-
-                new_model.set_allocated_graph(current_edited_graph);
-
-                res.emplace_back(std::move(new_model), device_id);
-              }
-          }
-      }
-
-    // std::cout << "Add nodes: " << add_nodes_time / 1000. << " ms" << std::endl;
-    // std::cout << "Inputs: " << inputs_time / 1000. << " ms" << std::endl;
-    // std::cout << "Outputs: " << outputs_time / 1000. << " ms" << std::endl;
-
-    return res;
-  }
 
 } // namespace network_butcher_io
 

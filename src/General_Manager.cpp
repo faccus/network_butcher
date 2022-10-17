@@ -113,7 +113,7 @@ network_butcher_io::General_Manager::boot(const Parameters &params, bool perform
 
   crono.start();
   // Export the butchered networks... (export the different partitions)
-  IO_Manager::export_network_partitions(params, graph, model, link_graph_model, paths);
+  IO_Manager::export_network_partitions(params, model, link_graph_model, paths);
   crono.stop();
 
   if (performance)

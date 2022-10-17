@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include "../include/General_Manager.h"
+#include "../include/Utilities.h"
 
 
 namespace
@@ -14,19 +15,45 @@ namespace
 
   TEST(GeneralManagerTest, boot_test)
   {
+    std::string const export_path = "ksp_result";
+    if(network_butcher_utilities::file_exists(export_path)) {
+        network_butcher_utilities::file_delete(export_path);
+      }
+
     std::string const path = "test_parameters.conf";
     General_Manager::boot(path, true);
   }
 
   TEST(GeneralManagerTest, boot_test2)
   {
+    std::string const export_path = "ksp_result2";
+    if(network_butcher_utilities::file_exists(export_path)) {
+        network_butcher_utilities::file_delete(export_path);
+      }
+
     std::string const path = "test2_parameters.conf";
     General_Manager::boot(path, true);
   }
 
   TEST(GeneralManagerTest, boot_test3)
   {
+    std::string const export_path = "ksp_result3";
+    if(network_butcher_utilities::file_exists(export_path)) {
+        network_butcher_utilities::file_delete(export_path);
+      }
+
     std::string const path = "test3_parameters.conf";
+    General_Manager::boot(path, true);
+  }
+
+  TEST(GeneralManagerTest, boot_test4)
+  {
+    std::string const export_path = "ksp_result4";
+    if(network_butcher_utilities::file_exists(export_path)) {
+        network_butcher_utilities::file_delete(export_path);
+      }
+
+    std::string const path = "test4_parameters.conf";
     General_Manager::boot(path, true);
   }
 } // namespace

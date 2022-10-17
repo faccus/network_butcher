@@ -63,6 +63,7 @@ if (BUILD_TESTS)
 
     FILE(COPY ${CMAKE_SOURCE_DIR}/models/official_operation_time.csv DESTINATION ${CMAKE_BINARY_DIR})
     FILE(COPY ${CMAKE_SOURCE_DIR}/models/operation_time_cloud.csv DESTINATION ${CMAKE_BINARY_DIR})
+    FILE(COPY ${CMAKE_SOURCE_DIR}/models/operation_time_cloud_slow.csv DESTINATION ${CMAKE_BINARY_DIR})
     FILE(COPY ${CMAKE_SOURCE_DIR}/models/operation_time_edge.csv DESTINATION ${CMAKE_BINARY_DIR})
 endif ()
 

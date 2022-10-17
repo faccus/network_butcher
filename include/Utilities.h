@@ -50,6 +50,12 @@ namespace network_butcher_utilities
     return std::filesystem::exists(p);
   }
 
+  inline void
+  file_delete(std::string const &path)
+  {
+    std::filesystem::remove_all(path);
+  }
+
   /// Creates a directory with the given path
   /// \param path The input string
   inline void

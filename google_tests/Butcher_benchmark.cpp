@@ -314,8 +314,9 @@ namespace
   TEST(ButcherBenchmarkTest, compute_k_shortest_paths_lazy_eppstein_multiple_random)
   {
     std::size_t       num_devices     = 3;
-    std::size_t const num_nodes       = 100;
+    std::size_t const num_nodes       = 10000;
     std::size_t const number_of_tests = 1000;
+    std::size_t const k = 1000;
 
     auto  butcher = basic_butcher(num_nodes);
     auto &graph   = butcher.get_graph_ref();
@@ -332,21 +333,21 @@ namespace
         Chrono crono;
         crono.start();
         auto const res = butcher.compute_k_shortest_path(transmission_fun,
-                                                         lazy_eppstein_parameters(num_nodes * 0.1, true, num_devices));
+                                                         lazy_eppstein_parameters(k, true, num_devices));
         crono.stop();
 
         total_time += crono.wallTime();
+        std::cout << "Current average time per test: " << total_time / (num_test + 1) / 1000 << " ms" << std::endl;
       }
-
-    std::cout << "Average time per test: " << total_time / number_of_tests / 1000 << " milli-seconds" << std::endl;
   }
 
 
   TEST(ButcherBenchmarkTest, compute_k_shortest_paths_eppstein_multiple_random)
   {
     std::size_t       num_devices     = 3;
-    std::size_t const num_nodes       = 100;
+    std::size_t const num_nodes       = 1000;
     std::size_t const number_of_tests = 1000;
+    std::size_t const k = 1000;
 
     auto  butcher = basic_butcher(num_nodes);
     auto &graph   = butcher.get_graph_ref();
@@ -363,7 +364,7 @@ namespace
         Chrono crono;
         crono.start();
         auto const res =
-          butcher.compute_k_shortest_path(transmission_fun, eppstein_parameters(num_nodes * 0.1, true, num_devices));
+          butcher.compute_k_shortest_path(transmission_fun, eppstein_parameters(k, true, num_devices));
         crono.stop();
 
         total_time += crono.wallTime();

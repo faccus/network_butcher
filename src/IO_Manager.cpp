@@ -516,7 +516,6 @@ network_butcher_io::IO_Manager::read_parameters(const std::string &path)
 
 void
 network_butcher_io::IO_Manager::export_network_partitions(const Parameters                           &params,
-                                                          graph_type const                           &graph,
                                                           onnx::ModelProto const                     &model,
                                                           std::map<node_id_type, node_id_type> const &link_id_nodeproto,
                                                           const network_butcher_types::Weighted_Real_Paths &paths)
@@ -528,15 +527,11 @@ network_butcher_io::IO_Manager::export_network_partitions(const Parameters      
     {
       network_butcher_utilities::create_directory(params.export_directory + "/" + std::to_string(j));
 
-      auto const model_devices =
-        reconstruct_model(paths[j].second, model, graph, link_id_nodeproto, preprocessed_node_ios);
-
-      for (std::size_t i = 0; i < model_devices.size(); ++i)
-        {
-          export_to_onnx(model_devices[i].first,
-                         params.export_directory + "/" + std::to_string(j) + "/" + params.model_name + "-" +
-                           std::to_string(i) + "-device-" + std::to_string(model_devices[i].second) + ".onnx");
-        }
+      reconstruct_model_and_export(paths[j].second,
+                        model,
+                        link_id_nodeproto,
+                        preprocessed_node_ios,
+                        params.export_directory + "/" + std::to_string(j) + "/" + params.model_name);
     }
 }
 
@@ -592,6 +587,109 @@ network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode const &weight_
         break;
     }
 }
+
+
+std::vector<std::pair<onnx::ModelProto, std::size_t>>
+network_butcher_io::IO_Manager::reconstruct_model(
+  const network_butcher_types::Real_Path     &partitions,
+  const onnx::ModelProto                     &original_model,
+  const std::map<node_id_type, node_id_type> &link_id_nodeproto,
+  std::unordered_map<std::string,
+                     std::pair<network_butcher_io::Onnx_model_reconstructor_helpers::IO_Type,
+                               std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
+                                         google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
+    &preprocessed_ios_nodes)
+{
+  std::vector<std::pair<onnx::ModelProto, std::size_t>> res;
+
+  auto const &model_graph = original_model.graph();
+
+  for (std::size_t i = 0; i < partitions.size(); ++i)
+    {
+      auto const &partition = partitions[i];
+      auto        partition_model = reconstruct_model_from_partition(
+        partition, original_model, link_id_nodeproto, preprocessed_ios_nodes, model_graph);
+
+      if (partition_model.first)
+        {
+          res.emplace_back(std::move(partition_model.second), partition.first);
+        }
+    }
+
+  return res;
+}
+
+
+void
+network_butcher_io::IO_Manager::reconstruct_model_and_export(
+  const network_butcher_types::Real_Path     &partitions,
+  const onnx::ModelProto                     &original_model,
+  const std::map<node_id_type, node_id_type> &link_id_nodeproto,
+  std::unordered_map<std::string,
+                     std::pair<network_butcher_io::Onnx_model_reconstructor_helpers::IO_Type,
+                               std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
+                                         google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
+                    &preprocessed_ios_nodes,
+  const std::string &export_base_path)
+{
+  auto const &model_graph = original_model.graph();
+
+  for (std::size_t i = 0; i < partitions.size(); ++i)
+    {
+      auto const &partition = partitions[i];
+      auto const  partition_model = reconstruct_model_from_partition(
+        partition, original_model, link_id_nodeproto, preprocessed_ios_nodes, model_graph);
+
+      if (partition_model.first)
+        {
+          export_to_onnx(partition_model.second,
+                         export_base_path + "-" + std::to_string(i) + "-device-" + std::to_string(partition.first) +
+                           ".onnx");
+        }
+    }
+}
+
+std::pair<bool, onnx::ModelProto>
+network_butcher_io::IO_Manager::reconstruct_model_from_partition(
+  const network_butcher_types::Real_Partition &partition,
+  const onnx::ModelProto                      &original_model,
+  const std::map<node_id_type, node_id_type>  &link_id_nodeproto,
+  const std::unordered_map<std::string,
+                           std::pair<network_butcher_io::Onnx_model_reconstructor_helpers::IO_Type,
+                                     std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
+                                               google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>>
+                         &preprocessed_ios_nodes,
+  const onnx::GraphProto &model_graph)
+{
+  onnx::ModelProto new_model;
+  auto const      &node_ids = partition.second;
+
+  if (!node_ids.empty())
+    {
+      network_butcher_io::Onnx_model_reconstructor_helpers::prepare_new_model(original_model, new_model);
+
+      auto current_edited_graph =
+        network_butcher_io::Onnx_model_reconstructor_helpers::prepare_new_graph(original_model);
+
+      network_butcher_io::Onnx_model_reconstructor_helpers::add_nodes(
+        link_id_nodeproto, model_graph, node_ids, current_edited_graph, preprocessed_ios_nodes);
+
+      if (current_edited_graph->node_size() > 0)
+        {
+          network_butcher_io::Onnx_model_reconstructor_helpers::add_missing_inputs(original_model,
+                                                                                   current_edited_graph);
+          network_butcher_io::Onnx_model_reconstructor_helpers::add_missing_outputs(original_model,
+                                                                                    current_edited_graph);
+
+          new_model.set_allocated_graph(current_edited_graph);
+
+          return {true, new_model};
+        }
+    }
+
+  return {false, new_model};
+}
+
 
 #if YAML_CPP_ACTIVE
 std::vector<Parameters>
