@@ -50,8 +50,28 @@ namespace network_butcher_utilities
     return std::filesystem::exists(p);
   }
 
+  /// Check if a directory exists
+  /// \param name Path to the directory
+  /// \return True if it exists, false otherwise
+  inline bool
+  directory_exists(const std::string &name)
+  {
+    const std::filesystem::path p = name;
+    return std::filesystem::exists(p);
+  }
+
+  /// Deletes the file at the specified location
+  /// \param path The path of the file
   inline void
   file_delete(std::string const &path)
+  {
+    std::filesystem::remove_all(path);
+  }
+
+  /// Deletes the directory at the specified location
+  /// \param path The path of the directory
+  inline void
+  directory_delete(std::string const &path)
   {
     std::filesystem::remove_all(path);
   }
