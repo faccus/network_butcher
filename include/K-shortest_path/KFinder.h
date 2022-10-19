@@ -314,9 +314,9 @@ namespace network_butcher_kfinder
         auto const &e_edge = *e;
 
         // Find sidetrack weight
-        auto const ot = sidetrack_distances_res.find(e_edge);
+        auto const e_sidetrack_edge_it = sidetrack_distances_res.find(e_edge);
 
-        if (ot == sidetrack_distances_res.cend())
+        if (e_sidetrack_edge_it == sidetrack_distances_res.cend())
           {
             print_missing_sidetrack_distance(e_edge);
             continue;
@@ -358,9 +358,9 @@ namespace network_butcher_kfinder
               {
                 auto const &f_edge = *f;
 
-                auto ut = sidetrack_distances_res.find(f_edge);
+                auto f_sidetrack_weight_it = sidetrack_distances_res.find(f_edge);
 
-                if (ut == sidetrack_distances_res.cend())
+                if (f_sidetrack_weight_it == sidetrack_distances_res.cend())
                   {
                     print_missing_sidetrack_distance(f_edge);
                     continue;
@@ -368,7 +368,7 @@ namespace network_butcher_kfinder
 
                 auto mod_sk = SK;
                 mod_sk.sidetracks.push_back(f);
-                mod_sk.length += (ut->second - ot->second);
+                mod_sk.length += (f_sidetrack_weight_it->second - e_sidetrack_edge_it->second);
 
                 Q.insert(std::move(mod_sk));
               }
