@@ -18,20 +18,6 @@ namespace network_butcher_kfinder
     using base_shortest = Shortest_path_finder<Graph_type>;
 
 
-    /// Helper function in the construction of the H_outs
-    /// \param successors The list of the successors of every node (the node
-    /// following the current one in the shortest path)
-    /// \param sidetrack_distances The collection of the sidetrack distances for
-    /// all the sidetrack edges
-    /// \param num_nodes The real number of nodes (that is the number of
-    /// nodes taking into account the multiple devices)
-    /// \return H_out map
-    [[nodiscard]] H_out_collection
-    helper_construct_h_out(std::vector<node_id_type> const &successors,
-                           weights_collection_type const   &sidetrack_distances,
-                           std::size_t const                num_nodes) const;
-
-
     /// Given the successors collection and the sidetrack distances, it will
     /// construct the h_out map
     /// \param successors The list of the successors of every node (the node
@@ -88,79 +74,48 @@ namespace network_butcher_kfinder
 
   template <class Graph_type>
   H_out_collection
-  KFinder_Eppstein<Graph_type>::helper_construct_h_out(const std::vector<node_id_type> &successors,
-                                                       const weights_collection_type   &sidetrack_distances,
-                                                       const std::size_t                num_nodes) const
+  KFinder_Eppstein<Graph_type>::construct_h_out(const std::vector<node_id_type> &successors,
+                                                const weights_collection_type   &sidetrack_distances) const
   {
     H_out_collection h_out;
     auto const      &graph = base::graph;
 
-    // For every node, add an H_out
-    for (std::size_t i = 0; i < num_nodes; ++i) // O(N)
+    for (auto const &tail_node : graph.get_nodes())
       {
-        auto it             = h_out.insert(h_out.cend(), {i, std::make_shared<H_out<edge_info>>()});
-        it->second->heap.id = i;
-      }
+        auto h_out_entry_it = h_out.insert(h_out.cend(), {tail_node.get_id(), std::make_shared<H_out<edge_info>>()});
+        h_out_entry_it->second->heap.id = tail_node.get_id();
 
-
-    // std::vector<std::list<edge_info>> tmp_storage(num_nodes);
-
-    // Loop through all the edges
-    for (auto const &edge_pair : sidetrack_distances) // O(E)
-      {
-        auto const &edge = edge_pair.first;
-
-        auto const &tail = edge.first;
-        auto const &succ = successors[tail];
-
-        // If edge is a sidetrack edge, add it to the related H_out
-        if (edge.second != succ)
+        auto const &tail = tail_node.get_id();
+        for (auto const &head : graph.get_dependencies()[tail].second)
           {
-            auto const &sidetrack_distance = edge_pair.second;
-            edge_info   tmp(edge, sidetrack_distance);
+            if (head != successors[tail])
+              {
+                auto sidetrack_it = sidetrack_distances.find({tail, head});
+                if (sidetrack_it != sidetrack_distances.cend())
+                  {
+                    auto &children = h_out_entry_it->second->heap.children;
 
-            // tmp_storage[tail].push_back(tmp); // O(1)
+                    edge_info tmp(sidetrack_it->first, sidetrack_it->second);
 
-
-            auto &children = h_out[tail]->heap.children;
-
-            children.insert(std::move(tmp)); // O(log(N))
+                    children.insert(std::move(tmp));
+                  }
+              }
           }
       }
-    /*
-        // For every node, add an H_out
-        for (std::size_t i = 0; i < num_nodes; ++i) // O(N)
-          {
-            auto it             = h_out.insert(h_out.cend(), {i, std::make_shared<H_out<edge_info>>()});
-            it->second->heap.id = i;
-
-            auto &children = it->second->heap.children;
-            children.insert(tmp_storage[i].cbegin(), tmp_storage[i].cend()); // N*log(N)
-          }*/
-
 
     return h_out;
   }
 
   template <class Graph_type>
-  H_out_collection
-  KFinder_Eppstein<Graph_type>::construct_h_out(
-    const std::vector<node_id_type> &successors,
-    const weights_collection_type   &sidetrack_distances) const // O(N+E*log(N))
-  {
-    return helper_construct_h_out(successors, sidetrack_distances, base::graph.size());
-  }
-
-  template <class Graph_type>
   H_g_collection
-  KFinder_Eppstein<Graph_type>::helper_construct_h_g(const H_out_collection          &h_out,
-                                                     const std::vector<node_id_type> &successors,
-                                                     const size_t                    &num_nodes) const // O(N*log(N))
+  KFinder_Eppstein<Graph_type>::construct_h_g(const H_out_collection          &h_out,
+                                                     const std::vector<node_id_type> &successors) const // O(N*log(N))
   {
     H_g_collection h_g;
 
     auto const &graph = base::graph;
     auto const &nodes = graph.get_nodes();
+    auto const &num_nodes = nodes.size();
 
     std::vector<std::set<node_id_type>> sp_dependencies;
     sp_dependencies.resize(num_nodes);
@@ -222,7 +177,7 @@ namespace network_butcher_kfinder
           heap_node.children.insert(tmo.children.begin(),
                                     tmo.children.end()); // O(1)
 
-        // Among the different iterations, this loop is performed at most N times. Moreover every iteration of the loop
+        // Among the different iterations, this loop is performed at most N times. Moreover, every iteration of the loop
         // will add a new node to the queue. This means that this loop doesn't change the worst case complexity of the
         // overall method
         for (auto &n : deps)
@@ -232,14 +187,6 @@ namespace network_butcher_kfinder
       }
 
     return h_g;
-  }
-
-  template <class Graph_type>
-  H_g_collection
-  KFinder_Eppstein<Graph_type>::construct_h_g(const H_out_collection          &h_out,
-                                              const std::vector<node_id_type> &successors) const // O(N*log(N))
-  {
-    return helper_construct_h_g(h_out, successors, base::graph.size());
   }
 
   template <class Graph_type>
@@ -254,8 +201,7 @@ namespace network_butcher_kfinder
     auto const &successors          = dij_res.first;
     auto const &shortest_paths_cost = dij_res.second;
 
-    auto h_out = construct_h_out(successors, sidetrack_distances_res); // O(N+E*log(N))
-
+    auto h_out = construct_h_out(successors, sidetrack_distances_res); // O(N+E)
     auto h_g = construct_h_g(h_out, successors); // O(N*log(N))
 
     return base::general_algo_eppstein(K, dij_res, sidetrack_distances_res, h_g, h_out);

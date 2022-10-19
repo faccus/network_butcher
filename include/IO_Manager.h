@@ -7,14 +7,15 @@
 
 #include "IO_Interaction/Onnx_importer_helpers.h"
 #include "IO_Interaction/Onnx_model_reconstructor_helpers.h"
+
 #if YAML_CPP_ACTIVE
-#  include "IO_Interaction/Yaml_importer_helpers.h"
+#include "IO_Interaction/Yaml_importer_helpers.h"
+#include <yaml-cpp/yaml.h>
 #endif
 
 #include "APSC/chrono.h"
-
 #include "APSC/GetPot"
-#include <yaml-cpp/yaml.h>
+
 
 namespace network_butcher_io
 {
@@ -63,6 +64,28 @@ namespace network_butcher_io
     import_weights_custom_csv_multi_operation_time(graph_type              &graph,
                                                    std::vector<std::size_t> device,
                                                    std::string const       &path);
+
+
+    /// Based on the original graph and the partitions device/nodes, it will produce the "butchered" models and
+    /// export them to the specified path (directory / name)
+    /// \param partitions The partitions device/nodes
+    /// \param original_model The original imported model
+    /// \param link_id_nodeproto The map that associated every node of the graph to
+    /// a node in the imported model
+    /// \param export_base_path The export path (+ the name of the final file)
+    /// \return The collection of models and the related device
+    static void
+    reconstruct_model_and_export(
+      network_butcher_types::Real_Path const     &partitions,
+      onnx::ModelProto const                     &original_model,
+      std::map<node_id_type, node_id_type> const &link_id_nodeproto,
+      std::unordered_map<
+        std::string,
+        std::pair<network_butcher_io::Onnx_model_reconstructor_helpers::IO_Type,
+                  std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
+                            google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
+                        &preprocessed_ios_nodes,
+      const std::string &export_base_path);
 
   public:
     /// It will return the parameters read from the given file
@@ -131,38 +154,6 @@ namespace network_butcher_io
                    std::string const        &path,
                    std::vector<std::size_t>  devices,
                    std::size_t               index = 0);
-
-    /// Based on the graph and the partitions device/nodes, it will prodice the
-    /// "butchered" models.
-    /// \param partitions The partitions device/nodes
-    /// \param original_model The original imported model
-    /// \param link_id_nodeproto The map that associated every node of the graph to
-    /// a node in the imported model
-    /// \return The collection of models and the related device
-    static std::vector<std::pair<onnx::ModelProto, std::size_t>>
-    reconstruct_model(
-      network_butcher_types::Real_Path const     &partitions,
-      onnx::ModelProto const                     &original_model,
-      std::map<node_id_type, node_id_type> const &link_id_nodeproto,
-      std::unordered_map<
-        std::string,
-        std::pair<network_butcher_io::Onnx_model_reconstructor_helpers::IO_Type,
-                  std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
-                            google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
-        &preprocessed_ios_nodes);
-
-    static void
-    reconstruct_model_and_export(
-      network_butcher_types::Real_Path const     &partitions,
-      onnx::ModelProto const                     &original_model,
-      std::map<node_id_type, node_id_type> const &link_id_nodeproto,
-      std::unordered_map<
-        std::string,
-        std::pair<network_butcher_io::Onnx_model_reconstructor_helpers::IO_Type,
-                  std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
-                            google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
-                        &preprocessed_ios_nodes,
-      const std::string &export_base_path);
 
     /// It will reconstruct the ModelProto objects associated to the different
     /// partitions and it will export them to the directory paths

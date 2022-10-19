@@ -589,37 +589,6 @@ network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode const &weight_
 }
 
 
-std::vector<std::pair<onnx::ModelProto, std::size_t>>
-network_butcher_io::IO_Manager::reconstruct_model(
-  const network_butcher_types::Real_Path     &partitions,
-  const onnx::ModelProto                     &original_model,
-  const std::map<node_id_type, node_id_type> &link_id_nodeproto,
-  std::unordered_map<std::string,
-                     std::pair<network_butcher_io::Onnx_model_reconstructor_helpers::IO_Type,
-                               std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
-                                         google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
-    &preprocessed_ios_nodes)
-{
-  std::vector<std::pair<onnx::ModelProto, std::size_t>> res;
-
-  auto const &model_graph = original_model.graph();
-
-  for (std::size_t i = 0; i < partitions.size(); ++i)
-    {
-      auto const &partition = partitions[i];
-      auto        partition_model = reconstruct_model_from_partition(
-        partition, original_model, link_id_nodeproto, preprocessed_ios_nodes, model_graph);
-
-      if (partition_model.first)
-        {
-          res.emplace_back(std::move(partition_model.second), partition.first);
-        }
-    }
-
-  return res;
-}
-
-
 void
 network_butcher_io::IO_Manager::reconstruct_model_and_export(
   const network_butcher_types::Real_Path     &partitions,

@@ -58,7 +58,7 @@ private:
   /// \param output_memory The memory usage of all output nodes
   /// \param params_memory The memory usage of all parameters nodes
   /// \return The pair of maximum memory of ios and of memory of parameters
-  std::tuple<memory_type, memory_type>
+  [[nodiscard]] std::tuple<memory_type, memory_type>
   estimate_maximum_memory_usage(std::vector<Device> const      &devices,
                                 Memory_Constraint_Type          constraint_type,
                                 std::set<node_id_type> const   &ids,
