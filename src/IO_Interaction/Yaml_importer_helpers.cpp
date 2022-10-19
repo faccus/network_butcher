@@ -10,6 +10,7 @@ network_butcher_io::Yaml_importer_helpers::get_devices_for_partitions(
   std::vector<std::vector<std::pair<std::string, std::size_t>>> device_for_partitions;
   device_for_partitions.emplace_back();
 
+
   for (std::size_t i = 0; i < devices_ram.size(); ++i)
     {
       auto const size = device_for_partitions.size();
@@ -34,61 +35,68 @@ network_butcher_io::Yaml_importer_helpers::get_devices_for_partitions(
   return device_for_partitions;
 }
 
-std::vector<std::map<std::string, std::size_t>>
-network_butcher_io::Yaml_importer_helpers::read_candidate_deployments(YAML::Node const                    &components,
-                                                                      std::string const                   &model_name,
-                                                                      std::size_t                          model_ram,
-                                                                      std::size_t                          model_vram,
+std::map<std::string, std::vector<std::map<std::string, std::size_t>>>
+network_butcher_io::Yaml_importer_helpers::read_candidate_deployments(std::string const &candidate_deployments_path,
+                                                                      std::map<std::string, std::pair<std::size_t, std::size_t>> const &models,
                                                                       std::map<std::string, device> const &devices_map)
 {
-  std::list<std::map<std::string, std::size_t>>   devices_ram;
-  std::vector<std::map<std::string, std::size_t>> res;
+  YAML::Node components = YAML::LoadFile(candidate_deployments_path)["Components"];
+  std::map<std::string, std::vector<std::map<std::string, std::size_t>>> final_res;
 
-  for (YAML::const_iterator it = components.begin(); it != components.end(); ++it)
+  for (auto const &[model_name, pair_ram_vram] : models)
     {
-      if (it->second["name"] && it->second["name"].as<std::string>().find(model_name) != std::string::npos &&
-          it->second["name"].as<std::string>().find("partitionX") != std::string::npos)
-        {
-          devices_ram.emplace_back();
+      auto const &[model_ram, model_vram]              = pair_ram_vram;
 
-          // Containers that can be deployed on the different resources
-          YAML::Node devices = it->second["Containers"];
-          for (YAML::const_iterator device_it = devices.begin(); device_it != devices.end(); ++device_it)
+      std::list<std::map<std::string, std::size_t>>   devices_ram;
+      std::vector<std::map<std::string, std::size_t>> res;
+
+      for (YAML::const_iterator it = components.begin(); it != components.end(); ++it)
+        {
+          if (it->second["name"] && it->second["name"].as<std::string>().find(model_name) != std::string::npos &&
+              it->second["name"].as<std::string>().find("partitionX") != std::string::npos)
             {
-              auto &candidate_execution_resources = device_it->second["candidateExecutionResources"];
-              for (YAML::const_iterator itt = candidate_execution_resources.begin();
-                   itt != candidate_execution_resources.end();
-                   ++itt)
+              devices_ram.emplace_back();
+
+              // Containers that can be deployed on the different resources
+              YAML::Node devices = it->second["Containers"];
+              for (YAML::const_iterator device_it = devices.begin(); device_it != devices.end(); ++device_it)
                 {
-                  devices_ram.back()[itt->as<std::string>()] =
-                    std::max(device_it->second["memorySize"].as<std::size_t>(), model_ram);
+                  auto &candidate_execution_resources = device_it->second["candidateExecutionResources"];
+                  for (YAML::const_iterator itt = candidate_execution_resources.begin();
+                       itt != candidate_execution_resources.end();
+                       ++itt)
+                    {
+                      devices_ram.back()[itt->as<std::string>()] =
+                        std::max(device_it->second["memorySize"].as<std::size_t>(), model_ram);
+                    }
                 }
             }
         }
-    }
 
-  // Remove the devices with insufficient ram and vram
-  for (auto it = devices_ram.begin(); it != devices_ram.end(); ++it)
-    {
-      std::set<std::string> to_remove;
-      for (auto const &[name, ram] : *it)
+      // Remove the devices with insufficient ram and vram
+      for (auto it = devices_ram.begin(); it != devices_ram.end(); ++it)
         {
-          auto const &dev = devices_map.find(name)->second;
-          if (dev.ram < ram || dev.vram < model_vram)
-            to_remove.insert(name);
+          std::set<std::string> to_remove;
+          for (auto const &[name, ram] : *it)
+            {
+              auto const &dev = devices_map.find(name)->second;
+              if (dev.ram < ram || dev.vram < model_vram)
+                to_remove.insert(name);
+            }
+
+          for (auto const &name : to_remove)
+            {
+              it->erase(it->find(name));
+            }
+
+          if (!it->empty())
+            res.emplace_back(std::move(*it));
         }
 
-      for (auto const &name : to_remove)
-        {
-          it->erase(it->find(name));
-        }
-
-      if (!it->empty())
-        res.emplace_back(std::move(*it));
+      final_res.emplace(model_name, std::move(res));
     }
 
-
-  return res;
+  return final_res;
 }
 
 std::map<std::string, std::pair<std::size_t, std::size_t>>

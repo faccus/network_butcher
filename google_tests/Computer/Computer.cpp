@@ -6,8 +6,6 @@
 #include <memory>
 
 #include "../../include/Computer/Computer_memory.h"
-#include "../../include/Computer/Computer_time.h"
-#include "../../include/IO_Manager.h"
 #include "../TestClass.h"
 
 namespace ComputerMemoryTests
@@ -98,35 +96,3 @@ namespace ComputerMemoryTests
     return WGraph<Content<Input>>(nodes);
   }
 } // namespace ComputerMemoryTests
-
-namespace ComputerTimeTests
-{
-  using namespace network_butcher_computer;
-  using namespace network_butcher_types;
-
-  MWGraph<graph_input_type>
-  basic_graph();
-
-  TEST(ComputerTests, TimeConstructorTest)
-  {
-    Computer_time computer;
-  }
-
-  TEST(ComputerTests, CheckFactory)
-  {
-    Computer_time           computer;
-    Hardware_specifications test_hw("test_device");
-
-    test_hw.set_regression_coefficient("batchnormalization", {1., .5});
-    auto       graph = basic_graph();
-    auto const time  = computer.compute_operation_time(graph.get_nodes().front(), test_hw);
-
-    ASSERT_EQ(time, 9);
-  }
-
-  MWGraph<graph_input_type>
-  basic_graph()
-  {
-    return std::get<0>(network_butcher_io::IO_Manager::import_from_onnx("resnet18-v2-7-inferred.onnx", false));
-  }
-} // namespace ComputerTimeTests

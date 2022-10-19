@@ -63,6 +63,10 @@ namespace network_butcher_io
                             google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
         &preprocessed_ios_nodes);
 
+    /// It will find the inputs/outputs and/or initializers of a given graph
+    /// \param model_graph The graph of the given model
+    /// \return A map that associates to the name of the tensor a pair describing if it's a in/out/init and its position
+    /// in the object graph
     static std::unordered_map<
       std::string,
       std::pair<IO_Type,
@@ -70,6 +74,13 @@ namespace network_butcher_io
                           google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>>
     process_node_ios_nodes(const onnx::GraphProto &model_graph);
 
+    /// It will add a specific collections of nodes of the model_graph to the current_edited_graph
+    /// \param link_id_nodeproto The map that associates the id of a node in the internal graph representation to its
+    /// id in the original graph
+    /// \param model_graph The original graph
+    /// \param nodes The (internal) ids of the nodes to be added
+    /// \param current_edited_graph The current graph
+    /// \param preprocessed_ios_nodes The output of process_node_ios_nodes
     static void
     add_nodes(const std::map<node_id_type, node_id_type> &link_id_nodeproto,
               const onnx::GraphProto                     &model_graph,
@@ -82,9 +93,16 @@ namespace network_butcher_io
                                     google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
                 &preprocessed_ios_nodes);
 
+
+    /// Adds the "missing" inputs of the current graph. They represent the new inputs for the new model
+    /// \param original_model The original model
+    /// \param current_edited_graph The new graph
     static void
     add_missing_inputs(const onnx::ModelProto &original_model, onnx::GraphProto *current_edited_graph);
 
+    /// Adds the "missing" outputs of the current graph. They represent the new outputs for the new model
+    /// \param original_model The original model
+    /// \param current_edited_graph The new graph
     static void
     add_missing_outputs(const onnx::ModelProto &original_model, onnx::GraphProto *current_edited_graph);
   };

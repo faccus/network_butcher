@@ -284,6 +284,7 @@ namespace network_butcher_kfinder
       return res;
     res.reserve(K);
 
+    // Edges in the graph D(G)
     edge_edges_type h_out_edge_edges;
     edge_edges_type h_g_edge_edges;
 

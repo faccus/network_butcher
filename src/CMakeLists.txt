@@ -1,6 +1,5 @@
 set(BASE_SOURCE
         src/Onnx_model/onnx.pb.h src/Onnx_model/onnx.pb.cc
-        src/Computer/Hardware_specifications.cpp src/Computer/Computer_time.cpp
         src/Types/Dense_tensor.cpp
         src/Utilities.cpp src/General_Manager.cpp src/IO_Manager.cpp
         src/IO_Interaction/Onnx_importer_helpers.cpp src/IO_Interaction/Onnx_model_reconstructor_helpers.cpp

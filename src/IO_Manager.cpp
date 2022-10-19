@@ -266,25 +266,25 @@ network_butcher_io::IO_Manager::import_weights_official_csv_multi_operation_time
 
   {
     std::stringstream stream_line(tmp_line);
-    std::size_t       jj = 0;
+    std::size_t       j = 0;
     while (std::getline(stream_line, tmp_line, ','))
       {
         network_butcher_utilities::to_lowercase(tmp_line);
 
         if (tmp_line.find("optype") != std::string::npos)
           {
-            indices[jj] = Index_Type::Operation;
+            indices[j] = Index_Type::Operation;
           }
         else if (tmp_line.find("cloud") != std::string::npos)
           {
-            indices[jj] = Index_Type::Cloud;
+            indices[j] = Index_Type::Cloud;
           }
         else if (tmp_line.find("edge") != std::string::npos)
           {
-            indices[jj] = Index_Type::Edge;
+            indices[j] = Index_Type::Edge;
           }
 
-        ++jj;
+        ++j;
       }
 
     if (device.size() + 1 > indices.size())
@@ -327,7 +327,10 @@ network_butcher_io::IO_Manager::import_weights_official_csv_multi_operation_time
                     }
                   break;
                 }
-              case Cloud:
+                case Cloud: {
+                  tmp_weights.emplace_back(::atof(tmp_line.c_str()));
+                  break;
+                }
                 case Edge: {
                   tmp_weights.emplace_back(::atof(tmp_line.c_str()));
                   break;
@@ -364,6 +367,7 @@ network_butcher_io::IO_Manager::import_weights_custom_csv_multi_operation_time(g
                                                                                std::vector<std::size_t> device,
                                                                                const std::string       &path)
 {
+  // Import the file
   std::fstream file_in;
   file_in.open(path, std::ios_base::in);
   weight_type tmp_weight;
@@ -373,6 +377,7 @@ network_butcher_io::IO_Manager::import_weights_custom_csv_multi_operation_time(g
   std::string tmp_line;
   std::getline(file_in, tmp_line);
 
+  // If not the end of file,
   while (!file_in.eof())
     {
       std::getline(file_in, tmp_line);
@@ -676,14 +681,14 @@ network_butcher_io::IO_Manager::read_parameters_yaml(std::string const &candidat
   // Reads the annotation file
   auto const to_deploy = Yaml_importer_helpers::read_annotations(annotations_path);
 
-  YAML::Node components = YAML::LoadFile(candidate_deployments_path)["Components"];
-  for (auto const &model : to_deploy)
-    {
-      auto const &[model_friendly_name, pair_ram_vram] = model;
-      auto const &[model_ram, model_vram]              = pair_ram_vram;
+  // Reads the candidate deployments file
+  auto const model_devices_ram = Yaml_importer_helpers::read_candidate_deployments(candidate_deployments_path,
+                                                                                   to_deploy,
+                                                                                   devices_map);
 
-      auto const devices_ram = Yaml_importer_helpers::read_candidate_deployments(
-        components, model_friendly_name, model_ram, model_vram, devices_map);
+  for (auto const &[model_friendly_name, pair_ram_vram] : to_deploy)
+    {
+      auto const devices_ram = model_devices_ram.find(model_friendly_name)->second;
 
       // If there is more than one "feasible" device
       if (devices_ram.size() > 1)

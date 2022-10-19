@@ -43,7 +43,7 @@ network_butcher_io::General_Manager::import_weights(graph_type &graph, const Par
   // Based on the weight_import_mode, a specific weight import function will be called for each device
   switch (params.weight_import_mode)
     {
-      case Weight_Import_Mode::operation_time:
+        case Weight_Import_Mode::operation_time:
         case Weight_Import_Mode::aMLLibrary: {
           for (auto const &device : params.devices)
             {
@@ -52,7 +52,7 @@ network_butcher_io::General_Manager::import_weights(graph_type &graph, const Par
 
           break;
         }
-      case Weight_Import_Mode::official_operation_time:
+        case Weight_Import_Mode::official_operation_time:
         case Weight_Import_Mode::multi_operation_time: {
           std::vector<std::size_t> devices;
           for (auto const &device : params.devices)
