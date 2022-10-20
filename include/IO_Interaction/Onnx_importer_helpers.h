@@ -10,11 +10,8 @@
 #include "../Types/Parameters.h"
 
 
-namespace network_butcher_io
+namespace network_butcher_io::Onnx_importer_helpers
 {
-  class Onnx_importer_helpers
-  {
-  public:
     using Map_IO = std::unordered_map<std::string, type_info_pointer>;
 
     /// Inserts into the input_map the valid elements (onnx::ValueInfoProto) contained in collection and
@@ -83,7 +80,6 @@ namespace network_butcher_io
     /// \return The attribute map
     static std::unordered_map<std::string, std::vector<network_butcher_types::DynamicType>>
     process_node_attributes(const onnx::NodeProto &node);
-  };
-} // namespace network_butcher_io
+} // namespace network_butcher_io::Onnx_importer_helpers
 
 #endif // NETWORK_BUTCHER_ONNX_IMPORTER_HELPERS_H

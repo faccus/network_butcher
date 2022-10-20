@@ -12,11 +12,8 @@
 #include <yaml-cpp/yaml.h>
 
 
-namespace network_butcher_io
+namespace network_butcher_io::Yaml_importer_helpers
 {
-  class Yaml_importer_helpers
-  {
-  public:
     /// Reads the candidate deployments file and returns {network_domains, subdomain_to_domain, devices_map}
     /// \param candidate_resources_path The candidate resources file path
     /// \return Returns {network_domains, subdomain_to_domain, devices_map}
@@ -58,7 +55,6 @@ namespace network_butcher_io
 
     static std::vector<std::vector<std::pair<std::string, std::size_t>>>
     get_devices_for_partitions(const std::vector<std::map<std::string, std::size_t>> &devices_ram);
-  };
 } // namespace network_butcher_io
 
 #endif // NETWORK_BUTCHER_YAML_IMPORTER_HELPERS_H

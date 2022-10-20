@@ -10,11 +10,8 @@
 
 #include <sstream>
 
-namespace network_butcher_io
+namespace network_butcher_io::Onnx_model_reconstructor_helpers
 {
-  class Onnx_model_reconstructor_helpers
-  {
-  public:
     enum IO_Type
     {
       Input,
@@ -105,7 +102,6 @@ namespace network_butcher_io
     /// \param current_edited_graph The new graph
     static void
     add_missing_outputs(const onnx::ModelProto &original_model, onnx::GraphProto *current_edited_graph);
-  };
-} // namespace network_butcher_io
+} // namespace network_butcher_io::Onnx_model_reconstructor_helpers
 
 #endif // NETWORK_BUTCHER_ONNX_MODEL_RECONSTRUCTOR_HELPERS_H
