@@ -44,6 +44,8 @@ private:
   /// devices)
   /// \param backward_connections_allowed Allow backward connections between
   /// devices (i.e. data can be sent from device 2 to device 1)
+  /// \param  graph_in_device Input device id
+  /// \param  graph_out_device Output device id
   /// \return The linearized graph (with multiple devices) and the map that
   /// associated every node id of the original graph to the respective node id
   /// of the "new" graph
