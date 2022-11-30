@@ -10,6 +10,9 @@
 
 namespace network_butcher_io
 {
+  /// General_Manager is the main namespace of the program. In fact, here the starting methods of the program are
+  /// contained. The boot method reads the parameter file and performs the butchering (import of the network,
+  /// butchering and model reconstruction)
   class General_Manager
   {
   private:
