@@ -415,12 +415,12 @@ network_butcher_io::IO_Manager::Helper_Functions::import_weights_custom_csv_mult
 }
 
 
-Parameters
+network_butcher_parameters::Parameters
 network_butcher_io::IO_Manager::read_parameters(const std::string &path)
 {
   GetPot file(path);
 
-  Parameters        res;
+  network_butcher_parameters::Parameters        res;
   std::string const basic_infos = "basic_config";
 
   res.model_name       = file(basic_infos + "/model_name", "model");
@@ -433,9 +433,9 @@ network_butcher_io::IO_Manager::read_parameters(const std::string &path)
     network_butcher_utilities::to_lowercase_copy(file(basic_infos + "/method", "")));
 
   if (method == "Eppstein")
-    res.method = KSP_Method::Eppstein;
+    res.method = network_butcher_parameters::KSP_Method::Eppstein;
   else
-    res.method = KSP_Method::Lazy_Eppstein;
+    res.method = network_butcher_parameters::KSP_Method::Lazy_Eppstein;
 
   res.starting_device_id = file(basic_infos + "/starting_device_id", 0);
   res.ending_device_id   = file(basic_infos + "/ending_device_id", 0);
@@ -446,13 +446,13 @@ network_butcher_io::IO_Manager::read_parameters(const std::string &path)
     network_butcher_utilities::to_lowercase_copy(file(basic_infos + "/weight_import_mode", "aMLLibrary")));
 
   if (weight_import_method == "amllibrary")
-    res.weight_import_mode = Weight_Import_Mode::aMLLibrary;
+    res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::aMLLibrary;
   else if (weight_import_method == "multi_operation_time")
-    res.weight_import_mode = Weight_Import_Mode::multi_operation_time;
+    res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::multi_operation_time;
   else if (weight_import_method == "official_operation_time")
-    res.weight_import_mode = Weight_Import_Mode::official_operation_time;
+    res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::official_operation_time;
   else
-    res.weight_import_mode = Weight_Import_Mode::operation_time;
+    res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::operation_time;
 
   res.memory_constraint = file(basic_infos + "/memory_constraint", false);
   if (res.memory_constraint)
@@ -462,15 +462,15 @@ network_butcher_io::IO_Manager::read_parameters(const std::string &path)
 
       if (memory_constraint_type == "none")
         {
-          res.memory_constraint_type = Memory_Constraint_Type::None;
+          res.memory_constraint_type = network_butcher_parameters::Memory_Constraint_Type::None;
         }
       else if (memory_constraint_type == "max")
         {
-          res.memory_constraint_type = Memory_Constraint_Type::Max;
+          res.memory_constraint_type = network_butcher_parameters::Memory_Constraint_Type::Max;
         }
       else if (memory_constraint_type == "preload_parameters")
         {
-          res.memory_constraint_type = Memory_Constraint_Type::Preload_Parameters;
+          res.memory_constraint_type = network_butcher_parameters::Memory_Constraint_Type::Preload_Parameters;
         }
     }
 
@@ -482,7 +482,7 @@ network_butcher_io::IO_Manager::read_parameters(const std::string &path)
     {
       std::string const prx = "device_" + std::to_string(i);
 
-      Device dev;
+      network_butcher_parameters::Device dev;
 
       dev.id             = i;
       dev.name           = file(prx + "/name", "");
@@ -520,7 +520,7 @@ network_butcher_io::IO_Manager::read_parameters(const std::string &path)
 
 
 void
-network_butcher_io::IO_Manager::export_network_partitions(const Parameters                           &params,
+network_butcher_io::IO_Manager::export_network_partitions(const network_butcher_parameters::Parameters                           &params,
                                                           onnx::ModelProto const                     &model,
                                                           std::map<node_id_type, node_id_type> const &link_id_nodeproto,
                                                           const network_butcher_types::Weighted_Real_Paths &paths)
@@ -542,23 +542,23 @@ network_butcher_io::IO_Manager::export_network_partitions(const Parameters      
 
 
 void
-network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode const &weight_mode,
+network_butcher_io::IO_Manager::import_weights(network_butcher_parameters::Weight_Import_Mode const &weight_mode,
                                                graph_type               &graph,
                                                std::string const        &path,
                                                std::size_t               device)
 {
   switch (weight_mode)
     {
-      case Weight_Import_Mode::aMLLibrary:
+      case network_butcher_parameters::Weight_Import_Mode::aMLLibrary:
         Helper_Functions::import_weights_aMLLibrary(graph, device, path);
         break;
-      case Weight_Import_Mode::operation_time:
+      case network_butcher_parameters::Weight_Import_Mode::operation_time:
         Helper_Functions::import_weights_custom_csv_operation_time(graph, device, path);
         break;
-      case Weight_Import_Mode::multi_operation_time:
+      case network_butcher_parameters::Weight_Import_Mode::multi_operation_time:
         Helper_Functions::import_weights_custom_csv_multi_operation_time(graph, {device}, path);
         break;
-      case Weight_Import_Mode::official_operation_time:
+      case network_butcher_parameters::Weight_Import_Mode::official_operation_time:
         Helper_Functions::import_weights_official_csv_multi_operation_time(graph, {device}, path);
         break;
       default:
@@ -571,17 +571,17 @@ network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode const &weight_
 
 
 void
-network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode const       &weight_mode,
+network_butcher_io::IO_Manager::import_weights(network_butcher_parameters::Weight_Import_Mode const       &weight_mode,
                                                graph_type                     &graph,
                                                std::string const              &path,
                                                std::vector<std::size_t> const &devices)
 {
   switch (weight_mode)
     {
-      case Weight_Import_Mode::multi_operation_time:
+      case network_butcher_parameters::Weight_Import_Mode::multi_operation_time:
         Helper_Functions::import_weights_custom_csv_multi_operation_time(graph, devices, path);
         break;
-      case Weight_Import_Mode::official_operation_time:
+      case network_butcher_parameters::Weight_Import_Mode::official_operation_time:
         Helper_Functions::import_weights_official_csv_multi_operation_time(graph, devices, path);
         break;
       default:
@@ -665,12 +665,12 @@ network_butcher_io::IO_Manager::reconstruct_model_from_partition(
 
 
 #if YAML_CPP_ACTIVE
-std::vector<Parameters>
+std::vector<network_butcher_parameters::Parameters>
 network_butcher_io::IO_Manager::read_parameters_yaml(std::string const &candidate_resources_path,
                                                      std::string const &candidate_deployments_path,
                                                      std::string const &annotations_path)
 {
-  std::vector<Parameters> res;
+  std::vector<network_butcher_parameters::Parameters> res;
 
   // Reads the candidate_resources file and tries to construct the network domain hierarchy. Moreover, it will produce
   // the list of avaible resources
@@ -703,7 +703,7 @@ network_butcher_io::IO_Manager::read_parameters_yaml(std::string const &candidat
               params.starting_device_id = 0;
               params.ending_device_id   = 0;
 
-              params.method                       = Lazy_Eppstein;
+              params.method                       = network_butcher_parameters::Lazy_Eppstein;
               params.K                            = 100;
               params.backward_connections_allowed = false;
 

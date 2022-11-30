@@ -14,6 +14,7 @@
 namespace
 {
   using namespace network_butcher_computer;
+  using namespace network_butcher_parameters;
   using namespace network_butcher_types;
 
   using type_weight             = double;
@@ -34,12 +35,12 @@ namespace
   std::tuple<Butcher<graph_type>, onnx::ModelProto, std::map<node_id_type, node_id_type>>
   real_butcher();
 
-  Parameters
+  network_butcher_parameters::Parameters
   eppstein_parameters(std::size_t k, bool backward, std::size_t num_devices);
 
-  Parameters
+  network_butcher_parameters::Parameters
   lazy_eppstein_parameters(std::size_t k, bool backward, std::size_t num_devices);
-  Parameters
+  network_butcher_parameters::Parameters
   real_parameters(std::size_t k, bool backward);
 
   template <class Graph>

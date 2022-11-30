@@ -4,7 +4,7 @@
 #include "../include/General_Manager.h"
 
 std::function<weight_type(const node_id_type &, size_t, size_t)>
-network_butcher_io::General_Manager::Helper_Functions::generate_bandwidth_transmission_function(const Parameters &params,
+network_butcher_io::General_Manager::Helper_Functions::generate_bandwidth_transmission_function(const network_butcher_parameters::Parameters &params,
                                                                               const graph_type &graph)
 {
   // Conversion from bytes to mb
@@ -38,13 +38,13 @@ network_butcher_io::General_Manager::Helper_Functions::generate_bandwidth_transm
 
 
 void
-network_butcher_io::General_Manager::Helper_Functions::import_weights(graph_type &graph, const Parameters &params)
+network_butcher_io::General_Manager::Helper_Functions::import_weights(graph_type &graph, const network_butcher_parameters::Parameters &params)
 {
   // Based on the weight_import_mode, a specific weight import function will be called for each device
   switch (params.weight_import_mode)
     {
-        case Weight_Import_Mode::operation_time:
-        case Weight_Import_Mode::aMLLibrary: {
+        case network_butcher_parameters::Weight_Import_Mode::operation_time:
+        case network_butcher_parameters::Weight_Import_Mode::aMLLibrary: {
           for (auto const &device : params.devices)
             {
               IO_Manager::import_weights(params.weight_import_mode, graph, device.weights_path, device.id);
@@ -52,8 +52,8 @@ network_butcher_io::General_Manager::Helper_Functions::import_weights(graph_type
 
           break;
         }
-        case Weight_Import_Mode::official_operation_time:
-        case Weight_Import_Mode::multi_operation_time: {
+        case network_butcher_parameters::Weight_Import_Mode::official_operation_time:
+        case network_butcher_parameters::Weight_Import_Mode::multi_operation_time: {
           std::vector<std::size_t> devices;
           for (auto const &device : params.devices)
             devices.push_back(device.id);
@@ -69,12 +69,12 @@ network_butcher_io::General_Manager::Helper_Functions::import_weights(graph_type
 void
 network_butcher_io::General_Manager::boot(std::string const &path, bool performance)
 {
-  Parameters params = IO_Manager::read_parameters(path);
+  network_butcher_parameters::Parameters params = IO_Manager::read_parameters(path);
   boot(params, performance);
 }
 
 void
-network_butcher_io::General_Manager::boot(const Parameters &params, bool performance)
+network_butcher_io::General_Manager::boot(const network_butcher_parameters::Parameters &params, bool performance)
 {
   Chrono crono;
   crono.start();

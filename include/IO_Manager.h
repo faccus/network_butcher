@@ -13,8 +13,8 @@
 #include <yaml-cpp/yaml.h>
 #endif
 
-#include "APSC/chrono.h"
 #include "APSC/GetPot"
+#include "APSC/chrono.h"
 
 
 namespace network_butcher_io
@@ -94,7 +94,7 @@ namespace network_butcher_io
     /// It will return the parameters read from the given file
     /// \param path The configuration file path
     /// \return The collection of parameters
-    Parameters
+    network_butcher_parameters::Parameters
     read_parameters(std::string const &path);
 
 #if YAML_CPP_ACTIVE
@@ -103,7 +103,7 @@ namespace network_butcher_io
     /// \param candidate_deployments_path The candidate_deployments file path
     /// \param annotations_path The annotation file path
     /// \return The vector of Parameters
-    std::vector<Parameters>
+    std::vector<network_butcher_parameters::Parameters>
     read_parameters_yaml(std::string const &candidate_resources_path,
                          std::string const &candidate_deployments_path,
                          std::string const &annotations_path);
@@ -145,7 +145,7 @@ namespace network_butcher_io
     /// \param device The device id
     /// \param path The path of the file to be "imported"
     void
-    import_weights(Weight_Import_Mode const &weight_mode,
+    import_weights(network_butcher_parameters::Weight_Import_Mode const &weight_mode,
                    graph_type               &graph,
                    std::string const        &path,
                    std::size_t               device);
@@ -157,7 +157,7 @@ namespace network_butcher_io
     /// \param path The path of the file to be "imported"
     /// \param devices The device ids
     void
-    import_weights(Weight_Import_Mode const       &weight_mode,
+    import_weights(network_butcher_parameters::Weight_Import_Mode const       &weight_mode,
                    graph_type                     &graph,
                    std::string const              &path,
                    std::vector<std::size_t> const &devices);
@@ -170,7 +170,7 @@ namespace network_butcher_io
     /// a node in the imported model
     /// \param paths The different partitions to be exported
     void
-    export_network_partitions(const Parameters                                 &params,
+    export_network_partitions(const network_butcher_parameters::Parameters                                 &params,
                               const onnx::ModelProto                           &model,
                               std::map<node_id_type, node_id_type> const       &link_id_nodeproto,
                               const network_butcher_types::Weighted_Real_Paths &paths);

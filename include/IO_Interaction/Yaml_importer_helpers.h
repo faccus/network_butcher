@@ -17,7 +17,7 @@ namespace network_butcher_io::Yaml_importer_helpers
   /// Reads the candidate deployments file and returns {network_domains, subdomain_to_domain, devices_map}
   /// \param candidate_resources_path The candidate resources file path
   /// \return Returns {network_domains, subdomain_to_domain, devices_map}
-  std::tuple<std::map<std::string, network_domain>, std::map<std::string, std::string>, std::map<std::string, device>>
+  std::tuple<std::map<std::string, network_butcher_parameters::network_domain>, std::map<std::string, std::string>, std::map<std::string, network_butcher_parameters::device>>
   read_candidate_resources(const std::string &candidate_resources_path);
 
   /// Search for the bandwidth and network access time from the first domain to the second one
@@ -27,7 +27,7 @@ namespace network_butcher_io::Yaml_importer_helpers
   /// \param second_domain The second domain
   /// \return Bandwidth and network access time
   std::pair<bandwidth_type, bandwidth_type>
-  find_bandwidth(std::map<std::string, network_domain> const &network_domains,
+  find_bandwidth(std::map<std::string, network_butcher_parameters::network_domain> const &network_domains,
                  std::map<std::string, std::string> const    &subdomain_to_domain,
                  std::string                                  first_domain,
                  std::string                                  second_domain);
@@ -49,7 +49,7 @@ namespace network_butcher_io::Yaml_importer_helpers
   std::map<std::string, std::vector<std::map<std::string, std::size_t>>>
   read_candidate_deployments(std::string const &candidate_deployments_path,
                              std::map<std::string, std::pair<std::size_t, std::size_t>> const &models,
-                             std::map<std::string, device> const                              &devices_map);
+                             std::map<std::string, network_butcher_parameters::device> const                              &devices_map);
 
 
   std::vector<std::vector<std::pair<std::string, std::size_t>>>

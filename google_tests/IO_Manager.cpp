@@ -17,7 +17,7 @@ namespace
     auto graph =
       std::get<0>(network_butcher_io::IO_Manager::import_from_onnx("version-RFB-640-inferred.onnx", true, 3));
 
-    network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode::aMLLibrary,
+    network_butcher_io::IO_Manager::import_weights(network_butcher_parameters::Weight_Import_Mode::aMLLibrary,
                                                    graph,
                                                    "aMLLibrary_prediction_tegra.csv",
                                                    0);

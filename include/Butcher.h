@@ -61,8 +61,8 @@ private:
   /// \param params_memory The memory usage of all parameters nodes
   /// \return The pair of maximum memory of ios and of memory of parameters
   [[nodiscard]] std::tuple<memory_type, memory_type>
-  estimate_maximum_memory_usage(std::vector<Device> const      &devices,
-                                Memory_Constraint_Type          constraint_type,
+  estimate_maximum_memory_usage(std::vector<network_butcher_parameters::Device> const      &devices,
+                                network_butcher_parameters::Memory_Constraint_Type          constraint_type,
                                 std::set<node_id_type> const   &ids,
                                 std::vector<memory_type> const &input_memory,
                                 std::vector<memory_type> const &output_memory,
@@ -74,9 +74,9 @@ private:
   /// \param new_graph The linearized graph
   /// \param constraint_type The memory constraint
   void
-  remove_unfeasible_paths(std::vector<Device> const &devices,
+  remove_unfeasible_paths(std::vector<network_butcher_parameters::Device> const &devices,
                           new_network               &new_graph,
-                          Memory_Constraint_Type     constraint_type) const;
+                          network_butcher_parameters::Memory_Constraint_Type     constraint_type) const;
 
 
   /// Given the current graph and the original weight function, it will produce
@@ -176,7 +176,7 @@ public:
   network_butcher_types::Weighted_Real_Paths
   compute_k_shortest_path(
     std::function<weight_type(node_id_type const &, std::size_t, std::size_t)> const &transmission_weights,
-    Parameters const                                                                 &params) const;
+    network_butcher_parameters::Parameters const                                                                 &params) const;
 };
 
 
@@ -438,8 +438,8 @@ Butcher<GraphType>::block_graph(bool        backward_connections_allowed,
 
 template <class GraphType>
 std::tuple<memory_type, memory_type>
-Butcher<GraphType>::estimate_maximum_memory_usage(const std::vector<Device>      &devices,
-                                                  Memory_Constraint_Type          constraint_type,
+Butcher<GraphType>::estimate_maximum_memory_usage(const std::vector<network_butcher_parameters::Device>      &devices,
+                                                  network_butcher_parameters::Memory_Constraint_Type          constraint_type,
                                                   const std::set<node_id_type>   &ids,
                                                   const std::vector<memory_type> &input_memory,
                                                   const std::vector<memory_type> &output_memory,
@@ -447,7 +447,7 @@ Butcher<GraphType>::estimate_maximum_memory_usage(const std::vector<Device>     
 {
   memory_type result_memory = 0, fixed_memory = 0;
 
-  if (constraint_type == Memory_Constraint_Type::Preload_Parameters)
+  if (constraint_type == network_butcher_parameters::Memory_Constraint_Type::Preload_Parameters)
     {
       fixed_memory =
         std::reduce(std::next(params_memory.begin(), *ids.cbegin()), std::next(params_memory.begin(), *ids.crbegin()));
@@ -473,11 +473,11 @@ Butcher<GraphType>::estimate_maximum_memory_usage(const std::vector<Device>     
       memory_type        in_memory  = input_memory[id];
       memory_type const &out_memory = output_memory[id];
 
-      if (constraint_type == Memory_Constraint_Type::Preload_Parameters)
+      if (constraint_type == network_butcher_parameters::Memory_Constraint_Type::Preload_Parameters)
         {
           result_memory = std::max(result_memory, in_memory + out_memory);
         }
-      else if (constraint_type == Memory_Constraint_Type::Max)
+      else if (constraint_type == network_butcher_parameters::Memory_Constraint_Type::Max)
         {
           result_memory = std::max(result_memory, in_memory + out_memory + params_memory[id]);
         }
@@ -492,11 +492,11 @@ Butcher<GraphType>::estimate_maximum_memory_usage(const std::vector<Device>     
 
 template <class GraphType>
 void
-Butcher<GraphType>::remove_unfeasible_paths(const std::vector<Device> &devices,
+Butcher<GraphType>::remove_unfeasible_paths(const std::vector<network_butcher_parameters::Device> &devices,
                                             Butcher::new_network      &new_graph,
-                                            Memory_Constraint_Type     constraint_type) const
+                                            network_butcher_parameters::Memory_Constraint_Type     constraint_type) const
 {
-  if (constraint_type == Memory_Constraint_Type::None)
+  if (constraint_type == network_butcher_parameters::Memory_Constraint_Type::None)
     return;
 
   std::set<node_id_type> to_remove;
@@ -571,11 +571,11 @@ Butcher<GraphType>::remove_unfeasible_paths(const std::vector<Device> &devices,
         {
           auto const index = *new_node_content.begin();
 
-          if (constraint_type == Memory_Constraint_Type::Max)
+          if (constraint_type == network_butcher_parameters::Memory_Constraint_Type::Max)
             {
               response_fun_max(i, params_memory[index] + input_memory[index] + output_memory[index]);
             }
-          else if (constraint_type == Memory_Constraint_Type::Preload_Parameters)
+          else if (constraint_type == network_butcher_parameters::Memory_Constraint_Type::Preload_Parameters)
             {
               response_fun_preload_parameters(i, params_memory[index], input_memory[index] + output_memory[index]);
             }
@@ -585,11 +585,11 @@ Butcher<GraphType>::remove_unfeasible_paths(const std::vector<Device> &devices,
           auto const [io_mem, param_mem] = estimate_maximum_memory_usage(
             devices, constraint_type, new_node_content, input_memory, output_memory, params_memory);
 
-          if (constraint_type == Memory_Constraint_Type::Max)
+          if (constraint_type == network_butcher_parameters::Memory_Constraint_Type::Max)
             {
               response_fun_max(i, param_mem + io_mem);
             }
-          else if (constraint_type == Memory_Constraint_Type::Preload_Parameters)
+          else if (constraint_type == network_butcher_parameters::Memory_Constraint_Type::Preload_Parameters)
             {
               response_fun_preload_parameters(i, param_mem, io_mem);
             }
@@ -792,13 +792,13 @@ template <class GraphType>
 network_butcher_types::Weighted_Real_Paths
 Butcher<GraphType>::compute_k_shortest_path(
   const std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> &transmission_weights,
-  const Parameters                                                                 &params) const
+  const network_butcher_parameters::Parameters                                                                 &params) const
 {
   auto [new_graph, connection_map] =
     block_graph(params.backward_connections_allowed, params.starting_device_id, params.ending_device_id);
 
 
-  if (params.memory_constraint != Memory_Constraint_Type::None && !params.backward_connections_allowed)
+  if (params.memory_constraint != network_butcher_parameters::Memory_Constraint_Type::None && !params.backward_connections_allowed)
     remove_unfeasible_paths(params.devices, new_graph, params.memory_constraint_type);
 
 
@@ -808,10 +808,10 @@ Butcher<GraphType>::compute_k_shortest_path(
 
   switch (params.method)
     {
-      case KSP_Method::Eppstein:
+      case network_butcher_parameters::KSP_Method::Eppstein:
         kFinder = std::make_unique<network_butcher_kfinder::KFinder_Eppstein<new_network>>(new_graph);
         break;
-      case KSP_Method::Lazy_Eppstein:
+      case network_butcher_parameters::KSP_Method::Lazy_Eppstein:
         kFinder = std::make_unique<network_butcher_kfinder::KFinder_Lazy_Eppstein<new_network>>(new_graph);
         break;
       default:

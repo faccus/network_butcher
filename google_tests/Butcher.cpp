@@ -36,10 +36,10 @@ namespace
   Butcher<GraphType>
   basic_butcher();
 
-  Parameters
+  network_butcher_parameters::Parameters
   eppstein_parameters(std::size_t k, std::size_t num_devices);
 
-  Parameters
+  network_butcher_parameters::Parameters
   lazy_eppstein_parameters(std::size_t k, std::size_t num_devices);
 
   template <class Graph>
@@ -219,16 +219,16 @@ namespace
     };
   }
 
-  Parameters
+  network_butcher_parameters::Parameters
   eppstein_parameters(std::size_t k, std::size_t num_devices)
   {
-    Parameters res;
+    network_butcher_parameters::Parameters res;
 
     res.K                            = k;
     res.backward_connections_allowed = true;
-    res.method                       = KSP_Method::Eppstein;
-    res.devices                      = std::vector<Device>(num_devices);
-    res.memory_constraint_type       = Memory_Constraint_Type::None;
+    res.method                       = network_butcher_parameters::KSP_Method::Eppstein;
+    res.devices                      = std::vector<network_butcher_parameters::Device>(num_devices);
+    res.memory_constraint_type       = network_butcher_parameters::Memory_Constraint_Type::None;
 
     res.starting_device_id = 0;
     res.ending_device_id   = 0;
@@ -236,16 +236,16 @@ namespace
     return res;
   }
 
-  Parameters
+  network_butcher_parameters::Parameters
   lazy_eppstein_parameters(std::size_t k, std::size_t num_devices)
   {
-    Parameters res;
+    network_butcher_parameters::Parameters res;
 
     res.K                            = k;
     res.backward_connections_allowed = true;
-    res.method                       = KSP_Method::Lazy_Eppstein;
-    res.devices                      = std::vector<Device>(num_devices);
-    res.memory_constraint_type       = Memory_Constraint_Type::None;
+    res.method                       = network_butcher_parameters::KSP_Method::Lazy_Eppstein;
+    res.devices                      = std::vector<network_butcher_parameters::Device>(num_devices);
+    res.memory_constraint_type       = network_butcher_parameters::Memory_Constraint_Type::None;
 
     res.starting_device_id = 0;
     res.ending_device_id   = 0;

@@ -22,13 +22,13 @@ namespace network_butcher_io
       /// \param graph The graph
       /// \return The transmission function
       std::function<weight_type(const node_id_type &, size_t, size_t)>
-      generate_bandwidth_transmission_function(const Parameters &params, const graph_type &graph);
+      generate_bandwidth_transmission_function(const network_butcher_parameters::Parameters &params, const graph_type &graph);
 
       /// It will import into the graph the different collection of weights
       /// \param graph The graph
       /// \param params The collection of parameters
       void
-      import_weights(graph_type &graph, Parameters const &params);
+      import_weights(graph_type &graph, network_butcher_parameters::Parameters const &params);
     }
 
     /// Boot! It will read the parameters from the given file and it will import
@@ -48,7 +48,7 @@ namespace network_butcher_io
     /// \param path The input configuration file
     /// \param performance Print some performance information (required time for each "phase")
     void
-    boot(Parameters const &params, bool performance = false);
+    boot(network_butcher_parameters::Parameters const &params, bool performance = false);
   };
 } // namespace network_butcher_io
 
