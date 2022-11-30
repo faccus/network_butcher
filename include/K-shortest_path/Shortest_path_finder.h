@@ -18,16 +18,19 @@
 namespace network_butcher_kfinder
 {
 
+  /// A simple (static) class that performs the dijkstra on the given graph
+  /// \tparam Graph_type The type of the graph
   template <class Graph_type>
   class Shortest_path_finder
   {
   public:
     /// Executes dijkstra algorithm to compute the shortest paths from the root
-    /// to evert node for the given graph \param graph The graph \param root The
-    /// starting vertex \param reversed Reverses the edge directions \return A
-    /// pair: the first element is the collection of the successors (along the
-    /// shortest path) of the different nodes while the second element is the
-    /// shortest path length from the root to every node
+    /// to evert node for the given graph
+    /// \param graph The graph
+    /// \param root The starting vertex
+    /// \param reversed Reverses the edge directions
+    /// \return A pair: the first element is the collection of the successors (along the shortest path) of the different
+    /// nodes while the second element is the shortest path length from the root to every node
     [[nodiscard]] static dijkstra_result_type
     dijkstra(Graph_type const &graph,
              node_id_type      root     = 0,

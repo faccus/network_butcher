@@ -11,7 +11,7 @@
 #include <tuple>
 #include <yaml-cpp/yaml.h>
 
-
+/// This namespace contains all the methods required to interact with .yaml files
 namespace network_butcher_io::Yaml_importer_helpers
 {
   /// Reads the candidate deployments file and returns {network_domains, subdomain_to_domain, devices_map}

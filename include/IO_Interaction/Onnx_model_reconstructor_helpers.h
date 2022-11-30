@@ -10,6 +10,7 @@
 
 #include <sstream>
 
+/// This namespace contains all the methods required to construct, given a partition, a model
 namespace network_butcher_io::Onnx_model_reconstructor_helpers
 {
   enum IO_Type

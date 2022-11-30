@@ -9,7 +9,7 @@
 #include "../Traits/Graph_traits.h"
 #include "../Types/Parameters.h"
 
-
+/// This namespace contains all the methods required to import a .onnx model to a Graph object
 namespace network_butcher_io::Onnx_importer_helpers
 {
   using Map_IO = std::unordered_map<std::string, type_info_pointer>;
