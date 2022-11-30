@@ -19,6 +19,9 @@
 
 namespace network_butcher_io
 {
+  /// IO_Manager manages the input/output interactions of the program with the local disk. The methods of this namespace
+  /// allow the user to import an .onnx file, import the execution time of each network layer from a .csv file and to
+  /// export a partitioned network to multiple .onnx files
   class IO_Manager
   {
   private:
