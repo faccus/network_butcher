@@ -10,6 +10,8 @@
 
 namespace network_butcher_kfinder
 {
+  /// This class implements the Lazy Eppstein K-shortest path algorithm
+  /// \tparam Graph_type The graph type
   template <class Graph_type>
   class KFinder_Lazy_Eppstein : public KFinder<Graph_type>
   {

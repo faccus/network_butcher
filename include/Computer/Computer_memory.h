@@ -10,6 +10,7 @@
 
 namespace network_butcher_computer
 {
+  /// A class used to measure the memory of a given object (from the network_butcher library)
   class Computer_memory
   {
   private:

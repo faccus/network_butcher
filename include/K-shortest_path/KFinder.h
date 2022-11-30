@@ -10,6 +10,8 @@
 
 namespace network_butcher_kfinder
 {
+  /// A (pure) virtual class to find the K shortest path for a given path
+  /// \tparam Graph_type The graph type
   template <class Graph_type>
   class KFinder
   {

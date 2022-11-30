@@ -10,6 +10,8 @@
 
 namespace network_butcher_kfinder
 {
+  /// This class implements the Eppstein K-shortest path algorithm
+  /// \tparam Graph_type The graph type
   template <class Graph_type>
   class KFinder_Eppstein : public KFinder<Graph_type>
   {
@@ -28,17 +30,6 @@ namespace network_butcher_kfinder
     [[nodiscard]] H_out_collection
     construct_h_out(std::vector<node_id_type> const &successors,
                     weights_collection_type const   &sidetrack_distances) const;
-
-
-    /// Given the h_out map, the successors collection and the sidetrack
-    /// distance, it will produce the h_g map \param h_out H_out map \param
-    /// successors The list of the successors of every node (the node following
-    /// the current one in the shortest path) \param num_nodes The number of
-    /// nodes \return The h_g map
-    [[nodiscard]] H_g_collection
-    helper_construct_h_g(H_out_collection const          &h_out,
-                         std::vector<node_id_type> const &successors,
-                         std::size_t const               &num_nodes) const;
 
 
     /// It will produce the map associating every node to its corresponding H_g
