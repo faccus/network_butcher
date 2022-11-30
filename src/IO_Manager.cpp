@@ -562,6 +562,9 @@ network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode const &weight_
         import_weights_official_csv_multi_operation_time(graph, {device}, path);
         break;
       default:
+        std::cout << "The specified Weight_Import_Mode is either not avaible or not found. Please, check that you "
+                     "specified the correct import mode!"
+                  << std::endl;
         break;
     }
 }
@@ -582,6 +585,9 @@ network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode const       &w
         import_weights_official_csv_multi_operation_time(graph, devices, path);
         break;
       default:
+        std::cout << "The specified Weight_Import_Mode is either not avaible or not found. Please, check that you "
+                     "specified the correct import mode!"
+                  << std::endl;
         break;
     }
 }
