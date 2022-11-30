@@ -563,7 +563,7 @@ Butcher<GraphType>::remove_unfeasible_paths(const std::vector<Device> &devices,
   for (std::size_t i = 1; i < new_graph.size() - 1; i += devices.size())
     {
       auto const &new_node_content = *new_graph[i].content.second;
-      bool        easy_content     = new_node_content.size() == 1;
+      bool        easy_content     =  new_node_content.size() == 1;
 
       if (easy_content)
         {
@@ -580,7 +580,7 @@ Butcher<GraphType>::remove_unfeasible_paths(const std::vector<Device> &devices,
         }
       else
         {
-          auto const [param_mem, io_mem] = estimate_maximum_memory_usage(
+          auto const [io_mem, param_mem] = estimate_maximum_memory_usage(
             devices, constraint_type, new_node_content, input_memory, output_memory, params_memory);
 
           if (constraint_type == Memory_Constraint_Type::Max)
