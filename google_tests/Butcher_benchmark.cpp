@@ -8,7 +8,6 @@
 
 #include "../include/APSC/chrono.h"
 #include "../include/Butcher.h"
-#include "../include/Computer/Computer_time.h"
 #include "../include/IO_Manager.h"
 #include "TestClass.h"
 
@@ -91,12 +90,9 @@ namespace
         }
   }
 
-  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)> basic_transmission(std::size_t,
-                                                                                                std::size_t);
+  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+  basic_transmission(std::size_t, std::size_t);
 
-
-  std::vector<Hardware_specifications>
-  basic_hardware();
 
   void
   real_weight(Real_Graph_Type &);
@@ -122,69 +118,6 @@ namespace
 
     basic_weight(graph, true);
     auto transmission_fun = basic_transmission(num_devices, nodes.size());
-
-    Chrono crono;
-    crono.start();
-    auto lazy_eppstein_res =
-      butcher.compute_k_shortest_path(transmission_fun, lazy_eppstein_parameters(k, true, num_devices));
-    crono.stop();
-
-    std::cout << "Lazy Eppstein: " << crono.wallTime() / 1000 << " milliseconds" << std::endl;
-
-    crono.start();
-    auto eppstein_res = butcher.compute_k_shortest_path(transmission_fun, eppstein_parameters(k, true, num_devices));
-    crono.stop();
-
-    std::cout << "Eppstein: " << crono.wallTime() / 1000 << " milliseconds" << std::endl;
-
-
-    ASSERT_EQ(eppstein_res.size(), lazy_eppstein_res.size());
-
-    auto const last_weight_epp = eppstein_res.back().first;
-    ASSERT_EQ(last_weight_epp, lazy_eppstein_res.back().first);
-
-    auto tmp_it  = --eppstein_res.end();
-    auto tmp_it2 = --lazy_eppstein_res.end();
-
-    for (; tmp_it != eppstein_res.begin() && tmp_it2 != lazy_eppstein_res.begin(); --tmp_it, --tmp_it2)
-      {
-        if (tmp_it->first != last_weight_epp)
-          break;
-      }
-
-    ++tmp_it;
-    ++tmp_it2;
-
-    eppstein_res.erase(tmp_it, eppstein_res.end());
-    lazy_eppstein_res.erase(tmp_it2, lazy_eppstein_res.end());
-
-
-    std::set<Weighted_Real_Path> eppstein;
-    eppstein.insert(eppstein_res.begin(), eppstein_res.end());
-
-    std::set<Weighted_Real_Path> lazy_eppstein;
-    lazy_eppstein.insert(lazy_eppstein_res.begin(), lazy_eppstein_res.end());
-
-    ASSERT_EQ(eppstein, lazy_eppstein);
-  }
-
-
-  TEST(ButcherBenchmarkTest, compute_k_shortest_paths_test_network_real_weights)
-  {
-    std::string path        = "resnet18-v2-7-inferred";
-    std::string extension   = ".onnx";
-    std::size_t num_devices = 3;
-
-    Butcher butcher(std::get<0>(network_butcher_io::IO_Manager::import_from_onnx(path + extension, true, num_devices)));
-
-    auto       &graph = butcher.get_graph_ref();
-    auto const &nodes = graph.get_nodes();
-    auto const  k     = 1000;
-
-    std::vector<type_collection_weights> weight_maps;
-
-    real_weight(graph);
-    auto transmission_fun = real_transmission(butcher.get_graph());
 
     Chrono crono;
     crono.start();
@@ -419,57 +352,6 @@ namespace
           return -1.;
         }
     };
-  }
-
-  std::vector<Hardware_specifications>
-  basic_hardware()
-  {
-    std::vector<Hardware_specifications> res;
-    std::size_t const                    num_devices = 3;
-
-    std::map<std::string, std::pair<time_type, time_type>> map;
-    map["conv"]               = {1.83E-1, 3.43E-10};
-    map["batchnormalization"] = {1.64E-2, 7.11E-9};
-    map["relu"]               = {8.91E-3, 1.17E-8};
-    map["maxpool"]            = {1.44E-2, 1.45E-8};
-
-    std::vector<std::string> names = {"NVIDIA Quadro M6002", "NVIDIA Quadro M6001", "NVIDIA Quadro M6000"};
-
-    for (int i = num_devices - 1; i >= 0; --i)
-      {
-        res.emplace_back(names[i]);
-        for (auto const &pair : map)
-          {
-            auto to_insert = pair.second;
-            to_insert.first *= std::pow(10, i);
-            to_insert.second *= std::pow(10, i);
-
-            res.back().set_regression_coefficient(pair.first, to_insert);
-          }
-      }
-
-    return res;
-  }
-
-
-  void
-  real_weight(Real_Graph_Type &graph)
-  {
-    std::vector<std::function<type_weight(edge_type const &)>> res;
-    auto const                                                &dependencies = graph.get_dependencies();
-
-    auto          hws = basic_hardware();
-    Computer_time cp;
-
-
-    for (std::size_t i = 0; i < hws.size(); ++i)
-      {
-        for (std::size_t tail = 0; tail < dependencies.size(); ++tail)
-          {
-            for (auto const &head : dependencies[tail].second)
-              graph.set_weigth(i, {tail, head}, cp.compute_operation_time(graph, tail, hws[i]));
-          }
-      }
   }
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
