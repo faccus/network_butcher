@@ -30,7 +30,7 @@ namespace network_butcher_io
     };
 
     /// It will read from a .csv file the collection of weights for the given
-    /// graph on the specified device
+    /// graph on the specified device. The .csv file must be produced by a prediction of the aMLLibrary
     /// \param graph The graph
     /// \param device The device id
     /// \param path The path of the file to be "imported"
@@ -46,23 +46,23 @@ namespace network_butcher_io
     import_weights_custom_csv_operation_time(graph_type &graph, std::size_t device, std::string const &path);
 
     /// It will read from a .csv file the collection of weights for the given
-    /// graph on the specified device
+    /// graph on the specified devices
     /// \param graph The graph
-    /// \param device The device id
+    /// \param devices The ids of the involved devices
     /// \param path The path of the file to be "imported"
     static void
     import_weights_official_csv_multi_operation_time(graph_type              &graph,
-                                                     std::vector<std::size_t> device,
+                                                     std::vector<std::size_t> devices,
                                                      std::string const       &path);
 
     /// It will read from a .csv file the collection of weights for the given
-    /// graph on the specified device
+    /// graph on the specified devices
     /// \param graph The graph
-    /// \param device The device id
+    /// \param devices The ids of the involved devices
     /// \param path The path of the file to be "imported"
     static void
     import_weights_custom_csv_multi_operation_time(graph_type              &graph,
-                                                   std::vector<std::size_t> device,
+                                                   std::vector<std::size_t> devices,
                                                    std::string const       &path);
 
 
@@ -95,6 +95,11 @@ namespace network_butcher_io
     read_parameters(std::string const &path);
 
 #if YAML_CPP_ACTIVE
+    /// It will return the different Parameters read from the given .yaml files for the required models
+    /// \param candidate_resources_path The candidate_resources file path
+    /// \param candidate_deployments_path The candidate_deployments file path
+    /// \param annotations_path The annotation file path
+    /// \return The vector of Parameters
     static std::vector<Parameters>
     read_parameters_yaml(std::string const &candidate_resources_path,
                          std::string const &candidate_deployments_path,
@@ -108,7 +113,7 @@ namespace network_butcher_io
     /// a single input and a single output
     /// \param num_devices The number of devices
     /// \return A tuple made by the graph, the onnx::ModelProto for the .onnx file
-    /// and a map associating every node in the graph to every node in the model
+    /// and a map associating every node in the graph to every node in the model (through their ids)
     static std::tuple<graph_type, onnx::ModelProto, std::map<node_id_type, node_id_type>>
     import_from_onnx(std::string const &path, bool add_padding_nodes = true, std::size_t num_devices = 1);
 
@@ -120,7 +125,7 @@ namespace network_butcher_io
     export_to_onnx(onnx::ModelProto const &model, std::string path);
 
     /// From a given graph and the associated onnx::ModelProto, it will export the
-    /// basic information about every convolutional node in the network
+    /// basic information about every convolutional layer in the network
     /// \param graph The graph
     /// \param model The onnx::ModelProto
     /// \param path The export file path
@@ -132,7 +137,7 @@ namespace network_butcher_io
 
     /// It will read from a .csv file the collection of weights for the given
     /// graph on the specified device
-    /// \param weight_mode The type of .csv file to be imported
+    /// \param weight_mode The import mode (different for different .csv files)
     /// \param graph The graph
     /// \param device The device id
     /// \param path The path of the file to be "imported"
@@ -144,16 +149,15 @@ namespace network_butcher_io
 
     /// It will read from a .csv file the collection of weights for the given
     /// graph on the specified device
-    /// \param weight_mode The type of .csv file to be imported
+    /// \param weight_mode The import mode (different for different .csv files)
     /// \param graph The graph
-    /// \param device The device id
     /// \param path The path of the file to be "imported"
+    /// \param devices The device ids
     static void
-    import_weights(Weight_Import_Mode const &weight_mode,
-                   graph_type               &graph,
-                   std::string const        &path,
-                   std::vector<std::size_t>  devices,
-                   std::size_t               index = 0);
+    import_weights(Weight_Import_Mode const       &weight_mode,
+                   graph_type                     &graph,
+                   std::string const              &path,
+                   std::vector<std::size_t> const &devices);
 
     /// It will reconstruct the ModelProto objects associated to the different
     /// partitions and it will export them to the directory paths
