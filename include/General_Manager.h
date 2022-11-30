@@ -36,6 +36,7 @@ namespace network_butcher_io
     /// starts: based on the specific parameters, different partitions of the
     /// network will be produced and exported to the specified location.
     /// \param path The input configuration file
+    /// \param performance Print some performance information (required time for each "phase")
     void
     boot(std::string const &path, bool performance = false);
 
@@ -45,6 +46,7 @@ namespace network_butcher_io
     /// different partitions of the network will be produced and exported to the
     /// specified location.
     /// \param path The input configuration file
+    /// \param performance Print some performance information (required time for each "phase")
     void
     boot(Parameters const &params, bool performance = false);
   };
