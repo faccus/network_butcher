@@ -172,7 +172,13 @@ namespace network_butcher_io
                               std::map<node_id_type, node_id_type> const       &link_id_nodeproto,
                               const network_butcher_types::Weighted_Real_Paths &paths);
 
-
+    /// It will try to construct a onnx::ModelProto from the given partition.
+    /// \param partition The partition
+    /// \param original_model The original model
+    /// \param link_id_nodeproto The map that associates to every node of the graph a node of the original model
+    /// \param preprocessed_ios_nodes The inputs, outputs and parameters of every layer in the Model
+    /// \param model_graph The graph
+    /// \return A pair with a bool to represent if the operation was runned successfully and the reconstructed model
     static std::pair<bool, onnx::ModelProto>
     reconstruct_model_from_partition(
       network_butcher_types::Real_Partition const &partition,
