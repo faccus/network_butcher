@@ -16,7 +16,8 @@ namespace network_butcher_types
   template <class T>
   class Graph;
 
-  /// A node of a graph
+  /// Just another node class...
+  /// \tparam T Type of the content of the node
   template <class T>
   class Node
   {

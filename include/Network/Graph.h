@@ -21,7 +21,7 @@
 namespace network_butcher_types
 {
   /// Just another graph class...
-  /// \tparam T Type of the content of the node
+  /// \tparam T Type of the content of the nodes
   template <class T>
   class Graph
   {
@@ -104,7 +104,8 @@ namespace network_butcher_types
       return nodes[id];
     }
 
-
+    /// It remove the nodes with the given id. Note that the id of the nodes in the graph may change
+    /// \param nodes_to_remove The ids of the nodes to remove
     void
     remove_nodes(std::set<node_id_type> const &nodes_to_remove)
     {
@@ -151,6 +152,7 @@ namespace network_butcher_types
       std::swap(dependencies, new_dependencies);
     }
 
+    /// It deletes the nodes and dependencies of the graph
     void
     clear()
     {
@@ -282,8 +284,8 @@ namespace network_butcher_types
       return nodes[id];
     }
 
-    /// It will construct a new set of nodes and dependencies and switch them with the ones stored in the object
-    /// \param nodes_to_remove The collection of the nids of the nodes to remove
+    /// It remove the nodes with the given id. Note that the id of the nodes in the graph may change
+    /// \param nodes_to_remove The ids of the nodes to remove
     void
     remove_nodes(std::set<node_id_type> const &nodes_to_remove)
     {

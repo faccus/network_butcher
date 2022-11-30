@@ -5,7 +5,6 @@
 #ifndef NETWORK_BUTCHER_NODE_TRAITS_H
 #define NETWORK_BUTCHER_NODE_TRAITS_H
 
-// #include <boost/functional/hash.hpp>
 #include <memory>
 
 #include "../Network/Node.h"

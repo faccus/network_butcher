@@ -9,6 +9,8 @@
 
 namespace network_butcher_types
 {
+  /// Just another weighted graph class...
+  /// \tparam T Type of the content of the nodes
   template <class T>
   class WGraph : public MWGraph<T>
   {

@@ -10,6 +10,9 @@
 
 namespace network_butcher_types
 {
+  /// A custom graph class. It contains a single graph and multiple weight maps. Technically, it can be viewed as a
+  /// collection of graphs with the same structure, but different weight maps.
+  /// \tparam T Type of the content of the nodes
   template <class T>
   class MWGraph : public Graph<T>
   {
