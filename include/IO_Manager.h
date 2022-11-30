@@ -37,7 +37,7 @@ namespace network_butcher_io
       /// \param graph The graph
       /// \param device The device id
       /// \param path The path of the file to be "imported"
-      static void
+      void
       import_weights_aMLLibrary(graph_type &graph, std::size_t device, std::string const &path);
 
       /// It will read from a .csv file the collection of weights for the given
@@ -45,7 +45,7 @@ namespace network_butcher_io
       /// \param graph The graph
       /// \param device The device id
       /// \param path The path of the file to be "imported"
-      static void
+      void
       import_weights_custom_csv_operation_time(graph_type &graph, std::size_t device, std::string const &path);
 
       /// It will read from a .csv file the collection of weights for the given
@@ -53,7 +53,7 @@ namespace network_butcher_io
       /// \param graph The graph
       /// \param devices The ids of the involved devices
       /// \param path The path of the file to be "imported"
-      static void
+      void
       import_weights_official_csv_multi_operation_time(graph_type              &graph,
                                                        std::vector<std::size_t> devices,
                                                        std::string const       &path);
@@ -63,7 +63,7 @@ namespace network_butcher_io
       /// \param graph The graph
       /// \param devices The ids of the involved devices
       /// \param path The path of the file to be "imported"
-      static void
+      void
       import_weights_custom_csv_multi_operation_time(graph_type              &graph,
                                                      std::vector<std::size_t> devices,
                                                      std::string const       &path);
@@ -77,7 +77,7 @@ namespace network_butcher_io
       /// a node in the imported model
       /// \param export_base_path The export path (+ the name of the final file)
       /// \return The collection of models and the related device
-      static void
+      void
       reconstruct_model_and_export(
         network_butcher_types::Real_Path const     &partitions,
         onnx::ModelProto const                     &original_model,
@@ -94,7 +94,7 @@ namespace network_butcher_io
     /// It will return the parameters read from the given file
     /// \param path The configuration file path
     /// \return The collection of parameters
-    static Parameters
+    Parameters
     read_parameters(std::string const &path);
 
 #if YAML_CPP_ACTIVE
@@ -103,7 +103,7 @@ namespace network_butcher_io
     /// \param candidate_deployments_path The candidate_deployments file path
     /// \param annotations_path The annotation file path
     /// \return The vector of Parameters
-    static std::vector<Parameters>
+    std::vector<Parameters>
     read_parameters_yaml(std::string const &candidate_resources_path,
                          std::string const &candidate_deployments_path,
                          std::string const &annotations_path);
@@ -117,14 +117,14 @@ namespace network_butcher_io
     /// \param num_devices The number of devices
     /// \return A tuple made by the graph, the onnx::ModelProto for the .onnx file
     /// and a map associating every node in the graph to every node in the model (through their ids)
-    static std::tuple<graph_type, onnx::ModelProto, std::map<node_id_type, node_id_type>>
+    std::tuple<graph_type, onnx::ModelProto, std::map<node_id_type, node_id_type>>
     import_from_onnx(std::string const &path, bool add_padding_nodes = true, std::size_t num_devices = 1);
 
 
     /// It will export a given onnx::ModelProto to a file
     /// \param model The onnx::ModelProto
     /// \param path The export file path
-    static void
+    void
     export_to_onnx(onnx::ModelProto const &model, std::string path);
 
     /// From a given graph and the associated onnx::ModelProto, it will export the
@@ -132,7 +132,7 @@ namespace network_butcher_io
     /// \param graph The graph
     /// \param model The onnx::ModelProto
     /// \param path The export file path
-    static void
+    void
     export_network_infos_to_csv(graph_type const       &graph,
                                 onnx::ModelProto const &model,
                                 std::string const      &path = "butcher_predict.csv");
@@ -144,7 +144,7 @@ namespace network_butcher_io
     /// \param graph The graph
     /// \param device The device id
     /// \param path The path of the file to be "imported"
-    static void
+    void
     import_weights(Weight_Import_Mode const &weight_mode,
                    graph_type               &graph,
                    std::string const        &path,
@@ -156,7 +156,7 @@ namespace network_butcher_io
     /// \param graph The graph
     /// \param path The path of the file to be "imported"
     /// \param devices The device ids
-    static void
+    void
     import_weights(Weight_Import_Mode const       &weight_mode,
                    graph_type                     &graph,
                    std::string const              &path,
@@ -169,7 +169,7 @@ namespace network_butcher_io
     /// \param link_id_nodeproto The map that associated every node of the graph to
     /// a node in the imported model
     /// \param paths The different partitions to be exported
-    static void
+    void
     export_network_partitions(const Parameters                                 &params,
                               const onnx::ModelProto                           &model,
                               std::map<node_id_type, node_id_type> const       &link_id_nodeproto,
@@ -182,7 +182,7 @@ namespace network_butcher_io
     /// \param preprocessed_ios_nodes The inputs, outputs and parameters of every layer in the Model
     /// \param model_graph The graph
     /// \return A pair with a bool to represent if the operation was runned successfully and the reconstructed model
-    static std::pair<bool, onnx::ModelProto>
+    std::pair<bool, onnx::ModelProto>
     reconstruct_model_from_partition(
       network_butcher_types::Real_Partition const &partition,
       onnx::ModelProto const                      &original_model,
