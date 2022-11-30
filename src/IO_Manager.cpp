@@ -156,7 +156,7 @@ network_butcher_io::IO_Manager::export_network_infos_to_csv(graph_type const    
 
 
 void
-network_butcher_io::IO_Manager::import_weights_aMLLibrary(graph_type        &graph,
+network_butcher_io::IO_Manager::Helper_Functions::import_weights_aMLLibrary(graph_type        &graph,
                                                           std::size_t        device,
                                                           std::string const &path)
 {
@@ -200,7 +200,7 @@ network_butcher_io::IO_Manager::import_weights_aMLLibrary(graph_type        &gra
 
 
 void
-network_butcher_io::IO_Manager::import_weights_custom_csv_operation_time(graph_type        &graph,
+network_butcher_io::IO_Manager::Helper_Functions::import_weights_custom_csv_operation_time(graph_type        &graph,
                                                                          std::size_t        device,
                                                                          const std::string &path)
 {
@@ -248,7 +248,7 @@ network_butcher_io::IO_Manager::import_weights_custom_csv_operation_time(graph_t
 }
 
 void
-network_butcher_io::IO_Manager::import_weights_official_csv_multi_operation_time(graph_type              &graph,
+network_butcher_io::IO_Manager::Helper_Functions::import_weights_official_csv_multi_operation_time(graph_type              &graph,
                                                                                  std::vector<std::size_t> devices,
                                                                                  const std::string       &path)
 {
@@ -363,7 +363,7 @@ network_butcher_io::IO_Manager::import_weights_official_csv_multi_operation_time
 }
 
 void
-network_butcher_io::IO_Manager::import_weights_custom_csv_multi_operation_time(graph_type              &graph,
+network_butcher_io::IO_Manager::Helper_Functions::import_weights_custom_csv_multi_operation_time(graph_type              &graph,
                                                                                std::vector<std::size_t> devices,
                                                                                const std::string       &path)
 {
@@ -532,7 +532,7 @@ network_butcher_io::IO_Manager::export_network_partitions(const Parameters      
     {
       network_butcher_utilities::create_directory(params.export_directory + "/" + std::to_string(j));
 
-      reconstruct_model_and_export(paths[j].second,
+      Helper_Functions::reconstruct_model_and_export(paths[j].second,
                         model,
                         link_id_nodeproto,
                         preprocessed_node_ios,
@@ -550,16 +550,16 @@ network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode const &weight_
   switch (weight_mode)
     {
       case Weight_Import_Mode::aMLLibrary:
-        import_weights_aMLLibrary(graph, device, path);
+        Helper_Functions::import_weights_aMLLibrary(graph, device, path);
         break;
       case Weight_Import_Mode::operation_time:
-        import_weights_custom_csv_operation_time(graph, device, path);
+        Helper_Functions::import_weights_custom_csv_operation_time(graph, device, path);
         break;
       case Weight_Import_Mode::multi_operation_time:
-        import_weights_custom_csv_multi_operation_time(graph, {device}, path);
+        Helper_Functions::import_weights_custom_csv_multi_operation_time(graph, {device}, path);
         break;
       case Weight_Import_Mode::official_operation_time:
-        import_weights_official_csv_multi_operation_time(graph, {device}, path);
+        Helper_Functions::import_weights_official_csv_multi_operation_time(graph, {device}, path);
         break;
       default:
         std::cout << "The specified Weight_Import_Mode is either not avaible or not found. Please, check that you "
@@ -579,10 +579,10 @@ network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode const       &w
   switch (weight_mode)
     {
       case Weight_Import_Mode::multi_operation_time:
-        import_weights_custom_csv_multi_operation_time(graph, devices, path);
+        Helper_Functions::import_weights_custom_csv_multi_operation_time(graph, devices, path);
         break;
       case Weight_Import_Mode::official_operation_time:
-        import_weights_official_csv_multi_operation_time(graph, devices, path);
+        Helper_Functions::import_weights_official_csv_multi_operation_time(graph, devices, path);
         break;
       default:
         std::cout << "The specified Weight_Import_Mode is either not avaible or not found. Please, check that you "
@@ -594,7 +594,7 @@ network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode const       &w
 
 
 void
-network_butcher_io::IO_Manager::reconstruct_model_and_export(
+network_butcher_io::IO_Manager::Helper_Functions::reconstruct_model_and_export(
   const network_butcher_types::Real_Path     &partitions,
   const onnx::ModelProto                     &original_model,
   const std::map<node_id_type, node_id_type> &link_id_nodeproto,

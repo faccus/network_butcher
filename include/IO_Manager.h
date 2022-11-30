@@ -24,7 +24,7 @@ namespace network_butcher_io
   /// export a partitioned network to multiple .onnx files
   namespace IO_Manager
   {
-    namespace {
+    namespace Helper_Functions {
       enum Index_Type
       {
         Edge,
@@ -90,6 +90,12 @@ namespace network_butcher_io
                           &preprocessed_ios_nodes,
         const std::string &export_base_path);
     }
+
+    /// It will return the parameters read from the given file
+    /// \param path The configuration file path
+    /// \return The collection of parameters
+    static Parameters
+    read_parameters(std::string const &path);
 
 #if YAML_CPP_ACTIVE
     /// It will return the different Parameters read from the given .yaml files for the required models
