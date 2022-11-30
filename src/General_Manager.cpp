@@ -4,7 +4,7 @@
 #include "../include/General_Manager.h"
 
 std::function<weight_type(const node_id_type &, size_t, size_t)>
-network_butcher_io::General_Manager::generate_bandwidth_transmission_function(const Parameters &params,
+network_butcher_io::General_Manager::Helper_Functions::generate_bandwidth_transmission_function(const Parameters &params,
                                                                               const graph_type &graph)
 {
   // Conversion from bytes to mb
@@ -38,7 +38,7 @@ network_butcher_io::General_Manager::generate_bandwidth_transmission_function(co
 
 
 void
-network_butcher_io::General_Manager::import_weights(graph_type &graph, const Parameters &params)
+network_butcher_io::General_Manager::Helper_Functions::import_weights(graph_type &graph, const Parameters &params)
 {
   // Based on the weight_import_mode, a specific weight import function will be called for each device
   switch (params.weight_import_mode)
@@ -90,7 +90,7 @@ network_butcher_io::General_Manager::boot(const Parameters &params, bool perform
   crono.start();
 
   // Import the weights
-  import_weights(graph, params);
+  Helper_Functions::import_weights(graph, params);
   crono.stop();
 
   double const import_weights_time = crono.wallTime();
@@ -104,7 +104,7 @@ network_butcher_io::General_Manager::boot(const Parameters &params, bool perform
 
   // Start the butchering... (compute the k shortest paths)
   auto const paths = butcher.compute_k_shortest_path(
-    General_Manager::generate_bandwidth_transmission_function(params, butcher.get_graph()), params);
+    Helper_Functions::generate_bandwidth_transmission_function(params, butcher.get_graph()), params);
   crono.stop();
 
   double const butcher_time = crono.wallTime();
