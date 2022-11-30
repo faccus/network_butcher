@@ -22,80 +22,74 @@ namespace network_butcher_io
   /// IO_Manager manages the input/output interactions of the program with the local disk. The methods of this namespace
   /// allow the user to import an .onnx file, import the execution time of each network layer from a .csv file and to
   /// export a partitioned network to multiple .onnx files
-  class IO_Manager
+  namespace IO_Manager
   {
-  private:
-    enum Index_Type
-    {
-      Edge,
-      Cloud,
-      Operation
-    };
+    namespace {
+      enum Index_Type
+      {
+        Edge,
+        Cloud,
+        Operation
+      };
 
-    /// It will read from a .csv file the collection of weights for the given
-    /// graph on the specified device. The .csv file must be produced by a prediction of the aMLLibrary
-    /// \param graph The graph
-    /// \param device The device id
-    /// \param path The path of the file to be "imported"
-    static void
-    import_weights_aMLLibrary(graph_type &graph, std::size_t device, std::string const &path);
+      /// It will read from a .csv file the collection of weights for the given
+      /// graph on the specified device. The .csv file must be produced by a prediction of the aMLLibrary
+      /// \param graph The graph
+      /// \param device The device id
+      /// \param path The path of the file to be "imported"
+      static void
+      import_weights_aMLLibrary(graph_type &graph, std::size_t device, std::string const &path);
 
-    /// It will read from a .csv file the collection of weights for the given
-    /// graph on the specified device
-    /// \param graph The graph
-    /// \param device The device id
-    /// \param path The path of the file to be "imported"
-    static void
-    import_weights_custom_csv_operation_time(graph_type &graph, std::size_t device, std::string const &path);
+      /// It will read from a .csv file the collection of weights for the given
+      /// graph on the specified device
+      /// \param graph The graph
+      /// \param device The device id
+      /// \param path The path of the file to be "imported"
+      static void
+      import_weights_custom_csv_operation_time(graph_type &graph, std::size_t device, std::string const &path);
 
-    /// It will read from a .csv file the collection of weights for the given
-    /// graph on the specified devices
-    /// \param graph The graph
-    /// \param devices The ids of the involved devices
-    /// \param path The path of the file to be "imported"
-    static void
-    import_weights_official_csv_multi_operation_time(graph_type              &graph,
+      /// It will read from a .csv file the collection of weights for the given
+      /// graph on the specified devices
+      /// \param graph The graph
+      /// \param devices The ids of the involved devices
+      /// \param path The path of the file to be "imported"
+      static void
+      import_weights_official_csv_multi_operation_time(graph_type              &graph,
+                                                       std::vector<std::size_t> devices,
+                                                       std::string const       &path);
+
+      /// It will read from a .csv file the collection of weights for the given
+      /// graph on the specified devices
+      /// \param graph The graph
+      /// \param devices The ids of the involved devices
+      /// \param path The path of the file to be "imported"
+      static void
+      import_weights_custom_csv_multi_operation_time(graph_type              &graph,
                                                      std::vector<std::size_t> devices,
                                                      std::string const       &path);
 
-    /// It will read from a .csv file the collection of weights for the given
-    /// graph on the specified devices
-    /// \param graph The graph
-    /// \param devices The ids of the involved devices
-    /// \param path The path of the file to be "imported"
-    static void
-    import_weights_custom_csv_multi_operation_time(graph_type              &graph,
-                                                   std::vector<std::size_t> devices,
-                                                   std::string const       &path);
 
-
-    /// Based on the original graph and the partitions device/nodes, it will produce the "butchered" models and
-    /// export them to the specified path (directory / name)
-    /// \param partitions The partitions device/nodes
-    /// \param original_model The original imported model
-    /// \param link_id_nodeproto The map that associated every node of the graph to
-    /// a node in the imported model
-    /// \param export_base_path The export path (+ the name of the final file)
-    /// \return The collection of models and the related device
-    static void
-    reconstruct_model_and_export(
-      network_butcher_types::Real_Path const     &partitions,
-      onnx::ModelProto const                     &original_model,
-      std::map<node_id_type, node_id_type> const &link_id_nodeproto,
-      std::unordered_map<
-        std::string,
-        std::pair<network_butcher_io::Onnx_model_reconstructor_helpers::IO_Type,
-                  std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
-                            google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
-                        &preprocessed_ios_nodes,
-      const std::string &export_base_path);
-
-  public:
-    /// It will return the parameters read from the given file
-    /// \param path The configuration file path
-    /// \return The collection of parameters
-    static Parameters
-    read_parameters(std::string const &path);
+      /// Based on the original graph and the partitions device/nodes, it will produce the "butchered" models and
+      /// export them to the specified path (directory / name)
+      /// \param partitions The partitions device/nodes
+      /// \param original_model The original imported model
+      /// \param link_id_nodeproto The map that associated every node of the graph to
+      /// a node in the imported model
+      /// \param export_base_path The export path (+ the name of the final file)
+      /// \return The collection of models and the related device
+      static void
+      reconstruct_model_and_export(
+        network_butcher_types::Real_Path const     &partitions,
+        onnx::ModelProto const                     &original_model,
+        std::map<node_id_type, node_id_type> const &link_id_nodeproto,
+        std::unordered_map<
+          std::string,
+          std::pair<network_butcher_io::Onnx_model_reconstructor_helpers::IO_Type,
+                    std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
+                              google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
+                          &preprocessed_ios_nodes,
+        const std::string &export_base_path);
+    }
 
 #if YAML_CPP_ACTIVE
     /// It will return the different Parameters read from the given .yaml files for the required models
@@ -194,7 +188,7 @@ namespace network_butcher_io
                             google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
                              &preprocessed_ios_nodes,
       onnx::GraphProto const &model_graph);
-  };
+  } // namespace IO_Manager
 
 } // namespace network_butcher_io
 
