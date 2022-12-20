@@ -5,6 +5,7 @@ set(BASE_SOURCE
         src/IO_Interaction/Onnx_importer_helpers.cpp src/IO_Interaction/Onnx_model_reconstructor_helpers.cpp
         src/IO_Interaction/Yaml_importer_helpers.cpp
         src/K-shortest_path/Heap_eppstein.cpp
+        src/Computer/Computer_flops.cpp
         src/APSC/chrono.cpp
         PARENT_SCOPE)
 add_subdirectory(Onnx_model)

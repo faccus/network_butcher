@@ -61,6 +61,12 @@ namespace network_butcher_types
     virtual std::vector<shape_type> const &
     get_shape() const = 0;
 
+
+    /// Compute the number of elements in the tensor
+    /// \return The number of elements in the tensor
+    virtual shape_type
+    compute_shape_volume() const = 0;
+
     /// Default deconstructor
     virtual ~Type_info() = default;
   };

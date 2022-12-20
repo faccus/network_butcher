@@ -100,9 +100,65 @@ network_butcher_io::IO_Manager::export_to_onnx(const onnx::ModelProto &model, st
 
 
 void
-network_butcher_io::IO_Manager::export_network_infos_to_csv(graph_type const       &graph,
+network_butcher_io::IO_Manager::old_export_network_infos_to_csv(graph_type const       &graph,
                                                             onnx::ModelProto const &model,
                                                             std::string const      &path)
+{
+  std::fstream file_out;
+  file_out.open(path, std::ios_base::out);
+
+  file_out << "Layer,Hf,Wf,Cin,Cout,FLOPS,Time" << std::endl;
+
+  for (auto const &node : graph.get_nodes())
+    {
+      if (node.content.get_operation_id() == "conv")
+        {
+          auto const &content = node.content;
+
+          auto       ins             = content.get_input();
+          auto       outs            = content.get_output();
+          auto const kernel_iterator = content.get_attributes().find("kernel_shape");
+
+          if (kernel_iterator != content.get_attributes().cend())
+            {
+              auto out_it = outs.cbegin();
+              while (out_it != outs.cend() && out_it->first == "__fake__output__")
+                ++out_it;
+
+              auto in_it = ins.cbegin();
+              while (in_it != ins.cend() && in_it->first == "__fake__input__")
+                ++in_it;
+
+              if (in_it == ins.cend() || out_it == outs.cend())
+                continue;
+
+              auto const &out_shape    = out_it->second->get_shape();
+              auto const &in_shape     = in_it->second->get_shape();
+              auto const &kernel_shape = kernel_iterator->second;
+
+              auto const &H_f = kernel_iterator->second[0].get_int();
+              auto const &W_f = kernel_iterator->second[1].get_int();
+
+              std::size_t const C_in      = in_shape[1];
+              std::size_t const C_out     = out_shape[1];
+              std::size_t const in_pixels = in_shape[2] * in_shape[3];
+
+              auto const flops = H_f * W_f * C_in * C_out * in_pixels;
+
+              file_out << node.get_id() << "," << H_f << "," << W_f << "," << C_in << "," << C_out << "," << flops
+                       << ",0" << std::endl;
+            }
+        }
+    }
+
+  file_out.close();
+}
+
+
+void
+network_butcher_io::IO_Manager::export_network_infos_to_csv(graph_type const       &graph,
+                                                                onnx::ModelProto const &model,
+                                                                std::string const      &path)
 {
   std::fstream file_out;
   file_out.open(path, std::ios_base::out);

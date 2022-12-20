@@ -2,29 +2,15 @@
 #include "../include/General_Manager.h"
 
 /*
-int
-main(int argc, char **argv)
-{
-  std::string const annotations_path           = "annotations.yaml";
-  std::string const candidate_deployments_path = "candidate_deployments.yaml";
-  std::string const candidate_resources_path   = "candidate_resources.yaml";
+#include <cpr/cpr.h>
 
-  auto params = network_butcher_io::IO_Manager::read_parameters_yaml(candidate_resources_path,
-                                                                     candidate_deployments_path,
-                                                                     annotations_path);
-
-  for (std::size_t i = 0; i < params.size(); ++i)
-    {
-      auto &param = params[i];
-
-      param.export_directory = "ksp_result_yaml_" + std::to_string(i);
-      network_butcher_io::General_Manager::boot(param, true);
-    }
-
-  return 0;
+int main(int argc, char** argv) {
+  cpr::Response r = cpr::Post(cpr::Url{"localhost:8081"},
+                              cpr::Payload{{"key", "value"}});
+  std::cout << r.text << std::endl;          // JSON text string
 }
-*/
 
+*/
 
 int
 main(int argc, char **argv)

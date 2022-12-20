@@ -49,6 +49,11 @@ namespace network_butcher_types
     memory_type
     compute_memory_usage() const override;
 
+    /// Compute the number of elements in the tensor
+    /// \return The number of elements in the tensor
+    shape_type
+    compute_shape_volume() const override;
+
     /// Basic getter for shape
     /// \return The shape
     inline std::vector<shape_type> const &

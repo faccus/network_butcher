@@ -11,6 +11,6 @@ set(BASE_HEADER
         include/K-shortest_path/Heap_eppstein.h include/K-shortest_path/KFinder.h
         include/K-shortest_path/KEppstein.h include/K-shortest_path/KEppstein_lazy.h
         include/APSC/Factory.h include/APSC/chrono.h include/APSC/GetPot
-        include/Computer/Computer_memory.h
+        include/Computer/Computer_memory.h include/Computer/Computer_flops.h
         PARENT_SCOPE)
 

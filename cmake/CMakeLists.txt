@@ -19,6 +19,14 @@ else ()
     message(STATUS "Found protobuf version ${Protobuf_VERSION}")
 endif ()
 
+if (USE_CPR_CPP)
+    FetchContent_Declare(cpr GIT_REPOSITORY https://github.com/libcpr/cpr.git
+            GIT_TAG 7a02d679308a19220e3b75616c18ff9e8deb5f9a) # The commit hash for 1.9.0. Replace with the latest from: https://github.com/libcpr/cpr/releases
+    FetchContent_MakeAvailable(cpr)
+
+    set(CPR_CPP_LIBRARY_LOCATION cpr::cpr)
+endif()
+
 if (USE_YAML_CPP)
 
     if (BUILD_YAML_CPP_SOURCE)
@@ -68,6 +76,6 @@ if (BUILD_TESTS)
 endif ()
 
 
-set(TMP_LIBRARIES_LOCATION ${PROTOBUF_LIBRARY_LOCATION} ${YAML_CPP_LIBRARY_LOCATION})
+set(TMP_LIBRARIES_LOCATION ${PROTOBUF_LIBRARY_LOCATION} ${YAML_CPP_LIBRARY_LOCATION} ${CPR_CPP_LIBRARY_LOCATION})
 set(RUN_LIBRARIES_LOCATION ${TMP_LIBRARIES_LOCATION} PARENT_SCOPE)
 set(TEST_LIBRARIES_LOCATION ${TMP_LIBRARIES_LOCATION} gtest gtest_main PARENT_SCOPE)
