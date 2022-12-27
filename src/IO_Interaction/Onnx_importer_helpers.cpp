@@ -45,6 +45,8 @@ network_butcher_io::Onnx_importer_helpers::process_node_attributes(const onnx::N
               help_func(attribute.name(), attribute.strings(), attributes);
               break;
             }
+          default:
+            break;
         }
     }
   return attributes;
@@ -78,7 +80,7 @@ network_butcher_io::Onnx_importer_helpers::compute_value_infos(
     }
 
 
-  std::vector<std::string> int_res(std::min(tmp_onnx_inputs_ids.size(), initialized.size()));
+  std::vector<std::string> int_res(std::max(tmp_onnx_inputs_ids.size(), initialized.size()));
 
   // Add to int_res the non-initialized inputs
   auto it = std::set_difference(tmp_onnx_inputs_ids.cbegin(),
@@ -111,7 +113,7 @@ network_butcher_io::Onnx_importer_helpers::get_common_elements(const std::set<st
                  std::inserter(in_keys, in_keys.end()),
                  [](auto const &pair) { return pair.first; });
 
-  tmp.resize(std::min(onnx_io_ids.size(), in_keys.size()));
+  tmp.resize(std::max(onnx_io_ids.size(), in_keys.size()));
 
   auto it =
     std::set_intersection(onnx_io_ids.cbegin(), onnx_io_ids.cend(), in_keys.cbegin(), in_keys.cend(), tmp.begin());
@@ -174,7 +176,8 @@ io_collection_type<type_info_pointer>
 network_butcher_io::Onnx_importer_helpers::process_node_ios(
   const google::protobuf::RepeatedPtrField<std::basic_string<char>> &io_names,
   io_collection_type<type_info_pointer>                             &parameters_collection,
-  Map_IO const                                                      &value_infos)
+  Map_IO const                                                      &value_infos,
+  std::set<std::string> unused_ios)
 {
   io_collection_type<type_info_pointer> res;
   for (auto const &io_name : io_names)
@@ -183,7 +186,7 @@ network_butcher_io::Onnx_importer_helpers::process_node_ios(
 
       if (iterator != value_infos.cend())
         {
-          if (iterator->second->initialized())
+          if (iterator->second->initialized() || (!unused_ios.empty() && unused_ios.find(io_name) != unused_ios.cend()))
             parameters_collection.insert({io_name, iterator->second});
           else
             res.insert({io_name, iterator->second});
@@ -191,4 +194,70 @@ network_butcher_io::Onnx_importer_helpers::process_node_ios(
     }
 
   return res;
+}
+
+std::set<std::string>
+network_butcher_io::Onnx_importer_helpers::find_unused_ios(
+  const onnx::GraphProto &onnx_graph)
+{
+  std::set<std::string> ins_name;
+  std::map<std::string, std::set<node_id_type>> ins;
+
+  std::set<std::string> outs_name;
+  std::map<std::string, std::set<node_id_type>> outs;
+
+  std::size_t node_id = 0;
+  for (auto const &node : onnx_graph.node())
+    {
+      for (auto const &name : node.input())
+        {
+          if (std::find_if(onnx_graph.input().cbegin(), onnx_graph.input().cend(), [name](auto const &el) {
+                return el.name() == name;
+              }) == onnx_graph.input().cend())
+            {
+              ins_name.insert(name);
+              ins[name].insert(node_id);
+            }
+        }
+
+      for (auto const &name : node.output())
+        {
+          if (std::find_if(onnx_graph.output().cbegin(), onnx_graph.output().cend(), [name](auto const &el) {
+                return el.name() == name;
+              }) == onnx_graph.output().cend())
+            {
+              outs_name.insert(name);
+              outs[name].insert(node_id);
+            }
+        }
+
+      ++node_id;
+    }
+
+  std::set<std::string> to_remove_ios;
+
+  {
+    std::vector<std::string> intersection(std::min(ins_name.size(), outs_name.size()));
+    auto const               it = std::set_intersection(
+      ins_name.cbegin(), ins_name.cend(), outs_name.cbegin(), outs_name.cend(), intersection.begin());
+
+    intersection.resize(it - intersection.begin());
+    to_remove_ios.insert(intersection.cbegin(), intersection.cend());
+  }
+
+  {
+    std::set<std::string> union_ios;
+
+    union_ios.insert(ins_name.cbegin(), ins_name.cend());
+    union_ios.insert(outs_name.cbegin(), outs_name.cend());
+
+    std::vector<std::string> result(union_ios.size());
+    auto const               it = std::set_difference(
+      union_ios.cbegin(), union_ios.cend(), to_remove_ios.cbegin(), to_remove_ios.cend(), result.begin());
+
+    to_remove_ios.clear();
+    to_remove_ios.insert(result.begin(), it); // Maybe ++it
+  }
+
+  return to_remove_ios;
 }

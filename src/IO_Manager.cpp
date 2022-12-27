@@ -6,9 +6,11 @@
 
 
 std::tuple<graph_type, onnx::ModelProto, std::map<node_id_type, node_id_type>>
-network_butcher_io::IO_Manager::import_from_onnx(const std::string &path,
-                                                 bool               add_padding_nodes,
-                                                 std::size_t        num_devices)
+network_butcher_io::IO_Manager::import_from_onnx(std::string const &path,
+                                                 bool               add_input_padding,
+                                                 bool               add_output_padding,
+                                                 std::size_t        num_devices,
+                                                 bool unused_ios)
 {
   std::map<node_id_type, node_id_type> link_id_nodeproto;
 
@@ -30,17 +32,18 @@ network_butcher_io::IO_Manager::import_from_onnx(const std::string &path,
   auto const pointer_output = std::make_shared<network_butcher_types::Dense_tensor>(0, std::vector<shape_type>{});
   auto const pointer_input  = std::make_shared<network_butcher_types::Dense_tensor>(0, std::vector<shape_type>{});
 
-  auto const fake_output = "__fake__output__";
-  auto const fake_input  = "__fake__input__";
-
   node_id_type node_id      = 0;
   node_id_type onnx_node_id = 0;
 
-  // If add_padding_nodes, then we will add a "fake" input node
-  if (add_padding_nodes)
+  std::set<std::string> unused_ios_set;
+  if(unused_ios)
+    unused_ios_set = Onnx_importer_helpers::find_unused_ios(onnx_graph);
+
+  // If add_input_padding, then we will add a "fake" input node
+  if (add_input_padding)
     {
       io_collection_type<type_info_pointer> tt;
-      tt[fake_input] = pointer_input;
+      tt["__fake__input__"] = pointer_input;
 
       nodes.emplace_back(network_butcher_types::Content<type_info_pointer>({}, std::move(tt)));
       ++node_id;
@@ -52,18 +55,19 @@ network_butcher_io::IO_Manager::import_from_onnx(const std::string &path,
       auto operation_type = network_butcher_utilities::to_lowercase_copy(node.op_type());
 
       io_collection_type<type_info_pointer> parameters;
-      auto inputs  = Onnx_importer_helpers::process_node_ios(node.input(), parameters, value_infos);
-      auto outputs = Onnx_importer_helpers::process_node_ios(node.output(), parameters, value_infos);
+      auto inputs  = Onnx_importer_helpers::process_node_ios(node.input(), parameters, value_infos, unused_ios_set);
+      auto outputs = Onnx_importer_helpers::process_node_ios(node.output(), parameters, value_infos, unused_ios_set);
 
-      if (add_padding_nodes)
+      // If the inputs of the node are the inputs of the NN, then add the connection with the padding node
+      if (add_input_padding && !Onnx_importer_helpers::get_common_elements(onnx_inputs_ids, inputs).empty())
         {
-          // If the inputs of the node are the inputs of the NN, then add the connection with the padding node
-          if (!Onnx_importer_helpers::get_common_elements(onnx_inputs_ids, inputs).empty())
-            inputs[fake_input] = pointer_input;
+          inputs["__fake__input__"] = pointer_input;
+        }
 
-          // If the inputs of the node are the outputs of the NN, then add the connection with the padding node
-          if (!Onnx_importer_helpers::get_common_elements(onnx_outputs_ids, outputs).empty())
-            outputs[fake_output] = pointer_output;
+      // If the inputs of the node are the outputs of the NN, then add the connection with the padding node
+      if(add_output_padding && !Onnx_importer_helpers::get_common_elements(onnx_outputs_ids, outputs).empty())
+        {
+          outputs["__fake__output__"] = pointer_output;
         }
 
       auto content =
@@ -78,15 +82,16 @@ network_butcher_io::IO_Manager::import_from_onnx(const std::string &path,
       link_id_nodeproto.emplace(node_id++, onnx_node_id++);
     }
 
-  // If add_padding_nodes, then we will add a "fake" output node
-  if (add_padding_nodes)
+  // If add_output_padding, then we will add a "fake" output node
+  if (add_output_padding)
     {
       io_collection_type<type_info_pointer> tt;
-      tt[fake_output] = pointer_output;
+      tt["__fake__output__"] = pointer_output;
 
       nodes.emplace_back(network_butcher_types::Content<type_info_pointer>(std::move(tt)));
       ++node_id;
     }
+
 
   return {network_butcher_types::MWGraph(num_devices, nodes), onnx_model, link_id_nodeproto};
 }

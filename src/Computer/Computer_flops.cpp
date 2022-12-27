@@ -30,7 +30,8 @@ network_butcher_computer::Computer_flops::generate_maps_flops_func()
   auto const pwnbase = [](const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content,
                           std::size_t                                                                      op_mac) {
     double      macs   = 0;
-    std::size_t params = 0;
+
+    auto const &parameters = content.get_parameters();
 
     std::size_t ratio;
 
@@ -44,34 +45,31 @@ network_butcher_computer::Computer_flops::generate_maps_flops_func()
 
     macs = out_vol * ratio * op_mac;
 
-    return std::pair{macs, params};
+    return macs;
   };
   auto const zeros = [](const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content) {
-    return std::pair<double, std::size_t>(0., 0);
+    return .0;
   };
   auto const pool_gen = [](const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content) {
     double      macs   = 0;
-    std::size_t params = 0;
 
     auto const &output_type = content.get_output().begin()->second;
     auto const &attributes  = content.get_attributes();
     auto const  out_vol     = output_type->compute_shape_volume();
 
     auto const &kernel     = (attributes.find("kernel_shape")->second);
-    auto        vol_kernel = get_volume(kernel);
 
 
     macs = out_vol * CMP_MACS * kernel[0].get_int();
     if (kernel.size() == 2)
       macs *= kernel[1].get_int();
 
-    return std::pair{macs, params};
+    return macs;
   };
 
 
   factory.add("conv", [](const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content) {
     double      macs   = 0;
-    std::size_t params = 0;
 
     auto const num_outputs = content.get_output().size();
     auto const num_inputs  = content.get_input().size();
@@ -82,24 +80,21 @@ network_butcher_computer::Computer_flops::generate_maps_flops_func()
         auto const &output_type = content.get_output().begin()->second;
 
         auto const &attributes = content.get_attributes();
+        auto const &parameters = content.get_parameters();
 
         auto const &kernel     = (attributes.find("kernel_shape")->second);
         auto        vol_kernel = get_volume(kernel);
-        params += vol_kernel * input_type->get_shape()[1] * (output_type->get_shape()[1] + 1);
 
-        if (kernel.size() == 1)
-          {
-            params *= kernel[0].get_int();
-            vol_kernel *= kernel[0].get_int();
-          }
+        if(kernel.size() == 1)
+          vol_kernel *= vol_kernel;
 
         auto const out_vol = output_type->compute_shape_volume();
-        macs               = out_vol * (vol_kernel + ADD_MACS);
+        macs               = output_type->get_shape()[1] + vol_kernel * out_vol * input_type->get_shape()[1];
       }
 
-    return std::pair{macs, params};
+    return macs;
   });
-  factory.add("convtranspose", factory.get("add"));
+  factory.add("convtranspose", factory.get("conv"));
   factory.add("add",
               [pwnbase](const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content) {
                 return pwnbase(content, ADD_MACS);
@@ -165,7 +160,6 @@ network_butcher_computer::Computer_flops::generate_maps_flops_func()
 
   factory.add("resize", [](const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content) {
     double      macs   = 0;
-    std::size_t params = 0;
 
     auto const &output_type = content.get_output().begin()->second;
     auto const  out_vol     = output_type->compute_shape_volume();
@@ -186,57 +180,31 @@ network_butcher_computer::Computer_flops::generate_maps_flops_func()
         macs = out_vol * RESIZE_CUBIC_MACS;
       }
 
-    return std::pair{macs, params};
+    return macs;
   });
 
   factory.add("reducemean",
               [](const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content) {
-                std::size_t params     = 0;
-                auto const &input_type = content.get_input().begin()->second;
-
-                return std::pair{input_type->compute_shape_volume() * ADD_MACS, params};
+                return content.get_input().begin()->second->compute_shape_volume() * ADD_MACS;
               });
   factory.add("reduceprod", factory.get("reducemean"));
   factory.add("reducesum", factory.get("reducemean"));
 
   factory.add("reducel2", [](const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content) {
-    std::size_t params     = 0;
-    auto const &input_type = content.get_input().begin()->second;
-
-    return std::pair{input_type->compute_shape_volume() * (ADD_MACS + SQRT_MACS), params};
+    return content.get_input().begin()->second->compute_shape_volume() * (ADD_MACS + SQRT_MACS);
   });
   factory.add("reducemin",
               [](const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content) {
-                std::size_t params     = 0;
-                auto const &input_type = content.get_input().begin()->second;
 
-                return std::pair{input_type->compute_shape_volume() * CMP_MACS, params};
+                return content.get_input().begin()->second->compute_shape_volume() * CMP_MACS;
               });
   factory.add("reducemax", factory.get("reducemin"));
 
   factory.add("nonzero", [](const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content) {
-    std::size_t params      = 0;
-    auto const &output_type = content.get_output().begin()->second;
-
-    return std::pair{output_type->compute_shape_volume() * CMP_MACS, params};
+    return content.get_output().begin()->second->compute_shape_volume() * CMP_MACS;
   });
   factory.add("less", factory.get("nonzero"));
   factory.add("lessorequal", factory.get("less"));
-
-  factory.add("resize", [](const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content) {
-    double      macs   = 0;
-    std::size_t params = 0;
-
-    auto const &output_type = content.get_output().begin()->second;
-    auto const  out_vol     = output_type->compute_shape_volume();
-
-    auto const &input_type = content.get_input().begin()->second;
-    auto const  in_vol     = input_type->compute_shape_volume();
-
-    macs = in_vol * ADD_MACS + out_vol * DIV_MACS;
-
-    return std::pair{macs, params};
-  });
 
   factory.add("prelu",
               [pwnbase](const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content) {
@@ -251,7 +219,6 @@ network_butcher_computer::Computer_flops::generate_maps_flops_func()
 
   factory.add("lnr", [](const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content) {
     double      macs   = 0;
-    std::size_t params = 0;
 
     auto const &output_type = content.get_output().begin()->second;
     auto const  out_vol     = output_type->compute_shape_volume();
@@ -261,12 +228,11 @@ network_butcher_computer::Computer_flops::generate_maps_flops_func()
 
     macs = in_vol * ADD_MACS + out_vol * DIV_MACS;
 
-    return std::pair{macs, params};
+    return macs;
   });
 
   factory.add("gemm", [](const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content) {
     double      macs   = 0;
-    std::size_t params = 0;
 
     auto const &input_type = content.get_input().begin()->second;
     auto const  in_vol     = input_type->compute_shape_volume();
@@ -275,14 +241,9 @@ network_butcher_computer::Computer_flops::generate_maps_flops_func()
     auto const  out_vol     = output_type->compute_shape_volume();
 
     auto const compute =
-      [&params, &macs, in_vol, out_vol](std::shared_ptr<network_butcher_types::Type_info> const &weights,
+      [&macs, in_vol, out_vol](std::shared_ptr<network_butcher_types::Type_info> const &weights,
                                         std::shared_ptr<network_butcher_types::Type_info> const &bias,
                                         bool params_non_zero = true) {
-        auto const weight_vol = weights->compute_shape_volume();
-        auto const bias_vol   = bias->compute_shape_volume();
-
-        if (params_non_zero)
-          params = weight_vol + bias_vol;
 
         macs = in_vol * weights->get_shape()[0] + out_vol * ADD_MACS;
       };
@@ -330,12 +291,11 @@ network_butcher_computer::Computer_flops::generate_maps_flops_func()
           }
       }
 
-    return std::pair{macs, params};
+    return macs;
   });
 
   factory.add("matmult", [](const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content) {
     double      macs   = 0;
-    std::size_t params = 0;
 
     auto const &input_type = content.get_input().begin()->second;
     auto const  in_vol     = input_type->compute_shape_volume();
@@ -344,14 +304,11 @@ network_butcher_computer::Computer_flops::generate_maps_flops_func()
     auto const  out_vol     = output_type->compute_shape_volume();
 
     auto const compute =
-      [&params, &macs, in_vol, out_vol](std::shared_ptr<network_butcher_types::Type_info> const &weights,
+      [&macs, in_vol, out_vol](std::shared_ptr<network_butcher_types::Type_info> const &weights,
                                         std::shared_ptr<network_butcher_types::Type_info> const &bias,
                                         bool params_non_zero = true) {
         auto const weight_vol = weights->compute_shape_volume();
         auto const bias_vol   = bias->compute_shape_volume();
-
-        if (params_non_zero)
-          params = weight_vol + bias_vol;
 
         macs = in_vol * weights->get_shape().back() + out_vol * ADD_MACS;
       };
@@ -399,7 +356,7 @@ network_butcher_computer::Computer_flops::generate_maps_flops_func()
           }
       }
 
-    return std::pair{macs, params};
+    return macs;
   });
   factory.add("matmulinteger", factory.get("matmult"));
 
@@ -422,9 +379,7 @@ network_butcher_computer::Computer_flops::generate_maps_flops_func()
 
   factory.add("tanh",
               [pwnbase](const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content) {
-                auto pair = pwnbase(content, MUL_MACS);
-
-                return std::pair{2 * pair.first, pair.second};
+                return 2 * pwnbase(content, MUL_MACS);
               });
 
   factory.add("mul",
@@ -570,17 +525,59 @@ network_butcher_computer::Computer_flops::get_volume(const std::vector<network_b
   return res;
 }
 
+/*
+
+ std::pair<double, std::size_t>
+network_butcher_computer::Computer_flops::compute_macs_flops(
+ const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content)
+{
+ auto       &factory = get_factory();
+ auto const &op_id   = content.get_operation_id();
+
+
+  std::size_t params = 0;
+  for(auto const &param : content.get_parameters())
+    params += param.second->compute_shape_volume();
+
+if (factory.registered(op_id))
+ return std::pair{factory.get(op_id)(content), param};
+
+return std::pair<double, std::size_t>{0., 0};
+ }
+
+ */
+
 std::pair<double, std::size_t>
 network_butcher_computer::Computer_flops::compute_macs_flops(
   const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content)
 {
-  auto       &factory = get_factory();
-  auto const &op_id   = content.get_operation_id();
+  std::size_t params = 0;
+  auto const &parameters = content.get_parameters();
 
-  if (factory.registered(op_id))
-    return factory.get(op_id)(content);
+  for(auto const &param : parameters)
+    params += param.second->compute_shape_volume();
 
-  return std::pair<double, std::size_t>{0., 0};
+  double      macs   = 0;
+
+  auto const num_outputs = content.get_output().size();
+  auto const num_inputs  = content.get_input().size();
+
+  if (content.get_operation_id() == "conv" && num_outputs == 1 && num_inputs == 1)
+    {
+      auto const &input_type  = content.get_input().begin()->second;
+      auto const &output_type = content.get_output().begin()->second;
+
+      auto const &kernel     = (content.get_attributes().find("kernel_shape")->second);
+      auto        vol_kernel = get_volume(kernel);
+
+      if(kernel.size() == 1)
+        vol_kernel *= vol_kernel;
+
+      auto const out_vol = output_type->compute_shape_volume();
+      macs               = output_type->get_shape()[1] + vol_kernel * out_vol * input_type->get_shape()[1];
+    }
+
+  return std::pair{macs, params};
 }
 
 network_butcher_computer::Computer_flops::FactoryType &

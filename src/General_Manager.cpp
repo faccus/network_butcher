@@ -80,7 +80,8 @@ network_butcher_io::General_Manager::boot(const network_butcher_parameters::Para
   crono.start();
 
   // Import the onnx model and populate the graph
-  auto [graph, model, link_graph_model] = IO_Manager::import_from_onnx(params.model_path, true, params.devices.size());
+  auto [graph, model, link_graph_model] =
+    IO_Manager::import_from_onnx(params.model_path, true, true, params.devices.size());
   crono.stop();
 
   double const import_time = crono.wallTime();

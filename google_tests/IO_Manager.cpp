@@ -15,7 +15,7 @@ namespace
   TEST(IOManagerTestSuit, ImportWeightsFromCsvTest)
   {
     auto graph =
-      std::get<0>(network_butcher_io::IO_Manager::import_from_onnx("version-RFB-640-inferred.onnx", true, 3));
+      std::get<0>(network_butcher_io::IO_Manager::import_from_onnx("version-RFB-640-inferred.onnx"));
 
     network_butcher_io::IO_Manager::import_weights(network_butcher_parameters::Weight_Import_Mode::aMLLibrary,
                                                    graph,

@@ -31,9 +31,9 @@ namespace network_butcher_computer
     static bool factory_initialized;
 
     using FactoryType = GenericFactory::FunctionFactory<
-      std::pair<double, std::size_t>,
+      double,
       std::string,
-      std::function<std::pair<double, std::size_t>(
+      std::function<double(
         const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &)>>;
 
     static void

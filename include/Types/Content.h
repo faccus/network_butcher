@@ -5,9 +5,9 @@
 #ifndef NETWORK_BUTCHER_CONTENT_H
 #define NETWORK_BUTCHER_CONTENT_H
 
-#include "../Traits/Basic_traits.h"
 #include "Dense_tensor.h"
 #include "DynamicType.h"
+
 
 namespace network_butcher_types
 {
@@ -15,8 +15,6 @@ namespace network_butcher_types
   class Content
   {
   private:
-    friend class IO_Manager;
-
     /// Collection of the ids of inputs of the node
     io_collection_type<T> input;
     /// Collection of the ids of outputs of the node

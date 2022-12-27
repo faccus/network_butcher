@@ -14,6 +14,7 @@ namespace network_butcher_io::Onnx_importer_helpers
 {
   using Map_IO = std::unordered_map<std::string, type_info_pointer>;
 
+
   /// Inserts into the input_map the valid elements (onnx::ValueInfoProto) contained in collection and
   /// whether they are initialized or not
   /// \param input_map The input_map
@@ -34,6 +35,13 @@ namespace network_butcher_io::Onnx_importer_helpers
            google::protobuf::RepeatedPtrField<onnx::TensorProto> const &collection,
            std::set<std::string> const                                 &initialized);
 
+  /// It will look for unused IOs
+  /// \param onnx_nodes Onnx nodes from Model Proto
+  /// \return The name of the unused IOs
+  std::set<std::string>
+  find_unused_ios(onnx::GraphProto const &onnx_graph);
+
+
   /// It will return an io_collection with the different elements of io_name if they are contained into value_infos
   /// and they are not initialized. Any initialized element in value_infos is inserted in parameters_collection
   /// \param io_names The collection of names of IO identifiers
@@ -44,7 +52,8 @@ namespace network_butcher_io::Onnx_importer_helpers
   io_collection_type<type_info_pointer>
   process_node_ios(google::protobuf::RepeatedPtrField<std::basic_string<char>> const &io_names,
                    io_collection_type<type_info_pointer>                             &parameters_collection,
-                   Map_IO const                                                      &value_infos);
+                   Map_IO const                                                      &value_infos,
+                   std::set<std::string> unused_ios = {});
 
   /// It will insert into onnx_io_ids the names of the elements of onnx_io
   /// \param onnx_io A collection of onnx::ValueInfoProto

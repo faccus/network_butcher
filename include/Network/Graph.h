@@ -63,6 +63,14 @@ namespace network_butcher_types
       return nodes;
     }
 
+    /// Get the collection of nodes
+    /// \return The vector of nodes
+    inline Node_Collection_Type &
+    get_nodes_ref() const
+    {
+      return nodes;
+    }
+
     /// Get the collection of dependencies (as a const reference)
     /// \return The dependencies
     [[nodiscard]] inline const Dependencies_Type &
