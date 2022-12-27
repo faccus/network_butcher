@@ -33,4 +33,11 @@ namespace
     const std::string model_path = "version-RFB-640-inferred.onnx";
     network_butcher_io::IO_Manager::import_from_onnx(model_path);
   }
+
+  TEST(IOManagerTestSuit, ImportExportOnnxTest) {
+    const std::string model_path = "version-RFB-640-inferred";
+    auto const model = network_butcher_io::IO_Manager::import_from_onnx(model_path + ".onnx");
+
+    network_butcher_io::IO_Manager::export_to_onnx(std::get<1>(model), model_path + "-exported" + ".onnx");
+  }
 } // namespace
