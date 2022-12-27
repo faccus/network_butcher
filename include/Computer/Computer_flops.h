@@ -5,10 +5,12 @@
 #ifndef NETWORK_BUTCHER_COMPUTER_FLOPS_H
 #define NETWORK_BUTCHER_COMPUTER_FLOPS_H
 
+#include "../APSC/Factory.h"
 #include "../Network/WGraph.h"
 #include "../Traits/Hardware_traits.h"
 
-namespace network_butcher_computer {
+namespace network_butcher_computer
+{
   class Computer_flops
   {
   public:
@@ -26,14 +28,27 @@ namespace network_butcher_computer {
     using Content_Node_Type = network_butcher_types::Node<network_butcher_types::Content<T>>;
 
   private:
+    static bool factory_initialized;
 
-    static std::unordered_map<std::string, std::function<std::pair<double, std::size_t>(Content_Type<type_info_pointer> const &)>> generate_maps_flops_func();
-    static std::size_t get_volume(std::vector<network_butcher_types::DynamicType> const &);
+    using FactoryType = GenericFactory::FunctionFactory<
+      std::pair<double, std::size_t>,
+      std::string,
+      std::function<std::pair<double, std::size_t>(
+        const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &)>>;
+
+    static void
+    generate_maps_flops_func();
+
+    static FactoryType &
+    get_factory();
+
+    static std::size_t
+    get_volume(std::vector<network_butcher_types::DynamicType> const &);
 
   public:
-
-    static std::pair<double, std::size_t> compute_macs_flops(Content_Type<type_info_pointer> const &content);
+    static std::pair<double, std::size_t>
+    compute_macs_flops(Content_Type<type_info_pointer> const &content);
   };
-}
+} // namespace network_butcher_computer
 
 #endif // NETWORK_BUTCHER_COMPUTER_FLOPS_H

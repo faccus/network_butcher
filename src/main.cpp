@@ -1,7 +1,7 @@
 #include "../include/APSC/GetPot"
 #include "../include/General_Manager.h"
 
-/*
+
 #include <cpr/cpr.h>
 
 int main(int argc, char** argv) {
@@ -10,8 +10,8 @@ int main(int argc, char** argv) {
   std::cout << r.text << std::endl;          // JSON text string
 }
 
-*/
 
+/*
 int
 main(int argc, char **argv)
 {
@@ -66,3 +66,4 @@ main(int argc, char **argv)
 
   return 0;
 }
+*/

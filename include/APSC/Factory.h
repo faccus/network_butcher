@@ -114,8 +114,8 @@ namespace GenericFactory
    * In this version you cannot use the method create()
    * @todo use enable_if to eliminate the method when AbstractProduct=void
    */
-  template <typename Identifier, typename FunType>
-  using FunctionFactory = Factory<void, Identifier, FunType>;
+  template <typename AbstractProduct, typename Identifier, typename FunType>
+  using FunctionFactory = Factory<AbstractProduct, Identifier, FunType>;
 
   //    ****   IMPLEMENTATIONS  ****
 
