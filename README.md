@@ -16,17 +16,23 @@ The remaining libraries are automatically installed by the program
 cd path_to_repo
 ```
 
-3. Prepare the build (and install dependencies):
+3. Create the build directory and move there:
 ```bash
-cmake -DCMAKE_BUILD_TYPE=Release -S . -B build 
+mkdir build
+cd build
 ```
 
-4. Build:
+4. Prepare the directory for the build:
 ```bash
-cmake --build build --target network_butcher
+cmake -DCMAKE_BUILD_TYPE=Release -S .. -B . 
 ```
 
-5. (Optional) Build tests:
+5. Build the .exe:
 ```bash
-cmake --build build --target test_run
+cmake --build . --target network_butcher
+```
+
+6. (Optional) Build the tests:
+```bash
+cmake --build . --target test_run
 ```
