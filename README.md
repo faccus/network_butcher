@@ -1,10 +1,10 @@
 # network_butcher
 
-(Basic) Requirments:
+Requirements:
 
-cmake version 3.21 (or higher)
-
-g++
+- cmake version 3.21 (or higher)
+- g++
+- (optional) doxygen
 
 Installation:
 
