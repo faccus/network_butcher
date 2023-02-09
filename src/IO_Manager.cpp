@@ -10,7 +10,7 @@ network_butcher_io::IO_Manager::import_from_onnx(std::string const &path,
                                                  bool               add_input_padding,
                                                  bool               add_output_padding,
                                                  std::size_t        num_devices,
-                                                 bool unused_ios)
+                                                 bool               unused_ios)
 {
   std::map<node_id_type, node_id_type> link_id_nodeproto;
 
@@ -36,7 +36,7 @@ network_butcher_io::IO_Manager::import_from_onnx(std::string const &path,
   node_id_type onnx_node_id = 0;
 
   std::set<std::string> unused_ios_set;
-  if(unused_ios)
+  if (unused_ios)
     unused_ios_set = Onnx_importer_helpers::find_unused_ios(onnx_graph);
 
   // If add_input_padding, then we will add a "fake" input node
@@ -65,7 +65,7 @@ network_butcher_io::IO_Manager::import_from_onnx(std::string const &path,
         }
 
       // If the inputs of the node are the outputs of the NN, then add the connection with the padding node
-      if(add_output_padding && !Onnx_importer_helpers::get_common_elements(onnx_outputs_ids, outputs).empty())
+      if (add_output_padding && !Onnx_importer_helpers::get_common_elements(onnx_outputs_ids, outputs).empty())
         {
           outputs["__fake__output__"] = pointer_output;
         }
@@ -106,62 +106,6 @@ network_butcher_io::IO_Manager::export_to_onnx(const onnx::ModelProto &model, st
 
 void
 network_butcher_io::IO_Manager::old_export_network_infos_to_csv(graph_type const       &graph,
-                                                            onnx::ModelProto const &model,
-                                                            std::string const      &path)
-{
-  std::fstream file_out;
-  file_out.open(path, std::ios_base::out);
-
-  file_out << "Layer,Hf,Wf,Cin,Cout,FLOPS,Time" << std::endl;
-
-  for (auto const &node : graph.get_nodes())
-    {
-      if (node.content.get_operation_id() == "conv")
-        {
-          auto const &content = node.content;
-
-          auto       ins             = content.get_input();
-          auto       outs            = content.get_output();
-          auto const kernel_iterator = content.get_attributes().find("kernel_shape");
-
-          if (kernel_iterator != content.get_attributes().cend())
-            {
-              auto out_it = outs.cbegin();
-              while (out_it != outs.cend() && out_it->first == "__fake__output__")
-                ++out_it;
-
-              auto in_it = ins.cbegin();
-              while (in_it != ins.cend() && in_it->first == "__fake__input__")
-                ++in_it;
-
-              if (in_it == ins.cend() || out_it == outs.cend())
-                continue;
-
-              auto const &out_shape    = out_it->second->get_shape();
-              auto const &in_shape     = in_it->second->get_shape();
-              auto const &kernel_shape = kernel_iterator->second;
-
-              auto const &H_f = kernel_iterator->second[0].get_int();
-              auto const &W_f = kernel_iterator->second[1].get_int();
-
-              std::size_t const C_in      = in_shape[1];
-              std::size_t const C_out     = out_shape[1];
-              std::size_t const in_pixels = in_shape[2] * in_shape[3];
-
-              auto const flops = H_f * W_f * C_in * C_out * in_pixels;
-
-              file_out << node.get_id() << "," << H_f << "," << W_f << "," << C_in << "," << C_out << "," << flops
-                       << ",0" << std::endl;
-            }
-        }
-    }
-
-  file_out.close();
-}
-
-
-void
-network_butcher_io::IO_Manager::export_network_infos_to_csv(graph_type const       &graph,
                                                                 onnx::ModelProto const &model,
                                                                 std::string const      &path)
 {
@@ -217,9 +161,63 @@ network_butcher_io::IO_Manager::export_network_infos_to_csv(graph_type const    
 
 
 void
+network_butcher_io::IO_Manager::export_network_infos_to_csv(graph_type const &graph, std::string const &path)
+{
+  std::fstream file_out;
+  file_out.open(path, std::ios_base::out);
+
+  file_out << "Layer,Hf,Wf,Cin,Cout,FLOPS,Time" << std::endl;
+
+  for (auto const &node : graph.get_nodes())
+    {
+      if (node.content.get_operation_id() == "conv")
+        {
+          auto const &content = node.content;
+
+          auto       ins             = content.get_input();
+          auto       outs            = content.get_output();
+          auto const kernel_iterator = content.get_attributes().find("kernel_shape");
+
+          if (kernel_iterator != content.get_attributes().cend())
+            {
+              auto out_it = outs.cbegin();
+              while (out_it != outs.cend() && out_it->first == "__fake__output__")
+                ++out_it;
+
+              auto in_it = ins.cbegin();
+              while (in_it != ins.cend() && in_it->first == "__fake__input__")
+                ++in_it;
+
+              if (in_it == ins.cend() || out_it == outs.cend())
+                continue;
+
+              auto const &out_shape    = out_it->second->get_shape();
+              auto const &in_shape     = in_it->second->get_shape();
+              auto const &kernel_shape = kernel_iterator->second;
+
+              auto const &H_f = kernel_iterator->second[0].get_int();
+              auto const &W_f = kernel_iterator->second[1].get_int();
+
+              std::size_t const C_in      = in_shape[1];
+              std::size_t const C_out     = out_shape[1];
+              std::size_t const in_pixels = in_shape[2] * in_shape[3];
+
+              auto const flops = H_f * W_f * C_in * C_out * in_pixels;
+
+              file_out << node.get_id() << "," << H_f << "," << W_f << "," << C_in << "," << C_out << "," << flops
+                       << ",0" << std::endl;
+            }
+        }
+    }
+
+  file_out.close();
+}
+
+
+void
 network_butcher_io::IO_Manager::Helper_Functions::import_weights_aMLLibrary(graph_type        &graph,
-                                                          std::size_t        device,
-                                                          std::string const &path)
+                                                                            std::size_t        device,
+                                                                            std::string const &path)
 {
   std::fstream file_in;
   file_in.open(path, std::ios_base::in);
@@ -262,8 +260,8 @@ network_butcher_io::IO_Manager::Helper_Functions::import_weights_aMLLibrary(grap
 
 void
 network_butcher_io::IO_Manager::Helper_Functions::import_weights_custom_csv_operation_time(graph_type        &graph,
-                                                                         std::size_t        device,
-                                                                         const std::string &path)
+                                                                                           std::size_t        device,
+                                                                                           const std::string &path)
 {
   std::fstream file_in;
   file_in.open(path, std::ios_base::in);
@@ -309,9 +307,10 @@ network_butcher_io::IO_Manager::Helper_Functions::import_weights_custom_csv_oper
 }
 
 void
-network_butcher_io::IO_Manager::Helper_Functions::import_weights_official_csv_multi_operation_time(graph_type              &graph,
-                                                                                 std::vector<std::size_t> devices,
-                                                                                 const std::string       &path)
+network_butcher_io::IO_Manager::Helper_Functions::import_weights_official_csv_multi_operation_time(
+  graph_type              &graph,
+  std::vector<std::size_t> devices,
+  const std::string       &path)
 {
   std::fstream file_in;
   file_in.open(path, std::ios_base::in);
@@ -424,9 +423,10 @@ network_butcher_io::IO_Manager::Helper_Functions::import_weights_official_csv_mu
 }
 
 void
-network_butcher_io::IO_Manager::Helper_Functions::import_weights_custom_csv_multi_operation_time(graph_type              &graph,
-                                                                               std::vector<std::size_t> devices,
-                                                                               const std::string       &path)
+network_butcher_io::IO_Manager::Helper_Functions::import_weights_custom_csv_multi_operation_time(
+  graph_type              &graph,
+  std::vector<std::size_t> devices,
+  const std::string       &path)
 {
   // Import the file
   std::fstream file_in;
@@ -481,8 +481,8 @@ network_butcher_io::IO_Manager::read_parameters(const std::string &path)
 {
   GetPot file(path);
 
-  network_butcher_parameters::Parameters        res;
-  std::string const basic_infos = "basic_config";
+  network_butcher_parameters::Parameters res;
+  std::string const                      basic_infos = "basic_config";
 
   res.model_name       = file(basic_infos + "/model_name", "model");
   res.model_path       = file(basic_infos + "/model_path", "");
@@ -581,8 +581,8 @@ network_butcher_io::IO_Manager::read_parameters(const std::string &path)
 
 
 void
-network_butcher_io::IO_Manager::export_network_partitions(const network_butcher_parameters::Parameters                           &params,
-                                                          onnx::ModelProto const                     &model,
+network_butcher_io::IO_Manager::export_network_partitions(const network_butcher_parameters::Parameters &params,
+                                                          onnx::ModelProto const                       &model,
                                                           std::map<node_id_type, node_id_type> const &link_id_nodeproto,
                                                           const network_butcher_types::Weighted_Real_Paths &paths)
 {
@@ -594,19 +594,20 @@ network_butcher_io::IO_Manager::export_network_partitions(const network_butcher_
       network_butcher_utilities::create_directory(params.export_directory + "/" + std::to_string(j));
 
       Helper_Functions::reconstruct_model_and_export(paths[j].second,
-                        model,
-                        link_id_nodeproto,
-                        preprocessed_node_ios,
-                        params.export_directory + "/" + std::to_string(j) + "/" + params.model_name);
+                                                     model,
+                                                     link_id_nodeproto,
+                                                     preprocessed_node_ios,
+                                                     params.export_directory + "/" + std::to_string(j) + "/" +
+                                                       params.model_name);
     }
 }
 
 
 void
 network_butcher_io::IO_Manager::import_weights(network_butcher_parameters::Weight_Import_Mode const &weight_mode,
-                                               graph_type               &graph,
-                                               std::string const        &path,
-                                               std::size_t               device)
+                                               graph_type                                           &graph,
+                                               std::string const                                    &path,
+                                               std::size_t                                           device)
 {
   switch (weight_mode)
     {
@@ -632,10 +633,10 @@ network_butcher_io::IO_Manager::import_weights(network_butcher_parameters::Weigh
 
 
 void
-network_butcher_io::IO_Manager::import_weights(network_butcher_parameters::Weight_Import_Mode const       &weight_mode,
-                                               graph_type                     &graph,
-                                               std::string const              &path,
-                                               std::vector<std::size_t> const &devices)
+network_butcher_io::IO_Manager::import_weights(network_butcher_parameters::Weight_Import_Mode const &weight_mode,
+                                               graph_type                                           &graph,
+                                               std::string const                                    &path,
+                                               std::vector<std::size_t> const                       &devices)
 {
   switch (weight_mode)
     {
@@ -670,7 +671,7 @@ network_butcher_io::IO_Manager::Helper_Functions::reconstruct_model_and_export(
 
   for (std::size_t i = 0; i < partitions.size(); ++i)
     {
-      auto const &partition = partitions[i];
+      auto const &partition       = partitions[i];
       auto const  partition_model = reconstruct_model_from_partition(
         partition, original_model, link_id_nodeproto, preprocessed_ios_nodes, model_graph);
 
@@ -682,6 +683,7 @@ network_butcher_io::IO_Manager::Helper_Functions::reconstruct_model_and_export(
         }
     }
 }
+
 
 std::pair<bool, onnx::ModelProto>
 network_butcher_io::IO_Manager::reconstruct_model_from_partition(
@@ -742,9 +744,8 @@ network_butcher_io::IO_Manager::read_parameters_yaml(std::string const &candidat
   auto const to_deploy = Yaml_importer_helpers::read_annotations(annotations_path);
 
   // Reads the candidate deployments file
-  auto const model_devices_ram = Yaml_importer_helpers::read_candidate_deployments(candidate_deployments_path,
-                                                                                   to_deploy,
-                                                                                   devices_map);
+  auto const model_devices_ram =
+    Yaml_importer_helpers::read_candidate_deployments(candidate_deployments_path, to_deploy, devices_map);
 
   for (auto const &[model_friendly_name, pair_ram_vram] : to_deploy)
     {

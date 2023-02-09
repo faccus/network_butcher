@@ -36,16 +36,17 @@ network_butcher_io::Yaml_importer_helpers::get_devices_for_partitions(
 }
 
 std::map<std::string, std::vector<std::map<std::string, std::size_t>>>
-network_butcher_io::Yaml_importer_helpers::read_candidate_deployments(std::string const &candidate_deployments_path,
-                                                                      std::map<std::string, std::pair<std::size_t, std::size_t>> const &models,
-                                                                      std::map<std::string, network_butcher_parameters::device> const &devices_map)
+network_butcher_io::Yaml_importer_helpers::read_candidate_deployments(
+  std::string const                                                &candidate_deployments_path,
+  std::map<std::string, std::pair<std::size_t, std::size_t>> const &models,
+  std::map<std::string, network_butcher_parameters::device> const  &devices_map)
 {
   YAML::Node components = YAML::LoadFile(candidate_deployments_path)["Components"];
   std::map<std::string, std::vector<std::map<std::string, std::size_t>>> final_res;
 
   for (auto const &[model_name, pair_ram_vram] : models)
     {
-      auto const &[model_ram, model_vram]              = pair_ram_vram;
+      auto const &[model_ram, model_vram] = pair_ram_vram;
 
       std::list<std::map<std::string, std::size_t>>   devices_ram;
       std::vector<std::map<std::string, std::size_t>> res;
@@ -135,10 +136,11 @@ network_butcher_io::Yaml_importer_helpers::read_annotations(const std::string &a
 
 
 std::pair<bandwidth_type, bandwidth_type>
-network_butcher_io::Yaml_importer_helpers::find_bandwidth(std::map<std::string, network_butcher_parameters::network_domain> const &network_domains,
-                                                          std::map<std::string, std::string> const &subdomain_to_domain,
-                                                          std::string                               first_domain,
-                                                          std::string                               second_domain)
+network_butcher_io::Yaml_importer_helpers::find_bandwidth(
+  std::map<std::string, network_butcher_parameters::network_domain> const &network_domains,
+  std::map<std::string, std::string> const                                &subdomain_to_domain,
+  std::string                                                              first_domain,
+  std::string                                                              second_domain)
 {
   auto first_domain_depth  = network_domains.find(first_domain)->second.depth;
   auto second_domain_depth = network_domains.find(second_domain)->second.depth;
@@ -184,12 +186,14 @@ network_butcher_io::Yaml_importer_helpers::find_bandwidth(std::map<std::string, 
 }
 
 
-std::tuple<std::map<std::string, network_butcher_parameters::network_domain>, std::map<std::string, std::string>, std::map<std::string, network_butcher_parameters::device>>
+std::tuple<std::map<std::string, network_butcher_parameters::network_domain>,
+           std::map<std::string, std::string>,
+           std::map<std::string, network_butcher_parameters::device>>
 network_butcher_io::Yaml_importer_helpers::read_candidate_resources(const std::string &candidate_resources_path)
 {
   std::map<std::string, network_butcher_parameters::network_domain> network_domains;
-  std::map<std::string, std::string>    subdomain_to_domain;
-  std::map<std::string, std::size_t>    domain_to_depth;
+  std::map<std::string, std::string>                                subdomain_to_domain;
+  std::map<std::string, std::size_t>                                domain_to_depth;
   std::map<std::string, network_butcher_parameters::device>         devices_map;
 
   auto       resources_file       = YAML::LoadFile(candidate_resources_path);

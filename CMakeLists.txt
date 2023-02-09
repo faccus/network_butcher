@@ -19,7 +19,7 @@ message(STATUS "It will use the yaml-cpp library to read yaml files: " ${USE_YAM
 option(BUILD_YAML_CPP_SOURCE "Download and compile yaml-cpp from git" ON)
 message(STATUS "Download and compile yaml-cpp from git: " ${BUILD_YAML_CPP_SOURCE})
 
-option(USE_CPR_CPP "Download and compile cpr-cpp from git" ON)
+option(USE_CPR_CPP "Download and compile cpr-cpp from git" OFF)
 message(STATUS "Download and compile cpr-cpp from git" ${USE_CPR_CPP})
 
 
@@ -34,7 +34,7 @@ message(STATUS "Build documentation graphs: ${BUILD_DOC_GRAPH}")
 option(BUILD_TESTS "Build tests" ON)
 message(STATUS "Build tests: ${BUILD_TESTS}")
 
-option(BUILD_BENCHMARK "Build benchmark tests" OFF)
+option(BUILD_BENCHMARK "Build benchmark tests" ON)
 message(STATUS "Build benchmark tests: ${BUILD_BENCHMARK}")
 
 

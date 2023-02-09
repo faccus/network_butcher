@@ -142,15 +142,12 @@ namespace network_butcher_io
                                 onnx::ModelProto const &model,
                                 std::string const      &path = "butcher_predict.csv");
 
-    /// From a given graph and the associated onnx::ModelProto, it will export the
+    /// From a given graph, it will export the
     /// basic information about every convolutional layer in the network
     /// \param graph The graph
-    /// \param model The onnx::ModelProto
     /// \param path The export file path
     void
-    export_network_infos_to_csv(graph_type const       &graph,
-                                    onnx::ModelProto const &model,
-                                    std::string const      &path = "butcher_predict.csv");
+    export_network_infos_to_csv(graph_type const &graph, std::string const &path = "butcher_predict.csv");
 
 
     /// It will read from a .csv file the collection of weights for the given

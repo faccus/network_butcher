@@ -1,7 +1,7 @@
 #include "../include/APSC/GetPot"
 #include "../include/General_Manager.h"
 
-
+/*
 #include <cpr/cpr.h>
 
 int main(int argc, char** argv) {
@@ -9,15 +9,14 @@ int main(int argc, char** argv) {
                               cpr::Payload{{"key", "value"}});
   std::cout << r.text << std::endl;          // JSON text string
 }
+*/
 
-
-/*
 int
 main(int argc, char **argv)
 {
   GetPot command_line(argc, argv);
 
-  std::cout << "Network Butcher v1.0" << std::endl;
+  std::cout << "Network Butcher" << std::endl;
 
   if (command_line.search(2, "--help", "-h"))
     {
@@ -66,4 +65,3 @@ main(int argc, char **argv)
 
   return 0;
 }
-*/
