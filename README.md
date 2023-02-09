@@ -20,6 +20,7 @@ git clone git@github.com:faccus/network_butcher.git
 ```
 2. Create the build directory and move there:
 ```bash
+cd network_butcher
 mkdir build
 cd build
 ```
