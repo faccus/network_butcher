@@ -12,18 +12,21 @@ The remaining libraries are automatically installed by the program
 
 1. Clone the repo
 2. Change directory to the repository directory: 
-'''bash
+```bash
 cd path_to_repo
-'''
+```
+
 3. Prepare the build (and install dependencies):
-'''bash
+```bash
 cmake -DCMAKE_BUILD_TYPE=Release -S . -B build 
-'''
+```
+
 4. Build:
-'''bash
+```bash
 cmake --build build --target network_butcher
-'''
+```
+
 5. (Optional) Build tests:
-'''bash
+```bash
 cmake --build build --target test_run
-'''
+```
