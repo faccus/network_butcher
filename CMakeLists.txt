@@ -3,6 +3,7 @@ project("Network Butcher" DESCRIPTION "Just a normal butcher. A network butcher"
 
 set(CMAKE_CXX_STANDARD 20)
 
+cmake_policy(SET CMP0135 NEW)
 
 option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
 message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
