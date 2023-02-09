@@ -1,38 +1,46 @@
-# network_butcher
+# Network Butcher
 
 ### Requirements:
 
 - cmake version 3.21 (or higher)
-- g++
+- g++ version 8 (or higher)
 - (optional) doxygen
 
 The remaining libraries are automatically installed by the program
 
 ### Installation:
 
-1. Clone the repo
-2. Change directory to the repository directory: 
+1. Clone the repository:
 ```bash
-cd path_to_repo
+git clone https://github.com/faccus/network_butcher
 ```
-
-3. Create the build directory and move there:
+or
+```bash
+git clone git@github.com:faccus/network_butcher.git
+```
+2. Create the build directory and move there:
 ```bash
 mkdir build
 cd build
 ```
-
-4. Prepare the directory for the build:
+3. Prepare the directory for the build:
 ```bash
 cmake -DCMAKE_BUILD_TYPE=Release -S .. -B . 
 ```
-
-5. Build the .exe:
+4. Build the .exe:
 ```bash
 cmake --build . --target network_butcher
 ```
+5. Run the program:
+```bash
+./network_butcher
+```
 
-6. (Optional) Build the tests:
+Optionally, the tests can be built by using the following command:
 ```bash
 cmake --build . --target test_run
+```
+and executed by:
+```bash
+./test_run
 ```
