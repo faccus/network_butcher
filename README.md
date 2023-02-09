@@ -1,12 +1,14 @@
 # network_butcher
 
-Requirements:
+### Requirements:
 
 - cmake version 3.21 (or higher)
 - g++
 - (optional) doxygen
 
-Installation:
+The remaining libraries are automatically installed by the program
+
+### Installation:
 
 1) Clone the repo
 2) Change directory to the repository directory: 
