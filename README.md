@@ -34,7 +34,7 @@ cmake --build . --target network_butcher
 ```
 5. Run the program:
 ```bash
-./network_butcher
+./network_butcher --help
 ```
 
 Optionally, the tests can be built by using the following command:
