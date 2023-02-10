@@ -5,7 +5,7 @@
 - cmake version 3.21 (or higher)
 - g++ version 8 (or higher)
 
-The remaining libraries (with the exception of Doxygen) can be automatically downloaded and (statically) linked by the program. They may be installed manually:
+The remaining libraries (with the exception of Doxygen) can be automatically downloaded and (statically) linked by cmake. They may be installed manually:
 - [Protobuf v3.17.3](https://github.com/protocolbuffers/protobuf/releases/tag/v3.17.3) (Required)
 - [Google Tests v1.12.1](https://github.com/google/googletest/releases/tag/release-1.12.1) (Optional)
 - [Yaml-Cpp v0.7.0](https://github.com/jbeder/yaml-cpp/releases/tag/yaml-cpp-0.7.0) (Optional)
