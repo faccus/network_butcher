@@ -3,9 +3,9 @@ project("Network Butcher" DESCRIPTION "Just a normal butcher. A network butcher"
 
 set(CMAKE_CXX_STANDARD 20)
 
-if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.24.0")
-    cmake_policy(SET CMP0135 NEW)
-endif()
+########################################################################################################################
+############# USER OPTIONS #############################################################################################
+########################################################################################################################
 
 option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
 message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
@@ -40,6 +40,15 @@ message(STATUS "Build tests: ${BUILD_TESTS}")
 option(BUILD_BENCHMARK "Build benchmark tests" OFF)
 message(STATUS "Build benchmark tests: ${BUILD_BENCHMARK}")
 
+
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+
+
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.24.0")
+    cmake_policy(SET CMP0135 NEW)
+endif()
 
 # Dependencies manager
 add_subdirectory(cmake)
