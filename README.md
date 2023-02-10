@@ -9,7 +9,7 @@ The remaining libraries can automatically be downloaded and (statically) linked 
 - [Protobuf v3.17.3](https://github.com/protocolbuffers/protobuf/releases/tag/v3.17.3) (Required)
 - [Google Tests v1.12.1](https://github.com/google/googletest/releases/tag/release-1.12.1) (Optional)
 - [Yaml-Cpp v0.7.0](https://github.com/jbeder/yaml-cpp/releases/tag/yaml-cpp-0.7.0) (Optional)
-- [Doxygen](https://github.com/doxygen/doxygen/releases/tag/Release_1_9_3) (Optional)
+- [Doxygen v1.9.3](https://github.com/doxygen/doxygen/releases/tag/Release_1_9_3) (Optional)
 
 To (dynamically) link the installed libraries, check the CMakeLists file in the root directory of the repository.
 
