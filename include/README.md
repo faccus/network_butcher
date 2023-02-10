@@ -8,7 +8,9 @@ This directory contains the source files of the program. The main directories ar
 template functions.
 - IO_Interaction: It contains the header files used to interact with the onnx files and the yaml files
 - K-shortest_path: It contains the header files for the K-shortest path algorithm. All the classes introduced are 
-template casses (an arbitrary Graph class may be used. I will probably modify the inputs so that the template class must implement a specific set of operations)
+template classes (an arbitrary Graph class may be used. I will probably modify the inputs so that the template class 
+must implement a specific set of operations). Notice that there are two "final" K-shortest path algorithms: Eppstein and
+Lazy Eppstein.
 - Network: It contains the header files for the Network representation. MWGraph and WGraph are used to represent 
 weighted directed graphs, while Graph represents a simple directed graph
 - Traits (WIP): It contains some basic traits. I will probably change them when I finish to implement everything else 
