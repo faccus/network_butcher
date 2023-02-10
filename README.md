@@ -1,5 +1,17 @@
 # Network Butcher
 
+### Project structure
+The project is structured into three main directories:
+- include: It contains all the header files
+- src: It contains all the source files
+- google_tests: It contains all the source files of the tests
+
+The other directories are:
+- models: It contains the files used during testing (models, sample configuration files and sample weight files)
+- scripts: It contains some extra scripts to modify an .onnx file to add shapes to all the tensors (it must be executed for a new .onnx model, unless shapes were already inferred)
+- doc: It contains the CMakeLists.txt file with the options used to generate the documentation
+- cmake: It contains the CMakeLists.txt file to either download and compile external libraries or to dynamically link them
+
 ### Requirements:
 
 - cmake version 3.21 (or higher)
@@ -50,15 +62,3 @@ and executed by:
 ```bash
 ./test_run
 ```
-
-### Project structure
-The project is structured into three main directories:
-- include: It contains all the header files
-- src: It contains all the source files
-- google_tests: It contains all the source files of the tests
-
-The other directories are:
-- models: It contains the files used during testing (models, sample configuration files and sample weight files)
-- scripts: It contains some extra scripts to modify an .onnx file to add shapes to all the tensors (it must be executed for a new .onnx model, unless shapes were already inferred)
-- doc: It contains the CMakeLists.txt file with the options used to generate the documentation
-- cmake: It contains the CMakeLists.txt file to either download and compile external libraries or to dynamically link them
