@@ -23,7 +23,7 @@ The remaining libraries (with the exception of Doxygen) can be automatically dow
 - [Yaml-Cpp v0.7.0](https://github.com/jbeder/yaml-cpp/releases/tag/yaml-cpp-0.7.0) (Optional)
 - [Doxygen v1.9.3](https://github.com/doxygen/doxygen/releases/tag/Release_1_9_3) (Optional)
 
-To (dynamically) link the installed libraries, check the CMakeLists file in the root directory of the repository.
+To (dynamically) link the installed libraries, check the CMakeLists.txt file in the root directory of the repository.
 
 ### Installation:
 
