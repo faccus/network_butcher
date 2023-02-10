@@ -21,7 +21,7 @@ endif ()
 
 if (USE_CPR_CPP)
     FetchContent_Declare(cpr GIT_REPOSITORY https://github.com/libcpr/cpr.git
-            GIT_TAG 7a02d679308a19220e3b75616c18ff9e8deb5f9a) # The commit hash for 1.9.0. Replace with the latest from: https://github.com/libcpr/cpr/releases
+            GIT_TAG 0817715923c9705e68994eb52ef9df3f6845beba) # The commit hash for v1.10.0
     FetchContent_MakeAvailable(cpr)
 
     set(CPR_CPP_LIBRARY_LOCATION cpr::cpr)

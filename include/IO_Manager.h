@@ -206,6 +206,7 @@ namespace network_butcher_io
                             google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
                              &preprocessed_ios_nodes,
       onnx::GraphProto const &model_graph);
+
   } // namespace IO_Manager
 
 } // namespace network_butcher_io

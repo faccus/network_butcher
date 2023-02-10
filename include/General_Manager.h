@@ -31,6 +31,10 @@ namespace network_butcher_io
       /// \param params The collection of parameters
       void
       import_weights(graph_type &graph, network_butcher_parameters::Parameters const &params);
+
+      /// It prints the help/usage message in the console
+      void
+      print_help();
     } // namespace Helper_Functions
 
     /// Boot! It will read the parameters from the given file and it will import
@@ -51,6 +55,12 @@ namespace network_butcher_io
     /// \param performance Print some performance information (required time for each "phase")
     void
     boot(network_butcher_parameters::Parameters const &params, bool performance = false);
+
+    /// Reads the command line input of the program and launches the boot
+    /// \param argc
+    /// \param argv
+    void
+    read_command_line(int argc, char **argv);
   }; // namespace General_Manager
 } // namespace network_butcher_io
 
