@@ -62,3 +62,5 @@ The other directories are:
 - scripts: It contains some extra scripts to modify an .onnx file to add shapes to all the tensors (it must be executed for a new .onnx model, unless shapes were already inferred)
 - doc: It contains the CMakeLists.txt file with the options used to generate the documentation
 - cmake: It contains the CMakeLists.txt file to either download and compile external libraries or to dynamically link them
+
+To easily start to read the project, I think it's best to start from the General_Manager files.
