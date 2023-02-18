@@ -23,7 +23,7 @@ option(BUILD_YAML_CPP_SOURCE "Download and compile yaml-cpp from git" ON)
 message(STATUS "Download and compile yaml-cpp from git: " ${BUILD_YAML_CPP_SOURCE})
 
 option(USE_CPR_CPP "Download and compile cpr-cpp from git" OFF) # WIP
-message(STATUS "Download and compile cpr-cpp from git" ${USE_CPR_CPP})
+message(STATUS "Download and compile cpr-cpp from git ${USE_CPR_CPP}")
 
 
 
@@ -53,7 +53,6 @@ endif()
 # Dependencies manager
 add_subdirectory(cmake)
 
-
 # Download onnx file and create source files
 add_subdirectory(include)
 add_subdirectory(src)
@@ -72,10 +71,10 @@ if (BUILD_TESTS)
     if (BUILD_BENCHMARK)
         set(FINAL_TESTS_SOURCE ${TESTS_SOURCE} ${BENCHMARK_TESTS_SOURCE})
 
-        FILE(COPY ${CMAKE_SOURCE_DIR}/models/test_parameters.conf DESTINATION ${CMAKE_BINARY_DIR})
-        FILE(COPY ${CMAKE_SOURCE_DIR}/models/test2_parameters.conf DESTINATION ${CMAKE_BINARY_DIR})
-        FILE(COPY ${CMAKE_SOURCE_DIR}/models/test3_parameters.conf DESTINATION ${CMAKE_BINARY_DIR})
-        FILE(COPY ${CMAKE_SOURCE_DIR}/models/test4_parameters.conf DESTINATION ${CMAKE_BINARY_DIR})
+        FILE(COPY ${CMAKE_SOURCE_DIR}/models/test_parameters.conf  DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
+        FILE(COPY ${CMAKE_SOURCE_DIR}/models/test2_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
+        FILE(COPY ${CMAKE_SOURCE_DIR}/models/test3_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
+        FILE(COPY ${CMAKE_SOURCE_DIR}/models/test4_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
     else ()
         set(FINAL_TESTS_SOURCE ${TESTS_SOURCE})
     endif ()

@@ -27,6 +27,15 @@ if (USE_CPR_CPP)
     set(CPR_CPP_LIBRARY_LOCATION cpr::cpr)
 endif()
 
+
+#FetchContent_Declare(
+#        pybind11
+#        GIT_REPOSITORY https://github.com/pybind/pybind11
+#        GIT_TAG        v2.10.3
+#)
+#FetchContent_MakeAvailable(pybind11)
+#include_directories(${pybind11_INCLUDE_DIRS})
+
 if (USE_YAML_CPP)
 
     if (BUILD_YAML_CPP_SOURCE)
@@ -37,7 +46,6 @@ if (USE_YAML_CPP)
         )
         set(YAML_CPP_BUILD_TESTS OFF)
         FetchContent_MakeAvailable(yaml-cpp)
-        message(STATUS "Downloaded yaml-cpp version ${yaml-cpp_VERSION}")
 
         set(YAML_CPP_LIBRARY_LOCATION yaml-cpp)
     else ()
@@ -45,7 +53,6 @@ if (USE_YAML_CPP)
 
         include_directories(${YAML_CPP_INCLUDE_DIR})
         set(YAML_CPP_LIBRARY_LOCATION ${YAML_CPP_LIBRARIES})
-        message(STATUS "Found yaml-cpp version ${yaml-cpp_VERSION}")
     endif ()
 endif ()
 
@@ -62,20 +69,19 @@ if (BUILD_TESTS)
     include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
     # Add model for tests
-    FILE(COPY ${CMAKE_SOURCE_DIR}/models/resnet18-v2-7-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR})
-    FILE(COPY ${CMAKE_SOURCE_DIR}/models/version-RFB-640-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR})
-    FILE(COPY ${CMAKE_SOURCE_DIR}/models/mobilenet_v2-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR})
+    FILE(COPY ${CMAKE_SOURCE_DIR}/models/resnet18-v2-7-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR}/test_data/models)
+    FILE(COPY ${CMAKE_SOURCE_DIR}/models/version-RFB-640-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR}/test_data/models)
+    FILE(COPY ${CMAKE_SOURCE_DIR}/models/mobilenet_v2-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR}/test_data/models)
 
-    FILE(COPY ${CMAKE_SOURCE_DIR}/models/aMLLibrary_prediction_tegra.csv DESTINATION ${CMAKE_BINARY_DIR})
-    FILE(COPY ${CMAKE_SOURCE_DIR}/models/aMLLibrary_prediction_pi.csv DESTINATION ${CMAKE_BINARY_DIR})
+    FILE(COPY ${CMAKE_SOURCE_DIR}/models/aMLLibrary_prediction_tegra.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
+    FILE(COPY ${CMAKE_SOURCE_DIR}/models/aMLLibrary_prediction_pi.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
 
-    FILE(COPY ${CMAKE_SOURCE_DIR}/models/official_operation_time.csv DESTINATION ${CMAKE_BINARY_DIR})
-    FILE(COPY ${CMAKE_SOURCE_DIR}/models/operation_time_cloud.csv DESTINATION ${CMAKE_BINARY_DIR})
-    FILE(COPY ${CMAKE_SOURCE_DIR}/models/operation_time_cloud_slow.csv DESTINATION ${CMAKE_BINARY_DIR})
-    FILE(COPY ${CMAKE_SOURCE_DIR}/models/operation_time_edge.csv DESTINATION ${CMAKE_BINARY_DIR})
+    FILE(COPY ${CMAKE_SOURCE_DIR}/models/official_operation_time.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
+    FILE(COPY ${CMAKE_SOURCE_DIR}/models/operation_time_cloud.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
+    FILE(COPY ${CMAKE_SOURCE_DIR}/models/operation_time_cloud_slow.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
+    FILE(COPY ${CMAKE_SOURCE_DIR}/models/operation_time_edge.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
 endif ()
 
-
-set(TMP_LIBRARIES_LOCATION ${PROTOBUF_LIBRARY_LOCATION} ${YAML_CPP_LIBRARY_LOCATION} ${CPR_CPP_LIBRARY_LOCATION})
+set(TMP_LIBRARIES_LOCATION ${PROTOBUF_LIBRARY_LOCATION} pybind11::embed ${YAML_CPP_LIBRARY_LOCATION} ${CPR_CPP_LIBRARY_LOCATION})
 set(RUN_LIBRARIES_LOCATION ${TMP_LIBRARIES_LOCATION} PARENT_SCOPE)
 set(TEST_LIBRARIES_LOCATION ${TMP_LIBRARIES_LOCATION} gtest gtest_main PARENT_SCOPE)

@@ -160,6 +160,16 @@ namespace network_butcher_utilities
     return s;
   }
 
+  /// It combines the two input paths
+  /// \param first first path
+  /// \param second second path
+  /// \return path concatenation
+  static inline std::string
+  combine_path(std::string const &first, std::string const &second)
+  {
+    return first.back() != '/' ? first + "/" + second : first + second;
+  }
+
 } // namespace network_butcher_utilities
 
 #endif // NETWORK_BUTCHER_UTILITIES_H
