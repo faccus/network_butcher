@@ -5,9 +5,9 @@
 #ifndef NETWORK_BUTCHER_ONNX_IMPORTER_HELPERS_H
 #define NETWORK_BUTCHER_ONNX_IMPORTER_HELPERS_H
 
-#include "../Butcher.h"
-#include "../Traits/Graph_traits.h"
-#include "../Types/Parameters.h"
+#include "Butcher.h"
+#include "Graph_traits.h"
+#include "Parameters.h"
 
 /// This namespace contains all the methods required to import a .onnx model to a Graph object
 namespace network_butcher_io::Onnx_importer_helpers

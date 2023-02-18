@@ -1,7 +1,7 @@
 //
 // Created by faccus on 12/20/22.
 //
-#include "../../include/Computer/Computer_flops.h"
+#include "Computer_flops.h"
 
 bool network_butcher_computer::Computer_flops::factory_initialized = false;
 

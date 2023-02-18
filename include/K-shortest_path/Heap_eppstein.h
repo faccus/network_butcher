@@ -5,7 +5,7 @@
 #ifndef NETWORK_BUTCHER_HEAP_EPPSTEIN_H
 #define NETWORK_BUTCHER_HEAP_EPPSTEIN_H
 
-#include "../Traits/Node_traits.h"
+#include "Node_traits.h"
 #include "Heap.h"
 #include <limits>
 #include <memory>

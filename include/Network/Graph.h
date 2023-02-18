@@ -12,10 +12,10 @@
 #include <utility>
 #include <vector>
 
-#include "../../src/Onnx_model/onnx.pb.h"
+#include "onnx.pb.h"
 
-#include "../Traits/Node_traits.h"
-#include "../Types/Content.h"
+#include "Node_traits.h"
+#include "Content.h"
 #include "Node.h"
 
 namespace network_butcher_types

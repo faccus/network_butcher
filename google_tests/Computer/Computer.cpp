@@ -5,11 +5,11 @@
 #include <gtest/gtest.h>
 #include <memory>
 
-#include "../../include/Computer/Computer_flops.h"
-#include "../../include/Computer/Computer_memory.h"
-#include "../TestClass.h"
+#include "Computer_flops.h"
+#include "Computer_memory.h"
+#include "TestClass.h"
 
-#include "../../include/IO_Manager.h"
+#include "IO_Manager.h"
 
 namespace ComputerMemoryTests
 {

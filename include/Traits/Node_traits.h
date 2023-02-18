@@ -7,9 +7,9 @@
 
 #include <memory>
 
-#include "../Network/Node.h"
-#include "../Types/Content.h"
-#include "../Types/Type_info.h"
+#include "Node.h"
+#include "Content.h"
+#include "Type_info.h"
 
 using graph_input_type        = network_butcher_types::Content<type_info_pointer>;
 using node_type               = network_butcher_types::Node<graph_input_type>;

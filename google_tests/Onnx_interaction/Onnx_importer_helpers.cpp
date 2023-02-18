@@ -2,7 +2,7 @@
 // Created by faccus on 8/8/22.
 //
 
-#include "../../include/IO_Interaction/Onnx_importer_helpers.h"
+#include "Onnx_importer_helpers.h"
 
 #include <gtest/gtest.h>
 

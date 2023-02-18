@@ -5,7 +5,7 @@
 #ifndef NETWORK_BUTCHER_KEPPSTEIN_H
 #define NETWORK_BUTCHER_KEPPSTEIN_H
 
-#include "../Traits/Heap_traits.h"
+#include "Heap_traits.h"
 #include "KFinder.h"
 
 namespace network_butcher_kfinder

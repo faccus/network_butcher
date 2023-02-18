@@ -5,8 +5,10 @@ if (BUILD_PROTOBUF_SOURCE)
 
     FetchContent_Declare(
             protobuf
-            URL https://github.com/protocolbuffers/protobuf/releases/download/v3.17.3/protobuf-cpp-3.17.3.zip
+            GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
+            GIT_TAG        v3.17.3
             SOURCE_SUBDIR cmake
+            OVERRIDE_FIND_PACKAGE
     )
     option(protobuf_BUILD_TESTS OFF)
 
@@ -18,6 +20,7 @@ else ()
     list(APPEND TMP_LIBRARIES_LOCATION ${Protobuf_LIBRARIES})
     message(STATUS "Found protobuf version ${Protobuf_VERSION}")
 endif ()
+
 
 if (USE_CPR_CPP)
     FetchContent_Declare(cpr GIT_REPOSITORY https://github.com/libcpr/cpr.git

@@ -9,7 +9,7 @@
 #include <memory>
 #include <set>
 
-#include "../Types/Type_info.h"
+#include "Type_info.h"
 
 
 using type_info_pointer = std::shared_ptr<network_butcher_types::Type_info>;

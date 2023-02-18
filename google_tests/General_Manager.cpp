@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
-#include "../include/General_Manager.h"
+#include "General_Manager.h"
 
 
 namespace

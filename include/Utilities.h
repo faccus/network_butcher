@@ -8,12 +8,12 @@
 #include <filesystem>
 #include <fstream>
 
-#include "../src/Onnx_model/onnx.pb.h"
-#include "Traits/Basic_traits.h"
-#include "Traits/Type_info_traits.h"
+#include "onnx.pb.h"
+#include "Basic_traits.h"
+#include "Type_info_traits.h"
 
-#include "Types/Dense_tensor.h"
-#include "Types/Type_info.h"
+#include "Dense_tensor.h"
+#include "Type_info.h"
 
 
 namespace network_butcher_utilities

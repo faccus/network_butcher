@@ -5,7 +5,7 @@
 #ifndef NETWORK_BUTCHER_KFINDER_H
 #define NETWORK_BUTCHER_KFINDER_H
 
-#include "../Traits/Heap_traits.h"
+#include "Heap_traits.h"
 #include "Shortest_path_finder.h"
 
 namespace network_butcher_kfinder

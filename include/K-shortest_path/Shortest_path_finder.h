@@ -5,7 +5,7 @@
 #ifndef NETWORK_BUTCHER_SHORTEST_PATH_FINDER_H
 #define NETWORK_BUTCHER_SHORTEST_PATH_FINDER_H
 
-#include "../Traits/Graph_traits.h"
+#include "Graph_traits.h"
 
 #include "Heap_eppstein.h"
 #include "Path_info.h"

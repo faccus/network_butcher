@@ -2,8 +2,8 @@
 // Created by faccus on 11/09/21.
 //
 
-#include "../../include/Network/Graph.h"
-#include "../TestClass.h"
+#include "Graph.h"
+#include "TestClass.h"
 #include <gtest/gtest.h>
 
 namespace

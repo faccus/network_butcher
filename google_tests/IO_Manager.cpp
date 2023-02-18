@@ -1,7 +1,7 @@
 //
 // Created by root on 12/04/22.
 //
-#include "../include/IO_Manager.h"
+#include "IO_Manager.h"
 #include <gtest/gtest.h>
 
 namespace

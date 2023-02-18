@@ -2,9 +2,7 @@
 // Created by faccus on 28/08/21.
 //
 
-#include "../../include/Types/Dense_tensor.h"
-
-#include <utility>
+#include "Dense_tensor.h"
 
 
 network_butcher_types::Dense_tensor::Dense_tensor(type_info_id_type       in_type_id,

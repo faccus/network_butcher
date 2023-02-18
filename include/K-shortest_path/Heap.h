@@ -5,8 +5,8 @@
 #ifndef NETWORK_BUTCHER_HEAP_H
 #define NETWORK_BUTCHER_HEAP_H
 
-#include "../Traits/Basic_traits.h"
-#include "../Traits/Node_traits.h"
+#include "Basic_traits.h"
+#include "Node_traits.h"
 
 #include <utility>
 #include <vector>

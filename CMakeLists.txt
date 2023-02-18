@@ -40,7 +40,6 @@ message(STATUS "Build tests: ${BUILD_TESTS}")
 option(BUILD_BENCHMARK "Build benchmark tests" OFF)
 message(STATUS "Build benchmark tests: ${BUILD_BENCHMARK}")
 
-
 ########################################################################################################################
 ########################################################################################################################
 ########################################################################################################################
@@ -50,19 +49,30 @@ if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.24.0")
     cmake_policy(SET CMP0135 NEW)
 endif()
 
-# Dependencies manager
-add_subdirectory(cmake)
-
 # Download onnx file and create source files
-add_subdirectory(include)
 add_subdirectory(src)
 
+# Dependencies manager
+add_subdirectory(cmake)
 
 if (USE_YAML_CPP)
     add_compile_definitions(YAML_CPP_ACTIVE)
 endif ()
 
-add_executable(network_butcher src/main.cpp ${BASE_SOURCE} ${BASE_HEADER})
+
+add_executable(network_butcher src/main.cpp ${BASE_SOURCE})
+target_include_directories(network_butcher PUBLIC
+        include
+        include/APSC
+        include/Computer
+        include/IO_Interaction
+        include/K-shortest_path
+        include/Network
+        include/Traits
+        include/Types
+        src/Onnx_model
+)
+
 target_link_libraries(network_butcher ${RUN_LIBRARIES_LOCATION})
 
 if (BUILD_TESTS)
@@ -81,12 +91,26 @@ if (BUILD_TESTS)
 
     enable_testing()
 
-    add_executable(test_run ${FINAL_TESTS_SOURCE} ${BASE_SOURCE} ${BASE_HEADER})
+    add_executable(test_run ${FINAL_TESTS_SOURCE} ${BASE_SOURCE})
+
+
+    target_include_directories(test_run PUBLIC
+            include
+            include/APSC
+            include/Computer
+            include/IO_Interaction
+            include/K-shortest_path
+            include/Network
+            include/Traits
+            include/Types
+            google_tests
+            src/Onnx_model
+            )
     target_link_libraries(test_run ${TEST_LIBRARIES_LOCATION})
+
     include(GoogleTest)
     gtest_discover_tests(test_run)
 endif ()
-
 
 if (BUILD_DOC)
     add_subdirectory(doc)

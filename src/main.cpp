@@ -1,5 +1,4 @@
-#include "../include/APSC/GetPot"
-#include "../include/General_Manager.h"
+#include "General_Manager.h"
 
 
 int

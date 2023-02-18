@@ -1,7 +1,7 @@
 //
 // Created by faccus on 8/7/22.
 //
-#include "../../include/IO_Interaction/Onnx_importer_helpers.h"
+#include "Onnx_importer_helpers.h"
 
 std::unordered_map<std::string, std::vector<network_butcher_types::DynamicType>>
 network_butcher_io::Onnx_importer_helpers::process_node_attributes(const onnx::NodeProto &node)
