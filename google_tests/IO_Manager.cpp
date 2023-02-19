@@ -28,8 +28,8 @@ namespace
                                                    weight_path,
                                                    0);
 
-    ASSERT_EQ(graph.get_weigth(0, {73, 74}), 0.018818040739131837);
-    ASSERT_EQ(graph.get_weigth(0, {0, 1}), 0.);
+    ASSERT_EQ(graph.get_weight(0, {73, 74}), 0.018818040739131837);
+    ASSERT_EQ(graph.get_weight(0, {0, 1}), 0.);
   }
 
   TEST(IOManagerTestSuit, ImportOnnxTest)

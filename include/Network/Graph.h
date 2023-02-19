@@ -74,7 +74,7 @@ namespace network_butcher_types
     /// Get the collection of dependencies (as a const reference)
     /// \return The dependencies
     [[nodiscard]] inline const Dependencies_Type &
-    get_dependencies() const
+    get_neighbors() const
     {
       return dependencies;
     }
@@ -82,7 +82,7 @@ namespace network_butcher_types
     /// Get the collection of dependencies (as a reference)
     /// \return The dependencies
     [[nodiscard]] inline Dependencies_Type &
-    get_dependencies_ref()
+    get_neighbors_ref()
     {
       return dependencies;
     }
@@ -254,7 +254,7 @@ namespace network_butcher_types
     /// Get the collection of dependencies (as a const reference)
     /// \return The dependencies
     [[nodiscard]] inline const Dependencies_Type &
-    get_dependencies() const
+    get_neighbors() const
     {
       return dependencies;
     }
@@ -262,7 +262,7 @@ namespace network_butcher_types
     /// Get the collection of dependencies (as a reference)
     /// \return The dependencies
     [[nodiscard]] inline Dependencies_Type &
-    get_dependencies_ref()
+    get_neighbors_ref()
     {
       return dependencies;
     }

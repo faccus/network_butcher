@@ -56,7 +56,7 @@ namespace network_butcher_kfinder
     [[nodiscard]] std::vector<path_info>
     compute(std::size_t K) const override;
 
-    explicit KFinder_Eppstein(Graph_type const &g)
+    explicit KFinder_Eppstein(Weighted_Graph<Graph_type> const &g)
       : base(g){};
 
     ~KFinder_Eppstein() override = default;
@@ -77,7 +77,7 @@ namespace network_butcher_kfinder
         h_out_entry_it->second->heap.id = tail_node.get_id();
 
         auto const &tail = tail_node.get_id();
-        for (auto const &head : graph.get_dependencies()[tail].second)
+        for (auto const &head : graph.get_neighbors()[tail].second)
           {
             if (head != successors[tail])
               {

@@ -49,7 +49,7 @@ namespace network_butcher_types
     /// \param edge The edge
     /// \return The weight
     [[nodiscard]] weight_type
-    get_weigth(std::size_t device, edge_type const &edge) const
+    get_weight(std::size_t device, edge_type const &edge) const
     {
       auto const &map = weigth_map[device];
       auto const  p   = map.find(edge);
@@ -64,7 +64,7 @@ namespace network_butcher_types
     /// \param edge The edge
     /// \param weight The weight
     void
-    set_weigth(std::size_t device, edge_type const &edge, weight_type weight)
+    set_weight(std::size_t device, edge_type const &edge, weight_type weight)
     {
       weigth_map[device][edge] = weight;
     }
@@ -128,7 +128,7 @@ namespace network_butcher_types
     /// \param edge The edge
     /// \return The weight
     [[nodiscard]] weight_type
-    get_weigth(std::size_t device, edge_type const &edge) const
+    get_weight(std::size_t device, edge_type const &edge) const
     {
       auto const &map = weigth_map[device];
       auto const  p   = map.find(edge);
@@ -143,7 +143,7 @@ namespace network_butcher_types
     /// \param edge The edge
     /// \param weight The weight
     void
-    set_weigth(std::size_t device, edge_type const &edge, weight_type weight)
+    set_weight(std::size_t device, edge_type const &edge, weight_type weight)
     {
       weigth_map[device][edge] = weight;
     }

@@ -70,7 +70,7 @@ namespace network_butcher_kfinder
     [[nodiscard]] std::vector<path_info>
     compute(std::size_t K) const override;
 
-    explicit KFinder_Lazy_Eppstein(Graph_type const &g)
+    explicit KFinder_Lazy_Eppstein(Weighted_Graph<Graph_type> const &g)
       : base(g){};
 
     ~KFinder_Lazy_Eppstein() override = default;
@@ -110,7 +110,7 @@ namespace network_butcher_kfinder
     auto const succ = successors[node];
 
     // For every "sidetrack" node in the outer start of node
-    for (auto const &exit : graph.get_dependencies()[node].second)
+    for (auto const &exit : graph.get_neighbors()[node].second)
       if (exit != succ)
         {
           auto const edge    = std::make_pair(node, exit);

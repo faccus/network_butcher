@@ -246,9 +246,9 @@ network_butcher_io::IO_Manager::Helper_Functions::import_weights_aMLLibrary(grap
       if (it == graph.get_nodes().cend())
         return;
 
-      for (auto const &successor : graph.get_dependencies()[it->get_id()].second)
+      for (auto const &successor : graph.get_neighbors()[it->get_id()].second)
         {
-          graph.set_weigth(device, {it->get_id(), successor}, tmp_weight);
+          graph.set_weight(device, {it->get_id(), successor}, tmp_weight);
         }
 
       ++it;
@@ -295,9 +295,9 @@ network_butcher_io::IO_Manager::Helper_Functions::import_weights_custom_csv_oper
       if (it == graph.get_nodes().cend())
         return;
 
-      for (auto const &successor : graph.get_dependencies()[it->get_id()].second)
+      for (auto const &successor : graph.get_neighbors()[it->get_id()].second)
         {
-          graph.set_weigth(device, {it->get_id(), successor}, tmp_weight);
+          graph.set_weight(device, {it->get_id(), successor}, tmp_weight);
         }
 
       ++it;
@@ -412,9 +412,9 @@ network_butcher_io::IO_Manager::Helper_Functions::import_weights_official_csv_mu
       for (auto tmp_weights_it = tmp_weights.cbegin(); tmp_weights_it != tmp_weights.cend() && j < devices.size();
            ++tmp_weights_it, ++j)
         {
-          for (auto const &successor : graph.get_dependencies()[it->get_id()].second)
+          for (auto const &successor : graph.get_neighbors()[it->get_id()].second)
             {
-              graph.set_weigth(devices[j], {it->get_id(), successor}, tmp_weight);
+              graph.set_weight(devices[j], {it->get_id(), successor}, tmp_weight);
             }
         }
 
@@ -462,9 +462,9 @@ network_butcher_io::IO_Manager::Helper_Functions::import_weights_custom_csv_mult
         {
           tmp_weight = ::atof(tmp_line.c_str());
 
-          for (auto const &successor : graph.get_dependencies()[it->get_id()].second)
+          for (auto const &successor : graph.get_neighbors()[it->get_id()].second)
             {
-              graph.set_weigth(devices[j], {it->get_id(), successor}, tmp_weight);
+              graph.set_weight(devices[j], {it->get_id(), successor}, tmp_weight);
             }
 
           ++it;

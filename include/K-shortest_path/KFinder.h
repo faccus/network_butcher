@@ -16,7 +16,7 @@ namespace network_butcher_kfinder
   class KFinder
   {
   protected:
-    Graph_type const &graph;
+    Weighted_Graph<Graph_type> const &graph;
 
     using callback_function_helper_eppstein = std::function<void(H_g_collection &,
                                                                  H_out_collection &,
@@ -89,7 +89,7 @@ namespace network_butcher_kfinder
     [[nodiscard]] virtual std::vector<path_info>
     compute(std::size_t K) const = 0;
 
-    explicit KFinder(Graph_type const &g)
+    explicit KFinder(Weighted_Graph<Graph_type> const &g)
       : graph(g){};
 
     virtual ~KFinder() = default;
@@ -117,12 +117,12 @@ namespace network_butcher_kfinder
     auto const num_nodes = graph.size();
 
     for (std::size_t tail = 0; tail < num_nodes; ++tail)
-      for (auto const &head : graph.get_dependencies()[tail].second)
+      for (auto const &head : graph.get_neighbors()[tail].second)
         {
           auto const edge = std::make_pair(tail, head);
 
           res.insert(res.cend(),
-                     {edge, graph.get_weigth(edge) + distances_from_sink[head] - distances_from_sink[tail]}); // O(1)
+                     {edge, graph.get_weight(edge) + distances_from_sink[head] - distances_from_sink[tail]}); // O(1)
         }
 
     return res;

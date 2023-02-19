@@ -46,15 +46,15 @@ namespace
   complete_weights(Graph &graph)
   {
     auto const  num_nodes    = graph.get_nodes().size();
-    auto const &dependencies = graph.get_dependencies();
+    auto const &dependencies = graph.get_neighbors();
 
     for (node_id_type tail = 0; tail < num_nodes; ++tail)
       for (auto const &head : dependencies[tail].second)
         {
           for (std::size_t k = 0; k < graph.get_num_devices(); ++k)
             {
-              if (graph.get_weigth(k, {tail, head}) == -1.)
-                graph.set_weigth(k, {tail, head}, 0.);
+              if (graph.get_weight(k, {tail, head}) == -1.)
+                graph.set_weight(k, {tail, head}, 0.);
             }
         }
   };
@@ -173,14 +173,14 @@ namespace
 
     for (std::size_t k = 0; k < graph.get_num_devices(); ++k)
       {
-        graph.set_weigth(k, {0, 1}, 1000. / std::pow(2, k));
-        graph.set_weigth(k, {1, 2}, 1000. / std::pow(2, k));
-        graph.set_weigth(k, {1, 3}, 500. / std::pow(2, k));
-        graph.set_weigth(k, {3, 4}, 500. / std::pow(2, k));
-        graph.set_weigth(k, {2, 5}, 1000. / std::pow(2, k));
-        graph.set_weigth(k, {4, 5}, 1000. / std::pow(2, k));
-        graph.set_weigth(k, {5, 6}, 1000. / std::pow(2, k));
-        graph.set_weigth(k, {6, 7}, 0.);
+        graph.set_weight(k, {0, 1}, 1000. / std::pow(2, k));
+        graph.set_weight(k, {1, 2}, 1000. / std::pow(2, k));
+        graph.set_weight(k, {1, 3}, 500. / std::pow(2, k));
+        graph.set_weight(k, {3, 4}, 500. / std::pow(2, k));
+        graph.set_weight(k, {2, 5}, 1000. / std::pow(2, k));
+        graph.set_weight(k, {4, 5}, 1000. / std::pow(2, k));
+        graph.set_weight(k, {5, 6}, 1000. / std::pow(2, k));
+        graph.set_weight(k, {6, 7}, 0.);
       }
 
     return Butcher(std::move(graph));

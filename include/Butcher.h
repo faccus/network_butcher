@@ -191,7 +191,7 @@ Butcher<GraphType>::block_graph(bool        backward_connections_allowed,
 
   new_network::Dependencies_Type new_dependencies;
 
-  auto const &old_dependencies = graph.get_dependencies();
+  auto const &old_dependencies = graph.get_neighbors();
   auto const &old_nodes        = graph.get_nodes();
 
 
@@ -452,7 +452,7 @@ Butcher<GraphType>::estimate_maximum_memory_usage(const std::vector<network_butc
       fixed_memory =
         std::reduce(std::next(params_memory.begin(), *ids.cbegin()), std::next(params_memory.begin(), *ids.crbegin()));
     }
-  auto const &dependencies = graph.get_dependencies();
+  auto const &dependencies = graph.get_neighbors();
   std::size_t qty          = 1;
 
 
@@ -511,12 +511,12 @@ Butcher<GraphType>::remove_unfeasible_paths(const std::vector<network_butcher_pa
 
 
   auto const dependencies_clear = [&](node_id_type const &node_id) {
-    auto &dep = new_graph.get_dependencies_ref()[node_id];
+    auto &dep = new_graph.get_neighbors_ref()[node_id];
 
     for (auto const &in : dep.first)
-      new_graph.get_dependencies_ref()[in].second.erase(node_id);
+      new_graph.get_neighbors_ref()[in].second.erase(node_id);
     for (auto const &out : dep.second)
-      new_graph.get_dependencies_ref()[out].first.erase(node_id);
+      new_graph.get_neighbors_ref()[out].first.erase(node_id);
 
     dep.first.clear();
     dep.second.clear();
@@ -612,7 +612,7 @@ Butcher<GraphType>::block_graph_weights(
                 [&new_graph, &graph = graph, &transmission_weights](new_network::Node_Type const &node) {
                   auto const first = node.get_id();
 
-                  for (auto const &second : new_graph.get_dependencies()[node.get_id()].second)
+                  for (auto const &second : new_graph.get_neighbors()[node.get_id()].second)
                     {
                       auto const &out_node = new_graph[second];
 
@@ -646,7 +646,7 @@ Butcher<GraphType>::block_graph_weights(
                           auto const tmp_edge = std::make_pair(input, output);
 
                           auto const transmission_weight = transmission_weights(input, in_device_id, out_device_id);
-                          auto const weight              = graph.get_weigth(out_device_id, tmp_edge);
+                          auto const weight              = graph.get_weight(out_device_id, tmp_edge);
 
                           final_cost = transmission_weight + weight;
                         }
@@ -659,14 +659,14 @@ Butcher<GraphType>::block_graph_weights(
                           weight_type transmission_costs = .0;
 
                           auto const &output       = *outputs.begin();
-                          auto const &dependencies = graph.get_dependencies();
+                          auto const &dependencies = graph.get_neighbors();
 
                           // The inputs on the original graph of the output node have to
                           // transmit their values to the output node
                           for (auto const &input : dependencies[output].first)
                             {
                               transmission_costs += transmission_weights(input, in_device_id, out_device_id);
-                              weight_cost += graph.get_weigth(out_device_id, std::make_pair(input, output));
+                              weight_cost += graph.get_weight(out_device_id, std::make_pair(input, output));
                             }
 
                           final_cost = transmission_costs + weight_cost;
@@ -679,12 +679,12 @@ Butcher<GraphType>::block_graph_weights(
                           weight_type weight_costs      = .0;
                           weight_type transmission_cost = .0;
 
-                          auto const &dependencies = graph.get_dependencies();
+                          auto const &dependencies = graph.get_neighbors();
                           auto const &input        = *inputs.begin();
                           auto const &comm_outputs = dependencies[*inputs.begin()].second;
 
                           for (auto const &output : comm_outputs)
-                            weight_costs += graph.get_weigth(out_device_id, std::make_pair(input, output));
+                            weight_costs += graph.get_weight(out_device_id, std::make_pair(input, output));
                           transmission_cost += transmission_weights(input, in_device_id, out_device_id);
 
                           // Compute the total weight associated to the internal edges
@@ -694,7 +694,7 @@ Butcher<GraphType>::block_graph_weights(
                                 {
                                   if (outputs.find(internal_output) != outputs.cend())
                                     {
-                                      weight_costs += graph.get_weigth(out_device_id,
+                                      weight_costs += graph.get_weight(out_device_id,
                                                                        std::make_pair(internal_input, internal_output));
                                     }
                                 }
@@ -707,7 +707,7 @@ Butcher<GraphType>::block_graph_weights(
                           std::cout << "Warning: we couldn't determine a weight!" << std::endl;
                         }
 
-                      new_graph.set_weigth(edge, final_cost);
+                      new_graph.set_weight(edge, final_cost);
                     }
                 });
 }

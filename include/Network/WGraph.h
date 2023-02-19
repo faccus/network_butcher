@@ -6,6 +6,7 @@
 #define NETWORK_BUTCHER_WGRAPH_H
 
 #include "MWGraph.h"
+#include "Weighted_Graph.h"
 
 namespace network_butcher_types
 {
@@ -38,18 +39,18 @@ namespace network_butcher_types
     /// \param edge The edge
     /// \return The weight
     [[nodiscard]] weight_type
-    get_weigth(edge_type const &edge) const
+    get_weight(edge_type const &edge) const
     {
-      return Parent_type::get_weigth(0, edge);
+      return Parent_type::get_weight(0, edge);
     }
 
     /// Set the weight for the given edge
     /// \param edge The edge
     /// \param weight The weight
     void
-    set_weigth(edge_type const &edge, weight_type weight)
+    set_weight(edge_type const &edge, weight_type weight)
     {
-      Parent_type::set_weigth(0, edge, weight);
+      Parent_type::set_weight(0, edge, weight);
     }
   };
 
@@ -87,20 +88,88 @@ namespace network_butcher_types
     /// \param edge The edge
     /// \return The weight
     [[nodiscard]] weight_type
-    get_weigth(edge_type const &edge) const
+    get_weight(edge_type const &edge) const
     {
-      return Parent_type::get_weigth(0, edge);
+      return Parent_type::get_weight(0, edge);
     }
 
     /// Set the weight for the given edge
     /// \param edge The edge
     /// \param weight The weight
     void
-    set_weigth(edge_type const &edge, weight_type weight)
+    set_weight(edge_type const &edge, weight_type weight)
     {
-      Parent_type::set_weigth(0, edge, weight);
+      Parent_type::set_weight(0, edge, weight);
     }
   };
+
 } // namespace network_butcher_types
+
+namespace network_butcher_kfinder {
+
+  template <class T>
+  class Weighted_Graph<network_butcher_types::WGraph<T>>  {
+
+  public:
+    using Node_Id_Type = std::size_t;
+    using Edge_Type = std::pair<Node_Id_Type, Node_Id_Type>;
+    using Graph_Type = network_butcher_types::WGraph<T>;
+    using Node_Type = Graph_Type::Node_Type;
+
+
+    weight_type
+    get_weight(Edge_Type const &edge) const {
+      return graph.get_weight(edge);
+    }
+
+    std::size_t
+    size() const {
+      return graph.size();
+    };
+
+    bool
+    empty() const {
+      return graph.empty();
+    };
+
+
+
+    std::set<Node_Id_Type>
+    get_input_nodes(Node_Id_Type const &id) const {
+      return graph.get_neighbors()[id].first;
+    };
+
+    std::set<Node_Id_Type>
+    get_output_nodes(Node_Id_Type const &id) const{
+      return graph.get_neighbors()[id].second;
+    };
+
+    std::vector<std::pair<std::set<Node_Id_Type>, std::set<Node_Id_Type>>> const &
+    get_neighbors() const {
+      return graph.get_neighbors();
+    };
+
+
+
+    std::vector<Node_Type> const &
+      get_nodes() const {
+      return graph.get_nodes();
+    }
+
+    Node_Type const &
+    operator[](Node_Id_Type const &id) const{
+      return graph[id];
+    };
+
+
+
+
+    Weighted_Graph(Graph_Type &g) : graph(g) {}
+
+  private:
+    Graph_Type const &graph;
+  };
+}
+
 
 #endif // NETWORK_BUTCHER_WGRAPH_H
