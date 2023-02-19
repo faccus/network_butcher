@@ -3,6 +3,7 @@
 /cmake-build-release/
 /build/
 /ML_inputs/
+/onnx_proto/onnx
 /scripts/a-ML files/output_test_decision_tree
 /scripts/a-ML files/output_test_random_forest
 /scripts/a-ML files/output_test_ridge

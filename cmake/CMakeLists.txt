@@ -14,11 +14,25 @@ if (BUILD_PROTOBUF_SOURCE)
 
     FetchContent_MakeAvailable(protobuf)
 
-    list(APPEND TMP_LIBRARIES_LOCATION protobuf::libprotobuf)
+    list(APPEND RUN_LIBRARIES_LOCATION protobuf::libprotobuf)
+
+    list(APPEND EXTRA_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/onnx_proto)
+    list(APPEND BASE_SOURCE ${CMAKE_SOURCE_DIR}/onnx_proto/onnx.pb.cc)
+
 else ()
     find_package(Protobuf REQUIRED)
-    list(APPEND TMP_LIBRARIES_LOCATION ${Protobuf_LIBRARIES})
-    message(STATUS "Found protobuf version ${Protobuf_VERSION}")
+    list(APPEND RUN_LIBRARIES_LOCATION ${Protobuf_LIBRARIES})
+
+    if(EXISTS ${CMAKE_SOURCE_DIR}/onnx_proto/onnx)
+        file(REMOVE ${CMAKE_SOURCE_DIR}/onnx_proto/onnx)
+    endif()
+
+    file(DOWNLOAD https://raw.githubusercontent.com/onnx/onnx/main/onnx/onnx.proto3 ${CMAKE_SOURCE_DIR}/onnx_proto/onnx)
+
+    protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_SOURCE_DIR}/onnx_proto/onnx)
+
+    list(APPEND EXTRA_INCLUDE_DIR ${CMAKE_BINARY_DIR})
+    list(APPEND BASE_SOURCE ${CMAKE_BINARY_DIR}/onnx.pb.cc)
 endif ()
 
 
@@ -27,7 +41,7 @@ if (USE_CPR_CPP)
             GIT_TAG 0817715923c9705e68994eb52ef9df3f6845beba) # The commit hash for v1.10.0
     FetchContent_MakeAvailable(cpr)
 
-    list(APPEND TMP_LIBRARIES_LOCATION cpr::cpr)
+    list(APPEND RUN_LIBRARIES_LOCATION cpr::cpr)
 endif()
 
 # if(USE_PYBIND)
@@ -42,7 +56,6 @@ endif()
 
 
 if (USE_YAML_CPP)
-
     if (BUILD_YAML_CPP_SOURCE)
         FetchContent_Declare(
                 yaml-cpp
@@ -52,12 +65,12 @@ if (USE_YAML_CPP)
         option(YAML_CPP_BUILD_TESTS OFF)
         FetchContent_MakeAvailable(yaml-cpp)
 
-        list(APPEND TMP_LIBRARIES_LOCATION yaml-cpp)
+        list(APPEND RUN_LIBRARIES_LOCATION yaml-cpp)
     else ()
         find_package(yaml-cpp REQUIRED)
 
         include_directories(${YAML_CPP_INCLUDE_DIR})
-        list(APPEND TMP_LIBRARIES_LOCATION ${YAML_CPP_LIBRARIES})
+        list(APPEND RUN_LIBRARIES_LOCATION ${YAML_CPP_LIBRARIES})
     endif ()
 endif ()
 
@@ -70,28 +83,8 @@ if (BUILD_TESTS)
             GIT_TAG release-1.12.1
     )
     FetchContent_MakeAvailable(googletest)
-
     include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
 
-
-    # Add model for tests
-    FILE(COPY ${CMAKE_SOURCE_DIR}/models/resnet18-v2-7-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR}/test_data/models)
-    FILE(COPY ${CMAKE_SOURCE_DIR}/models/version-RFB-640-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR}/test_data/models)
-    FILE(COPY ${CMAKE_SOURCE_DIR}/models/mobilenet_v2-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR}/test_data/models)
-
-    FILE(COPY ${CMAKE_SOURCE_DIR}/models/aMLLibrary_prediction_tegra.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
-    FILE(COPY ${CMAKE_SOURCE_DIR}/models/aMLLibrary_prediction_pi.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
-
-    FILE(COPY ${CMAKE_SOURCE_DIR}/models/official_operation_time.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
-    FILE(COPY ${CMAKE_SOURCE_DIR}/models/operation_time_cloud.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
-    FILE(COPY ${CMAKE_SOURCE_DIR}/models/operation_time_cloud_slow.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
-    FILE(COPY ${CMAKE_SOURCE_DIR}/models/operation_time_edge.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
-
-
-
-    set(TEST_LIBRARIES_LOCATION ${TMP_LIBRARIES_LOCATION} gtest gtest_main PARENT_SCOPE)
-
+    set(TEST_LIBRARIES_LOCATION ${RUN_LIBRARIES_LOCATION} gtest gtest_main)
 endif ()
-
-set(RUN_LIBRARIES_LOCATION ${TMP_LIBRARIES_LOCATION} PARENT_SCOPE)
