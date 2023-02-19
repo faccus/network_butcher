@@ -19,6 +19,7 @@ using io_collection_type = std::map<std::string, T>;
 
 using node_id_type      = std::size_t;
 using operation_id_type = std::string;
+using weight_type             = double;
 
 
 #endif // NETWORK_BUTCHER_BASIC_TRAITS_H
