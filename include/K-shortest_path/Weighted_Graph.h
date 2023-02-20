@@ -37,9 +37,6 @@ namespace network_butcher_kfinder
     std::set<Node_Id_Type> const &
     get_output_nodes(Node_Id_Type const &id) const;
 
-    std::vector<std::pair<std::set<Node_Id_Type>, std::set<Node_Id_Type>>> const &
-    get_neighbors() const;
-
 
 
 

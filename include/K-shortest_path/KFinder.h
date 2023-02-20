@@ -120,7 +120,7 @@ namespace network_butcher_kfinder
     auto const num_nodes = graph.size();
 
     for (std::size_t tail = 0; tail < num_nodes; ++tail)
-      for (auto const &head : graph.get_neighbors()[tail].second)
+      for (auto const &head : graph.get_output_nodes(tail))
         {
           auto const edge = std::make_pair(tail, head);
 

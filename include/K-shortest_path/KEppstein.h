@@ -76,7 +76,7 @@ namespace network_butcher_kfinder
         h_out_entry_it->second->heap.id = tail_node.get_id();
 
         auto const &tail = tail_node.get_id();
-        for (auto const &head : graph.get_neighbors()[tail].second)
+        for (auto const &head : graph.get_output_nodes(tail))
           {
             if (head != successors[tail])
               {

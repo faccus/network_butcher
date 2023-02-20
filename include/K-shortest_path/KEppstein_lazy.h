@@ -109,7 +109,7 @@ namespace network_butcher_kfinder
     auto const succ = successors[node];
 
     // For every "sidetrack" node in the outer start of node
-    for (auto const &exit : graph.get_neighbors()[node].second)
+    for (auto const &exit : graph.get_output_nodes(node))
       if (exit != succ)
         {
           auto const edge    = std::make_pair(node, exit);

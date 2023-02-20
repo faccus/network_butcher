@@ -144,11 +144,6 @@ namespace network_butcher_kfinder {
       return graph.get_neighbors()[id].second;
     };
 
-    [[nodiscard]] std::vector<std::pair<std::set<Node_Id_Type>, std::set<Node_Id_Type>>> const &
-    get_neighbors() const {
-      return graph.get_neighbors();
-    };
-
 
 
     std::vector<Node_Type> const &

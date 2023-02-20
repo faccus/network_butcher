@@ -82,7 +82,6 @@ namespace network_butcher_kfinder
 
       std::vector<node_id_type>        predecessors(nodes.size(), root);
       std::set<dijkstra_helper_struct> to_visit{{0, root}};
-      auto const                      &dependencies = graph.get_neighbors();
 
       while (!to_visit.empty()) // O(N)
         {

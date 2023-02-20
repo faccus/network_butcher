@@ -28,5 +28,4 @@ public:
   }
 };
 
-
 #endif // NETWORK_BUTCHER_TESTCLASS_H
