@@ -115,6 +115,7 @@ namespace network_butcher_kfinder {
     using Edge_Type = std::pair<Node_Id_Type, Node_Id_Type>;
     using Graph_Type = network_butcher_types::WGraph<T>;
     using Node_Type = Graph_Type::Node_Type;
+    using Node_Collection_Type = std::vector<Node_Type>;
 
 
     [[nodiscard]] weight_type
@@ -146,7 +147,7 @@ namespace network_butcher_kfinder {
 
 
 
-    std::vector<Node_Type> const &
+    Node_Collection_Type const &
       get_nodes() const {
       return graph.get_nodes();
     }

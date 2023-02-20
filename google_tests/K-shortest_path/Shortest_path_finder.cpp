@@ -6,6 +6,7 @@
 #include "KEppstein_lazy.h"
 
 #include "TestClass.h"
+#include "TestGraph.h"
 #include <gtest/gtest.h>
 
 namespace
@@ -23,12 +24,14 @@ namespace
 
   using weights_collection_type = std::map<std::pair<node_id_type, node_id_type>, type_weight>;
 
-
   Graph_type
   basic_graph();
 
   Graph_type
   eppstein_graph();
+
+  TestGraph<basic_type>
+  test_graph();
 
 
   TEST(KspTests, DijkstraSourceSink)
@@ -44,6 +47,17 @@ namespace
   TEST(KspTests, DijkstraSinkSource)
   {
     auto const graph = basic_graph();
+
+    auto res = Shortest_path_finder::dijkstra(graph, 6, true);
+
+    std::vector<node_id_type> theoretical_res = {2, 3, 5, 4, 5, 6, 6};
+
+    ASSERT_EQ(res.first, theoretical_res);
+  }
+
+  TEST(KspTests, DijkstraSinkSourceTestGraph)
+  {
+    auto const graph = test_graph();
 
     auto res = Shortest_path_finder::dijkstra(graph, 6, true);
 
@@ -141,7 +155,6 @@ namespace
     return graph;
   }
 
-
   Graph_type
   eppstein_graph()
   {
@@ -188,5 +201,40 @@ namespace
     graph.set_weight({10, 11}, 11);
 
     return graph;
+  }
+
+  TestGraph<basic_type>
+  test_graph()
+  {
+    using content_in = network_butcher_types::Content<Input>;
+
+    TestGraph<basic_type>  res;
+    std::vector<Node_type> nodes;
+
+    res.nodes = {10, 100, 102, 2, 34, 4, 5};
+
+    res.dependencies[0] = {{}, {1, 2}};
+    res.dependencies[1] = {{0, 2, 4}, {3}};
+    res.dependencies[2] = {{0, 3}, {1, 4, 5}};
+    res.dependencies[3] = {{1, 5}, {2, 4}};
+    res.dependencies[4] = {{2, 3, 6}, {1, 5}};
+    res.dependencies[5] = {{2, 4}, {3, 6}};
+    res.dependencies[6] = {{5}, {4}};
+
+    res.map_weight[{0, 1}] = 4;
+    res.map_weight[{0, 2}] = 1;
+    res.map_weight[{1, 3}] = 3;
+    res.map_weight[{2, 1}] = 2;
+    res.map_weight[{2, 4}] = 9;
+    res.map_weight[{2, 5}] = 4;
+    res.map_weight[{3, 2}] = 1;
+    res.map_weight[{3, 4}] = 2;
+    res.map_weight[{4, 1}] = 0;
+    res.map_weight[{4, 5}] = 1;
+    res.map_weight[{5, 3}] = 1;
+    res.map_weight[{5, 6}] = 2;
+    res.map_weight[{6, 4}] = 2;
+
+    return res;
   }
 } // namespace

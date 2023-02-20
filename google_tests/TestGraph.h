@@ -10,11 +10,12 @@
 template<class T>
 class TestGraph {
 public:
-  std::vector<T> nodes;
+  using Node_Type = T;
+  using Node_Collection_Type = std::vector<Node_Type>;
+
+  Node_Collection_Type nodes;
   std::map<std::size_t, std::pair<std::set<std::size_t>, std::set<std::size_t>>> dependencies;
   std::map<std::pair<std::size_t, std::size_t>, double> map_weight;
-
-  using Node_Type = T;
 };
 
 template<class T>
@@ -27,36 +28,33 @@ public:
 
 
 
-  weight_type
+  [[nodiscard]] weight_type
   get_weight(Edge_Type const &edge) const {
-    return graph.map_weight[edge];
+    auto const it = graph.map_weight.find(edge);
+
+    return it != graph.map_weight.cend() ? it->second : -1;
   };
 
-  std::size_t
+  [[nodiscard]] std::size_t
   size() const {
     return graph.nodes.size();
   };
 
-  bool
+  [[nodiscard]] bool
   empty() const {
     return graph.nodes.empty();
   };
 
 
 
-  std::set<Node_Id_Type> const &
+  [[nodiscard]] std::set<Node_Id_Type> const &
   get_input_nodes(Node_Id_Type const &id) const {
-    return graph.dependencies[id].first;
+    return graph.dependencies.find(id)->second.first;
   };
 
-  std::set<Node_Id_Type> const &
+  [[nodiscard]] std::set<Node_Id_Type> const &
   get_output_nodes(Node_Id_Type const &id) const{
-    return graph.dependencies[id].second;
-  };
-
-  std::vector<std::pair<std::set<Node_Id_Type>, std::set<Node_Id_Type>>> const &
-  get_neighbors() const{
-    return graph.dependencies;
+    return graph.dependencies.find(id)->second.second;
   };
 
 
@@ -64,7 +62,7 @@ public:
 
   Node_Type const &
   operator[](Node_Id_Type const &id) const {
-    return graph.nodes[id];
+    return *graph.nodes.find(id);
   };
 
   std::vector<Node_Type> const &

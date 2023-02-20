@@ -9,14 +9,15 @@
 
 namespace network_butcher_kfinder
 {
-  template<class Base_Weighted_Graph, class Base_Node_Type=Base_Weighted_Graph::Node_Type>
+  template<class Base_Weighted_Graph,
+           class Node_Type=Base_Weighted_Graph::Node_Type,
+           class Node_Collection_Type=Base_Weighted_Graph::Node_Collection_Type>
   class Weighted_Graph {
 
   public:
     using Node_Id_Type = std::size_t;
     using Edge_Type = std::pair<Node_Id_Type, Node_Id_Type>;
     using Graph_Type = Base_Weighted_Graph;
-    using Node_Type = Base_Node_Type;
 
 
 
@@ -43,9 +44,8 @@ namespace network_butcher_kfinder
     Node_Type const &
     operator[](Node_Id_Type const &id) const;
 
-    std::vector<Node_Type> const &
+    Node_Collection_Type const &
     get_nodes() const;
-
 
 
 
