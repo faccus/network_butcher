@@ -24,17 +24,17 @@ namespace
   using weights_collection_type = std::map<std::pair<node_id_type, node_id_type>, type_weight>;
 
 
-  network_butcher_kfinder::Weighted_Graph<Graph_type>
+  Graph_type
   basic_graph();
 
-  network_butcher_kfinder::Weighted_Graph<Graph_type>
+  Graph_type
   eppstein_graph();
 
 
   TEST(KspTests, DijkstraSourceSink)
   {
     auto const graph = basic_graph();
-    auto       res   = Shortest_path_finder<Graph_type>::dijkstra(graph);
+    auto       res   = Shortest_path_finder::dijkstra(graph);
 
     std::vector<node_id_type> theoretical_res = {0, 2, 0, 1, 3, 2, 5};
 
@@ -45,7 +45,7 @@ namespace
   {
     auto const graph = basic_graph();
 
-    auto res = Shortest_path_finder<Graph_type>::dijkstra(graph, 6, true);
+    auto res = Shortest_path_finder::dijkstra(graph, 6, true);
 
     std::vector<node_id_type> theoretical_res = {2, 3, 5, 4, 5, 6, 6};
 
@@ -107,7 +107,7 @@ namespace
     ASSERT_EQ(path_lengths, real_path_lengths);
   }
 
-  network_butcher_kfinder::Weighted_Graph<Graph_type>
+  Graph_type
   basic_graph()
   {
     using content_in = network_butcher_types::Content<Input>;
@@ -142,7 +142,7 @@ namespace
   }
 
 
-  network_butcher_kfinder::Weighted_Graph<Graph_type>
+  Graph_type
   eppstein_graph()
   {
     using content_in = network_butcher_types::Content<Input>;

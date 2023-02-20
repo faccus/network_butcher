@@ -17,7 +17,6 @@ namespace network_butcher_kfinder
   {
   private:
     using base          = KFinder<Graph_type>;
-    using base_shortest = Shortest_path_finder<Graph_type>;
 
 
     std::pair<bool, H_g_collection::iterator>
@@ -70,7 +69,7 @@ namespace network_butcher_kfinder
     [[nodiscard]] std::vector<path_info>
     compute(std::size_t K) const override;
 
-    explicit KFinder_Lazy_Eppstein(Weighted_Graph<Graph_type> const &g)
+    explicit KFinder_Lazy_Eppstein(Graph_type const &g)
       : base(g){};
 
     ~KFinder_Lazy_Eppstein() override = default;
@@ -229,11 +228,11 @@ namespace network_butcher_kfinder
       return {};
 
     // Compute the shortest path tree
-    auto const dij_res = base_shortest::shortest_path_tree(graph); // time: ((N+E)log(N)), space: O(N)
+    auto const dij_res = Shortest_path_finder::shortest_path_tree(graph); // time: ((N+E)log(N)), space: O(N)
 
     // If a single path must be computed, we just have to return the shortest path from the source to the root
     if (K == 1)
-      return {base_shortest::shortest_path_finder(graph, dij_res, 0)};
+      return {Shortest_path_finder::shortest_path_finder(graph, dij_res, 0)};
 
     // Compute the K shortest paths in implicit form
     auto const epp_res = basic_lazy_eppstein(K, dij_res);

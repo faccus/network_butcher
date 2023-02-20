@@ -16,7 +16,7 @@ namespace network_butcher_kfinder
   class KFinder
   {
   protected:
-    Weighted_Graph<Graph_type> const &graph;
+    Weighted_Graph<Graph_type> graph;
 
     using callback_function_helper_eppstein = std::function<void(H_g_collection &,
                                                                  H_out_collection &,
@@ -88,6 +88,9 @@ namespace network_butcher_kfinder
     /// \return The shortest paths
     [[nodiscard]] virtual std::vector<path_info>
     compute(std::size_t K) const = 0;
+
+    explicit KFinder(Graph_type const &g)
+      : graph(g){};
 
     explicit KFinder(Weighted_Graph<Graph_type> const &g)
       : graph(g){};

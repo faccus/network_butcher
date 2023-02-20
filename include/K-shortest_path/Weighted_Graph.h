@@ -31,10 +31,10 @@ namespace network_butcher_kfinder
 
 
 
-    std::set<Node_Id_Type>
+    std::set<Node_Id_Type> const &
     get_input_nodes(Node_Id_Type const &id) const;
 
-    std::set<Node_Id_Type>
+    std::set<Node_Id_Type> const &
     get_output_nodes(Node_Id_Type const &id) const;
 
     std::vector<std::pair<std::set<Node_Id_Type>, std::set<Node_Id_Type>>> const &
@@ -52,8 +52,12 @@ namespace network_butcher_kfinder
 
 
 
-    Weighted_Graph(Graph_Type &g) : graph(g) {}
+    explicit Weighted_Graph(Graph_Type const &g) : graph(g) {}
 
+    Weighted_Graph(Weighted_Graph const &) = delete;
+    Weighted_Graph operator=(Weighted_Graph const &) = delete;
+    Weighted_Graph(Weighted_Graph &&) = delete;
+    Weighted_Graph operator=(Weighted_Graph &&) = delete;
   private:
     Graph_Type const &graph;
   };

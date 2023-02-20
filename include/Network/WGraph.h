@@ -117,34 +117,34 @@ namespace network_butcher_kfinder {
     using Node_Type = Graph_Type::Node_Type;
 
 
-    weight_type
+    [[nodiscard]] weight_type
     get_weight(Edge_Type const &edge) const {
       return graph.get_weight(edge);
     }
 
-    std::size_t
+    [[nodiscard]] std::size_t
     size() const {
       return graph.size();
     };
 
-    bool
+    [[nodiscard]] bool
     empty() const {
       return graph.empty();
     };
 
 
 
-    std::set<Node_Id_Type>
+    [[nodiscard]] std::set<Node_Id_Type> const &
     get_input_nodes(Node_Id_Type const &id) const {
       return graph.get_neighbors()[id].first;
     };
 
-    std::set<Node_Id_Type>
+    [[nodiscard]] std::set<Node_Id_Type> const &
     get_output_nodes(Node_Id_Type const &id) const{
       return graph.get_neighbors()[id].second;
     };
 
-    std::vector<std::pair<std::set<Node_Id_Type>, std::set<Node_Id_Type>>> const &
+    [[nodiscard]] std::vector<std::pair<std::set<Node_Id_Type>, std::set<Node_Id_Type>>> const &
     get_neighbors() const {
       return graph.get_neighbors();
     };
@@ -164,7 +164,9 @@ namespace network_butcher_kfinder {
 
 
 
-    Weighted_Graph(Graph_Type &g) : graph(g) {}
+    explicit Weighted_Graph(Graph_Type const &g) : graph(g) {}
+
+    Weighted_Graph(Weighted_Graph const &) = default;
 
   private:
     Graph_Type const &graph;

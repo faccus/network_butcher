@@ -17,7 +17,6 @@ namespace network_butcher_kfinder
   {
   private:
     using base          = KFinder<Graph_type>;
-    using base_shortest = Shortest_path_finder<Graph_type>;
 
 
     /// Given the successors collection and the sidetrack distances, it will
@@ -56,7 +55,7 @@ namespace network_butcher_kfinder
     [[nodiscard]] std::vector<path_info>
     compute(std::size_t K) const override;
 
-    explicit KFinder_Eppstein(Weighted_Graph<Graph_type> const &g)
+    explicit KFinder_Eppstein(Graph_type const &g)
       : base(g){};
 
     ~KFinder_Eppstein() override = default;
@@ -187,7 +186,7 @@ namespace network_butcher_kfinder
     auto const &graph = base::graph;
 
     auto const sidetrack_distances_res = base::sidetrack_distances(dij_res.second);              // O(E)
-    auto const shortest_path           = base_shortest::shortest_path_finder(graph, dij_res, 0); // O(N)
+    auto const shortest_path           = Shortest_path_finder::shortest_path_finder(graph, dij_res, 0); // O(N)
 
     auto const &successors          = dij_res.first;
     auto const &shortest_paths_cost = dij_res.second;
@@ -207,10 +206,10 @@ namespace network_butcher_kfinder
     if (graph.empty() || K == 0)
       return {};
 
-    auto const dij_res = base_shortest::shortest_path_tree(graph); // time: ((N+E)log(N)), space: O(N)
+    auto const dij_res = Shortest_path_finder::shortest_path_tree(graph); // time: ((N+E)log(N)), space: O(N)
 
     if (K == 1)
-      return {base_shortest::shortest_path_finder(graph, dij_res, 0)};
+      return {Shortest_path_finder::shortest_path_finder(graph, dij_res, 0)};
 
 
     auto const epp_res = basic_eppstein(K, dij_res);
