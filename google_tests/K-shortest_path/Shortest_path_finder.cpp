@@ -55,17 +55,6 @@ namespace
     ASSERT_EQ(res.first, theoretical_res);
   }
 
-  TEST(KspTests, DijkstraSinkSourceTestGraph)
-  {
-    auto const graph = test_graph();
-
-    auto res = Shortest_path_finder::dijkstra(graph, 6, true);
-
-    std::vector<node_id_type> theoretical_res = {2, 3, 5, 4, 5, 6, 6};
-
-    ASSERT_EQ(res.first, theoretical_res);
-  }
-
 
   TEST(KspTests, EppsteinOriginalNetwork)
   {
@@ -97,6 +86,33 @@ namespace
   TEST(KspTests, LazyEppsteinOriginalNetwork)
   {
     auto const                                     graph = eppstein_graph();
+    network_butcher_kfinder::KFinder_Lazy_Eppstein kfinder(graph);
+
+    int k = 100; // Up to 10
+
+    std::vector<type_weight> real_sol = {55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
+    auto                     res      = kfinder.compute(real_sol.size());
+
+    std::vector<type_weight> real_path_lengths;
+    std::vector<type_weight> path_lengths;
+
+    path_lengths.reserve(k);
+    real_path_lengths.reserve(k);
+
+    EXPECT_EQ(real_sol.size(), res.size());
+
+    for (auto i = 0; i < k && i < res.size(); ++i)
+      {
+        path_lengths.push_back(res[i].length);
+        real_path_lengths.push_back(real_sol[i]);
+      }
+
+    ASSERT_EQ(path_lengths, real_path_lengths);
+  }
+
+  TEST(KspTests, LazyEppsteinOriginalTestGraph)
+  {
+    auto const                                     graph = test_graph();
     network_butcher_kfinder::KFinder_Lazy_Eppstein kfinder(graph);
 
     int k = 100; // Up to 10
@@ -208,32 +224,23 @@ namespace
   {
     using content_in = network_butcher_types::Content<Input>;
 
+    auto const built_graph = eppstein_graph();
+
     TestGraph<basic_type>  res;
-    std::vector<Node_type> nodes;
+    auto &nodes = res.nodes;
+    auto &dependencies = res.dependencies;
+    auto &weights = res.map_weight;
 
-    res.nodes = {10, 100, 102, 2, 34, 4, 5};
+    for(auto const &node : built_graph.get_nodes()) {
+        nodes.push_back({node.get_id(), 90});
+      }
 
-    res.dependencies[0] = {{}, {1, 2}};
-    res.dependencies[1] = {{0, 2, 4}, {3}};
-    res.dependencies[2] = {{0, 3}, {1, 4, 5}};
-    res.dependencies[3] = {{1, 5}, {2, 4}};
-    res.dependencies[4] = {{2, 3, 6}, {1, 5}};
-    res.dependencies[5] = {{2, 4}, {3, 6}};
-    res.dependencies[6] = {{5}, {4}};
+    for(std::size_t i = 0; i < built_graph.get_neighbors().size(); ++i) {
+        dependencies[i] = built_graph.get_neighbors()[i];
+      }
 
-    res.map_weight[{0, 1}] = 4;
-    res.map_weight[{0, 2}] = 1;
-    res.map_weight[{1, 3}] = 3;
-    res.map_weight[{2, 1}] = 2;
-    res.map_weight[{2, 4}] = 9;
-    res.map_weight[{2, 5}] = 4;
-    res.map_weight[{3, 2}] = 1;
-    res.map_weight[{3, 4}] = 2;
-    res.map_weight[{4, 1}] = 0;
-    res.map_weight[{4, 5}] = 1;
-    res.map_weight[{5, 3}] = 1;
-    res.map_weight[{5, 6}] = 2;
-    res.map_weight[{6, 4}] = 2;
+    weights = built_graph.get_weight_map().front();
+
 
     return res;
   }

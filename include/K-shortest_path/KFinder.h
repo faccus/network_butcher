@@ -238,8 +238,6 @@ namespace network_butcher_kfinder
     // path until either the "sink" node is reached or another sidetrack edge is met
     for (auto implicit_path = epp_res.cbegin(); implicit_path != epp_res.cend(); ++implicit_path)
       {
-        auto const &nodes = graph.get_nodes();
-
         path_info info;
         info.length = implicit_path->length;
         info.path.reserve(graph.size());
@@ -249,7 +247,7 @@ namespace network_butcher_kfinder
         auto        it             = sidetracks.cbegin();
         std::size_t node_to_insert = 0;
 
-        while (node_to_insert != nodes.back().get_id())
+        while (node_to_insert != graph.size()-1)
           {
             info.path.push_back(node_to_insert);
             if (it != sidetracks.cend() && (*it)->first == node_to_insert)

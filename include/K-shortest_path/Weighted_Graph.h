@@ -40,12 +40,20 @@ namespace network_butcher_kfinder
 
 
 
-
     Node_Type const &
     operator[](Node_Id_Type const &id) const;
 
-    Node_Collection_Type const &
-    get_nodes() const;
+    Node_Collection_Type::const_iterator
+    cbegin() const;
+
+    Node_Collection_Type::const_iterator
+    cend() const;
+
+    Node_Collection_Type::const_reverse_iterator
+    crbegin() const;
+
+    Node_Collection_Type::const_reverse_iterator
+    crend() const;
 
 
 

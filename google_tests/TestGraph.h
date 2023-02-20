@@ -10,7 +10,16 @@
 template<class T>
 class TestGraph {
 public:
-  using Node_Type = T;
+  struct TestNode {
+    std::size_t id;
+    T content;
+
+    [[nodiscard]] std::size_t get_id() const {
+      return id;
+    }
+  };
+
+  using Node_Type = TestNode;
   using Node_Collection_Type = std::vector<Node_Type>;
 
   Node_Collection_Type nodes;
@@ -25,6 +34,7 @@ public:
   using Edge_Type = std::pair<Node_Id_Type, Node_Id_Type>;
   using Graph_Type = TestGraph<T>;
   using Node_Type = TestGraph<T>::Node_Type;
+  using Node_Collection_Type = TestGraph<T>::Node_Collection_Type;
 
 
 
@@ -65,11 +75,30 @@ public:
     return *graph.nodes.find(id);
   };
 
-  std::vector<Node_Type> const &
-  get_nodes() const {
-    return graph.nodes;
-  };
 
+  Node_Collection_Type::const_iterator
+  cbegin() const
+  {
+    return graph.get_nodes().cbegin();
+  }
+
+  Node_Collection_Type::const_iterator
+  cend() const
+  {
+    return graph.get_nodes().cend();
+  }
+
+  Node_Collection_Type::const_reverse_iterator
+  crbegin() const
+  {
+    return graph.get_nodes().crbegin();
+  }
+
+  Node_Collection_Type::const_reverse_iterator
+  crend() const
+  {
+    return graph.get_nodes().crend();
+  }
 
 
 

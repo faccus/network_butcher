@@ -72,15 +72,13 @@ namespace network_butcher_kfinder
              typename Weighted_Graph<Graph_type>::Node_Id_Type root     = 0,
              bool                                              reversed = false) // time: ((N+E)log(N)), space: O(N)
     {
-      auto const                &nodes = graph.get_nodes();
-
-      if (nodes.empty())
+      if (graph.empty())
         return {{}, {}};
 
-      std::vector<weight_type> total_distance(nodes.size(), std::numeric_limits<double>::max());
+      std::vector<weight_type> total_distance(graph.size(), std::numeric_limits<double>::max());
       total_distance[root] = 0;
 
-      std::vector<node_id_type>        predecessors(nodes.size(), root);
+      std::vector<node_id_type>        predecessors(graph.size(), root);
       std::set<dijkstra_helper_struct> to_visit{{0, root}};
 
       while (!to_visit.empty()) // O(N)

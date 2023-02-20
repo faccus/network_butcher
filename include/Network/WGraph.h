@@ -147,16 +147,30 @@ namespace network_butcher_kfinder {
 
 
 
-    Node_Collection_Type const &
-      get_nodes() const {
-      return graph.get_nodes();
-    }
-
     Node_Type const &
     operator[](Node_Id_Type const &id) const{
       return graph[id];
     };
 
+    Node_Collection_Type::const_iterator
+    cbegin() const {
+      return graph.get_nodes().cbegin();
+    }
+
+    Node_Collection_Type::const_iterator
+    cend() const {
+      return graph.get_nodes().cend();
+    }
+
+    Node_Collection_Type::const_reverse_iterator
+    crbegin() const {
+      return graph.get_nodes().crbegin();
+    }
+
+    Node_Collection_Type::const_reverse_iterator
+    crend() const {
+      return graph.get_nodes().crend();
+    }
 
 
 
