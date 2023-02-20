@@ -8,7 +8,6 @@
 #include <forward_list>
 #include <list>
 
-#include "Heap.h"
 #include "Heap_eppstein.h"
 #include "Path_info.h"
 

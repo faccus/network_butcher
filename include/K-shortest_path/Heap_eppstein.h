@@ -6,7 +6,6 @@
 #define NETWORK_BUTCHER_HEAP_EPPSTEIN_H
 
 #include "Node_traits.h"
-#include "Heap.h"
 #include <limits>
 #include <memory>
 #include <utility>
@@ -41,6 +40,23 @@ namespace network_butcher_kfinder
     }
   };
 
+  template <class T>
+  class Heap
+  {
+  public:
+    using container_type = std::set<T>;
+
+    node_id_type   id;
+    container_type children;
+
+    Heap() = default;
+
+    explicit Heap(node_id_type id, container_type children)
+      : id(id)
+      , children{std::move(children)}
+    {}
+  };
+
   template <class T = edge_info>
   class H_out
   {
@@ -60,8 +76,10 @@ namespace network_butcher_kfinder
     }
   };
 
-
+  template<class T=edge_info>
   bool
-  operator<(std::shared_ptr<H_out<edge_info>> const &lhs, std::shared_ptr<H_out<edge_info>> const &rhs);
+  operator<(std::shared_ptr<H_out<T>> const &lhs, std::shared_ptr<H_out<T>> const &rhs) {
+    return *lhs < *rhs;
+  };
 } // namespace network_butcher_kfinder
 #endif // NETWORK_BUTCHER_HEAP_EPPSTEIN_H
