@@ -19,11 +19,19 @@ To easily start to read the project, I think it's best to start from the General
 - cmake version 3.21 (or higher)
 - g++ version 8 (or higher)
 
-The remaining libraries (with the exception of Doxygen) can be automatically downloaded and (statically) linked by cmake (currently, I have tested it only for Ubuntu systems). They may be installed manually:
+The remaining libraries (with the exception of Doxygen) can be automatically downloaded and (statically) linked by CMake (currently, I have tested it only for Ubuntu systems). They may be installed manually:
 - [Protobuf v3.17.3](https://github.com/protocolbuffers/protobuf/releases/tag/v3.17.3) (Required)
 - [Google Tests v1.12.1](https://github.com/google/googletest/releases/tag/release-1.12.1) (Optional)
 - [Yaml-Cpp v0.7.0](https://github.com/jbeder/yaml-cpp/releases/tag/yaml-cpp-0.7.0) (Optional)
 - [Doxygen v1.9.3](https://github.com/doxygen/doxygen/releases/tag/Release_1_9_3) (Optional)
+
+The weight initialization may be automatically performed. This, however, adds some extra requirements:
+- [PyBind v2.10.3](https://github.com/pybind/pybind11/releases/tag/v2.10.3)
+- [Onnx-Tool v0.6.0](https://github.com/ThanatosShinji/onnx-tool) (Python Package). To install it, simply call:
+```bash
+pip install onnx-tool
+```
+
 
 To (dynamically) link the installed libraries, check the CMakeLists.txt file in the root directory of the repository.
 

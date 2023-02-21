@@ -8,7 +8,6 @@ if (BUILD_PROTOBUF_SOURCE)
             GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
             GIT_TAG        v3.17.3
             SOURCE_SUBDIR cmake
-            OVERRIDE_FIND_PACKAGE
     )
     option(protobuf_BUILD_TESTS OFF)
 
@@ -37,22 +36,30 @@ endif ()
 
 
 if (USE_CPR_CPP)
-    FetchContent_Declare(cpr GIT_REPOSITORY https://github.com/libcpr/cpr.git
-            GIT_TAG 0817715923c9705e68994eb52ef9df3f6845beba) # The commit hash for v1.10.0
+    FetchContent_Declare(
+            cpr
+            GIT_REPOSITORY https://github.com/libcpr/cpr.git
+            GIT_TAG 0817715923c9705e68994eb52ef9df3f6845beba
+    ) # The commit hash for v1.10.0
     FetchContent_MakeAvailable(cpr)
 
     list(APPEND RUN_LIBRARIES_LOCATION cpr::cpr)
 endif()
 
-# if(USE_PYBIND)
-#FetchContent_Declare(
-#        pybind11
-#        GIT_REPOSITORY https://github.com/pybind/pybind11
-#        GIT_TAG        v2.10.3
-#)
-#FetchContent_MakeAvailable(pybind11)
-#include_directories(${pybind11_INCLUDE_DIRS})
-# endif()
+if(USE_PYBIND)
+    FetchContent_Declare(
+        pybind11
+        GIT_REPOSITORY https://github.com/pybind/pybind11
+        GIT_TAG        v2.10.3
+        OVERRIDE_FIND_PACKAGE
+    )
+    find_package(pybind11 REQUIRED)
+
+    #FetchContent_MakeAvailable(pybind11)
+    include_directories(${pybind11_INCLUDE_DIRS})
+
+    list(APPEND RUN_LIBRARIES_LOCATION pybind11::embed)
+endif()
 
 
 if (USE_YAML_CPP)

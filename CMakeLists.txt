@@ -23,8 +23,11 @@ message(STATUS "It will use the yaml-cpp library to read yaml files: " ${USE_YAM
 option(BUILD_YAML_CPP_SOURCE "Download and compile yaml-cpp from git" ON)
 message(STATUS "Download and compile yaml-cpp from git: " ${BUILD_YAML_CPP_SOURCE})
 
-option(USE_CPR_CPP "Download and compile cpr-cpp from git" OFF) # WIP
+option(USE_CPR_CPP "Download and compile cpr-cpp from git:" OFF) # WIP
 message(STATUS "Download and compile cpr-cpp from git ${USE_CPR_CPP}")
+
+option(USE_PYBIND "Download and compile pybind11 from git:" ON) # WIP
+message(STATUS "Download and compile pybind11 from git ${USE_PYBIND}")
 
 
 
