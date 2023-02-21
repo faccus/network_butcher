@@ -1,22 +1,26 @@
 cmake_minimum_required(VERSION 3.21)
 project("Network Butcher" DESCRIPTION "Just a normal butcher. A network butcher")
-
 set(CMAKE_CXX_STANDARD 20)
 
 ########################################################################################################################
 ############# USER OPTIONS #############################################################################################
 ########################################################################################################################
 
-option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
-message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
+option(BUILD_TESTS "Build tests" ON)
+message(STATUS "Build tests: ${BUILD_TESTS}")
 
+option(BUILD_BENCHMARK "Build benchmark tests" OFF)
+message(STATUS "Build benchmark tests: ${BUILD_BENCHMARK}")
+
+
+
+option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" OFF)
+message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
 
 option(USE_YAML_CPP "Use yaml-cpp" ON)
 message(STATUS "It will use the yaml-cpp library to read yaml files: " ${USE_YAML_CPP})
 
-
-
-option(BUILD_YAML_CPP_SOURCE "Download and compile yaml-cpp from git" ON)
+option(BUILD_YAML_CPP_SOURCE "Download and compile yaml-cpp from git" OFF)
 message(STATUS "Download and compile yaml-cpp from git: " ${BUILD_YAML_CPP_SOURCE})
 
 option(USE_CPR_CPP "Download and compile cpr-cpp from git" OFF) # WIP
@@ -29,13 +33,6 @@ message(STATUS "Build documentation: ${BUILD_DOC}")
 
 option(BUILD_DOC_GRAPH "Build documentation graphs" OFF)
 message(STATUS "Build documentation graphs: ${BUILD_DOC_GRAPH}")
-
-
-option(BUILD_TESTS "Build tests" ON)
-message(STATUS "Build tests: ${BUILD_TESTS}")
-
-option(BUILD_BENCHMARK "Build benchmark tests" OFF)
-message(STATUS "Build benchmark tests: ${BUILD_BENCHMARK}")
 
 ########################################################################################################################
 ########################################################################################################################

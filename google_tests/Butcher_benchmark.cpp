@@ -48,15 +48,15 @@ namespace
   complete_weights(Graph &graph)
   {
     auto const  num_nodes    = graph.get_nodes().size();
-    auto const &dependencies = graph.get_dependencies();
+    auto const &dependencies = graph.get_neighbors();
 
     for (node_id_type tail = 0; tail < num_nodes; ++tail)
       for (auto const &head : dependencies[tail].second)
         {
           for (std::size_t k = 0; k < graph.get_num_devices(); ++k)
             {
-              if (graph.get_weigth(k, {tail, head}) == -1.)
-                graph.set_weigth(k, {tail, head}, 0.);
+              if (graph.get_weight(k, {tail, head}) == -1.)
+                graph.set_weight(k, {tail, head}, 0.);
             }
         }
   };
@@ -81,12 +81,12 @@ namespace
     std::uniform_int_distribution node_weights_generator{5000, 10000};
 
     for (std::size_t tail = 0; tail < graph.get_nodes().size(); ++tail)
-      for (auto const &head : graph.get_dependencies()[tail].second)
+      for (auto const &head : graph.get_neighbors()[tail].second)
         {
           auto const tmp_weight = node_weights_generator(random_engine);
           for (std::size_t k = 0; k < graph.get_num_devices(); ++k)
             {
-              graph.set_weigth(k, {tail, head}, tmp_weight / std::pow(2, k));
+              graph.set_weight(k, {tail, head}, tmp_weight / std::pow(2, k));
             }
         }
   }
