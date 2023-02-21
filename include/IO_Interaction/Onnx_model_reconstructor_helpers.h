@@ -5,8 +5,8 @@
 #ifndef NETWORK_BUTCHER_ONNX_MODEL_RECONSTRUCTOR_HELPERS_H
 #define NETWORK_BUTCHER_ONNX_MODEL_RECONSTRUCTOR_HELPERS_H
 
-#include "../Butcher.h"
-#include "../Traits/Graph_traits.h"
+#include "Butcher.h"
+#include "Graph_traits.h"
 
 #include <sstream>
 

@@ -5,7 +5,7 @@
 #ifndef NETWORK_BUTCHER_KEPPSTEIN_H
 #define NETWORK_BUTCHER_KEPPSTEIN_H
 
-#include "../Traits/Heap_traits.h"
+#include "Heap_traits.h"
 #include "KFinder.h"
 
 namespace network_butcher_kfinder
@@ -17,7 +17,6 @@ namespace network_butcher_kfinder
   {
   private:
     using base          = KFinder<Graph_type>;
-    using base_shortest = Shortest_path_finder<Graph_type>;
 
 
     /// Given the successors collection and the sidetrack distances, it will
@@ -71,13 +70,14 @@ namespace network_butcher_kfinder
     H_out_collection h_out;
     auto const      &graph = base::graph;
 
-    for (auto const &tail_node : graph.get_nodes())
-      {
+    for(auto it = graph.cbegin(); it != graph.cend(); ++it) {
+        auto const &tail_node = *it;
+
         auto h_out_entry_it = h_out.insert(h_out.cend(), {tail_node.get_id(), std::make_shared<H_out<edge_info>>()});
         h_out_entry_it->second->heap.id = tail_node.get_id();
 
         auto const &tail = tail_node.get_id();
-        for (auto const &head : graph.get_dependencies()[tail].second)
+        for (auto const &head : graph.get_output_nodes(tail))
           {
             if (head != successors[tail])
               {
@@ -105,8 +105,7 @@ namespace network_butcher_kfinder
     H_g_collection h_g;
 
     auto const &graph = base::graph;
-    auto const &nodes = graph.get_nodes();
-    auto const &num_nodes = nodes.size();
+    auto const &num_nodes = graph.size();
 
     std::vector<std::set<node_id_type>> sp_dependencies;
     sp_dependencies.resize(num_nodes);
@@ -129,7 +128,7 @@ namespace network_butcher_kfinder
           sp_dependencies[tmp].insert(i); // O(log(N))
       }
 
-    auto const sink = nodes.size() - 1;
+    auto const sink = num_nodes - 1;
 
     auto iterator = h_out.find(sink); // O(1)
 
@@ -187,7 +186,7 @@ namespace network_butcher_kfinder
     auto const &graph = base::graph;
 
     auto const sidetrack_distances_res = base::sidetrack_distances(dij_res.second);              // O(E)
-    auto const shortest_path           = base_shortest::shortest_path_finder(graph, dij_res, 0); // O(N)
+    auto const shortest_path           = Shortest_path_finder::shortest_path_finder(graph, dij_res, 0); // O(N)
 
     auto const &successors          = dij_res.first;
     auto const &shortest_paths_cost = dij_res.second;
@@ -207,10 +206,10 @@ namespace network_butcher_kfinder
     if (graph.empty() || K == 0)
       return {};
 
-    auto const dij_res = base_shortest::shortest_path_tree(graph); // time: ((N+E)log(N)), space: O(N)
+    auto const dij_res = Shortest_path_finder::shortest_path_tree(graph); // time: ((N+E)log(N)), space: O(N)
 
     if (K == 1)
-      return {base_shortest::shortest_path_finder(graph, dij_res, 0)};
+      return {Shortest_path_finder::shortest_path_finder(graph, dij_res, 0)};
 
 
     auto const epp_res = basic_eppstein(K, dij_res);

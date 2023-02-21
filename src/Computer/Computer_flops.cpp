@@ -1,7 +1,7 @@
 //
 // Created by faccus on 12/20/22.
 //
-#include "../../include/Computer/Computer_flops.h"
+#include "Computer_flops.h"
 
 bool network_butcher_computer::Computer_flops::factory_initialized = false;
 
@@ -89,7 +89,7 @@ network_butcher_computer::Computer_flops::generate_maps_flops_func()
           vol_kernel *= vol_kernel;
 
         auto const out_vol = output_type->compute_shape_volume();
-        macs               = output_type->get_shape()[1] + vol_kernel * out_vol * input_type->get_shape()[1];
+        macs               = vol_kernel * out_vol * input_type->get_shape()[1];
       }
 
     return macs;

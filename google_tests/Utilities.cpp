@@ -1,7 +1,7 @@
 //
 // Created by faccus on 30/08/21.
 //
-#include "../include/Utilities.h"
+#include "Utilities.h"
 #include <gtest/gtest.h>
 
 namespace {

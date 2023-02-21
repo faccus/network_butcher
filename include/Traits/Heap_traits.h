@@ -8,9 +8,8 @@
 #include <forward_list>
 #include <list>
 
-#include "../K-shortest_path/Heap.h"
-#include "../K-shortest_path/Heap_eppstein.h"
-#include "../K-shortest_path/Path_info.h"
+#include "Heap_eppstein.h"
+#include "Path_info.h"
 
 namespace network_butcher_kfinder
 {

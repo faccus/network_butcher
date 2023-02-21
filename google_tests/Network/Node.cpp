@@ -5,8 +5,8 @@
 #include <gtest/gtest.h>
 #include <memory>
 
-#include "../../include/Network/Node.h"
-#include "../../include/Traits/Node_traits.h"
+#include "Node.h"
+#include "Node_traits.h"
 
 
 namespace {

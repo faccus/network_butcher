@@ -6,9 +6,9 @@
 #include <iostream>
 #include <random>
 
-#include "../include/APSC/chrono.h"
-#include "../include/Butcher.h"
-#include "../include/IO_Manager.h"
+#include "chrono.h"
+#include "Butcher.h"
+#include "IO_Manager.h"
 #include "TestClass.h"
 
 namespace
@@ -104,7 +104,7 @@ namespace
 
   TEST(ButcherBenchmarkTest, compute_k_shortest_paths_test_network_basic_weights)
   {
-    std::string path      = "resnet18-v2-7-inferred";
+    std::string path      = "test_data/models/resnet18-v2-7-inferred";
     std::string extension = ".onnx";
 
     Butcher butcher(std::get<0>(network_butcher_io::IO_Manager::import_from_onnx(path + extension)));
@@ -382,23 +382,23 @@ namespace
   std::tuple<Butcher<graph_type>, onnx::ModelProto, std::map<node_id_type, node_id_type>>
   real_butcher()
   {
-    std::string const path  = "version-RFB-640-inferred.onnx"; //"version-RFB-640.onnx";
+    std::string const path  = "test_data/models/version-RFB-640-inferred.onnx"; //"version-RFB-640.onnx";
     auto              tuple = network_butcher_io::IO_Manager::import_from_onnx(path, true, 3);
     auto             &graph = std::get<0>(tuple);
 
     network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode::aMLLibrary,
                                                    graph,
-                                                   "aMLLibrary_prediction_pi.csv",
+                                                   "test_data/weights/aMLLibrary_prediction_pi.csv",
                                                    0);
 
     network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode::aMLLibrary,
                                                    graph,
-                                                   "aMLLibrary_prediction_tegra.csv",
+                                                   "test_data/weights/aMLLibrary_prediction_tegra.csv",
                                                    1);
 
     network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode::aMLLibrary,
                                                    graph,
-                                                   "aMLLibrary_prediction_tegra.csv",
+                                                   "test_data/weights/aMLLibrary_prediction_tegra.csv",
                                                    2);
 
     complete_weights(graph);

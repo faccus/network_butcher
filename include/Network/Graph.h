@@ -12,10 +12,10 @@
 #include <utility>
 #include <vector>
 
-#include "../../src/Onnx_model/onnx.pb.h"
+#include "onnx.pb.h"
 
-#include "../Traits/Node_traits.h"
-#include "../Types/Content.h"
+#include "Node_traits.h"
+#include "Content.h"
 #include "Node.h"
 
 namespace network_butcher_types
@@ -74,7 +74,7 @@ namespace network_butcher_types
     /// Get the collection of dependencies (as a const reference)
     /// \return The dependencies
     [[nodiscard]] inline const Dependencies_Type &
-    get_dependencies() const
+    get_neighbors() const
     {
       return dependencies;
     }
@@ -82,7 +82,7 @@ namespace network_butcher_types
     /// Get the collection of dependencies (as a reference)
     /// \return The dependencies
     [[nodiscard]] inline Dependencies_Type &
-    get_dependencies_ref()
+    get_neighbors_ref()
     {
       return dependencies;
     }
@@ -254,7 +254,7 @@ namespace network_butcher_types
     /// Get the collection of dependencies (as a const reference)
     /// \return The dependencies
     [[nodiscard]] inline const Dependencies_Type &
-    get_dependencies() const
+    get_neighbors() const
     {
       return dependencies;
     }
@@ -262,7 +262,7 @@ namespace network_butcher_types
     /// Get the collection of dependencies (as a reference)
     /// \return The dependencies
     [[nodiscard]] inline Dependencies_Type &
-    get_dependencies_ref()
+    get_neighbors_ref()
     {
       return dependencies;
     }

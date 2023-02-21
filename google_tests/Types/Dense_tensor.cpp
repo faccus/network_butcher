@@ -2,7 +2,7 @@
 // Created by faccus on 30/08/21.
 //
 
-#include "../../include/Types/Dense_tensor.h"
+#include "Dense_tensor.h"
 #include <gtest/gtest.h>
 
 namespace {

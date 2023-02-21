@@ -1,7 +1,7 @@
 //
 // Created by faccus on 8/7/22.
 //
-#include "../../include/IO_Interaction/Onnx_model_reconstructor_helpers.h"
+#include "Onnx_model_reconstructor_helpers.h"
 
 std::pair<bool, google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator>
 network_butcher_io::Onnx_model_reconstructor_helpers::get_type(const onnx::ModelProto &original_model,

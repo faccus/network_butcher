@@ -5,16 +5,16 @@
 #ifndef NETWORK_BUTCHER_IO_MANAGER_H
 #define NETWORK_BUTCHER_IO_MANAGER_H
 
-#include "IO_Interaction/Onnx_importer_helpers.h"
-#include "IO_Interaction/Onnx_model_reconstructor_helpers.h"
+#include "Onnx_importer_helpers.h"
+#include "Onnx_model_reconstructor_helpers.h"
 
 #if YAML_CPP_ACTIVE
-#include "IO_Interaction/Yaml_importer_helpers.h"
+#include "Yaml_importer_helpers.h"
 #include <yaml-cpp/yaml.h>
 #endif
 
-#include "APSC/GetPot"
-#include "APSC/chrono.h"
+#include "GetPot"
+#include "chrono.h"
 
 
 namespace network_butcher_io

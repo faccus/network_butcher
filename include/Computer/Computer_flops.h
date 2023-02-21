@@ -5,9 +5,9 @@
 #ifndef NETWORK_BUTCHER_COMPUTER_FLOPS_H
 #define NETWORK_BUTCHER_COMPUTER_FLOPS_H
 
-#include "../APSC/Factory.h"
-#include "../Network/WGraph.h"
-#include "../Traits/Hardware_traits.h"
+#include "Factory.h"
+#include "WGraph.h"
+#include "Hardware_traits.h"
 
 namespace network_butcher_computer
 {

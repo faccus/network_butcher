@@ -5,7 +5,7 @@
 #ifndef NETWORK_BUTCHER_KFINDER_H
 #define NETWORK_BUTCHER_KFINDER_H
 
-#include "../Traits/Heap_traits.h"
+#include "Heap_traits.h"
 #include "Shortest_path_finder.h"
 
 namespace network_butcher_kfinder
@@ -16,7 +16,7 @@ namespace network_butcher_kfinder
   class KFinder
   {
   protected:
-    Graph_type const &graph;
+    Weighted_Graph<Graph_type> graph;
 
     using callback_function_helper_eppstein = std::function<void(H_g_collection &,
                                                                  H_out_collection &,
@@ -92,6 +92,9 @@ namespace network_butcher_kfinder
     explicit KFinder(Graph_type const &g)
       : graph(g){};
 
+    explicit KFinder(Weighted_Graph<Graph_type> const &g)
+      : graph(g){};
+
     virtual ~KFinder() = default;
   };
 
@@ -117,12 +120,12 @@ namespace network_butcher_kfinder
     auto const num_nodes = graph.size();
 
     for (std::size_t tail = 0; tail < num_nodes; ++tail)
-      for (auto const &head : graph.get_dependencies()[tail].second)
+      for (auto const &head : graph.get_output_nodes(tail))
         {
           auto const edge = std::make_pair(tail, head);
 
           res.insert(res.cend(),
-                     {edge, graph.get_weigth(edge) + distances_from_sink[head] - distances_from_sink[tail]}); // O(1)
+                     {edge, graph.get_weight(edge) + distances_from_sink[head] - distances_from_sink[tail]}); // O(1)
         }
 
     return res;
@@ -235,8 +238,6 @@ namespace network_butcher_kfinder
     // path until either the "sink" node is reached or another sidetrack edge is met
     for (auto implicit_path = epp_res.cbegin(); implicit_path != epp_res.cend(); ++implicit_path)
       {
-        auto const &nodes = graph.get_nodes();
-
         path_info info;
         info.length = implicit_path->length;
         info.path.reserve(graph.size());
@@ -246,7 +247,7 @@ namespace network_butcher_kfinder
         auto        it             = sidetracks.cbegin();
         std::size_t node_to_insert = 0;
 
-        while (node_to_insert != nodes.back().get_id())
+        while (node_to_insert != graph.size()-1)
           {
             info.path.push_back(node_to_insert);
             if (it != sidetracks.cend() && (*it)->first == node_to_insert)

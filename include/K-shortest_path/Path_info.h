@@ -5,7 +5,7 @@
 #ifndef NETWORK_BUTCHER_PATH_INFO_H
 #define NETWORK_BUTCHER_PATH_INFO_H
 
-#include "../Traits/Graph_traits.h"
+#include "Graph_traits.h"
 
 namespace network_butcher_kfinder
 {

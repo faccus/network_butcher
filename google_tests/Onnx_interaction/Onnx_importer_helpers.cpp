@@ -2,7 +2,7 @@
 // Created by faccus on 8/8/22.
 //
 
-#include "../../include/IO_Interaction/Onnx_importer_helpers.h"
+#include "Onnx_importer_helpers.h"
 
 #include <gtest/gtest.h>
 
@@ -73,7 +73,8 @@ namespace
   onnx::ModelProto
   import_simple_model()
   {
-    std::string const model_path = "version-RFB-640-inferred.onnx";
+    std::string const model_path =
+      network_butcher_utilities::combine_path("test_data/models", "version-RFB-640-inferred.onnx");
     return network_butcher_utilities::parse_onnx_file(model_path);
   }
 } // namespace

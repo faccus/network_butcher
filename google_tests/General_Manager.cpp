@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
-#include "../include/General_Manager.h"
+#include "General_Manager.h"
 
 
 namespace
@@ -19,7 +19,7 @@ namespace
         network_butcher_utilities::directory_delete(export_path);
       }
 
-    std::string const path = "test_parameters.conf";
+    std::string const path = "test_data/configs/test_parameters.conf";
     General_Manager::boot(path, true);
   }
 
@@ -30,7 +30,7 @@ namespace
         network_butcher_utilities::directory_delete(export_path);
       }
 
-    std::string const path = "test2_parameters.conf";
+    std::string const path = "test_data/configs/test2_parameters.conf";
     General_Manager::boot(path, true);
   }
 
@@ -41,7 +41,7 @@ namespace
         network_butcher_utilities::directory_delete(export_path);
       }
 
-    std::string const path = "test3_parameters.conf";
+    std::string const path = "test_data/configs/test3_parameters.conf";
     General_Manager::boot(path, true);
   }
 
@@ -52,7 +52,7 @@ namespace
         network_butcher_utilities::directory_delete(export_path);
       }
 
-    std::string const path = "test4_parameters.conf";
+    std::string const path = "test_data/configs/test4_parameters.conf";
     General_Manager::boot(path, true);
   }
 } // namespace

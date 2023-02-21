@@ -5,7 +5,7 @@
 #ifndef NETWORK_BUTCHER_KEPPSTEIN_LAZY_H
 #define NETWORK_BUTCHER_KEPPSTEIN_LAZY_H
 
-#include "../Traits/Heap_traits.h"
+#include "Heap_traits.h"
 #include "KFinder.h"
 
 namespace network_butcher_kfinder
@@ -17,7 +17,6 @@ namespace network_butcher_kfinder
   {
   private:
     using base          = KFinder<Graph_type>;
-    using base_shortest = Shortest_path_finder<Graph_type>;
 
 
     std::pair<bool, H_g_collection::iterator>
@@ -110,7 +109,7 @@ namespace network_butcher_kfinder
     auto const succ = successors[node];
 
     // For every "sidetrack" node in the outer start of node
-    for (auto const &exit : graph.get_dependencies()[node].second)
+    for (auto const &exit : graph.get_output_nodes(node))
       if (exit != succ)
         {
           auto const edge    = std::make_pair(node, exit);
@@ -229,11 +228,11 @@ namespace network_butcher_kfinder
       return {};
 
     // Compute the shortest path tree
-    auto const dij_res = base_shortest::shortest_path_tree(graph); // time: ((N+E)log(N)), space: O(N)
+    auto const dij_res = Shortest_path_finder::shortest_path_tree(graph); // time: ((N+E)log(N)), space: O(N)
 
     // If a single path must be computed, we just have to return the shortest path from the source to the root
     if (K == 1)
-      return {base_shortest::shortest_path_finder(graph, dij_res, 0)};
+      return {Shortest_path_finder::shortest_path_finder(graph, dij_res, 0)};
 
     // Compute the K shortest paths in implicit form
     auto const epp_res = basic_lazy_eppstein(K, dij_res);

@@ -5,8 +5,8 @@
 #ifndef NETWORK_BUTCHER_DENSE_TENSOR_H
 #define NETWORK_BUTCHER_DENSE_TENSOR_H
 
-#include "../Traits/Type_info_traits.h"
-#include "../Utilities.h"
+#include "Type_info_traits.h"
+#include "Utilities.h"
 #include "DynamicType.h"
 #include "Type_info.h"
 

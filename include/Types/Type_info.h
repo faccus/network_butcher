@@ -8,8 +8,8 @@
 #include <string>
 #include <vector>
 
-#include "../Traits/Hardware_traits.h"
-#include "../Traits/Type_info_traits.h"
+#include "Hardware_traits.h"
+#include "Type_info_traits.h"
 
 
 namespace network_butcher_types

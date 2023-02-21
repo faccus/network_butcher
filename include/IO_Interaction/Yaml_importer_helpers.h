@@ -5,8 +5,8 @@
 #ifndef NETWORK_BUTCHER_YAML_IMPORTER_HELPERS_H
 #define NETWORK_BUTCHER_YAML_IMPORTER_HELPERS_H
 
-#include "../Traits/Graph_traits.h"
-#include "../Types/Parameters.h"
+#include "Graph_traits.h"
+#include "Parameters.h"
 
 #include <tuple>
 #include <yaml-cpp/yaml.h>

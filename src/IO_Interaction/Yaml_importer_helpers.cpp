@@ -1,7 +1,7 @@
 //
 // Created by faccus on 9/8/22.
 //
-#include "../../include/IO_Interaction/Yaml_importer_helpers.h"
+#include "Yaml_importer_helpers.h"
 
 std::vector<std::vector<std::pair<std::string, std::size_t>>>
 network_butcher_io::Yaml_importer_helpers::get_devices_for_partitions(
