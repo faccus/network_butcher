@@ -108,8 +108,9 @@ namespace ComputerFlopsTests
 
   TEST(CompiterFlopsTests, ComputeFlopsGraph)
   {
+    std::string const path = "test_data/models/resnet18-v2-7-inferred.onnx";
     auto graph = std::get<0>(
-      network_butcher_io::IO_Manager::import_from_onnx("resnet18-v2-7-inferred.onnx", false, true, 3, true));
+      network_butcher_io::IO_Manager::import_from_onnx(path, false, true, 3, true));
 
     for (auto const &node : graph.get_nodes())
       {
@@ -119,6 +120,5 @@ namespace ComputerFlopsTests
 
     std::cout << std::endl;
   }
-
 
 } // namespace ComputerMemoryTests
