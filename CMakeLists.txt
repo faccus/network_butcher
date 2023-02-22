@@ -56,6 +56,10 @@ if (USE_YAML_CPP)
     add_compile_definitions(YAML_CPP_ACTIVE)
 endif ()
 
+if (USE_PYBIND)
+    add_compile_definitions(PYBIND_ACTIVE)
+endif ()
+
 
 add_executable(network_butcher src/main.cpp ${BASE_SOURCE} ${PROTO_SRCS})
 target_include_directories(network_butcher PUBLIC
