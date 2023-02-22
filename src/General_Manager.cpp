@@ -62,6 +62,11 @@ network_butcher_io::General_Manager::Helper_Functions::import_weights(graph_type
 
           break;
         }
+        case network_butcher_parameters::Weight_Import_Mode::local_generation: {
+          IO_Manager::utilities::import_weights_aMLLibrary_local(graph, params);
+
+          break;
+        }
     }
 }
 void
