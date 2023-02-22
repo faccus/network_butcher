@@ -45,6 +45,8 @@ namespace network_butcher_types
     /// Node content
     Content_Type content;
 
+    std::string name;
+
 
     /// Basic move constructor for a node
     explicit Node(Content_Type &&starting_content)

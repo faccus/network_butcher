@@ -3,6 +3,7 @@
 //
 #include "Computer_flops.h"
 
+/*
 bool network_butcher_computer::Computer_flops::factory_initialized = false;
 
 void
@@ -117,43 +118,6 @@ network_butcher_computer::Computer_flops::generate_maps_flops_func()
   factory.add("hardmax", factory.get("abs"));
   factory.add("relu", factory.get("abs"));
 
-  /*
-  factory.add("scatternd", zeros);
-  factory.add("upsample", zeros);
-  factory.add("expand", zeros);
-  factory.add("tile", zeros);
-  factory.add("scan", zeros);
-  factory.add("compress", zeros);
-  factory.add("not", zeros);
-  factory.add("and", zeros);
-  factory.add("where", zeros);
-  factory.add("roialign", zeros);
-  factory.add("scatterelements", zeros);
-  factory.add("topk", zeros);
-  factory.add("shape", zeros);
-  factory.add("gather", zeros);
-  factory.add("constant", zeros);
-  factory.add("unsqueeze", zeros);
-  factory.add("squeeze", zeros);
-  factory.add("concat", zeros);
-  factory.add("reshape", zeros);
-  factory.add("onehot", zeros);
-  factory.add("nonmaxsuppression", zeros);
-  factory.add("identity", zeros);
-  factory.add("erf", zeros);
-  factory.add("dropout", zeros);
-  factory.add("pad", zeros);
-  factory.add("split", zeros);
-  factory.add("transpose", zeros);
-  factory.add("constantofshape", zeros);
-  factory.add("batchnormalization", zeros);
-  factory.add("slice", zeros);
-  factory.add("cast", zeros);
-  factory.add("flatten", zeros);
-  factory.add("range", zeros);
-  factory.add("arrayfeatureextractor", zeros);
-  factory.add("zipmap", zeros);
-*/
 
   factory.add("maxpool", pool_gen);
   factory.add("averagepool", pool_gen);
@@ -456,34 +420,40 @@ network_butcher_computer::Computer_flops::generate_maps_flops_func()
               [pwnbase](const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content) {
                 return pwnbase(content, MUL_MACS + ADD_MACS);
               });
-
-
-  /* WIP
-  res["argmax"] = [](const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> & content) {
-    return std::pair<double, std::size_t>(0., 0);
-  };
-  */
-
-  /* WIP
-  res["gru"] = [](const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> & content) {
-    double macs = 0;
-    std::size_t params = 0;
-
-    // WIP
-
-    return std::pair{macs, params};
-  };
-  res["lstm"] = res["gru"];
-  */
-
-
-  /* WIP
-  res["einsum"] = [pwnbase](const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content) {
-    return pwnbase(content, MUL_MACS + CMP_MACS);
-  };
-   res["QLinearMatMul"] QLinearConv,
-  */
 }
+
+
+
+ std::pair<double, std::size_t>
+network_butcher_computer::Computer_flops::compute_macs_flops(
+ const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content)
+{
+ auto       &factory = get_factory();
+ auto const &op_id   = content.get_operation_id();
+
+
+  std::size_t params = 0;
+  for(auto const &param : content.get_parameters())
+    params += param.second->compute_shape_volume();
+
+if (factory.registered(op_id))
+ return std::pair{factory.get(op_id)(content), param};
+
+return std::pair<double, std::size_t>{0., 0};
+ }
+
+network_butcher_computer::Computer_flops::FactoryType &
+network_butcher_computer::Computer_flops::get_factory()
+{
+  if (!factory_initialized)
+    {
+      generate_maps_flops_func();
+      factory_initialized = true;
+    }
+
+  return FactoryType::Instance();
+}*/
+
 
 std::size_t
 network_butcher_computer::Computer_flops::get_volume(const std::vector<network_butcher_types::DynamicType> &vect)
@@ -525,31 +495,9 @@ network_butcher_computer::Computer_flops::get_volume(const std::vector<network_b
   return res;
 }
 
-/*
-
- std::pair<double, std::size_t>
-network_butcher_computer::Computer_flops::compute_macs_flops(
- const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content)
-{
- auto       &factory = get_factory();
- auto const &op_id   = content.get_operation_id();
-
-
-  std::size_t params = 0;
-  for(auto const &param : content.get_parameters())
-    params += param.second->compute_shape_volume();
-
-if (factory.registered(op_id))
- return std::pair{factory.get(op_id)(content), param};
-
-return std::pair<double, std::size_t>{0., 0};
- }
-
- */
-
 std::pair<double, std::size_t>
 network_butcher_computer::Computer_flops::compute_macs_flops(
-  const network_butcher_computer::Computer_flops::Content_Type<type_info_pointer> &content)
+  const network_butcher_types::Content<type_info_pointer> &content)
 {
   std::size_t params = 0;
   auto const &parameters = content.get_parameters();
@@ -578,16 +526,4 @@ network_butcher_computer::Computer_flops::compute_macs_flops(
     }
 
   return std::pair{macs, params};
-}
-
-network_butcher_computer::Computer_flops::FactoryType &
-network_butcher_computer::Computer_flops::get_factory()
-{
-  if (!factory_initialized)
-    {
-      generate_maps_flops_func();
-      factory_initialized = true;
-    }
-
-  return FactoryType::Instance();
 }

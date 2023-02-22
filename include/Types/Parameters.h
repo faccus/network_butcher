@@ -15,7 +15,8 @@ namespace network_butcher_parameters
     aMLLibrary,
     operation_time,
     multi_operation_time,
-    official_operation_time
+    official_operation_time,
+    local_generation
   };
 
   /// Collection of parameters for a device
@@ -78,6 +79,12 @@ namespace network_butcher_parameters
 
     /// The export directory
     std::string export_directory;
+
+    /// The temporary directory
+    std::string temporary_directory = "tmp";
+
+    /// The (absolute) path to the onnx_tool package (if not default)
+    std::string package_onnx_tool_location;
 
     /// The number of paths to return
     std::size_t K;

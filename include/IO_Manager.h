@@ -13,6 +13,12 @@
 #include <yaml-cpp/yaml.h>
 #endif
 
+#if PYBIND_ACTIVE
+#include <pybind11/pybind11.h>
+#include <pybind11/embed.h>
+#endif
+
+#include "Computer_flops.h"
 #include "GetPot"
 #include "chrono.h"
 
@@ -24,12 +30,21 @@ namespace network_butcher_io
   /// export a partitioned network to multiple .onnx files
   namespace IO_Manager
   {
-    namespace Helper_Functions {
+    namespace utilities
+    {
       enum Index_Type
       {
         Edge,
         Cloud,
         Operation
+      };
+
+      struct onnx_tool_output {
+        std::string name;
+
+        std::size_t macs;
+        std::size_t memory;
+        std::size_t params;
       };
 
       /// It will read from a .csv file the collection of weights for the given
@@ -39,6 +54,9 @@ namespace network_butcher_io
       /// \param path The path of the file to be "imported"
       void
       import_weights_aMLLibrary(graph_type &graph, std::size_t device, std::string const &path);
+
+      void
+      import_weights_aMLLibrary_local(graph_type &graph, network_butcher_parameters::Parameters const& params);
 
       /// It will read from a .csv file the collection of weights for the given
       /// graph on the specified device
@@ -89,7 +107,7 @@ namespace network_butcher_io
                               google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
                           &preprocessed_ios_nodes,
         const std::string &export_base_path);
-    }
+    } // namespace Helper_Functions
 
     /// It will return the parameters read from the given file
     /// \param path The configuration file path
@@ -108,6 +126,31 @@ namespace network_butcher_io
                          std::string const &candidate_deployments_path,
                          std::string const &annotations_path);
 #endif
+
+#if PYBIND_ACTIVE
+
+    /// It will return the relative path to a .csv file containing MACs, memory usage and IO of the given model
+    /// \param model_path The .onnx file path
+    /// \param package_onnx_tool_location The location of the onnx_tool library
+    /// \param temporary_directory The temporary directory in which the file will be stored
+    /// \return The .csv file (relative) path
+    std::string
+    network_info_onnx_tool(std::string const &model_path,
+                           std::string const &package_onnx_tool_location,
+                           std::string const &temporary_directory = "tmp");
+
+
+
+    /// It will return the relative path to a .csv file containing MACs, memory usage and IO of the given model
+    /// \param params The model parameters
+    /// \return The .csv file (relative) path
+    std::string
+    network_info_onnx_tool(network_butcher_parameters::Parameters const &params);
+
+    std::map<std::string, utilities::onnx_tool_output>
+    read_network_info_onnx_tool(std::string const &path);
+#endif
+
 
     /// It will import a neural network as a graph from a given .onnx file
     /// \param path The file path of the .onnx file

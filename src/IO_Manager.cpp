@@ -78,6 +78,7 @@ network_butcher_io::IO_Manager::import_from_onnx(std::string const &path,
                                                                           node),
                                                                         std::move(operation_type));
       nodes.emplace_back(std::move(content));
+      nodes.back().name = node.name();
 
       link_id_nodeproto.emplace(node_id++, onnx_node_id++);
     }
@@ -215,7 +216,7 @@ network_butcher_io::IO_Manager::export_network_infos_to_csv(graph_type const &gr
 
 
 void
-network_butcher_io::IO_Manager::Helper_Functions::import_weights_aMLLibrary(graph_type        &graph,
+network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary(graph_type        &graph,
                                                                             std::size_t        device,
                                                                             std::string const &path)
 {
@@ -259,7 +260,7 @@ network_butcher_io::IO_Manager::Helper_Functions::import_weights_aMLLibrary(grap
 
 
 void
-network_butcher_io::IO_Manager::Helper_Functions::import_weights_custom_csv_operation_time(graph_type        &graph,
+network_butcher_io::IO_Manager::utilities::import_weights_custom_csv_operation_time(graph_type        &graph,
                                                                                            std::size_t        device,
                                                                                            const std::string &path)
 {
@@ -307,7 +308,51 @@ network_butcher_io::IO_Manager::Helper_Functions::import_weights_custom_csv_oper
 }
 
 void
-network_butcher_io::IO_Manager::Helper_Functions::import_weights_official_csv_multi_operation_time(
+network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local(
+  graph_type                                   &graph,
+  const network_butcher_parameters::Parameters &params)
+{
+#if PYBIND_ACTIVE
+  auto const macs = IO_Manager::read_network_info_onnx_tool(IO_Manager::network_info_onnx_tool(params));
+
+  for(auto const &device : params.devices) {
+      std::vector<std::vector<std::string>> aMLLibrary_input;
+
+      aMLLibrary_input.push_back(std::vector<std::string>{
+        "tensorSaveTime", "tensorLoadTime", "tensorLength", "networkingTime", "NrNodes", "NrParameters", "Memory", "MACs"});
+
+      for(auto const &node : graph.get_nodes()) {
+          auto info_it = macs.find(node.name);
+          std::vector<std::string> row;
+
+          row.push_back(""); // tensorSaveTime
+          row.push_back(""); // tensorLoadTime
+          row.push_back(""); // tensorLength
+          row.push_back(""); // networkingTime
+          row.push_back(""); // NrNodes
+
+
+          if(info_it != macs.cend()) {
+              auto const &info = info_it->second;
+              row.push_back(std::to_string(info.params)); // NrParameters
+              row.push_back(std::to_string(info.memory)); // Memory
+              row.push_back(std::to_string(info.macs)); // MACS
+            }
+          else {
+              row.push_back(""); // NrParameters
+              row.push_back(""); // Memory
+              row.push_back("0"); // MACs
+            }
+        }
+    }
+
+#else
+  std::cout << "PyBind should be turned on in order to produce locally the weights!" << std::endl;
+#endif
+}
+
+void
+network_butcher_io::IO_Manager::utilities::import_weights_official_csv_multi_operation_time(
   graph_type              &graph,
   std::vector<std::size_t> devices,
   const std::string       &path)
@@ -423,7 +468,7 @@ network_butcher_io::IO_Manager::Helper_Functions::import_weights_official_csv_mu
 }
 
 void
-network_butcher_io::IO_Manager::Helper_Functions::import_weights_custom_csv_multi_operation_time(
+network_butcher_io::IO_Manager::utilities::import_weights_custom_csv_multi_operation_time(
   graph_type              &graph,
   std::vector<std::size_t> devices,
   const std::string       &path)
@@ -593,7 +638,7 @@ network_butcher_io::IO_Manager::export_network_partitions(const network_butcher_
     {
       network_butcher_utilities::create_directory(params.export_directory + "/" + std::to_string(j));
 
-      Helper_Functions::reconstruct_model_and_export(paths[j].second,
+      utilities::reconstruct_model_and_export(paths[j].second,
                                                      model,
                                                      link_id_nodeproto,
                                                      preprocessed_node_ios,
@@ -612,16 +657,16 @@ network_butcher_io::IO_Manager::import_weights(network_butcher_parameters::Weigh
   switch (weight_mode)
     {
       case network_butcher_parameters::Weight_Import_Mode::aMLLibrary:
-        Helper_Functions::import_weights_aMLLibrary(graph, device, path);
+        utilities::import_weights_aMLLibrary(graph, device, path);
         break;
       case network_butcher_parameters::Weight_Import_Mode::operation_time:
-        Helper_Functions::import_weights_custom_csv_operation_time(graph, device, path);
+        utilities::import_weights_custom_csv_operation_time(graph, device, path);
         break;
       case network_butcher_parameters::Weight_Import_Mode::multi_operation_time:
-        Helper_Functions::import_weights_custom_csv_multi_operation_time(graph, {device}, path);
+        utilities::import_weights_custom_csv_multi_operation_time(graph, {device}, path);
         break;
       case network_butcher_parameters::Weight_Import_Mode::official_operation_time:
-        Helper_Functions::import_weights_official_csv_multi_operation_time(graph, {device}, path);
+        utilities::import_weights_official_csv_multi_operation_time(graph, {device}, path);
         break;
       default:
         std::cout << "The specified Weight_Import_Mode is either not avaible or not found. Please, check that you "
@@ -641,10 +686,10 @@ network_butcher_io::IO_Manager::import_weights(network_butcher_parameters::Weigh
   switch (weight_mode)
     {
       case network_butcher_parameters::Weight_Import_Mode::multi_operation_time:
-        Helper_Functions::import_weights_custom_csv_multi_operation_time(graph, devices, path);
+        utilities::import_weights_custom_csv_multi_operation_time(graph, devices, path);
         break;
       case network_butcher_parameters::Weight_Import_Mode::official_operation_time:
-        Helper_Functions::import_weights_official_csv_multi_operation_time(graph, devices, path);
+        utilities::import_weights_official_csv_multi_operation_time(graph, devices, path);
         break;
       default:
         std::cout << "The specified Weight_Import_Mode is either not avaible or not found. Please, check that you "
@@ -656,7 +701,7 @@ network_butcher_io::IO_Manager::import_weights(network_butcher_parameters::Weigh
 
 
 void
-network_butcher_io::IO_Manager::Helper_Functions::reconstruct_model_and_export(
+network_butcher_io::IO_Manager::utilities::reconstruct_model_and_export(
   const network_butcher_types::Real_Path     &partitions,
   const onnx::ModelProto                     &original_model,
   const std::map<node_id_type, node_id_type> &link_id_nodeproto,
@@ -797,6 +842,99 @@ network_butcher_io::IO_Manager::read_parameters_yaml(std::string const &candidat
             }
         }
     }
+
+  return res;
+}
+#endif
+
+#if PYBIND_ACTIVE
+std::string
+network_butcher_io::IO_Manager::network_info_onnx_tool(const std::string &model_path,
+                                                       const std::string &package_onnx_tool_location,
+                                                       const std::string &temporary_directory)
+{
+  using namespace pybind11::literals;
+  namespace py = pybind11;
+
+  py::scoped_interpreter guard{};
+
+  py::object sys_path    = py::module_::import("sys").attr("path");
+  py::object insert_path = sys_path.attr("insert");
+  insert_path(0, package_onnx_tool_location);
+
+
+  if (!network_butcher_utilities::directory_exists(temporary_directory))
+    network_butcher_utilities::create_directory(temporary_directory);
+
+  auto weight_path = network_butcher_utilities::combine_path(temporary_directory, "weights.csv");
+  if (network_butcher_utilities::file_exists(weight_path))
+    network_butcher_utilities::file_delete(weight_path);
+
+  py::object onnx_tool = py::module_::import("onnx_tool");
+
+  py::object model_profile = onnx_tool.attr("model_profile");
+  model_profile(model_path, "savenode"_a = weight_path);
+
+  return weight_path;
+}
+
+std::string
+network_butcher_io::IO_Manager::network_info_onnx_tool(const network_butcher_parameters::Parameters &params)
+{
+  return network_info_onnx_tool(params.model_path, params.package_onnx_tool_location, params.temporary_directory);
+}
+
+std::map<std::string, network_butcher_io::IO_Manager::utilities::onnx_tool_output>
+network_butcher_io::IO_Manager::read_network_info_onnx_tool(const std::string &path)
+{
+  std::map<std::string, network_butcher_io::IO_Manager::utilities::onnx_tool_output> res;
+
+  // Import the file
+  std::fstream file_in;
+  file_in.open(path, std::ios_base::in);
+  weight_type tmp_weight;
+
+  std::string tmp_line;
+  std::getline(file_in, tmp_line);
+
+  // If not the end of file,
+  while (!file_in.eof())
+    {
+      std::string operation;
+      IO_Manager::utilities::onnx_tool_output info;
+
+      std::getline(file_in, tmp_line);
+      std::stringstream stream_line(tmp_line);
+
+      std::getline(stream_line, tmp_line, ','); // name
+      info.name = std::move(tmp_line);
+
+      std::getline(stream_line, tmp_line, ','); // macs
+      {
+        std::stringstream stream(tmp_line);
+        stream >> info.macs;
+      }
+
+      std::getline(stream_line, tmp_line, ','); // CPercent
+      std::getline(stream_line, tmp_line, ','); // Memory
+
+      {
+        std::stringstream stream(tmp_line);
+        stream >> info.memory;
+      }
+
+      std::getline(stream_line, tmp_line, ','); // MPercent
+      std::getline(stream_line, tmp_line, ','); // Params
+
+      {
+        std::stringstream stream(tmp_line);
+        stream >> info.params;
+      }
+
+      res.emplace(info.name, std::move(info));
+    }
+
+  file_in.close();
 
   return res;
 }
