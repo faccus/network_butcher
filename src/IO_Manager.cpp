@@ -78,7 +78,8 @@ network_butcher_io::IO_Manager::import_from_onnx(std::string const &path,
                                                                           node),
                                                                         std::move(operation_type));
       nodes.emplace_back(std::move(content));
-      nodes.back().name = node.name();
+      nodes.back().name =
+        network_butcher_utilities::to_lowercase_copy(node.op_type() + "_" + std::to_string(onnx_node_id));
 
       link_id_nodeproto.emplace(node_id++, onnx_node_id++);
     }
@@ -311,7 +312,6 @@ void
 network_butcher_io::IO_Manager::utilities::csv_assembler(const std::vector<std::vector<std::string>> &content,
                                                          const std::string                           &path)
 {
-
   std::fstream file_out;
   file_out.open(path, std::ios_base::out);
 
@@ -337,13 +337,26 @@ network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local(
   auto const macs = IO_Manager::read_network_info_onnx_tool(IO_Manager::network_info_onnx_tool(params));
 
   for(auto const &device : params.devices) {
+      auto const csv_path =
+        network_butcher_utilities::combine_path(params.temporary_directory,
+                                                "aMLLibrary_input_" + std::to_string(device.id) + ".csv");
+
+      if(!network_butcher_utilities::directory_exists(params.temporary_directory))
+        network_butcher_utilities::create_directory(params.temporary_directory);
+
+      if(network_butcher_utilities::file_exists(csv_path))
+        network_butcher_utilities::file_delete(csv_path);
+
+
       std::vector<std::vector<std::string>> aMLLibrary_input;
-      aMLLibrary_input.push_back(std::vector<std::string>{"TensorLength", "OpType", "NrParameters", "Memory", "MACs"});
+      aMLLibrary_input.push_back(
+        std::vector<std::string>{"Layer", "TensorLength", "OpType", "NrParameters", "Memory", "MACs"});
 
       for (auto const &node : graph.get_nodes())
         {
           auto                     info_it = macs.find(node.name);
-          std::vector<std::string> row;
+          std::vector<std::string> row{node.name};
+          row.reserve(6);
 
           std::size_t tensor_length = 0;
           for (auto const &out : node.content.get_output())
@@ -375,10 +388,6 @@ network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local(
           aMLLibrary_input.push_back(std::move(row));
         }
 
-      auto const &csv_path =
-        network_butcher_utilities::combine_path(params.temporary_directory,
-                                                "aMLLibrary_input_" + std::to_string(device.id) + ".csv");
-
       csv_assembler(aMLLibrary_input, csv_path);
       execute_weight_generator(csv_path, device.weights_path);
     }
@@ -386,13 +395,6 @@ network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local(
 #else
   std::cout << "PyBind should be turned on in order to produce locally the weights!" << std::endl;
 #endif
-}
-
-void
-network_butcher_io::IO_Manager::utilities::execute_weight_generator(const std::string &csv_path,
-                                                                    const std::string &model_path)
-{
-
 }
 
 void
@@ -576,7 +578,11 @@ network_butcher_io::IO_Manager::read_parameters(const std::string &path)
   res.model_name       = file(basic_infos + "/model_name", "model");
   res.model_path       = file(basic_infos + "/model_path", "");
   res.export_directory = file(basic_infos + "/export_directory", "ksp_result");
+  res.temporary_directory = file(basic_infos + "/temporary_directory", "tmp");
+  res.package_onnx_tool_location = file(basic_infos + "/package_onnx_tool_location", "");
+  res.package_aMLLibrary_location = file(basic_infos + "/package_aMLLibrary_location", "");
 
+  //package_aMLLibrary_location = /home/faccus/CLionProjects/network_butcher/aMLLibrary
 
   res.K                    = file(basic_infos + "/K", 100);
   std::string const method = network_butcher_utilities::trim_copy(
@@ -775,6 +781,7 @@ network_butcher_io::IO_Manager::utilities::reconstruct_model_and_export(
     }
 }
 
+
 std::pair<bool, onnx::ModelProto>
 network_butcher_io::IO_Manager::reconstruct_model_from_partition(
   const network_butcher_types::Real_Partition &partition,
@@ -893,6 +900,22 @@ network_butcher_io::IO_Manager::read_parameters_yaml(std::string const &candidat
 #endif
 
 #if PYBIND_ACTIVE
+
+
+void
+network_butcher_io::IO_Manager::utilities::execute_weight_generator(const std::string &csv_path,
+                                                                    const std::string &model_path)
+{
+  using namespace pybind11::literals;
+  namespace py = pybind11;
+
+  py::scoped_interpreter guard{};
+
+  //std::vector<std::string> header{"Layer", "TensorLength", "OpType", "NrParameters", "Memory", "MACs"};
+  py::object aMLLibrary = py::module_::import("aMLLibrary");
+}
+
+
 std::string
 network_butcher_io::IO_Manager::network_info_onnx_tool(const std::string &model_path,
                                                        const std::string &package_onnx_tool_location,
@@ -952,7 +975,7 @@ network_butcher_io::IO_Manager::read_network_info_onnx_tool(const std::string &p
       std::stringstream stream_line(tmp_line);
 
       std::getline(stream_line, tmp_line, ','); // name
-      info.name = std::move(tmp_line);
+      info.name = network_butcher_utilities::to_lowercase_copy(std::move(tmp_line));
 
       std::getline(stream_line, tmp_line, ','); // macs
       {

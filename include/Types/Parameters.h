@@ -30,8 +30,6 @@ namespace network_butcher_parameters
     memory_type maximum_memory;
     // The .csv file of weights
     std::string weights_path;
-
-    std::size_t network_time;
   };
 
   struct network_domain
@@ -87,6 +85,9 @@ namespace network_butcher_parameters
 
     /// The (absolute) path to the onnx_tool package (if not default)
     std::string package_onnx_tool_location;
+
+    /// The (absolute) path to the aMLLibrary package (if not default)
+    std::string package_aMLLibrary_location;
 
     /// The number of paths to return
     std::size_t K;
