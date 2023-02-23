@@ -308,6 +308,27 @@ network_butcher_io::IO_Manager::utilities::import_weights_custom_csv_operation_t
 }
 
 void
+network_butcher_io::IO_Manager::utilities::csv_assembler(const std::vector<std::vector<std::string>> &content,
+                                                         const std::string                           &path)
+{
+
+  std::fstream file_out;
+  file_out.open(path, std::ios_base::out);
+
+  for(auto const &row : content) {
+      for(std::size_t i = 0; i < row.size(); ++i) {
+          file_out << row[i];
+          if(i != row.size() - 1)
+            file_out << ",";
+        }
+      file_out << std::endl;
+    }
+
+  file_out.close();
+}
+
+
+void
 network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local(
   graph_type                                   &graph,
   const network_butcher_parameters::Parameters &params)
@@ -317,38 +338,61 @@ network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local(
 
   for(auto const &device : params.devices) {
       std::vector<std::vector<std::string>> aMLLibrary_input;
+      aMLLibrary_input.push_back(std::vector<std::string>{"TensorLength", "OpType", "NrParameters", "Memory", "MACs"});
 
-      aMLLibrary_input.push_back(std::vector<std::string>{
-        "tensorSaveTime", "tensorLoadTime", "tensorLength", "networkingTime", "NrNodes", "NrParameters", "Memory", "MACs"});
-
-      for(auto const &node : graph.get_nodes()) {
-          auto info_it = macs.find(node.name);
+      for (auto const &node : graph.get_nodes())
+        {
+          auto                     info_it = macs.find(node.name);
           std::vector<std::string> row;
 
-          row.push_back(""); // tensorSaveTime
-          row.push_back(""); // tensorLoadTime
-          row.push_back(""); // tensorLength
-          row.push_back(""); // networkingTime
-          row.push_back(""); // NrNodes
+          std::size_t tensor_length = 0;
+          for (auto const &out : node.content.get_output())
+            tensor_length += out.second->compute_shape_volume();
+          row.push_back(std::to_string(tensor_length)); // tensorLength
+
+          row.push_back(node.content.get_operation_id());
 
 
-          if(info_it != macs.cend()) {
+          if (info_it != macs.cend())
+            {
               auto const &info = info_it->second;
               row.push_back(std::to_string(info.params)); // NrParameters
               row.push_back(std::to_string(info.memory)); // Memory
-              row.push_back(std::to_string(info.macs)); // MACS
+              row.push_back(std::to_string(info.macs));   // MACS
             }
-          else {
-              row.push_back(""); // NrParameters
-              row.push_back(""); // Memory
-              row.push_back("0"); // MACs
+          else
+            {
+              std::size_t cnt = 0;
+              for (auto const &par : node.content.get_parameters())
+                cnt += par.second->compute_shape_volume();
+
+              row.push_back(std::to_string(cnt)); // NrParameters
+              row.push_back(
+                std::to_string(network_butcher_computer::Computer_memory::compute_memory_usage(node))); // Memory
+              row.emplace_back("0");                                                                       // MACs
             }
+
+          aMLLibrary_input.push_back(std::move(row));
         }
+
+      auto const &csv_path =
+        network_butcher_utilities::combine_path(params.temporary_directory,
+                                                "aMLLibrary_input_" + std::to_string(device.id) + ".csv");
+
+      csv_assembler(aMLLibrary_input, csv_path);
+      execute_weight_generator(csv_path, device.weights_path);
     }
 
 #else
   std::cout << "PyBind should be turned on in order to produce locally the weights!" << std::endl;
 #endif
+}
+
+void
+network_butcher_io::IO_Manager::utilities::execute_weight_generator(const std::string &csv_path,
+                                                                    const std::string &model_path)
+{
+
 }
 
 void
@@ -557,6 +601,8 @@ network_butcher_io::IO_Manager::read_parameters(const std::string &path)
     res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::multi_operation_time;
   else if (weight_import_method == "official_operation_time")
     res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::official_operation_time;
+  else if (weight_import_method == "local_generation")
+      res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::local_generation;
   else
     res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::operation_time;
 
@@ -729,7 +775,6 @@ network_butcher_io::IO_Manager::utilities::reconstruct_model_and_export(
     }
 }
 
-
 std::pair<bool, onnx::ModelProto>
 network_butcher_io::IO_Manager::reconstruct_model_from_partition(
   const network_butcher_types::Real_Partition &partition,
@@ -824,6 +869,7 @@ network_butcher_io::IO_Manager::read_parameters_yaml(std::string const &candidat
                   dev.maximum_memory = device.second;
                   dev.name           = device.first;
                   dev.weights_path   = "";
+                  dev.network_time =
                 }
 
               for (std::size_t i = 0; i < params.devices.size(); ++i)

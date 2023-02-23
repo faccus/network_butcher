@@ -58,6 +58,12 @@ namespace network_butcher_io
       void
       import_weights_aMLLibrary_local(graph_type &graph, network_butcher_parameters::Parameters const& params);
 
+      void
+      csv_assembler(std::vector<std::vector<std::string>> const &content, std::string const &path);
+
+      void
+      execute_weight_generator(std::string const &csv_path, std::string const &model_path);
+
       /// It will read from a .csv file the collection of weights for the given
       /// graph on the specified device
       /// \param graph The graph
@@ -149,6 +155,7 @@ namespace network_butcher_io
 
     std::map<std::string, utilities::onnx_tool_output>
     read_network_info_onnx_tool(std::string const &path);
+
 #endif
 
 
