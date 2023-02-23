@@ -19,29 +19,26 @@ set(
 )
 
 
-
 # Add model for tests
-FILE(COPY ${CMAKE_SOURCE_DIR}/models/resnet18-v2-7-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR}/test_data/models)
-FILE(COPY ${CMAKE_SOURCE_DIR}/models/version-RFB-640-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR}/test_data/models)
-FILE(COPY ${CMAKE_SOURCE_DIR}/models/mobilenet_v2-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR}/test_data/models)
+FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/models/resnet18-v2-7-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR}/test_data/models)
+FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/models/version-RFB-640-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR}/test_data/models)
+FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/models/mobilenet_v2-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR}/test_data/models)
 
-FILE(COPY ${CMAKE_SOURCE_DIR}/models/aMLLibrary_prediction_tegra.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
-FILE(COPY ${CMAKE_SOURCE_DIR}/models/aMLLibrary_prediction_pi.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
+FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/weights/aMLLibrary_prediction_tegra.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
+FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/weights/aMLLibrary_prediction_pi.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
+FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/weights/official_operation_time.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
+FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/weights/operation_time_cloud.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
+FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/weights/operation_time_cloud_slow.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
+FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/weights/operation_time_edge.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
 
-FILE(COPY ${CMAKE_SOURCE_DIR}/models/official_operation_time.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
-FILE(COPY ${CMAKE_SOURCE_DIR}/models/operation_time_cloud.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
-FILE(COPY ${CMAKE_SOURCE_DIR}/models/operation_time_cloud_slow.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
-FILE(COPY ${CMAKE_SOURCE_DIR}/models/operation_time_edge.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
-
+FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
+FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test2_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
+FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test3_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
+FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test4_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
 
 
 if (BUILD_BENCHMARK)
     set(FINAL_TESTS_SOURCE ${TESTS_SOURCE} ${BENCHMARK_TESTS_SOURCE})
-
-    FILE(COPY ${CMAKE_SOURCE_DIR}/models/test_parameters.conf  DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
-    FILE(COPY ${CMAKE_SOURCE_DIR}/models/test2_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
-    FILE(COPY ${CMAKE_SOURCE_DIR}/models/test3_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
-    FILE(COPY ${CMAKE_SOURCE_DIR}/models/test4_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
 else ()
     set(FINAL_TESTS_SOURCE ${TESTS_SOURCE})
 endif ()
