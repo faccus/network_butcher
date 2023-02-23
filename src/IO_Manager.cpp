@@ -869,7 +869,6 @@ network_butcher_io::IO_Manager::read_parameters_yaml(std::string const &candidat
                   dev.maximum_memory = device.second;
                   dev.name           = device.first;
                   dev.weights_path   = "";
-                  dev.network_time =
                 }
 
               for (std::size_t i = 0; i < params.devices.size(); ++i)
