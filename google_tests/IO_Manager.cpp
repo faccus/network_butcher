@@ -8,9 +8,8 @@ namespace
 {
   std::string base_path = "test_data";
 
-  std::string weight_path =
-    network_butcher_utilities::combine_path(base_path, "weights/aMLLibrary_prediction_tegra.csv");
-  std::string graph_path = network_butcher_utilities::combine_path(base_path, "models/version-RFB-640-inferred.onnx");
+  std::string weight_path = Utilities::combine_path(base_path, "weights/aMLLibrary_prediction_tegra.csv");
+  std::string graph_path = Utilities::combine_path(base_path, "models/version-RFB-640-inferred.onnx");
 
   TEST(IOManagerTestSuit, RegressionParamtersToExcelTest)
   {
@@ -23,7 +22,7 @@ namespace
     auto graph =
       std::get<0>(network_butcher_io::IO_Manager::import_from_onnx(graph_path));
 
-    network_butcher_io::IO_Manager::import_weights(network_butcher_parameters::Weight_Import_Mode::aMLLibrary,
+    network_butcher_io::IO_Manager::import_weights(network_butcher_parameters::Weight_Import_Mode::aMLLibrary_direct_read,
                                                    graph,
                                                    weight_path,
                                                    0);
@@ -43,10 +42,10 @@ namespace
   TEST(IOManagerTestSuit, ImportExportOnnxTest)
   {
     auto const model          = network_butcher_io::IO_Manager::import_from_onnx(graph_path);
-    auto const exported_model = network_butcher_utilities::combine_path(base_path, "exported.onnx");
+    auto const exported_model = Utilities::combine_path(base_path, "exported.onnx");
 
-    if (network_butcher_utilities::file_exists(exported_model))
-      network_butcher_utilities::file_delete(exported_model);
+    if (Utilities::file_exists(exported_model))
+      Utilities::file_delete(exported_model);
 
     network_butcher_io::IO_Manager::export_to_onnx(std::get<1>(model), exported_model);
   }

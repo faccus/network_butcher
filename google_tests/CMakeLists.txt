@@ -35,6 +35,7 @@ FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test_parameters.conf DESTINATION
 FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test2_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
 FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test3_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
 FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test4_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
+FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test5_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
 
 
 if (BUILD_BENCHMARK)

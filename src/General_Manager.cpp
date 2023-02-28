@@ -44,7 +44,7 @@ network_butcher_io::General_Manager::Helper_Functions::import_weights(graph_type
   switch (params.weight_import_mode)
     {
         case network_butcher_parameters::Weight_Import_Mode::operation_time:
-        case network_butcher_parameters::Weight_Import_Mode::aMLLibrary: {
+        case network_butcher_parameters::Weight_Import_Mode::aMLLibrary_direct_read: {
           for (auto const &device : params.devices)
             {
               IO_Manager::import_weights(params.weight_import_mode, graph, device.weights_path, device.id);
@@ -62,7 +62,7 @@ network_butcher_io::General_Manager::Helper_Functions::import_weights(graph_type
 
           break;
         }
-        case network_butcher_parameters::Weight_Import_Mode::local_generation: {
+        case network_butcher_parameters::Weight_Import_Mode::aMLLibrary_local_inference: {
           IO_Manager::utilities::import_weights_aMLLibrary_local(graph, params);
 
           break;

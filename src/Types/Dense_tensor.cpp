@@ -67,7 +67,7 @@ network_butcher_types::Dense_tensor::compute_memory_usage() const
   for (auto &e : shape)
     num_entries *= e;
 
-  return num_entries * network_butcher_utilities::compute_memory_usage_from_enum(type_id);
+  return num_entries * Utilities::compute_memory_usage_from_enum(type_id);
 }
 
 shape_type

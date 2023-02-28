@@ -62,7 +62,9 @@ namespace network_butcher_io
       csv_assembler(std::vector<std::vector<std::string>> const &content, std::string const &path);
 
       void
-      execute_weight_generator(std::string const &csv_path, std::string const &model_path);
+      execute_weight_generator(std::string const &csv_path,
+                               std::string const &model_path,
+                               std::string const &predict_path);
 
       /// It will read from a .csv file the collection of weights for the given
       /// graph on the specified device
@@ -81,6 +83,17 @@ namespace network_butcher_io
       import_weights_official_csv_multi_operation_time(graph_type              &graph,
                                                        std::vector<std::size_t> devices,
                                                        std::string const       &path);
+
+      std::string
+      aMLLibrary_generate_csv_entry(std::string const                            &entry,
+                                    onnx_tool_output const                       &basic_info,
+                                    graph_type::Node_Type const                  &node,
+                                    const network_butcher_parameters::Parameters &params);
+
+      std::string
+      aMLLibrary_generate_csv_entry(std::string const                             &entry,
+                                    graph_type::Node_Type const                   &node,
+                                    const network_butcher_parameters::Parameters &params);
 
       /// It will read from a .csv file the collection of weights for the given
       /// graph on the specified devices

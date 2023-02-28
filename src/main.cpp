@@ -10,7 +10,7 @@ main(int argc, char **argv)
 }*/
 
 int main() {
-  auto const param = network_butcher_io::IO_Manager::read_parameters("test_data/configs/test_parameters.conf");
+  auto const param = network_butcher_io::IO_Manager::read_parameters("test_data/configs/test5_parameters.conf");
 
   auto graph = std::get<0>(
     network_butcher_io::IO_Manager::import_from_onnx(param.model_path, false, true, 3, true));

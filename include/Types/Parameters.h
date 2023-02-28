@@ -12,11 +12,12 @@ namespace network_butcher_parameters
   /// Enumerator for the weight import modes
   enum Weight_Import_Mode
   {
-    aMLLibrary,
+    aMLLibrary_direct_read,
     operation_time,
     multi_operation_time,
     official_operation_time,
-    local_generation
+    aMLLibrary_local_inference,
+    aMLLibrary_cloud_inference
   };
 
   /// Collection of parameters for a device
@@ -106,6 +107,9 @@ namespace network_butcher_parameters
 
     /// Mode for weight import
     Weight_Import_Mode weight_import_mode;
+
+    /// The features of the .csv file to feed to aMLLibrary
+    std::vector<std::string> weight_csv_features;
 
     /// Do we have to check for memory constraints?
     bool memory_constraint;
