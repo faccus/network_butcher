@@ -58,6 +58,9 @@ endif ()
 
 if (USE_PYBIND)
     add_compile_definitions(PYBIND_ACTIVE)
+
+    FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/aMLLibrary_data/config/predict_0.ini DESTINATION ${CMAKE_BINARY_DIR})
+    FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/aMLLibrary_data/config/predict_1.ini DESTINATION ${CMAKE_BINARY_DIR})
 endif ()
 
 

@@ -63,10 +63,10 @@ namespace network_butcher_io
 
 #if PYBIND_ACTIVE
       void
-      execute_weight_generator(std::string const &csv_path,
-                               std::string const &model_path,
-                               std::string const &predict_path,
-                               std::string const &package_path);
+      execute_weight_generator(const std::string &regressor_file,
+                               const std::string &config_file,
+                               const std::string &output_path,
+                               const std::string &package_path);
 #endif
 
       /// It will read from a .csv file the collection of weights for the given

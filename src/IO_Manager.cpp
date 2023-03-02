@@ -387,6 +387,8 @@ network_butcher_io::IO_Manager::utilities::aMLLibrary_generate_csv_entry(
     return std::to_string(basic_info.memory);
   else if (lower_case == "macs")
     return std::to_string(basic_info.macs);
+  else if (lower_case == "nrnodes")
+    return "1";
   else
     return "0";
 }
@@ -400,8 +402,7 @@ network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local(
   auto const macs = IO_Manager::read_network_info_onnx_tool(IO_Manager::network_info_onnx_tool(params));
 
   if(params.devices.size() == 2 && !params.backward_connections_allowed) {
-      auto const csv_path = Utilities::combine_path(params.temporary_directory,
-                                                "aMLLibrary_input.csv");
+      auto const csv_path = "aMLLibrary_input.csv";
 
       if(!Utilities::directory_exists(params.temporary_directory))
         Utilities::create_directory(params.temporary_directory);
@@ -413,40 +414,45 @@ network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local(
 
       std::vector<std::vector<std::string>> aMLLibrary_input;
       aMLLibrary_input.push_back(initial_row);
+      aMLLibrary_input.front().emplace_back("1stInfTime");
+      aMLLibrary_input.front().emplace_back("2stInfTime");
 
       for (auto const &node : graph.get_nodes())
         {
           auto                     info_it = macs.find(node.name);
           std::vector<std::string> row;
-          row.reserve(initial_row.size());
+          row.reserve(aMLLibrary_input.front().size());
 
           if (info_it != macs.cend())
             {
-              for (auto const &entry : initial_row)
+              for (auto const &entry : aMLLibrary_input.front())
                 {
                   row.emplace_back(aMLLibrary_generate_csv_entry(entry, info_it->second, node, params));
                 }
             }
           else
             {
-              for (auto const &entry : initial_row)
+              for (auto const &entry : aMLLibrary_input.front())
                 {
                   row.emplace_back(aMLLibrary_generate_csv_entry(entry, node, params));
                 }
             }
+
+          row.emplace_back("");
+          row.emplace_back("");
 
           aMLLibrary_input.push_back(std::move(row));
         }
 
       csv_assembler(aMLLibrary_input, csv_path);
 
-      execute_weight_generator(csv_path,
-                               params.devices.front().weights_path,
-                               Utilities::combine_path(params.temporary_directory, "predict_0.csv"),
+      execute_weight_generator(params.devices.front().weights_path,
+                               "predict_0.ini",
+                               Utilities::combine_path(params.temporary_directory, "predict_0"),
                                params.package_aMLLibrary_location);
-      execute_weight_generator(csv_path,
-                               params.devices.back().weights_path,
-                               Utilities::combine_path(params.temporary_directory, "predict_1.csv"),
+      execute_weight_generator(params.devices.back().weights_path,
+                               "predict_1.ini",
+                               Utilities::combine_path(params.temporary_directory, "predict_1"),
                                params.package_aMLLibrary_location);
     }
   else {
@@ -889,6 +895,7 @@ network_butcher_io::IO_Manager::reconstruct_model_from_partition(
 
 
 #if YAML_CPP_ACTIVE
+
 std::vector<network_butcher_parameters::Parameters>
 network_butcher_io::IO_Manager::read_parameters_yaml(std::string const &candidate_resources_path,
                                                      std::string const &candidate_deployments_path,
@@ -965,11 +972,10 @@ network_butcher_io::IO_Manager::read_parameters_yaml(std::string const &candidat
 
 #if PYBIND_ACTIVE
 
-
 void
-network_butcher_io::IO_Manager::utilities::execute_weight_generator(const std::string &csv_path,
-                                                                    const std::string &model_path,
-                                                                    const std::string &predict_path,
+network_butcher_io::IO_Manager::utilities::execute_weight_generator(const std::string &regressor_file,
+                                                                    const std::string &config_file,
+                                                                    const std::string &output_path,
                                                                     const std::string &package_path)
 {
   using namespace pybind11::literals;
@@ -981,7 +987,32 @@ network_butcher_io::IO_Manager::utilities::execute_weight_generator(const std::s
   py::object insert_path = sys_path.attr("insert");
   insert_path(0, package_path);
 
-  py::object aMLLibrary = py::module_::import("aMLLibrary");
+  py::object test_aMLLibrary    = py::module_::import("aMLLibrary.results");
+  py::object aMLLibrary    = py::module_::import("aMLLibrary.model_building.predictor");
+  //py::object int_2 = py::module_::import("predictor");
+
+  py::object predictor_class = aMLLibrary.attr("Predictor");
+
+  py::object predictor_obj = predictor_class("regressor_file"_a="/home/faccus/CLionProjects/network_butcher/cmake-build-debug/test1_1.pickle", "output_folder"_a="predict_0", "debug"_a=Py_False);
+
+  py::exec(R"(
+        import aMLLibrary
+        from model_building.predictor import Predictor
+
+        predictor_obj = Predictor(regressor_file='/home/faccus/CLionProjects/network_butcher/cmake-build-debug/test1_1.pickle', output_folder='predict_0', debug=False)
+        predictor_obj.predict(config_file='/home/faccus/CLionProjects/network_butcher/cmake-build-debug/predict_0.ini', mape_to_file=False)
+    )", py::globals());
+
+  /*
+
+
+  py::object predictor_class = aMLLibrary.attr("Predictor");
+  py::object predictor =
+    predictor_class("regressor_file"_a = regressor_file, "output_folder"_a = output_path, "debug"_a = Py_False);
+  predictor.attr("predict")("config_file"_a = config_file, "mape_to_file"_a = Py_False);
+
+   * */
+
 
 
   // predictor_obj = Predictor(regressor_file=args.regressor, output_folder=args.output, debug=args.debug)
