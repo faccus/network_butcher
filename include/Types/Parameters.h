@@ -87,7 +87,6 @@ namespace network_butcher_parameters
     /// The (absolute) path to the onnx_tool package (if not default)
     std::string package_onnx_tool_location;
 
-    /// The (absolute) path to the aMLLibrary package (if not default)
     std::string package_aMLLibrary_location;
 
     /// The number of paths to return

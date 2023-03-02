@@ -61,10 +61,13 @@ namespace network_butcher_io
       void
       csv_assembler(std::vector<std::vector<std::string>> const &content, std::string const &path);
 
+#if PYBIND_ACTIVE
       void
       execute_weight_generator(std::string const &csv_path,
                                std::string const &model_path,
-                               std::string const &predict_path);
+                               std::string const &predict_path,
+                               std::string const &package_path);
+#endif
 
       /// It will read from a .csv file the collection of weights for the given
       /// graph on the specified device

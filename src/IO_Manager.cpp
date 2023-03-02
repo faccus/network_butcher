@@ -442,10 +442,12 @@ network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local(
 
       execute_weight_generator(csv_path,
                                params.devices.front().weights_path,
-                               Utilities::combine_path(params.temporary_directory, "predict_0.csv"));
+                               Utilities::combine_path(params.temporary_directory, "predict_0.csv"),
+                               params.package_aMLLibrary_location);
       execute_weight_generator(csv_path,
                                params.devices.back().weights_path,
-                               Utilities::combine_path(params.temporary_directory, "predict_1.csv"));
+                               Utilities::combine_path(params.temporary_directory, "predict_1.csv"),
+                               params.package_aMLLibrary_location);
     }
   else {
       std::cout << "aMLLibrary_local works only with two devices!" << std::endl;
@@ -967,15 +969,24 @@ network_butcher_io::IO_Manager::read_parameters_yaml(std::string const &candidat
 void
 network_butcher_io::IO_Manager::utilities::execute_weight_generator(const std::string &csv_path,
                                                                     const std::string &model_path,
-                                                                    const std::string &predict_path)
+                                                                    const std::string &predict_path,
+                                                                    const std::string &package_path)
 {
   using namespace pybind11::literals;
   namespace py = pybind11;
 
   py::scoped_interpreter guard{};
 
-  //std::vector<std::string> header{"Layer", "TensorLength", "OpType", "NrParameters", "Memory", "MACs"};
+  py::object sys_path    = py::module_::import("sys").attr("path");
+  py::object insert_path = sys_path.attr("insert");
+  insert_path(0, package_path);
+
   py::object aMLLibrary = py::module_::import("aMLLibrary");
+
+
+  // predictor_obj = Predictor(regressor_file=args.regressor, output_folder=args.output, debug=args.debug)
+  // predictor_obj.predict(config_file=args.config_file, mape_to_file=args.mape_to_file)
+
 }
 
 
