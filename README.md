@@ -39,11 +39,11 @@ To (dynamically) link the installed libraries, check the CMakeLists.txt file in 
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/faccus/network_butcher
+git clone https://github.com/faccus/network_butcher --recurse-submodules
 ```
 or
 ```bash
-git clone git@github.com:faccus/network_butcher.git
+git clone git@github.com:faccus/network_butcher.git --recurse-submodules
 ```
 2. Create the build directory and move there:
 ```bash

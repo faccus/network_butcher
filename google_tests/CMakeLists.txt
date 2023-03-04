@@ -37,6 +37,9 @@ FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test3_parameters.conf DESTINATIO
 FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test4_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
 FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test5_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
 
+FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/aMLLibrary_data/models/test1_1.pickle DESTINATION ${CMAKE_BINARY_DIR})
+FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/aMLLibrary_data/models/test1_2.pickle DESTINATION ${CMAKE_BINARY_DIR})
+
 
 if (BUILD_BENCHMARK)
     set(FINAL_TESTS_SOURCE ${TESTS_SOURCE} ${BENCHMARK_TESTS_SOURCE})

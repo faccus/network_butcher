@@ -983,40 +983,18 @@ network_butcher_io::IO_Manager::utilities::execute_weight_generator(const std::s
 
   py::scoped_interpreter guard{};
 
-  py::object sys_path    = py::module_::import("sys").attr("path");
-  py::object insert_path = sys_path.attr("insert");
-  insert_path(0, package_path);
+  if(!package_path.empty()) {
+      py::object sys_path    = py::module_::import("sys").attr("path");
+      py::object insert_path = sys_path.attr("insert");
+      insert_path(0, package_path);
+    } else {
+      py::object sys_path    = py::module_::import("sys").attr("path");
+      py::object insert_path = sys_path.attr("insert");
+      insert_path(0, ".");
+    }
 
-  py::object test_aMLLibrary    = py::module_::import("aMLLibrary.results");
-  py::object aMLLibrary    = py::module_::import("aMLLibrary.model_building.predictor");
-  //py::object int_2 = py::module_::import("predictor");
-
-  py::object predictor_class = aMLLibrary.attr("Predictor");
-
-  py::object predictor_obj = predictor_class("regressor_file"_a="/home/faccus/CLionProjects/network_butcher/cmake-build-debug/test1_1.pickle", "output_folder"_a="predict_0", "debug"_a=Py_False);
-
-  py::exec(R"(
-        import aMLLibrary
-        from model_building.predictor import Predictor
-
-        predictor_obj = Predictor(regressor_file='/home/faccus/CLionProjects/network_butcher/cmake-build-debug/test1_1.pickle', output_folder='predict_0', debug=False)
-        predictor_obj.predict(config_file='/home/faccus/CLionProjects/network_butcher/cmake-build-debug/predict_0.ini', mape_to_file=False)
-    )", py::globals());
-
-  /*
-
-
-  py::object predictor_class = aMLLibrary.attr("Predictor");
-  py::object predictor =
-    predictor_class("regressor_file"_a = regressor_file, "output_folder"_a = output_path, "debug"_a = Py_False);
-  predictor.attr("predict")("config_file"_a = config_file, "mape_to_file"_a = Py_False);
-
-   * */
-
-
-
-  // predictor_obj = Predictor(regressor_file=args.regressor, output_folder=args.output, debug=args.debug)
-  // predictor_obj.predict(config_file=args.config_file, mape_to_file=args.mape_to_file)
+  py::object aMLLibrary = py::module_::import("aMLLibrary");
+  py::object base_fun = aMLLibrary.attr("Predictor");
 
 }
 
@@ -1031,10 +1009,12 @@ network_butcher_io::IO_Manager::network_info_onnx_tool(const std::string &model_
 
   py::scoped_interpreter guard{};
 
-  py::object sys_path    = py::module_::import("sys").attr("path");
-  py::object insert_path = sys_path.attr("insert");
-  insert_path(0, package_onnx_tool_location);
+  if(!package_onnx_tool_location.empty()) {
 
+      py::object sys_path    = py::module_::import("sys").attr("path");
+      py::object insert_path = sys_path.attr("insert");
+      insert_path(0, package_onnx_tool_location);
+    }
 
   if (!Utilities::directory_exists(temporary_directory))
     Utilities::create_directory(temporary_directory);
