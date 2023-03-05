@@ -983,18 +983,20 @@ network_butcher_io::IO_Manager::utilities::execute_weight_generator(const std::s
 
   py::scoped_interpreter guard{};
 
-  py::object sys_path    = py::module_::import("sys").attr("path");
-  py::object insert_path = sys_path.attr("insert");
-  insert_path(0, package_path);
-  insert_path(0, "/home/faccus/.local/lib/python3.10/site-packages");
+  try
+    {
+      py::object path_append = py::module_::import("sys.path").attr("append");
+      path_append("/home/faccus/.local/lib/python3.10/site-packages");
+      path_append(package_path);
+      path_append(package_path + "/aMLLibrary/model_building");
 
-  py::object warnings_fiter = py::module_::import("warnings").attr("filterwarnings");
-  warnings_fiter("ignore");
+      py::object dir = py::module_::import("essentials").attr("dir");
 
-  py::object aMLLibrary_module = py::module_::import("aMMlibrary_interaction");
-
-
-  std::cout << "Is this the end?" << std::endl;
+    }
+  catch (py::error_already_set &e)
+    {
+      std::cout << "Exception detected" << std::endl;
+    }
 }
 
 
