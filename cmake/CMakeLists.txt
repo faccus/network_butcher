@@ -58,7 +58,7 @@ if(USE_PYBIND)
     #FetchContent_MakeAvailable(pybind11)
     include_directories(${pybind11_INCLUDE_DIRS})
 
-    list(APPEND RUN_LIBRARIES_LOCATION pybind11::embed)
+    list(APPEND RUN_LIBRARIES_LOCATION pybind11::embed pybind11::pybind11)
 endif()
 
 

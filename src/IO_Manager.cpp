@@ -983,19 +983,18 @@ network_butcher_io::IO_Manager::utilities::execute_weight_generator(const std::s
 
   py::scoped_interpreter guard{};
 
-  if(!package_path.empty()) {
-      py::object sys_path    = py::module_::import("sys").attr("path");
-      py::object insert_path = sys_path.attr("insert");
-      insert_path(0, package_path);
-    } else {
-      py::object sys_path    = py::module_::import("sys").attr("path");
-      py::object insert_path = sys_path.attr("insert");
-      insert_path(0, ".");
-    }
+  py::object sys_path    = py::module_::import("sys").attr("path");
+  py::object insert_path = sys_path.attr("insert");
+  insert_path(0, package_path);
+  insert_path(0, "/home/faccus/.local/lib/python3.10/site-packages");
 
-  py::object aMLLibrary = py::module_::import("aMLLibrary");
-  py::object base_fun = aMLLibrary.attr("Predictor");
+  py::object warnings_fiter = py::module_::import("warnings").attr("filterwarnings");
+  warnings_fiter("ignore");
 
+  py::object aMLLibrary_module = py::module_::import("aMMlibrary_interaction");
+
+
+  std::cout << "Is this the end?" << std::endl;
 }
 
 
