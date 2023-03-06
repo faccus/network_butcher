@@ -6,7 +6,7 @@ if (BUILD_PROTOBUF_SOURCE)
     FetchContent_Declare(
             protobuf
             GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
-            GIT_TAG        v3.17.3
+            GIT_TAG        v3.21.12
             SOURCE_SUBDIR cmake
     )
     option(protobuf_BUILD_TESTS OFF)

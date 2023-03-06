@@ -399,9 +399,11 @@ network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local(
   const network_butcher_parameters::Parameters &params)
 {
 #if PYBIND_ACTIVE
-  auto const macs = IO_Manager::read_network_info_onnx_tool(IO_Manager::network_info_onnx_tool(params));
 
   if(params.devices.size() == 2 && !params.backward_connections_allowed) {
+      pybind11::initialize_interpreter();
+
+      auto const macs = IO_Manager::read_network_info_onnx_tool(IO_Manager::network_info_onnx_tool(params));
       auto const csv_path = "aMLLibrary_input.csv";
 
       if(!Utilities::directory_exists(params.temporary_directory))
@@ -454,6 +456,8 @@ network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local(
                                "predict_1.ini",
                                Utilities::combine_path(params.temporary_directory, "predict_1"),
                                params.package_aMLLibrary_location);
+
+      pybind11::finalize_interpreter();
     }
   else {
       std::cout << "aMLLibrary_local works only with two devices!" << std::endl;
@@ -981,22 +985,11 @@ network_butcher_io::IO_Manager::utilities::execute_weight_generator(const std::s
   using namespace pybind11::literals;
   namespace py = pybind11;
 
-  py::scoped_interpreter guard{};
+  py::object path     = py::module_::import("sys").attr("path");
+  py::object inserter = path.attr("append");
+  inserter(package_path);
 
-  try
-    {
-      py::object path_append = py::module_::import("sys.path").attr("append");
-      path_append("/home/faccus/.local/lib/python3.10/site-packages");
-      path_append(package_path);
-      path_append(package_path + "/aMLLibrary/model_building");
-
-      py::object dir = py::module_::import("essentials").attr("dir");
-
-    }
-  catch (py::error_already_set &e)
-    {
-      std::cout << "Exception detected" << std::endl;
-    }
+  py::print(path);
 }
 
 
@@ -1008,13 +1001,13 @@ network_butcher_io::IO_Manager::network_info_onnx_tool(const std::string &model_
   using namespace pybind11::literals;
   namespace py = pybind11;
 
-  py::scoped_interpreter guard{};
-
   if(!package_onnx_tool_location.empty()) {
 
-      py::object sys_path    = py::module_::import("sys").attr("path");
-      py::object insert_path = sys_path.attr("insert");
-      insert_path(0, package_onnx_tool_location);
+      py::object path     = py::module_::import("sys").attr("path");
+      py::object inserter = path.attr("append");
+      inserter(package_onnx_tool_location);
+
+      py::print(path);
     }
 
   if (!Utilities::directory_exists(temporary_directory))
