@@ -46,8 +46,17 @@ if (USE_CPR_CPP)
 endif()
 
 if(USE_PYBIND)
-    add_subdirectory(pybind11)
-    
+    FetchContent_Declare(
+        pybind11
+        GIT_REPOSITORY https://github.com/pybind/pybind11.git
+        GIT_TAG        v2.10.3
+        OVERRIDE_FIND_PACKAGE
+    )
+    find_package(pybind11 REQUIRED)
+
+    #FetchContent_MakeAvailable(pybind11)
+    include_directories(${pybind11_INCLUDE_DIRS})
+
     list(APPEND RUN_LIBRARIES_LOCATION pybind11::embed pybind11::pybind11)
 endif()
 
