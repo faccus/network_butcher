@@ -14,7 +14,7 @@ message(STATUS "Build benchmark tests: ${BUILD_BENCHMARK}")
 
 
 
-option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" OFF)
+option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
 message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
 
 option(USE_YAML_CPP "Use yaml-cpp" ON)
