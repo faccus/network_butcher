@@ -7,7 +7,6 @@ if (BUILD_PROTOBUF_SOURCE)
             protobuf
             GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
             GIT_TAG        v3.21.12
-            SOURCE_SUBDIR cmake
     )
     option(protobuf_BUILD_TESTS OFF)
 
@@ -47,17 +46,8 @@ if (USE_CPR_CPP)
 endif()
 
 if(USE_PYBIND)
-    FetchContent_Declare(
-        pybind11
-        GIT_REPOSITORY https://github.com/pybind/pybind11
-        GIT_TAG        v2.10.3
-        OVERRIDE_FIND_PACKAGE
-    )
-    find_package(pybind11 REQUIRED)
-
-    #FetchContent_MakeAvailable(pybind11)
-    include_directories(${pybind11_INCLUDE_DIRS})
-
+    add_subdirectory(pybind11)
+    
     list(APPEND RUN_LIBRARIES_LOCATION pybind11::embed pybind11::pybind11)
 endif()
 

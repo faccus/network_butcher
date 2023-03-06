@@ -26,7 +26,7 @@ message(STATUS "Download and compile yaml-cpp from git: " ${BUILD_YAML_CPP_SOURC
 option(USE_CPR_CPP "Download and compile cpr-cpp from git:" OFF) # WIP
 message(STATUS "Download and compile cpr-cpp from git ${USE_CPR_CPP}")
 
-option(USE_PYBIND "Download and compile pybind11 from git:" ON) # WIP
+option(USE_PYBIND "Use pybind11:" ON) # WIP
 message(STATUS "Download and compile pybind11 from git ${USE_PYBIND}")
 
 
