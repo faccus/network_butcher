@@ -989,7 +989,14 @@ network_butcher_io::IO_Manager::utilities::execute_weight_generator(const std::s
   py::object inserter = path.attr("append");
   inserter(package_path);
 
-  py::print(path);
+  if(Utilities::directory_exists(output_path))
+    Utilities::directory_delete(output_path);
+
+  py::object Predictor = py::module_::import("aMLLibrary.model_building.predictor").attr("Predictor");
+  py::object predict =
+    Predictor("regressor_file"_a = regressor_file, "output_folder"_a = output_path, "debug"_a = false).attr("predict");
+
+  predict("config_file"_a=config_file, "mape_to_file"_a=false);
 }
 
 
@@ -1006,8 +1013,6 @@ network_butcher_io::IO_Manager::network_info_onnx_tool(const std::string &model_
       py::object path     = py::module_::import("sys").attr("path");
       py::object inserter = path.attr("append");
       inserter(package_onnx_tool_location);
-
-      py::print(path);
     }
 
   if (!Utilities::directory_exists(temporary_directory))

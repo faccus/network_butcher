@@ -15,7 +15,6 @@ main(int argc, char **argv)
 
   return 0;
 }*/
-/*
 int main() {
   auto const param = network_butcher_io::IO_Manager::read_parameters("test_data/configs/test5_parameters.conf");
 
@@ -26,7 +25,7 @@ int main() {
 
   return 0;
 }
-*/
+/*
 int main() {
   using namespace pybind11::literals;
   namespace py = pybind11;
@@ -43,3 +42,4 @@ int main() {
 
   return 0;
 }
+*/
