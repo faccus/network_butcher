@@ -10,6 +10,30 @@
 
 namespace network_butcher_types
 {
+  class DynamicType_Base {
+    private:
+      bool initialized;
+    public:
+
+
+      virtual ~DynamicType_Base() = 0;
+  };
+
+  template<class T>
+  class DynamicType_Derived : DynamicType_Base {
+    private:
+      bool initialized;
+      T content;
+    public:
+      DynamicType_Single(T const &in) : content{in} {}
+      
+      T get_content() {
+        return content;
+      }
+
+      ~DynamicType_Single() override {}
+  };
+
   class DynamicType
   {
   private:

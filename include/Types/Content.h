@@ -22,7 +22,7 @@ namespace network_butcher_types
     /// Collection of the ids of parameters of the node
     io_collection_type<T> parameters;
     /// Collection of the attributes of the node
-    std::unordered_map<std::string, std::vector<DynamicType>> attributes;
+    std::unordered_map<std::string, std::unique_ptr<DynamicType_Base>> attributes;
     /// Operation name
     std::string operation_id;
 
