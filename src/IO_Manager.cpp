@@ -371,12 +371,8 @@ network_butcher_io::IO_Manager::utilities::aMLLibrary_generate_csv_entry(
     }
   else if (lower_case == "networkingtime")
     {
-      std::size_t tensor_length = 0;
-      for (auto const &out : node.content.get_output())
-        tensor_length += out.second->compute_shape_volume();
-
       auto const net_time = params.bandwidth.cbegin()->second.second +
-                            tensor_length * params.bandwidth.cbegin()->second.first;
+                            basic_info.memory * 8 * (params.bandwidth.cbegin()->second.first * std::pow(10, 6));
       return std::to_string(net_time);
     }
   else if (lower_case == "optype")
@@ -439,9 +435,6 @@ network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local(
                   row.emplace_back(aMLLibrary_generate_csv_entry(entry, node, params));
                 }
             }
-
-          row.emplace_back("");
-          row.emplace_back("");
 
           aMLLibrary_input.push_back(std::move(row));
         }

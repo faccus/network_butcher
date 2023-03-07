@@ -119,7 +119,7 @@ namespace network_butcher_parameters
     /// The collection of devices
     std::vector<Device> devices;
 
-    /// The bandwidth information between the different devices (in Mbps)
+    /// The bandwidth information between the different devices (Mbps - s)
     std::map<std::pair<std::size_t, std::size_t>, std::pair<bandwidth_type, bandwidth_type>> bandwidth;
   };
 } // namespace network_butcher_parameters

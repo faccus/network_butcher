@@ -8,7 +8,7 @@ network_butcher_io::General_Manager::Helper_Functions::generate_bandwidth_transm
                                                                               const graph_type &graph)
 {
   // Conversion from bytes to mb
-  auto const mbps = 1000. / 8;
+  auto const mbps = std::pow(10, 6) / 8;
 
   std::function<weight_type(node_id_type const &, std::size_t, std::size_t)> transmission_weights =
     [&params, &graph, mbps](node_id_type const &node_id, std::size_t first_device, std::size_t second_device) {
@@ -63,8 +63,6 @@ network_butcher_io::General_Manager::Helper_Functions::import_weights(graph_type
           break;
         }
         case network_butcher_parameters::Weight_Import_Mode::aMLLibrary_local_inference: {
-          IO_Manager::utilities::import_weights_aMLLibrary_local(graph, params);
-
           break;
         }
     }
