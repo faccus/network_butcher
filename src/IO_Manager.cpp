@@ -372,7 +372,7 @@ network_butcher_io::IO_Manager::utilities::aMLLibrary_generate_csv_entry(
   else if (lower_case == "networkingtime")
     {
       auto const net_time = params.bandwidth.cbegin()->second.second +
-                            basic_info.memory * 8 * (params.bandwidth.cbegin()->second.first * std::pow(10, 6));
+                            basic_info.memory * 8 / (params.bandwidth.cbegin()->second.first * std::pow(10, 6));
       return std::to_string(net_time);
     }
   else if (lower_case == "optype")
