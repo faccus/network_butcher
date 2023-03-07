@@ -16,6 +16,7 @@
 #if PYBIND_ACTIVE
 #include <pybind11/pybind11.h>
 #include <pybind11/embed.h>
+#include "CMake_directives.h"
 #endif
 
 #include "Computer_flops.h"
@@ -62,6 +63,9 @@ namespace network_butcher_io
       csv_assembler(std::vector<std::vector<std::string>> const &content, std::string const &path);
 
 #if PYBIND_ACTIVE
+      void
+      add_aMLLibrary_to_path();
+
       void
       execute_weight_generator(const std::string &regressor_file,
                                const std::string &config_file,

@@ -417,7 +417,7 @@ network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local(
       std::vector<std::vector<std::string>> aMLLibrary_input;
       aMLLibrary_input.push_back(initial_row);
       aMLLibrary_input.front().emplace_back("1stInfTime");
-      aMLLibrary_input.front().emplace_back("2stInfTime");
+      aMLLibrary_input.front().emplace_back("2ndInfTime");
 
       for (auto const &node : graph.get_nodes())
         {
@@ -447,6 +447,8 @@ network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local(
         }
 
       csv_assembler(aMLLibrary_input, csv_path);
+
+      add_aMLLibrary_to_path();
 
       execute_weight_generator(params.devices.front().weights_path,
                                "predict_0.ini",
@@ -976,6 +978,16 @@ network_butcher_io::IO_Manager::read_parameters_yaml(std::string const &candidat
 
 #if PYBIND_ACTIVE
 
+void network_butcher_io::IO_Manager::utilities::add_aMLLibrary_to_path() {
+  using namespace pybind11::literals;
+  namespace py = pybind11;
+
+  py::object path     = py::module_::import("sys").attr("path");
+  py::object inserter = path.attr("append");
+  inserter(NN_Source_Path);
+}
+
+
 void
 network_butcher_io::IO_Manager::utilities::execute_weight_generator(const std::string &regressor_file,
                                                                     const std::string &config_file,
@@ -984,10 +996,6 @@ network_butcher_io::IO_Manager::utilities::execute_weight_generator(const std::s
 {
   using namespace pybind11::literals;
   namespace py = pybind11;
-
-  py::object path     = py::module_::import("sys").attr("path");
-  py::object inserter = path.attr("append");
-  inserter(package_path);
 
   if(Utilities::directory_exists(output_path))
     Utilities::directory_delete(output_path);

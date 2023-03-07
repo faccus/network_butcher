@@ -50,12 +50,13 @@ if(USE_PYBIND)
         pybind11
         GIT_REPOSITORY https://github.com/pybind/pybind11.git
         GIT_TAG        v2.10.3
-        OVERRIDE_FIND_PACKAGE
     )
-    find_package(pybind11 REQUIRED)
+    FetchContent_MakeAvailable(pybind11)
 
-    #FetchContent_MakeAvailable(pybind11)
-    include_directories(${pybind11_INCLUDE_DIRS})
+    configure_file(${CMAKE_SOURCE_DIR}/include/CMake_directives.h.in CMake_directives.h)
+    
+    #list(APPEND PYTHONPATH ${CMAKE_SOURCE_DIR}) 
+    list(APPEND EXTRA_INCLUDE_DIR ${CMAKE_BINARY_DIR})
 
     list(APPEND RUN_LIBRARIES_LOCATION pybind11::embed pybind11::pybind11)
 endif()
