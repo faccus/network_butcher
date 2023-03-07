@@ -6,3 +6,4 @@
 /test_data/aMLLibrary_data/output
 /onnx_proto/onnx
 /.vscode
+/.idea
