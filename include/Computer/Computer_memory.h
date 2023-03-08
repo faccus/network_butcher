@@ -6,7 +6,6 @@
 #define NETWORK_BUTCHER_COMPUTER_MEMORY_H
 
 #include "WGraph.h"
-#include "Hardware_traits.h"
 
 namespace network_butcher_computer
 {

@@ -10,4 +10,7 @@
 using type_info_id_type = int;
 using shape_type        = std::size_t;
 
+using memory_type         = std::size_t;
+using bandwidth_type      = double;
+
 #endif // NETWORK_BUTCHER_TYPE_INFO_TRAITS_H

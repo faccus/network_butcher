@@ -10,7 +10,6 @@
 #include <memory>
 
 #include "Graph_traits.h"
-#include "Hardware_traits.h"
 
 #include "Computer_memory.h"
 

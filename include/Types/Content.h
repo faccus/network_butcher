@@ -22,15 +22,9 @@ namespace network_butcher_types
     /// Collection of the ids of parameters of the node
     io_collection_type<T> parameters;
     /// Collection of the attributes of the node
-    std::unordered_map<std::string, std::unique_ptr<DynamicType_Base>> attributes;
+    std::unordered_map<std::string, DynamicType> attributes;
     /// Operation name
     std::string operation_id;
-
-    inline void
-    set_attribute(std::string const &name, std::vector<std::size_t> const &tensor)
-    {
-      attributes.emplace(name, tensor);
-    }
 
 
   public:
@@ -49,7 +43,7 @@ namespace network_butcher_types
     template <class A = io_collection_type<T>,
               class B = io_collection_type<T>,
               class C = io_collection_type<T>,
-              class D = std::unordered_map<std::string, std::vector<DynamicType>>,
+              class D = std::unordered_map<std::string, DynamicType>,
               class E = std::string>
     Content(A &&in = A(), B &&out = B(), C &&params = C(), D &&in_attributes = D(), E &&operation_name = E())
       : input(std::forward<A>(in))
@@ -85,7 +79,7 @@ namespace network_butcher_types
 
     /// Read-only getter for attributes
     /// \return Const reference to the attributes
-    inline const std::unordered_map<std::string, std::vector<DynamicType>> &
+    inline const std::unordered_map<std::string, DynamicType> &
     get_attributes() const
     {
       return attributes;

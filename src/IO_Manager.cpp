@@ -141,10 +141,10 @@ network_butcher_io::IO_Manager::old_export_network_infos_to_csv(graph_type const
 
               auto const &out_shape    = out_it->second->get_shape();
               auto const &in_shape     = in_it->second->get_shape();
-              auto const &kernel_shape = kernel_iterator->second;
+              auto const &kernel_shape = kernel_iterator->second.get_ints();
 
-              auto const &H_f = kernel_iterator->second[0].get_int();
-              auto const &W_f = kernel_iterator->second[1].get_int();
+              auto const &H_f = kernel_shape[0];
+              auto const &W_f = kernel_shape[1];
 
               std::size_t const C_in      = in_shape[1];
               std::size_t const C_out     = out_shape[1];
@@ -195,10 +195,10 @@ network_butcher_io::IO_Manager::export_network_infos_to_csv(graph_type const &gr
 
               auto const &out_shape    = out_it->second->get_shape();
               auto const &in_shape     = in_it->second->get_shape();
-              auto const &kernel_shape = kernel_iterator->second;
+              auto const &kernel_shape = kernel_iterator->second.get_ints();
 
-              auto const &H_f = kernel_iterator->second[0].get_int();
-              auto const &W_f = kernel_iterator->second[1].get_int();
+              auto const &H_f = kernel_shape[0];
+              auto const &W_f = kernel_shape[1];
 
               std::size_t const C_in      = in_shape[1];
               std::size_t const C_out     = out_shape[1];

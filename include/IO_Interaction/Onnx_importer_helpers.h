@@ -14,6 +14,32 @@ namespace network_butcher_io::Onnx_importer_helpers
 {
   using Map_IO = std::unordered_map<std::string, type_info_pointer>;
 
+  namespace Utilities
+  {
+
+    template <class T>
+    std::vector<T>
+    converter(google::protobuf::RepeatedField<T> const &cont)
+    {
+      std::vector<T> res;
+      res.reserve(cont.size());
+      for (auto const &el : cont)
+        res.push_back(el);
+      return res;
+    };
+
+    template <class T>
+    std::vector<T>
+    converter(google::protobuf::RepeatedPtrField<T> const &cont)
+    {
+      std::vector<T> res;
+      res.reserve(cont.size());
+      for (auto const &el : cont)
+        res.push_back(el);
+      return res;
+    };
+
+  } // namespace Utilities
 
   /// Inserts into the input_map the valid elements (onnx::ValueInfoProto) contained in collection and
   /// whether they are initialized or not
@@ -53,7 +79,7 @@ namespace network_butcher_io::Onnx_importer_helpers
   process_node_ios(google::protobuf::RepeatedPtrField<std::basic_string<char>> const &io_names,
                    io_collection_type<type_info_pointer>                             &parameters_collection,
                    Map_IO const                                                      &value_infos,
-                   std::set<std::string> unused_ios = {});
+                   std::set<std::string>                                              unused_ios = {});
 
   /// It will insert into onnx_io_ids the names of the elements of onnx_io
   /// \param onnx_io A collection of onnx::ValueInfoProto
@@ -87,7 +113,7 @@ namespace network_butcher_io::Onnx_importer_helpers
   /// name a vector of network_butcher_types::DynamicType
   /// \param node The onnx node
   /// \return The attribute map
-  std::unordered_map<std::string, std::vector<network_butcher_types::DynamicType>>
+  std::unordered_map<std::string, network_butcher_types::DynamicType>
   process_node_attributes(const onnx::NodeProto &node);
 } // namespace network_butcher_io::Onnx_importer_helpers
 

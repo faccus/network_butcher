@@ -6,7 +6,6 @@
 #define NETWORK_BUTCHER_COMPUTER_FLOPS_H
 
 #include "Factory.h"
-#include "Hardware_traits.h"
 #include "General_Manager.h"
 
 namespace network_butcher_computer

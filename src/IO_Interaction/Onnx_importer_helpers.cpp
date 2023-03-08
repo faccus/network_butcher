@@ -3,52 +3,46 @@
 //
 #include "Onnx_importer_helpers.h"
 
-std::unordered_map<std::string, std::vector<network_butcher_types::DynamicType>>
+std::unordered_map<std::string, network_butcher_types::DynamicType>
 network_butcher_io::Onnx_importer_helpers::process_node_attributes(const onnx::NodeProto &node)
 {
-  auto const help_func =
-    [](std::string const                                                                &name,
-       auto const                                                                       &array,
-       std::unordered_map<std::string, std::vector<network_butcher_types::DynamicType>> &attributes) {
-      std::vector<network_butcher_types::DynamicType> add;
-      for (auto it = array.cbegin(); it != array.cend(); ++it)
-        add.emplace_back(*it);
-      attributes.insert({name, add});
-    };
+  using DynamicType = network_butcher_types::DynamicType;
+  using namespace Utilities;
 
-  std::unordered_map<std::string, std::vector<network_butcher_types::DynamicType>> attributes;
+  std::unordered_map<std::string, DynamicType> attributes;
 
   for (auto const &attribute : node.attribute())
     {
       switch (attribute.type())
         {
             case onnx::AttributeProto_AttributeType_FLOAT: {
-              attributes.insert({attribute.name(), {attribute.f()}});
+              attributes.emplace(attribute.name(), DynamicType(attribute.f()));
               break;
             }
             case onnx::AttributeProto_AttributeType_FLOATS: {
-              help_func(attribute.name(), attribute.floats(), attributes);
+              attributes.emplace(attribute.name(), DynamicType(converter(attribute.floats())));
               break;
             }
             case onnx::AttributeProto_AttributeType_INT: {
-              attributes.insert({attribute.name(), {attribute.i()}});
+              attributes.emplace(attribute.name(), DynamicType(attribute.i()));
               break;
             }
             case onnx::AttributeProto_AttributeType_INTS: {
-              help_func(attribute.name(), attribute.ints(), attributes);
+              attributes.emplace(attribute.name(), DynamicType(converter(attribute.ints())));
               break;
             }
             case onnx::AttributeProto_AttributeType_STRING: {
-              attributes.insert({attribute.name(), {attribute.s()}});
+              attributes.emplace(attribute.name(), DynamicType(attribute.s()));
             }
             case onnx::AttributeProto_AttributeType_STRINGS: {
-              help_func(attribute.name(), attribute.strings(), attributes);
+              attributes.emplace(attribute.name(), DynamicType(converter(attribute.strings())));
               break;
             }
           default:
             break;
         }
     }
+    
   return attributes;
 }
 
