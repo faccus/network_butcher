@@ -8,6 +8,8 @@
 #include "Heap_traits.h"
 #include "Shortest_path_finder.h"
 
+#include <functional>
+
 namespace network_butcher_kfinder
 {
   /// A (pure) virtual class to find the K shortest path for a given path

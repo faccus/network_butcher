@@ -4,6 +4,7 @@
 
 #include "KEppstein.h"
 #include "KEppstein_lazy.h"
+#include "Graph_traits.h"
 
 #include "TestClass.h"
 #include "TestGraph.h"

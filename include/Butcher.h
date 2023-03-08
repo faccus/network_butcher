@@ -11,16 +11,10 @@
 
 #include "Graph_traits.h"
 
-#include "Computer_memory.h"
-
-#include "Graph.h"
-#include "Node.h"
-
 #include "KEppstein.h"
 #include "KEppstein_lazy.h"
 
-#include "Type_info.h"
-
+#include "Computer_memory.h"
 #include "Parameters.h"
 #include "Paths.h"
 #include "Utilities.h"

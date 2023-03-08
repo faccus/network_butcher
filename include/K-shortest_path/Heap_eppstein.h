@@ -5,10 +5,11 @@
 #ifndef NETWORK_BUTCHER_HEAP_EPPSTEIN_H
 #define NETWORK_BUTCHER_HEAP_EPPSTEIN_H
 
-#include "Node_traits.h"
 #include <limits>
 #include <memory>
 #include <utility>
+
+#include "Basic_traits.h"
 
 namespace network_butcher_kfinder
 {

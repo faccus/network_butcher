@@ -5,9 +5,8 @@
 #ifndef NETWORK_BUTCHER_HEAP_TRAITS_H
 #define NETWORK_BUTCHER_HEAP_TRAITS_H
 
-#include <forward_list>
-#include <list>
-
+#include "Basic_traits.h"
+#include "Weighted_Graph.h"
 #include "Heap_eppstein.h"
 #include "Path_info.h"
 

@@ -63,6 +63,7 @@ namespace network_butcher_kfinder
     Weighted_Graph operator=(Weighted_Graph const &) = delete;
     Weighted_Graph(Weighted_Graph &&) = delete;
     Weighted_Graph operator=(Weighted_Graph &&) = delete;
+    
   private:
     Graph_Type const &graph;
   };
