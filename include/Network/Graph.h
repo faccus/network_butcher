@@ -14,9 +14,9 @@
 
 #include "onnx.pb.h"
 
-#include "Node_traits.h"
 #include "Content.h"
 #include "Node.h"
+#include "Node_traits.h"
 
 namespace network_butcher_types
 {
@@ -47,9 +47,23 @@ namespace network_butcher_types
     /// the id. To work with butcher, the nodes must be sorted in
     /// topological order, according to the Onnx IR specifications.
     /// \param dependencies Node dependencies (input and outputs of every node)
-    explicit Graph(Node_Collection_Type v, Dependencies_Type dep = {})
-      : nodes(std::move(v))
-      , dependencies(std::move(dep))
+    explicit Graph(Node_Collection_Type const &v, Dependencies_Type const &dep = {})
+      : nodes(v)
+      , dependencies(dep)
+    {
+      for (node_id_type i = 0; i < nodes.size(); ++i)
+        nodes[i].id = i;
+    }
+
+    /// Construct the graph from the nodes and the map containing the relation
+    /// between the id of the input/output with the content
+    /// \param v The collection of nodes ordered in an ascending order based on
+    /// the id. To work with butcher, the nodes must be sorted in
+    /// topological order, according to the Onnx IR specifications.
+    /// \param dependencies Node dependencies (input and outputs of every node)
+    explicit Graph(Node_Collection_Type &&v, Dependencies_Type &&dep = {})
+      : nodes(v)
+      , dependencies(dep)
     {
       for (node_id_type i = 0; i < nodes.size(); ++i)
         nodes[i].id = i;
@@ -207,9 +221,23 @@ namespace network_butcher_types
     /// the id. To work with butcher, the nodes must be sorted in
     /// topological order, according to the Onnx IR specifications.
     /// \param dependencies Node dependencies (input and outputs of every node)
-    explicit Graph(Node_Collection_Type v, Dependencies_Type dep)
-      : nodes(std::move(v))
-      , dependencies(std::move(dep))
+    explicit Graph(Node_Collection_Type const &v, Dependencies_Type const &dep)
+      : nodes(v)
+      , dependencies(dep)
+    {
+      for (node_id_type i = 0; i < nodes.size(); ++i)
+        nodes[i].id = i;
+    }
+
+    /// Construct the graph from the nodes and the map containing the relation
+    /// between the id of the input/output with the content
+    /// \param v The collection of nodes ordered in an ascending order based on
+    /// the id. To work with butcher, the nodes must be sorted in
+    /// topological order, according to the Onnx IR specifications.
+    /// \param dependencies Node dependencies (input and outputs of every node)
+    explicit Graph(Node_Collection_Type &&v, Dependencies_Type &&dep)
+      : nodes(v)
+      , dependencies(dep)
     {
       for (node_id_type i = 0; i < nodes.size(); ++i)
         nodes[i].id = i;
@@ -235,7 +263,7 @@ namespace network_butcher_types
     /// the id. To work with butcher, the nodes must be sorted in
     /// topological order, according to the Onnx IR specifications.
     explicit Graph(Node_Collection_Type &&v)
-      : nodes(std::move(v))
+      : nodes(v)
     {
       for (node_id_type i = 0; i < nodes.size(); ++i)
         nodes[i].id = i;

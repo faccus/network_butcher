@@ -48,6 +48,7 @@ namespace network_butcher_io
         std::size_t params;
       };
 
+
       /// It will read from a .csv file the collection of weights for the given
       /// graph on the specified device. The .csv file must be produced by a prediction of the aMLLibrary
       /// \param graph The graph

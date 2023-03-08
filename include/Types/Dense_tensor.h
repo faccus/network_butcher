@@ -25,8 +25,6 @@ namespace network_butcher_types
     /// Shape of the tensor
     std::vector<shape_type> shape;
 
-    DynamicType value;
-
   public:
     /// Construct the tensor from the type id and the shape
     /// \param in_type_id onnx::TensorProto_DataType_* id
@@ -60,22 +58,6 @@ namespace network_butcher_types
     get_shape() const override
     {
       return shape;
-    }
-
-    /// Basic getter for the value of the tensor
-    /// \return The tensor
-    inline DynamicType const &
-    get_value() const
-    {
-      return value;
-    }
-
-    /// Basic setter for the value of the tensor
-    /// \param value The value to be setted
-    inline void
-    set_value(DynamicType const &value)
-    {
-      this->value = value;
     }
   };
 } // namespace network_butcher_types
