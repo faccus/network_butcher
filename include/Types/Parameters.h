@@ -16,7 +16,8 @@ namespace network_butcher_parameters
     operation_time,
     multi_operation_time,
     official_operation_time,
-    aMLLibrary_local_inference,
+    aMLLibrary_local_inference_original,
+    aMLLibrary_local_inference_block,
     aMLLibrary_cloud_inference
   };
 
@@ -106,6 +107,9 @@ namespace network_butcher_parameters
 
     /// Mode for weight import
     Weight_Import_Mode weight_import_mode;
+
+    /// The variables of the .csv file that aMLLibrary should
+    std::vector<std::string> weight_inference_variables;
 
     /// The features of the .csv file to feed to aMLLibrary
     std::vector<std::string> weight_csv_features;

@@ -4,8 +4,9 @@
 #include "General_Manager.h"
 
 std::function<weight_type(const node_id_type &, size_t, size_t)>
-network_butcher_io::General_Manager::Helper_Functions::generate_bandwidth_transmission_function(const network_butcher_parameters::Parameters &params,
-                                                                              const graph_type &graph)
+network_butcher_io::General_Manager::Helper_Functions::generate_bandwidth_transmission_function(
+  const network_butcher_parameters::Parameters &params,
+  const graph_type                             &graph)
 {
   // Conversion from bytes to mb
   auto const mbps = std::pow(10, 6) / 8;
@@ -38,12 +39,14 @@ network_butcher_io::General_Manager::Helper_Functions::generate_bandwidth_transm
 
 
 void
-network_butcher_io::General_Manager::Helper_Functions::import_weights(graph_type &graph, const network_butcher_parameters::Parameters &params)
+network_butcher_io::General_Manager::Helper_Functions::import_weights(
+  graph_type                                   &graph,
+  const network_butcher_parameters::Parameters &params)
 {
   // Based on the weight_import_mode, a specific weight import function will be called for each device
   switch (params.weight_import_mode)
     {
-        case network_butcher_parameters::Weight_Import_Mode::operation_time:
+      case network_butcher_parameters::Weight_Import_Mode::operation_time:
         case network_butcher_parameters::Weight_Import_Mode::aMLLibrary_direct_read: {
           for (auto const &device : params.devices)
             {
@@ -52,7 +55,7 @@ network_butcher_io::General_Manager::Helper_Functions::import_weights(graph_type
 
           break;
         }
-        case network_butcher_parameters::Weight_Import_Mode::official_operation_time:
+      case network_butcher_parameters::Weight_Import_Mode::official_operation_time:
         case network_butcher_parameters::Weight_Import_Mode::multi_operation_time: {
           std::vector<std::size_t> devices;
           for (auto const &device : params.devices)
@@ -62,11 +65,16 @@ network_butcher_io::General_Manager::Helper_Functions::import_weights(graph_type
 
           break;
         }
-        case network_butcher_parameters::Weight_Import_Mode::aMLLibrary_local_inference: {
+        case network_butcher_parameters::Weight_Import_Mode::aMLLibrary_local_inference_original: {
+          IO_Manager::utilities::import_weights_aMLLibrary_local_original(graph, params);
+          break;
+        }
+        case network_butcher_parameters::Weight_Import_Mode::aMLLibrary_local_inference_block: {
           break;
         }
     }
 }
+
 void
 network_butcher_io::General_Manager::Helper_Functions::print_help()
 {
@@ -133,7 +141,7 @@ network_butcher_io::General_Manager::boot(const network_butcher_parameters::Para
     {
       double const export_time = crono.wallTime();
       std::cout << "Export: " << export_time / 1000. << " ms" << std::endl;
-      
+
       std::ofstream out_file;
       out_file.open(params.export_directory + "/report.txt");
 
@@ -196,7 +204,8 @@ network_butcher_io::General_Manager::read_command_line(int argc, char **argv)
                     << std::endl;
 #endif
         }
-      else {
+      else
+        {
           Helper_Functions::print_help();
         }
     }

@@ -78,7 +78,7 @@ network_butcher_io::IO_Manager::import_from_onnx(std::string const &path,
                                                                           node),
                                                                         std::move(operation_type));
       nodes.emplace_back(std::move(content));
-      //nodes.back().name = Utilities::to_lowercase_copy(node.op_type() + "_" + std::to_string(onnx_node_id));
+      // nodes.back().name = Utilities::to_lowercase_copy(node.op_type() + "_" + std::to_string(onnx_node_id));
       nodes.back().name = node.name();
 
       link_id_nodeproto.emplace(node_id++, onnx_node_id++);
@@ -217,9 +217,9 @@ network_butcher_io::IO_Manager::export_network_infos_to_csv(graph_type const &gr
 
 
 void
-network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary(graph_type        &graph,
-                                                                            std::size_t        device,
-                                                                            std::string const &path)
+network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_direct_read(graph_type        &graph,
+                                                                                 std::size_t        device,
+                                                                                 std::string const &path)
 {
   std::fstream file_in;
   file_in.open(path, std::ios_base::in);
@@ -262,8 +262,8 @@ network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary(graph_type 
 
 void
 network_butcher_io::IO_Manager::utilities::import_weights_custom_csv_operation_time(graph_type        &graph,
-                                                                                           std::size_t        device,
-                                                                                           const std::string &path)
+                                                                                    std::size_t        device,
+                                                                                    const std::string &path)
 {
   std::fstream file_in;
   file_in.open(path, std::ios_base::in);
@@ -314,10 +314,12 @@ network_butcher_io::IO_Manager::utilities::csv_assembler(const std::vector<std::
   std::fstream file_out;
   file_out.open(path, std::ios_base::out);
 
-  for(auto const &row : content) {
-      for(std::size_t i = 0; i < row.size(); ++i) {
+  for (auto const &row : content)
+    {
+      for (std::size_t i = 0; i < row.size(); ++i)
+        {
           file_out << row[i];
-          if(i != row.size() - 1)
+          if (i != row.size() - 1)
             file_out << ",";
         }
       file_out << std::endl;
@@ -328,7 +330,7 @@ network_butcher_io::IO_Manager::utilities::csv_assembler(const std::vector<std::
 
 
 std::string
-network_butcher_io::IO_Manager::utilities::aMLLibrary_generate_csv_entry(
+network_butcher_io::IO_Manager::utilities::aMLLibrary_original_generate_csv_entry(
   const std::string                            &entry,
   const graph_type::Node_Type                  &node,
   const network_butcher_parameters::Parameters &params)
@@ -346,12 +348,12 @@ network_butcher_io::IO_Manager::utilities::aMLLibrary_generate_csv_entry(
   else if (lower_case == "macs")
     return "0";
   else
-    return aMLLibrary_generate_csv_entry(entry, {}, node, params);
+    return aMLLibrary_original_generate_csv_entry(entry, {}, node, params);
 }
 
 
 std::string
-network_butcher_io::IO_Manager::utilities::aMLLibrary_generate_csv_entry(
+network_butcher_io::IO_Manager::utilities::aMLLibrary_original_generate_csv_entry(
   const std::string                            &entry,
   const onnx_tool_output                       &basic_info,
   const graph_type::Node_Type                  &node,
@@ -372,7 +374,8 @@ network_butcher_io::IO_Manager::utilities::aMLLibrary_generate_csv_entry(
   else if (lower_case == "networkingtime")
     {
       auto const net_time = params.bandwidth.cbegin()->second.second +
-                            basic_info.memory * 8 / (params.bandwidth.cbegin()->second.first * std::pow(10, 6));
+                            network_butcher_computer::Computer_memory::compute_memory_usage_output(node) * 8 /
+                              (params.bandwidth.cbegin()->second.first * std::pow(10, 6));
       return std::to_string(net_time);
     }
   else if (lower_case == "optype")
@@ -389,50 +392,53 @@ network_butcher_io::IO_Manager::utilities::aMLLibrary_generate_csv_entry(
     return "0";
 }
 
+
 void
-network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local(
+network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local_original(
   graph_type                                   &graph,
   const network_butcher_parameters::Parameters &params)
 {
 #if PYBIND_ACTIVE
 
-  if(params.devices.size() == 2 && !params.backward_connections_allowed) {
+  if (params.devices.size() == 2 && !params.backward_connections_allowed)
+    {
       pybind11::initialize_interpreter();
 
-      auto const macs = IO_Manager::read_network_info_onnx_tool(IO_Manager::network_info_onnx_tool(params));
+      auto const macs     = IO_Manager::read_network_info_onnx_tool(IO_Manager::network_info_onnx_tool(params));
       auto const csv_path = "aMLLibrary_input.csv";
 
-      if(!Utilities::directory_exists(params.temporary_directory))
+      if (!Utilities::directory_exists(params.temporary_directory))
         Utilities::create_directory(params.temporary_directory);
 
-      if(Utilities::file_exists(csv_path))
+      if (Utilities::file_exists(csv_path))
         Utilities::file_delete(csv_path);
 
-      auto const initial_row = Utilities::trim_copy(params.weight_csv_features);
-
       std::vector<std::vector<std::string>> aMLLibrary_input;
-      aMLLibrary_input.push_back(initial_row);
-      aMLLibrary_input.front().emplace_back("1stInfTime");
-      aMLLibrary_input.front().emplace_back("2ndInfTime");
+      aMLLibrary_input.push_back(Utilities::trim_copy(params.weight_csv_features));
+      auto &initial_row = aMLLibrary_input.front();
+      initial_row.reserve(initial_row.size() + params.weight_inference_variables.size());
+      initial_row.insert(initial_row.cend(),
+                         params.weight_inference_variables.cbegin(),
+                         params.weight_inference_variables.cend());
 
       for (auto const &node : graph.get_nodes())
         {
           auto                     info_it = macs.find(node.name);
           std::vector<std::string> row;
-          row.reserve(aMLLibrary_input.front().size());
+          row.reserve(initial_row.size());
 
           if (info_it != macs.cend())
             {
-              for (auto const &entry : aMLLibrary_input.front())
+              for (auto const &entry : initial_row)
                 {
-                  row.emplace_back(aMLLibrary_generate_csv_entry(entry, info_it->second, node, params));
+                  row.emplace_back(aMLLibrary_original_generate_csv_entry(entry, info_it->second, node, params));
                 }
             }
           else
             {
-              for (auto const &entry : aMLLibrary_input.front())
+              for (auto const &entry : initial_row)
                 {
-                  row.emplace_back(aMLLibrary_generate_csv_entry(entry, node, params));
+                  row.emplace_back(aMLLibrary_original_generate_csv_entry(entry, node, params));
                 }
             }
 
@@ -454,7 +460,73 @@ network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local(
 
       pybind11::finalize_interpreter();
     }
-  else {
+  else
+    {
+      std::cout << "aMLLibrary_local works only with two devices!" << std::endl;
+    }
+
+#else
+  std::cout << "PyBind should be turned on in order to produce locally the weights!" << std::endl;
+#endif
+}
+
+
+void
+network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local_block(
+  graph_type                                   &graph,
+  const network_butcher_parameters::Parameters &params)
+{
+#if PYBIND_ACTIVE
+
+  if (params.devices.size() == 2 && !params.backward_connections_allowed)
+    {
+      pybind11::initialize_interpreter();
+
+      auto const macs     = IO_Manager::read_network_info_onnx_tool(IO_Manager::network_info_onnx_tool(params));
+      auto const csv_path = "aMLLibrary_input.csv";
+
+      if (!Utilities::directory_exists(params.temporary_directory))
+        Utilities::create_directory(params.temporary_directory);
+
+      if (Utilities::file_exists(csv_path))
+        Utilities::file_delete(csv_path);
+
+      std::vector<std::vector<std::string>> aMLLibrary_input;
+      aMLLibrary_input.push_back(Utilities::trim_copy(params.weight_csv_features));
+      auto &initial_row = aMLLibrary_input.front();
+      initial_row.reserve(initial_row.size() + params.weight_inference_variables.size());
+      initial_row.insert(initial_row.cend(),
+                         params.weight_inference_variables.cbegin(),
+                         params.weight_inference_variables.cend());
+
+      for (auto const &node : graph.get_nodes())
+        {
+          auto                     info_it = macs.find(node.name);
+          std::vector<std::string> row;
+          row.reserve(initial_row.size());
+
+          
+
+          aMLLibrary_input.push_back(std::move(row));
+        }
+
+      csv_assembler(aMLLibrary_input, csv_path);
+
+      add_aMLLibrary_to_path();
+
+      execute_weight_generator(params.devices.front().weights_path,
+                               "predict_0.ini",
+                               Utilities::combine_path(params.temporary_directory, "predict_0"),
+                               params.package_aMLLibrary_location);
+      execute_weight_generator(params.devices.back().weights_path,
+                               "predict_1.ini",
+                               Utilities::combine_path(params.temporary_directory, "predict_1"),
+                               params.package_aMLLibrary_location);
+
+      pybind11::finalize_interpreter();
+    }
+  else
+    {
       std::cout << "aMLLibrary_local works only with two devices!" << std::endl;
     }
 
@@ -638,16 +710,15 @@ network_butcher_io::IO_Manager::read_parameters(const std::string &path)
   GetPot file(path);
 
   network_butcher_parameters::Parameters res;
-  std::string const                      basic_infos = "basic_config";
+  std::string const                      basic_infos  = "basic_config";
+  std::string const                      weigth_infos = "weigth_config";
 
-  res.model_name       = file(basic_infos + "/model_name", "model");
-  res.model_path       = file(basic_infos + "/model_path", "");
-  res.export_directory = file(basic_infos + "/export_directory", "ksp_result");
-  res.temporary_directory = file(basic_infos + "/temporary_directory", "tmp");
-  res.package_onnx_tool_location = file(basic_infos + "/package_onnx_tool_location", "");
+  res.model_name                  = file(basic_infos + "/model_name", "model");
+  res.model_path                  = file(basic_infos + "/model_path", "");
+  res.export_directory            = file(basic_infos + "/export_directory", "ksp_result");
+  res.temporary_directory         = file(basic_infos + "/temporary_directory", "tmp");
+  res.package_onnx_tool_location  = file(basic_infos + "/package_onnx_tool_location", "");
   res.package_aMLLibrary_location = file(basic_infos + "/package_aMLLibrary_location", "");
-
-  //package_aMLLibrary_location = /home/faccus/CLionProjects/network_butcher/aMLLibrary
 
   res.K                    = file(basic_infos + "/K", 100);
   std::string const method = Utilities::trim_copy(Utilities::to_lowercase_copy(file(basic_infos + "/method", "")));
@@ -663,23 +734,38 @@ network_butcher_io::IO_Manager::read_parameters(const std::string &path)
   res.backward_connections_allowed = file(basic_infos + "/backward_connections_allowed", false);
 
   std::string const weight_import_method =
-    Utilities::trim_copy(Utilities::to_lowercase_copy(file(basic_infos + "/weight_import_mode", "aMLLibrary")));
+    Utilities::trim_copy(Utilities::to_lowercase_copy(file(weigth_infos + "/weight_import_mode", "")));
 
-  if (weight_import_method == "amllibrary")
+
+  if (weight_import_method == "amllibrary_direct_read")
     res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::aMLLibrary_direct_read;
+  else if (weight_import_method == "amllibrary_local_inference_original")
+    res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::aMLLibrary_local_inference_original;
+  else if (weight_import_method == "amllibrary_local_inference_block")
+    res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::aMLLibrary_local_inference_block;
+  else if (weight_import_method == "amllibrary_cloud_inference")
+    res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::aMLLibrary_cloud_inference;
   else if (weight_import_method == "multi_operation_time")
     res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::multi_operation_time;
   else if (weight_import_method == "official_operation_time")
     res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::official_operation_time;
-  else if (weight_import_method == "local_generation")
-      res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::aMLLibrary_local_inference;
   else
     res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::operation_time;
 
-  auto const len = file.vector_variable_size(basic_infos + "/weight_csv_features");
-  res.weight_csv_features.reserve(len);
-  for(std::size_t i = 0; i < len; ++i)
-    res.weight_csv_features.emplace_back(file(basic_infos + "/weight_csv_features", i, ""));
+
+  {
+    auto const len = file.vector_variable_size(weigth_infos + "/inference_variables");
+    res.weight_inference_variables.reserve(len);
+    for (std::size_t i = 0; i < len; ++i)
+      res.weight_inference_variables.emplace_back(file(weigth_infos + "/inference_variables", i, ""));
+  }
+
+  {
+    auto const len = file.vector_variable_size(weigth_infos + "/csv_features");
+    res.weight_csv_features.reserve(len);
+    for (std::size_t i = 0; i < len; ++i)
+      res.weight_csv_features.emplace_back(file(weigth_infos + "/csv_features", i, ""));
+  }
 
   res.memory_constraint = file(basic_infos + "/memory_constraint", false);
   if (res.memory_constraint)
@@ -760,11 +846,11 @@ network_butcher_io::IO_Manager::export_network_partitions(const network_butcher_
       Utilities::create_directory(params.export_directory + "/" + std::to_string(j));
 
       utilities::reconstruct_model_and_export(paths[j].second,
-                                                     model,
-                                                     link_id_nodeproto,
-                                                     preprocessed_node_ios,
-                                                     params.export_directory + "/" + std::to_string(j) + "/" +
-                                                       params.model_name);
+                                              model,
+                                              link_id_nodeproto,
+                                              preprocessed_node_ios,
+                                              params.export_directory + "/" + std::to_string(j) + "/" +
+                                                params.model_name);
     }
 }
 
@@ -778,7 +864,7 @@ network_butcher_io::IO_Manager::import_weights(network_butcher_parameters::Weigh
   switch (weight_mode)
     {
       case network_butcher_parameters::Weight_Import_Mode::aMLLibrary_direct_read:
-        utilities::import_weights_aMLLibrary(graph, device, path);
+        utilities::import_weights_aMLLibrary_direct_read(graph, device, path);
         break;
       case network_butcher_parameters::Weight_Import_Mode::operation_time:
         utilities::import_weights_custom_csv_operation_time(graph, device, path);
@@ -971,7 +1057,9 @@ network_butcher_io::IO_Manager::read_parameters_yaml(std::string const &candidat
 
 #if PYBIND_ACTIVE
 
-void network_butcher_io::IO_Manager::utilities::add_aMLLibrary_to_path() {
+void
+network_butcher_io::IO_Manager::utilities::add_aMLLibrary_to_path()
+{
   using namespace pybind11::literals;
   namespace py = pybind11;
 
@@ -990,14 +1078,14 @@ network_butcher_io::IO_Manager::utilities::execute_weight_generator(const std::s
   using namespace pybind11::literals;
   namespace py = pybind11;
 
-  if(Utilities::directory_exists(output_path))
+  if (Utilities::directory_exists(output_path))
     Utilities::directory_delete(output_path);
 
   py::object Predictor = py::module_::import("aMLLibrary.model_building.predictor").attr("Predictor");
   py::object predict =
     Predictor("regressor_file"_a = regressor_file, "output_folder"_a = output_path, "debug"_a = false).attr("predict");
 
-  predict("config_file"_a=config_file, "mape_to_file"_a=false);
+  predict("config_file"_a = config_file, "mape_to_file"_a = false);
 }
 
 
@@ -1009,8 +1097,8 @@ network_butcher_io::IO_Manager::network_info_onnx_tool(const std::string &model_
   using namespace pybind11::literals;
   namespace py = pybind11;
 
-  if(!package_onnx_tool_location.empty()) {
-
+  if (!package_onnx_tool_location.empty())
+    {
       py::object path     = py::module_::import("sys").attr("path");
       py::object inserter = path.attr("append");
       inserter(package_onnx_tool_location);
@@ -1053,7 +1141,7 @@ network_butcher_io::IO_Manager::read_network_info_onnx_tool(const std::string &p
   // If not the end of file,
   while (!file_in.eof())
     {
-      std::string operation;
+      std::string                             operation;
       IO_Manager::utilities::onnx_tool_output info;
 
       std::getline(file_in, tmp_line);

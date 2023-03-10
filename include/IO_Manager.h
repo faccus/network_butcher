@@ -9,14 +9,14 @@
 #include "Onnx_model_reconstructor_helpers.h"
 
 #if YAML_CPP_ACTIVE
-#include "Yaml_importer_helpers.h"
-#include <yaml-cpp/yaml.h>
+#  include "Yaml_importer_helpers.h"
+#  include <yaml-cpp/yaml.h>
 #endif
 
 #if PYBIND_ACTIVE
-#include <pybind11/pybind11.h>
-#include <pybind11/embed.h>
-#include "CMake_directives.h"
+#  include "CMake_directives.h"
+#  include <pybind11/embed.h>
+#  include <pybind11/pybind11.h>
 #endif
 
 #include "Computer_flops.h"
@@ -40,7 +40,8 @@ namespace network_butcher_io
         Operation
       };
 
-      struct onnx_tool_output {
+      struct onnx_tool_output
+      {
         std::string name;
 
         std::size_t macs;
@@ -55,10 +56,13 @@ namespace network_butcher_io
       /// \param device The device id
       /// \param path The path of the file to be "imported"
       void
-      import_weights_aMLLibrary(graph_type &graph, std::size_t device, std::string const &path);
+      import_weights_aMLLibrary_direct_read(graph_type &graph, std::size_t device, std::string const &path);
 
       void
-      import_weights_aMLLibrary_local(graph_type &graph, network_butcher_parameters::Parameters const& params);
+      import_weights_aMLLibrary_local_original(graph_type &graph, network_butcher_parameters::Parameters const &params);
+
+      void
+      import_weights_aMLLibrary_local_block(graph_type &graph, network_butcher_parameters::Parameters const &params);
 
       void
       csv_assembler(std::vector<std::vector<std::string>> const &content, std::string const &path);
@@ -93,15 +97,15 @@ namespace network_butcher_io
                                                        std::string const       &path);
 
       std::string
-      aMLLibrary_generate_csv_entry(std::string const                            &entry,
-                                    onnx_tool_output const                       &basic_info,
-                                    graph_type::Node_Type const                  &node,
-                                    const network_butcher_parameters::Parameters &params);
+      aMLLibrary_original_generate_csv_entry(std::string const                            &entry,
+                                             onnx_tool_output const                       &basic_info,
+                                             graph_type::Node_Type const                  &node,
+                                             const network_butcher_parameters::Parameters &params);
 
       std::string
-      aMLLibrary_generate_csv_entry(std::string const                             &entry,
-                                    graph_type::Node_Type const                   &node,
-                                    const network_butcher_parameters::Parameters &params);
+      aMLLibrary_original_generate_csv_entry(std::string const                            &entry,
+                                             graph_type::Node_Type const                  &node,
+                                             const network_butcher_parameters::Parameters &params);
 
       /// It will read from a .csv file the collection of weights for the given
       /// graph on the specified devices
@@ -134,7 +138,7 @@ namespace network_butcher_io
                               google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
                           &preprocessed_ios_nodes,
         const std::string &export_base_path);
-    } // namespace Helper_Functions
+    } // namespace utilities
 
     /// It will return the parameters read from the given file
     /// \param path The configuration file path
@@ -167,7 +171,6 @@ namespace network_butcher_io
                            std::string const &temporary_directory = "tmp");
 
 
-
     /// It will return the relative path to a .csv file containing MACs, memory usage and IO of the given model
     /// \param params The model parameters
     /// \return The .csv file (relative) path
@@ -191,10 +194,10 @@ namespace network_butcher_io
     /// and a map associating every node in the graph to every node in the model (through their ids)
     std::tuple<graph_type, onnx::ModelProto, std::map<node_id_type, node_id_type>>
     import_from_onnx(std::string const &path,
-                     bool               add_input_padding = true,
+                     bool               add_input_padding  = true,
                      bool               add_output_padding = true,
-                     std::size_t        num_devices       = 1,
-                     bool unused_ios = false);
+                     std::size_t        num_devices        = 1,
+                     bool               unused_ios         = false);
 
 
     /// It will export a given onnx::ModelProto to a file
@@ -210,8 +213,8 @@ namespace network_butcher_io
     /// \param path The export file path
     void
     old_export_network_infos_to_csv(graph_type const       &graph,
-                                onnx::ModelProto const &model,
-                                std::string const      &path = "butcher_predict.csv");
+                                    onnx::ModelProto const &model,
+                                    std::string const      &path = "butcher_predict.csv");
 
     /// From a given graph, it will export the
     /// basic information about every convolutional layer in the network
@@ -229,9 +232,9 @@ namespace network_butcher_io
     /// \param path The path of the file to be "imported"
     void
     import_weights(network_butcher_parameters::Weight_Import_Mode const &weight_mode,
-                   graph_type               &graph,
-                   std::string const        &path,
-                   std::size_t               device);
+                   graph_type                                           &graph,
+                   std::string const                                    &path,
+                   std::size_t                                           device);
 
     /// It will read from a .csv file the collection of weights for the given
     /// graph on the specified device
@@ -240,10 +243,10 @@ namespace network_butcher_io
     /// \param path The path of the file to be "imported"
     /// \param devices The device ids
     void
-    import_weights(network_butcher_parameters::Weight_Import_Mode const       &weight_mode,
-                   graph_type                     &graph,
-                   std::string const              &path,
-                   std::vector<std::size_t> const &devices);
+    import_weights(network_butcher_parameters::Weight_Import_Mode const &weight_mode,
+                   graph_type                                           &graph,
+                   std::string const                                    &path,
+                   std::vector<std::size_t> const                       &devices);
 
     /// It will reconstruct the ModelProto objects associated to the different
     /// partitions and it will export them to the directory paths
@@ -253,7 +256,7 @@ namespace network_butcher_io
     /// a node in the imported model
     /// \param paths The different partitions to be exported
     void
-    export_network_partitions(const network_butcher_parameters::Parameters                                 &params,
+    export_network_partitions(const network_butcher_parameters::Parameters     &params,
                               const onnx::ModelProto                           &model,
                               std::map<node_id_type, node_id_type> const       &link_id_nodeproto,
                               const network_butcher_types::Weighted_Real_Paths &paths);

@@ -21,7 +21,7 @@ int main() {
   auto graph = std::get<0>(
     network_butcher_io::IO_Manager::import_from_onnx(param.model_path, false, true, 3, true));
 
-  network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local(graph, param);
+  network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local_original(graph, param);
 
   return 0;
 }

@@ -80,8 +80,18 @@ private:
   /// \param new_graph The lineatized graph (result of block_graph)
   void
   block_graph_weights(
-    std::function<weight_type(node_id_type const &, std::size_t, std::size_t)> const &transmission_weights,
-    new_network                                                                      &new_graph) const;
+    new_network                                                                      &new_graph,
+    std::function<weight_type(node_id_type const &, std::size_t, std::size_t)> const &transmission_weights) const;
+
+
+  /// Given the current graph and the original weight function, it will produce
+  /// the weights for the linearized graph
+  /// \param transmission_weights Used when we are switching from a device to
+  /// another. The node is the source while the two size_t are the input and
+  /// output device ids
+  /// \param new_graph The lineatized graph (result of block_graph)
+  void
+  block_graph_weights(new_network &new_graph, network_butcher_parameters::Parameters const &params) const;
 
 
   /// It will produce the set of nodes associated to a given device
@@ -596,8 +606,8 @@ Butcher<GraphType>::remove_unfeasible_paths(const std::vector<network_butcher_pa
 template <class GraphType>
 void
 Butcher<GraphType>::block_graph_weights(
-  const std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> &transmission_weights,
-  Butcher::new_network                                                             &new_graph) const
+  Butcher::new_network                                                             &new_graph,
+  const std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> &transmission_weights) const
 {
   auto const &nodes = new_graph.get_nodes();
   std::for_each(nodes.cbegin(),
@@ -707,6 +717,15 @@ Butcher<GraphType>::block_graph_weights(
 
 
 template <class GraphType>
+void
+Butcher<GraphType>::block_graph_weights(Butcher::new_network                         &new_graph,
+                                        const network_butcher_parameters::Parameters &params) const
+{
+  return;
+}
+
+
+template <class GraphType>
 network_butcher_types::Real_Path
 Butcher<GraphType>::get_network_slices(const path_info &new_path, const Butcher::new_network &new_graph) const
 {
@@ -790,16 +809,22 @@ Butcher<GraphType>::compute_k_shortest_path(
   auto [new_graph, connection_map] =
     block_graph(params.backward_connections_allowed, params.starting_device_id, params.ending_device_id);
 
-
   if (params.memory_constraint != network_butcher_parameters::Memory_Constraint_Type::None &&
       !params.backward_connections_allowed)
     remove_unfeasible_paths(params.devices, new_graph, params.memory_constraint_type);
 
 
-  block_graph_weights(transmission_weights, new_graph);
+  if (params.weight_import_mode == network_butcher_parameters::Weight_Import_Mode::aMLLibrary_local_inference_block)
+    {
+      block_graph_weights(new_graph, params);
+    }
+  else
+    {
+      block_graph_weights(new_graph, transmission_weights);
+    }
+
 
   std::unique_ptr<network_butcher_kfinder::KFinder<new_network>> kFinder;
-
   switch (params.method)
     {
       case network_butcher_parameters::KSP_Method::Eppstein:
