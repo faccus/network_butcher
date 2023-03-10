@@ -718,7 +718,7 @@ Butcher<GraphType>::block_graph_weights(
 
 template <class GraphType>
 void
-Butcher<GraphType>::block_graph_weights(Butcher::new_network                         &new_graph,
+Butcher<GraphType>::block_graph_weights(Butcher<GraphType>::new_network                         &new_graph,
                                         const network_butcher_parameters::Parameters &params) const
 {
   return;

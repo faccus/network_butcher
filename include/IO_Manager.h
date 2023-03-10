@@ -62,12 +62,15 @@ namespace network_butcher_io
       import_weights_aMLLibrary_local_original(graph_type &graph, network_butcher_parameters::Parameters const &params);
 
       void
-      import_weights_aMLLibrary_local_block(graph_type &graph, network_butcher_parameters::Parameters const &params);
+      import_weights_aMLLibrary_local_block(Butcher<graph_type>::new_network             &new_graph,
+                                            graph_type const                             &graph,
+                                            network_butcher_parameters::Parameters const &params);
 
       void
       csv_assembler(std::vector<std::vector<std::string>> const &content, std::string const &path);
 
 #if PYBIND_ACTIVE
+
       void
       add_aMLLibrary_to_path();
 
@@ -76,6 +79,7 @@ namespace network_butcher_io
                                const std::string &config_file,
                                const std::string &output_path,
                                const std::string &package_path);
+
 #endif
 
       /// It will read from a .csv file the collection of weights for the given
@@ -95,6 +99,17 @@ namespace network_butcher_io
       import_weights_official_csv_multi_operation_time(graph_type              &graph,
                                                        std::vector<std::size_t> devices,
                                                        std::string const       &path);
+
+
+      std::vector<std::string>
+      aMLLibrary_block_generate_csv_entry(
+        std::vector<std::string> const                                                           &entries,
+        network_butcher_parameters::Parameters const                                             &params,
+        Butcher<graph_type>::new_network const                                                   &new_graph,
+        graph_type const                                                                         &graph,
+        std::size_t                                                                               id,
+        std::map<std::string, network_butcher_io::IO_Manager::utilities::onnx_tool_output> const &map_onnx_tool);
+
 
       std::string
       aMLLibrary_original_generate_csv_entry(std::string const                            &entry,

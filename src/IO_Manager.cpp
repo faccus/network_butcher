@@ -94,7 +94,6 @@ network_butcher_io::IO_Manager::import_from_onnx(std::string const &path,
       ++node_id;
     }
 
-
   return {network_butcher_types::MWGraph(num_devices, nodes), onnx_model, link_id_nodeproto};
 }
 
@@ -328,7 +327,6 @@ network_butcher_io::IO_Manager::utilities::csv_assembler(const std::vector<std::
   file_out.close();
 }
 
-
 std::string
 network_butcher_io::IO_Manager::utilities::aMLLibrary_original_generate_csv_entry(
   const std::string                            &entry,
@@ -471,10 +469,171 @@ network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local_origi
 }
 
 
+std::vector<std::string>
+network_butcher_io::IO_Manager::utilities::aMLLibrary_block_generate_csv_entry(
+  std::vector<std::string> const                                                           &entries,
+  network_butcher_parameters::Parameters const                                             &params,
+  Butcher<graph_type>::new_network const                                                   &new_graph,
+  graph_type const                                                                         &graph,
+  std::size_t                                                                               id,
+  std::map<std::string, network_butcher_io::IO_Manager::utilities::onnx_tool_output> const &map_onnx_tool)
+{
+  auto const v_lower_case = Utilities::to_lowercase_copy(entries);
+
+  std::map<std::string, std::size_t> inserted;
+  std::vector<std::string>           res;
+  res.reserve(entries.size());
+
+  auto const &original_ids    = *new_graph[id].content.second;
+  auto const &node_output_ids = new_graph[*new_graph.get_neighbors()[id].second.cbegin()].content.second;
+
+  for (auto const &lower_case : v_lower_case)
+    {
+      if (lower_case == "layer")
+        {
+          res.push_back(graph[*new_graph[id].content.second->crbegin()].name);
+        }
+      else if (lower_case == "tensorlength")
+        {
+          {
+            auto const it = inserted.find("tensorlength");
+            if (it != inserted.cend())
+              {
+                res.push_back(std::to_string(it->second));
+                continue;
+              }
+          }
+
+          std::size_t tensor_length = 0;
+          if (original_ids.size() == 1)
+            {
+              auto const &original_node = graph[*original_ids.cbegin()];
+
+              for (auto const &out : original_node.content.get_output())
+                tensor_length += out.second->compute_shape_volume();
+            }
+          else
+            {
+              auto const &original_node = graph[*node_output_ids->cbegin()];
+
+              for (auto const &out : original_node.content.get_input())
+                tensor_length += out.second->compute_shape_volume();
+            }
+
+          inserted["tensorlength"] = tensor_length;
+          res.push_back(std::to_string(tensor_length));
+        }
+      else if (lower_case == "networkingtime")
+        {
+          {
+            auto const it = inserted.find("networkingtime");
+            if (it != inserted.cend())
+              {
+                res.push_back(std::to_string(it->second));
+                continue;
+              }
+          }
+          std::size_t mem = 0;
+
+          {
+            auto const it = inserted.find("memory");
+            if (it != inserted.cend())
+              {
+                mem = it->second;
+              }
+            else
+              {
+                for (auto const &node_id : original_ids)
+                  mem += network_butcher_computer::Computer_memory::compute_memory_usage_output(graph[node_id]);
+                inserted["memory"] = mem;
+              }
+          }
+
+          auto const net_time = params.bandwidth.cbegin()->second.second +
+                                mem * 8 / (params.bandwidth.cbegin()->second.first * std::pow(10, 6));
+          res.push_back(std::to_string(net_time));
+        }
+      else if (lower_case == "optype")
+        {
+          res.push_back(graph[*original_ids.cbegin()].name);
+        }
+      else if (lower_case == "nrparameters")
+        {
+          {
+            auto const it = inserted.find("nrparameters");
+            if (it != inserted.cend())
+              {
+                res.push_back(std::to_string(it->second));
+                continue;
+              }
+          }
+
+          std::size_t nr_param = 0;
+          for (auto const &original_id : original_ids)
+            {
+              for (auto const &parameter : graph[original_id].content.get_parameters())
+                nr_param += parameter.second->compute_shape_volume();
+            }
+
+          inserted["nrparameters"] = nr_param;
+          res.push_back(std::to_string(nr_param));
+        }
+      else if (lower_case == "memory")
+        {
+          {
+            auto const it = inserted.find("memory");
+            if (it != inserted.cend())
+              {
+                res.push_back(std::to_string(it->second));
+                continue;
+              }
+          }
+          std::size_t mem = 0;
+          for (auto const &node_id : original_ids)
+            mem += network_butcher_computer::Computer_memory::compute_memory_usage_output(graph[node_id]);
+
+          inserted["memory"] = mem;
+          res.push_back(std::to_string(mem));
+        }
+      else if (lower_case == "macs")
+        {
+          {
+            auto const it = inserted.find("macs");
+            if (it != inserted.cend())
+              {
+                res.push_back(std::to_string(it->second));
+                continue;
+              }
+          }
+
+          std::size_t macs = 0;
+          for (auto const &original_id : original_ids)
+            {
+              auto const it = map_onnx_tool.find(graph[original_id].name);
+              if (it != map_onnx_tool.cend())
+                macs += it->second.macs;
+            }
+
+          inserted["macs"] = macs;
+          res.push_back(std::to_string(macs));
+        }
+      else if (lower_case == "nrnodes")
+        {
+          res.push_back(std::to_string(original_ids.size()));
+        }
+      else
+        res.push_back("");
+    }
+
+  return res;
+}
+
+
 void
 network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local_block(
-  graph_type                                   &graph,
-  const network_butcher_parameters::Parameters &params)
+  Butcher<graph_type>::new_network             &new_graph,
+  graph_type const                             &graph,
+  network_butcher_parameters::Parameters const &params)
 {
 #if PYBIND_ACTIVE
 
@@ -491,24 +650,17 @@ network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local_block
       if (Utilities::file_exists(csv_path))
         Utilities::file_delete(csv_path);
 
-      std::vector<std::vector<std::string>> aMLLibrary_input;
-      aMLLibrary_input.push_back(Utilities::trim_copy(params.weight_csv_features));
-      auto &initial_row = aMLLibrary_input.front();
-      initial_row.reserve(initial_row.size() + params.weight_inference_variables.size());
+      std::vector<std::vector<std::string>> aMLLibrary_input(new_graph.size() + 1);
+      auto                                 &initial_row = aMLLibrary_input.front();
+      initial_row                                       = Utilities::trim_copy(params.weight_csv_features);
       initial_row.insert(initial_row.cend(),
                          params.weight_inference_variables.cbegin(),
                          params.weight_inference_variables.cend());
 
-      for (auto const &node : graph.get_nodes())
-        {
-          auto                     info_it = macs.find(node.name);
-          std::vector<std::string> row;
-          row.reserve(initial_row.size());
+      for (auto const &node : new_graph.get_nodes())
+        aMLLibrary_input.push_back(
+          aMLLibrary_block_generate_csv_entry(initial_row, params, new_graph, graph, node.get_id(), macs));
 
-          
-
-          aMLLibrary_input.push_back(std::move(row));
-        }
 
       csv_assembler(aMLLibrary_input, csv_path);
 
