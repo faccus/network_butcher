@@ -220,7 +220,7 @@ Butcher<GraphType>::block_graph(bool        backward_connections_allowed,
   // Cycle through all the nodes of the graph
   for (auto it = ++old_nodes.begin(); it != old_nodes.end(); ++it)
     {
-      // Node of the all graph
+      // Node of the old graph
       auto const &node          = *it;
       auto const &dep           = old_dependencies[node.get_id()];
       int const   local_counter = dep.second.size() - dep.first.size();
@@ -303,14 +303,17 @@ Butcher<GraphType>::block_graph(bool        backward_connections_allowed,
 
   // Adjusting the indices
   for (auto &el : old_to_new)
-    if (el.second >= 2)
-      el.second = el.second * num_of_devices - (num_of_devices - 1);
+    {
+      if (el.second >= 2)
+        {
+          el.second = el.second * num_of_devices - (num_of_devices - 1);
+        }
+    }
 
   new_nodes.reserve(2 + supp_size * num_of_devices);
 
 
-  // Add the other nodes. Their content is not needed since it can be
-  // recovered from the nodes of the first device
+  // Add the other nodes. Their content is not needed right now
   for (std::size_t k = 1; k < num_of_devices; ++k)
     for (std::size_t i = 1; i < basic_size - 1; ++i)
       {
@@ -327,8 +330,10 @@ Butcher<GraphType>::block_graph(bool        backward_connections_allowed,
   for (std::size_t i = 1; i < basic_size - 1; ++i)
     {
       for (std::size_t k = 1; k < num_of_devices; ++k)
-        new_nodes[1 + (i - 1) * num_of_devices + k].content =
-          new_network::Node_Internal_Type{k, new_nodes[1 + (i - 1) * num_of_devices].content.second};
+        {
+          new_nodes[1 + (i - 1) * num_of_devices + k].content =
+            new_network::Node_Internal_Type{k, new_nodes[1 + (i - 1) * num_of_devices].content.second};
+        }
     }
 
 
@@ -718,9 +723,10 @@ Butcher<GraphType>::block_graph_weights(
 
 template <class GraphType>
 void
-Butcher<GraphType>::block_graph_weights(Butcher<GraphType>::new_network                         &new_graph,
+Butcher<GraphType>::block_graph_weights(Butcher<GraphType>::new_network              &new_graph,
                                         const network_butcher_parameters::Parameters &params) const
 {
+
   return;
 }
 

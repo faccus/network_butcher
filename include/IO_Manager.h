@@ -23,6 +23,8 @@
 #include "GetPot"
 #include "chrono.h"
 
+#include "Butcher.h"
+
 
 namespace network_butcher_io
 {
@@ -62,12 +64,13 @@ namespace network_butcher_io
       import_weights_aMLLibrary_local_original(graph_type &graph, network_butcher_parameters::Parameters const &params);
 
       void
+      csv_assembler(std::vector<std::vector<std::string>> const &content, std::string const &path);
+
+      void
       import_weights_aMLLibrary_local_block(Butcher<graph_type>::new_network             &new_graph,
                                             graph_type const                             &graph,
                                             network_butcher_parameters::Parameters const &params);
 
-      void
-      csv_assembler(std::vector<std::vector<std::string>> const &content, std::string const &path);
 
 #if PYBIND_ACTIVE
 

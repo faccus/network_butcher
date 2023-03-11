@@ -126,6 +126,18 @@ namespace network_butcher_types
       return nodes[id];
     }
 
+    Node_Collection_Type::const_iterator
+    cbegin() const {
+      return nodes.cbegin();
+    }
+
+    Node_Collection_Type::const_iterator
+    cend() const {
+      return nodes.cend();
+    }
+
+
+
     /// It remove the nodes with the given id. Note that the id of the nodes in the graph may change
     /// \param nodes_to_remove The ids of the nodes to remove
     void
@@ -318,6 +330,16 @@ namespace network_butcher_types
     operator[](int id) const
     {
       return nodes[id];
+    }
+
+    Node_Collection_Type::const_iterator
+    cbegin() const {
+      return nodes.cbegin();
+    }
+
+    Node_Collection_Type::const_iterator
+    cend() const {
+      return nodes.cend();
     }
 
     /// It remove the nodes with the given id. Note that the id of the nodes in the graph may change
