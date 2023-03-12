@@ -22,8 +22,7 @@
 #include "Computer_flops.h"
 #include "GetPot"
 #include "chrono.h"
-
-#include "Butcher.h"
+#include "Weight_importer_helpers.h"
 
 
 namespace network_butcher_io
@@ -58,7 +57,19 @@ namespace network_butcher_io
       /// \param device The device id
       /// \param path The path of the file to be "imported"
       void
-      import_weights_aMLLibrary_direct_read(graph_type &graph, std::size_t device, std::string const &path);
+      import_weights_aMLLibrary_direct_read(
+        graph_type                                               &graph,
+        std::size_t                                               device,
+        std::string const                                        &path,
+        std::function<bool(graph_type::Node_Type const &)> const &extra_condition = nullptr);
+
+      void
+      import_weights_aMLLibrary_direct_read(
+        block_graph_type                                               &graph,
+        std::size_t                                                     device,
+        std::size_t                                                     num_devices,
+        std::string const                                              &path,
+        std::function<bool(block_graph_type::Node_Type const &)> const &extra_condition = nullptr);
 
       void
       import_weights_aMLLibrary_local_original(graph_type &graph, network_butcher_parameters::Parameters const &params);
@@ -67,7 +78,7 @@ namespace network_butcher_io
       csv_assembler(std::vector<std::vector<std::string>> const &content, std::string const &path);
 
       void
-      import_weights_aMLLibrary_local_block(Butcher<graph_type>::new_network             &new_graph,
+      import_weights_aMLLibrary_local_block(block_graph_type                             &new_graph,
                                             graph_type const                             &graph,
                                             network_butcher_parameters::Parameters const &params);
 
@@ -108,7 +119,7 @@ namespace network_butcher_io
       aMLLibrary_block_generate_csv_entry(
         std::vector<std::string> const                                                           &entries,
         network_butcher_parameters::Parameters const                                             &params,
-        Butcher<graph_type>::new_network const                                                   &new_graph,
+        block_graph_type const                                                                   &new_graph,
         graph_type const                                                                         &graph,
         std::size_t                                                                               id,
         std::map<std::string, network_butcher_io::IO_Manager::utilities::onnx_tool_output> const &map_onnx_tool);

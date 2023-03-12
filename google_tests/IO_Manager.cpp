@@ -8,7 +8,6 @@ namespace
 {
   std::string base_path = "test_data";
 
-  std::string weight_path = Utilities::combine_path(base_path, "weights/aMLLibrary_prediction_tegra.csv");
   std::string graph_path = Utilities::combine_path(base_path, "models/version-RFB-640-inferred.onnx");
 
   TEST(IOManagerTestSuit, RegressionParamtersToExcelTest)
@@ -19,16 +18,14 @@ namespace
 
   TEST(IOManagerTestSuit, ImportWeightsFromCsvTest)
   {
-    auto graph =
-      std::get<0>(network_butcher_io::IO_Manager::import_from_onnx(graph_path));
+    std::string weight_path = Utilities::combine_path(base_path, "weights/aMLLibrary_prediction_tegra.csv");
+    auto        graph       = std::get<0>(network_butcher_io::IO_Manager::import_from_onnx(graph_path));
 
-    network_butcher_io::IO_Manager::import_weights(network_butcher_parameters::Weight_Import_Mode::aMLLibrary_direct_read,
-                                                   graph,
-                                                   weight_path,
-                                                   0);
+    network_butcher_io::IO_Manager::import_weights(
+      network_butcher_parameters::Weight_Import_Mode::aMLLibrary_direct_read, graph, weight_path, 0);
 
-    ASSERT_EQ(graph.get_weight(0, {73, 74}), 0.018818040739131837);
-    ASSERT_EQ(graph.get_weight(0, {0, 1}), 0.);
+    ASSERT_FLOAT_EQ(graph.get_weight(0, {72, 73}), 0.018818040739131837);
+    ASSERT_FLOAT_EQ(graph.get_weight(0, {0, 1}), 0.03407193422317498);
   }
 
   TEST(IOManagerTestSuit, ImportOnnxTest)

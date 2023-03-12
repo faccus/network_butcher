@@ -25,7 +25,7 @@ class Butcher
 {
 public:
   using network     = GraphType;
-  using new_network = network_butcher_types::WGraph<std::pair<std::size_t, std::shared_ptr<node_id_collection_type>>>;
+  using new_network = block_graph_type;
 
 private:
   using path_info = network_butcher_kfinder::path_info;
@@ -726,6 +726,7 @@ void
 Butcher<GraphType>::block_graph_weights(Butcher<GraphType>::new_network              &new_graph,
                                         const network_butcher_parameters::Parameters &params) const
 {
+  //network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local_block(new_graph, graph, params);
 
   return;
 }

@@ -7,4 +7,4 @@
 /onnx_proto/onnx
 /.vscode
 /.idea
-/output
+/output*

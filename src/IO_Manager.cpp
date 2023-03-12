@@ -55,11 +55,11 @@ namespace network_butcher_io::IO_Manager
 
     void
     import_weights_aMLLibrary_direct_read(
-      Butcher<graph_type>::new_network                                               &graph,
-      std::size_t                                                                     device,
-      std::size_t                                                                     num_devices,
-      std::string const                                                              &path,
-      std::function<bool(Butcher<graph_type>::new_network::Node_Type const &)> const &extra_condition)
+      block_graph_type                                               &graph,
+      std::size_t                                                     device,
+      std::size_t                                                     num_devices,
+      std::string const                                              &path,
+      std::function<bool(block_graph_type::Node_Type const &)> const &extra_condition)
     {
       std::fstream file_in;
       file_in.open(path, std::ios_base::in);
@@ -321,7 +321,7 @@ namespace network_butcher_io::IO_Manager
     std::vector<std::string>
     aMLLibrary_block_generate_csv_entry(std::vector<std::string> const                &entries,
                                         network_butcher_parameters::Parameters const  &params,
-                                        Butcher<graph_type>::new_network const        &new_graph,
+                                        block_graph_type const                        &new_graph,
                                         graph_type const                              &graph,
                                         std::size_t                                    id,
                                         std::map<std::string, onnx_tool_output> const &map_onnx_tool)
@@ -478,7 +478,7 @@ namespace network_butcher_io::IO_Manager
 
 
     void
-    import_weights_aMLLibrary_local_block(Butcher<graph_type>::new_network             &new_graph,
+    import_weights_aMLLibrary_local_block(block_graph_type                             &new_graph,
                                           graph_type const                             &graph,
                                           network_butcher_parameters::Parameters const &params)
     {
