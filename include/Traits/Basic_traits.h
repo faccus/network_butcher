@@ -10,6 +10,7 @@
 #include <set>
 #include <unordered_map>
 #include <memory>
+#include <list>
 
 #include "Type_info.h"
 

@@ -18,6 +18,7 @@
 #include "Parameters.h"
 #include "Paths.h"
 #include "Utilities.h"
+#include "Weight_importer_helpers.h"
 
 /// Butcher butchers a given graph into slices
 template <class GraphType>
@@ -726,9 +727,68 @@ void
 Butcher<GraphType>::block_graph_weights(Butcher<GraphType>::new_network              &new_graph,
                                         const network_butcher_parameters::Parameters &params) const
 {
-  //network_butcher_io::IO_Manager::utilities::import_weights_aMLLibrary_local_block(new_graph, graph, params);
+  network_butcher_io::Weight_importer_helpers::import_weights_aMLLibrary_local_block(new_graph, graph, params);
+  auto const &nodes = new_graph.get_nodes();
+  std::for_each(nodes.cbegin(),
+                nodes.cend(),
+                [&new_graph, &graph = graph, &transmission_weights](new_network::Node_Type const &node) {
+                  auto const first = node.get_id();
 
-  return;
+                  for (auto const &second : new_graph.get_neighbors()[node.get_id()].second)
+                    {
+                      auto const &out_node = new_graph[second];
+
+                      edge_type const edge = {first, second};
+
+                      // The device id of the input node (=0 starting device, >0 other
+                      // device)
+                      auto const in_device_id = node.content.first;
+                      // The device id of the output node (=0 starting device, >0 other
+                      // device)
+                      auto const out_device_id = out_node.content.first;
+
+                      // Look for the nodes of the original graph that are
+                      // represented by the output node (in the linearized
+                      // graph)
+                      auto const &outputs = *out_node.content.second;
+
+                      // Look for the nodes of the original graph that are
+                      // represented by the input node (in the linearized
+                      // graph)
+                      auto const &inputs = *node.content.second;
+
+                      weight_type transmission_costs = .0;
+
+                      // If we are dealing with the same device, the imported weight is OK
+                      if (in_device_id == out_device_id)
+                        {
+                          continue;
+                        }
+                      else if (inputs.size() == 1)
+                        {
+                          // We just have to send the input from in_device to out_device
+                          transmission_costs = transmission_weights(input, in_device_id, out_device_id);
+                        }
+                      else if (outputs.size() == 1)
+                        {
+                          auto const &output       = *outputs.begin();
+                          auto const &dependencies = graph.get_neighbors();
+
+                          // The inputs on the original graph of the output node have to
+                          // transmit their values to the output node
+                          for (auto const &input : dependencies[output].first)
+                            {
+                              transmission_costs += transmission_weights(input, in_device_id, out_device_id);
+                            }
+                        }
+                      else
+                        {
+                          std::cout << "Warning: we couldn't determine a weight!" << std::endl;
+                        }
+
+                      new_graph.set_weight(edge, transmission_costs + new_graph.get_weight(edge));
+                    }
+                });
 }
 
 

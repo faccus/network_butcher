@@ -66,7 +66,7 @@ network_butcher_io::General_Manager::Helper_Functions::import_weights(
           break;
         }
         case network_butcher_parameters::Weight_Import_Mode::aMLLibrary_local_inference_original: {
-          IO_Manager::utilities::import_weights_aMLLibrary_local_original(graph, params);
+          IO_Manager::import_weights(graph, params);
           break;
         }
         case network_butcher_parameters::Weight_Import_Mode::aMLLibrary_local_inference_block: {
