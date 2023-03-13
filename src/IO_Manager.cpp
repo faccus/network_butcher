@@ -255,7 +255,7 @@ namespace network_butcher_io::IO_Manager
 
     network_butcher_parameters::Parameters res;
     std::string const                      basic_infos  = "basic_config";
-    std::string const                      weigth_infos = "weigth_config";
+    std::string const                      weight_infos = "weight_config";
 
     res.model_name                  = file(basic_infos + "/model_name", "model");
     res.model_path                  = file(basic_infos + "/model_path", "");
@@ -278,7 +278,7 @@ namespace network_butcher_io::IO_Manager
     res.backward_connections_allowed = file(basic_infos + "/backward_connections_allowed", false);
 
     std::string const weight_import_method =
-      Utilities::trim_copy(Utilities::to_lowercase_copy(file(weigth_infos + "/weight_import_mode", "")));
+      Utilities::trim_copy(Utilities::to_lowercase_copy(file(weight_infos + "/import_mode", "")));
 
 
     if (weight_import_method == "amllibrary_direct_read")
@@ -293,22 +293,24 @@ namespace network_butcher_io::IO_Manager
       res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::multi_operation_time;
     else if (weight_import_method == "official_operation_time")
       res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::official_operation_time;
-    else
+    else if (weight_import_method == "operation_time")
       res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::operation_time;
+    else
+      std::cout << "Unavaible weight import mode!" << std::endl;
 
 
     {
-      auto const len = file.vector_variable_size(weigth_infos + "/inference_variables");
+      auto const len = file.vector_variable_size(weight_infos + "/inference_variables");
       res.weight_inference_variables.reserve(len);
       for (std::size_t i = 0; i < len; ++i)
-        res.weight_inference_variables.emplace_back(file(weigth_infos + "/inference_variables", i, ""));
+        res.weight_inference_variables.emplace_back(file(weight_infos + "/inference_variables", i, ""));
     }
 
     {
-      auto const len = file.vector_variable_size(weigth_infos + "/csv_features");
+      auto const len = file.vector_variable_size(weight_infos + "/csv_features");
       res.weight_csv_features.reserve(len);
       for (std::size_t i = 0; i < len; ++i)
-        res.weight_csv_features.emplace_back(file(weigth_infos + "/csv_features", i, ""));
+        res.weight_csv_features.emplace_back(file(weight_infos + "/csv_features", i, ""));
     }
 
     res.memory_constraint = file(basic_infos + "/memory_constraint", false);

@@ -1,7 +1,11 @@
+#ifndef NETWORK_BUTCHER_WEIGHT_IMPORTER_HELPERS_H
+#define NETWORK_BUTCHER_WEIGHT_IMPORTER_HELPERS_H
+
+
 #include "Basic_traits.h"
+#include "Computer_memory.h"
 #include "Graph_traits.h"
 #include "Parameters.h"
-#include "Computer_memory.h"
 
 #if PYBIND_ACTIVE
 #  include "CMake_directives.h"
@@ -144,3 +148,5 @@ namespace network_butcher_io::Weight_importer_helpers
 
 
 } // namespace network_butcher_io::Weight_importer_helpers
+
+#endif // NETWORK_BUTCHER_WEIGHT_IMPORTER_HELPERS_H

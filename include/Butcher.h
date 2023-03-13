@@ -92,7 +92,10 @@ private:
   /// output device ids
   /// \param new_graph The lineatized graph (result of block_graph)
   void
-  block_graph_weights(new_network &new_graph, network_butcher_parameters::Parameters const &params) const;
+  block_graph_weights(
+    new_network                                                                      &new_graph,
+    network_butcher_parameters::Parameters const                                     &params,
+    const std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> &transmission_weights) const;
 
 
   /// It will produce the set of nodes associated to a given device
@@ -724,10 +727,13 @@ Butcher<GraphType>::block_graph_weights(
 
 template <class GraphType>
 void
-Butcher<GraphType>::block_graph_weights(Butcher<GraphType>::new_network              &new_graph,
-                                        const network_butcher_parameters::Parameters &params) const
+Butcher<GraphType>::block_graph_weights(
+  Butcher<GraphType>::new_network                                                  &new_graph,
+  const network_butcher_parameters::Parameters                                     &params,
+  const std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> &transmission_weights) const
 {
   network_butcher_io::Weight_importer_helpers::import_weights_aMLLibrary_local_block(new_graph, graph, params);
+
   auto const &nodes = new_graph.get_nodes();
   std::for_each(nodes.cbegin(),
                 nodes.cend(),
@@ -767,7 +773,7 @@ Butcher<GraphType>::block_graph_weights(Butcher<GraphType>::new_network         
                       else if (inputs.size() == 1)
                         {
                           // We just have to send the input from in_device to out_device
-                          transmission_costs = transmission_weights(input, in_device_id, out_device_id);
+                          transmission_costs = transmission_weights(*inputs.cbegin(), in_device_id, out_device_id);
                         }
                       else if (outputs.size() == 1)
                         {
@@ -786,7 +792,8 @@ Butcher<GraphType>::block_graph_weights(Butcher<GraphType>::new_network         
                           std::cout << "Warning: we couldn't determine a weight!" << std::endl;
                         }
 
-                      new_graph.set_weight(edge, transmission_costs + new_graph.get_weight(edge));
+                      weight_type final_cost = transmission_costs + new_graph.get_weight(edge);
+                      new_graph.set_weight(edge, final_cost);
                     }
                 });
 }
@@ -883,7 +890,7 @@ Butcher<GraphType>::compute_k_shortest_path(
 
   if (params.weight_import_mode == network_butcher_parameters::Weight_Import_Mode::aMLLibrary_local_inference_block)
     {
-      block_graph_weights(new_graph, params);
+      block_graph_weights(new_graph, params, transmission_weights);
     }
   else
     {

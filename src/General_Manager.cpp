@@ -8,11 +8,8 @@ network_butcher_io::General_Manager::Helper_Functions::generate_bandwidth_transm
   const network_butcher_parameters::Parameters &params,
   const graph_type                             &graph)
 {
-  // Conversion from bytes to mb
-  auto const mbps = std::pow(10, 6) / 8;
-
   std::function<weight_type(node_id_type const &, std::size_t, std::size_t)> transmission_weights =
-    [&params, &graph, mbps](node_id_type const &node_id, std::size_t first_device, std::size_t second_device) {
+    [&params, &graph](node_id_type const &node_id, std::size_t first_device, std::size_t second_device) {
       auto const it = params.bandwidth.find({first_device, second_device});
 
       // If the bandwidth cannot be found, return 0
@@ -22,8 +19,11 @@ network_butcher_io::General_Manager::Helper_Functions::generate_bandwidth_transm
         }
       else
         {
-          // The memory dimension of the output tensor for the given node
+          // The memory dimension of the output tensor for the given node in bytes
           auto const mem = network_butcher_computer::Computer_memory::compute_memory_usage_output(graph[node_id]);
+
+          // Conversion from MBit to Bytes
+          constexpr double MBit_to_Bytes = 1000000 / 8;
 
           // Bandwidth
           auto const bdw = it->second.first;
@@ -31,7 +31,7 @@ network_butcher_io::General_Manager::Helper_Functions::generate_bandwidth_transm
           // Access delay
           auto const acc = it->second.second;
 
-          return mem / (bdw * mbps) + acc;
+          return mem / (bdw * MBit_to_Bytes) + acc;
         }
     };
   return transmission_weights;
@@ -96,6 +96,10 @@ network_butcher_io::General_Manager::boot(std::string const &path, bool performa
 void
 network_butcher_io::General_Manager::boot(const network_butcher_parameters::Parameters &params, bool performance)
 {
+  bool weight_performance =
+    performance &&
+    params.weight_import_mode != network_butcher_parameters::Weight_Import_Mode::aMLLibrary_local_inference_block;
+
   Chrono crono;
   crono.start();
 
@@ -108,14 +112,17 @@ network_butcher_io::General_Manager::boot(const network_butcher_parameters::Para
   if (performance)
     std::cout << "Network import: " << import_time / 1000. << " ms" << std::endl;
 
-  crono.start();
+  if (weight_performance)
+    {
+      crono.start();
+    }
 
   // Import the weights
   Helper_Functions::import_weights(graph, params);
   crono.stop();
 
   double const import_weights_time = crono.wallTime();
-  if (performance)
+  if (weight_performance)
     std::cout << "Weight import: " << import_weights_time / 1000. << " ms" << std::endl;
 
   // Prepare the butcher...
@@ -129,8 +136,14 @@ network_butcher_io::General_Manager::boot(const network_butcher_parameters::Para
   crono.stop();
 
   double const butcher_time = crono.wallTime();
-  if (performance)
-    std::cout << "Butchering: " << butcher_time / 1000. << " ms" << std::endl;
+  if (performance && weight_performance)
+    {
+      std::cout << "Butchering: " << butcher_time / 1000. << " ms" << std::endl;
+    }
+  else if (performance)
+    {
+      std::cout << "Weight import and Butchering: " << butcher_time / 1000. << " ms" << std::endl;
+    }
 
   crono.start();
   // Export the butchered networks... (export the different partitions)
