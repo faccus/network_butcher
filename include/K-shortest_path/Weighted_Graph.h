@@ -9,16 +9,15 @@
 
 namespace network_butcher_kfinder
 {
-  template<class Base_Weighted_Graph,
-           class Node_Type=Base_Weighted_Graph::Node_Type,
-           class Node_Collection_Type=Base_Weighted_Graph::Node_Collection_Type>
-  class Weighted_Graph {
-
+  template <class Base_Weighted_Graph,
+            class Node_Type            = typename Base_Weighted_Graph::Node_Type,
+            class Node_Collection_Type = typename Base_Weighted_Graph::Node_Collection_Type>
+  class Weighted_Graph
+  {
   public:
     using Node_Id_Type = std::size_t;
-    using Edge_Type = std::pair<Node_Id_Type, Node_Id_Type>;
-    using Graph_Type = Base_Weighted_Graph;
-
+    using Edge_Type    = std::pair<Node_Id_Type, Node_Id_Type>;
+    using Graph_Type   = Base_Weighted_Graph;
 
 
     weight_type
@@ -31,7 +30,6 @@ namespace network_butcher_kfinder
     empty() const;
 
 
-
     std::set<Node_Id_Type> const &
     get_input_nodes(Node_Id_Type const &id) const;
 
@@ -39,34 +37,36 @@ namespace network_butcher_kfinder
     get_output_nodes(Node_Id_Type const &id) const;
 
 
-
     Node_Type const &
     operator[](Node_Id_Type const &id) const;
 
-    Node_Collection_Type::const_iterator
+    typename Node_Collection_Type::const_iterator
     cbegin() const;
 
-    Node_Collection_Type::const_iterator
+    typename Node_Collection_Type::const_iterator
     cend() const;
 
-    Node_Collection_Type::const_reverse_iterator
+    typename Node_Collection_Type::const_reverse_iterator
     crbegin() const;
 
-    Node_Collection_Type::const_reverse_iterator
+    typename Node_Collection_Type::const_reverse_iterator
     crend() const;
 
 
-
-    explicit Weighted_Graph(Graph_Type const &g) : graph(g) {}
+    explicit Weighted_Graph(Graph_Type const &g)
+      : graph(g)
+    {}
 
     Weighted_Graph(Weighted_Graph const &) = delete;
-    Weighted_Graph operator=(Weighted_Graph const &) = delete;
+    Weighted_Graph
+    operator=(Weighted_Graph const &) = delete;
     Weighted_Graph(Weighted_Graph &&) = delete;
-    Weighted_Graph operator=(Weighted_Graph &&) = delete;
-    
+    Weighted_Graph
+    operator=(Weighted_Graph &&) = delete;
+
   private:
     Graph_Type const &graph;
   };
-}
+} // namespace network_butcher_kfinder
 
 #endif // NETWORK_BUTCHER_WEIGHTED_GRAPH_H

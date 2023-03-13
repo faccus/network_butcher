@@ -126,16 +126,17 @@ namespace network_butcher_types
       return nodes[id];
     }
 
-    Node_Collection_Type::const_iterator
-    cbegin() const {
+    typename Node_Collection_Type::const_iterator
+    cbegin() const
+    {
       return nodes.cbegin();
     }
 
-    Node_Collection_Type::const_iterator
-    cend() const {
+    typename Node_Collection_Type::const_iterator
+    cend() const
+    {
       return nodes.cend();
     }
-
 
 
     /// It remove the nodes with the given id. Note that the id of the nodes in the graph may change
@@ -332,13 +333,15 @@ namespace network_butcher_types
       return nodes[id];
     }
 
-    Node_Collection_Type::const_iterator
-    cbegin() const {
+    typename Node_Collection_Type::const_iterator
+    cbegin() const
+    {
       return nodes.cbegin();
     }
 
-    Node_Collection_Type::const_iterator
-    cend() const {
+    typename Node_Collection_Type::const_iterator
+    cend() const
+    {
       return nodes.cend();
     }
 

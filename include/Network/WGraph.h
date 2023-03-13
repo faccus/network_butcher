@@ -105,83 +105,93 @@ namespace network_butcher_types
 
 } // namespace network_butcher_types
 
-namespace network_butcher_kfinder {
+namespace network_butcher_kfinder
+{
 
   template <class T>
-  class Weighted_Graph<network_butcher_types::WGraph<T>>  {
-
+  class Weighted_Graph<network_butcher_types::WGraph<T>>
+  {
   public:
-    using Node_Id_Type = std::size_t;
-    using Edge_Type = std::pair<Node_Id_Type, Node_Id_Type>;
-    using Graph_Type = network_butcher_types::WGraph<T>;
-    using Node_Type = Graph_Type::Node_Type;
+    using Node_Id_Type         = std::size_t;
+    using Edge_Type            = std::pair<Node_Id_Type, Node_Id_Type>;
+    using Graph_Type           = typename network_butcher_types::WGraph<T>;
+    using Node_Type            = typename Graph_Type::Node_Type;
     using Node_Collection_Type = std::vector<Node_Type>;
 
 
     [[nodiscard]] weight_type
-    get_weight(Edge_Type const &edge) const {
+    get_weight(Edge_Type const &edge) const
+    {
       return graph.get_weight(edge);
     }
 
     [[nodiscard]] std::size_t
-    size() const {
+    size() const
+    {
       return graph.size();
     };
 
     [[nodiscard]] bool
-    empty() const {
+    empty() const
+    {
       return graph.empty();
     };
 
 
-
     [[nodiscard]] std::set<Node_Id_Type> const &
-    get_input_nodes(Node_Id_Type const &id) const {
+    get_input_nodes(Node_Id_Type const &id) const
+    {
       return graph.get_neighbors()[id].first;
     };
 
     [[nodiscard]] std::set<Node_Id_Type> const &
-    get_output_nodes(Node_Id_Type const &id) const{
+    get_output_nodes(Node_Id_Type const &id) const
+    {
       return graph.get_neighbors()[id].second;
     };
 
 
-
     Node_Type const &
-    operator[](Node_Id_Type const &id) const{
+    operator[](Node_Id_Type const &id) const
+    {
       return graph[id];
     };
 
-    Node_Collection_Type::const_iterator
-    cbegin() const {
+    typename Node_Collection_Type::const_iterator
+    cbegin() const
+    {
       return graph.get_nodes().cbegin();
     }
 
-    Node_Collection_Type::const_iterator
-    cend() const {
+    typename Node_Collection_Type::const_iterator
+    cend() const
+    {
       return graph.get_nodes().cend();
     }
 
-    Node_Collection_Type::const_reverse_iterator
-    crbegin() const {
+    typename Node_Collection_Type::const_reverse_iterator
+    crbegin() const
+    {
       return graph.get_nodes().crbegin();
     }
 
-    Node_Collection_Type::const_reverse_iterator
-    crend() const {
+    typename Node_Collection_Type::const_reverse_iterator
+    crend() const
+    {
       return graph.get_nodes().crend();
     }
 
 
-
-    explicit Weighted_Graph(Graph_Type const &g) : graph(g) {}
+    explicit Weighted_Graph(Graph_Type const &g)
+      : graph(g)
+    {}
 
     Weighted_Graph(Weighted_Graph const &) = default;
 
   private:
     Graph_Type const &graph;
   };
-}
+} // namespace network_butcher_kfinder
 
 
 #endif // NETWORK_BUTCHER_WGRAPH_H
