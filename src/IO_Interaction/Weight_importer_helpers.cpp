@@ -287,16 +287,22 @@ namespace network_butcher_io::Weight_importer_helpers
 
         for (std::size_t i = 0; i < params.devices.size(); ++i)
           {
-            std::string basic = "predict_" + std::to_string(i);
+            std::string tmp_dir_path =
+              Utilities::combine_path(params.temporary_directory, "predict_" + std::to_string(i));
+
+            if (Utilities::directory_exists(tmp_dir_path))
+              Utilities::directory_delete(tmp_dir_path);
+
+            prepare_predict_file(params.weight_inference_variables[i], csv_path, tmp_dir_path + ".ini");
+
             execute_weight_generator(params.devices[i].weights_path,
-                                     basic + ".ini",
-                                     Utilities::combine_path(params.temporary_directory, basic),
+                                     tmp_dir_path + ".ini",
+                                     tmp_dir_path,
                                      params.package_aMLLibrary_location);
 
-            import_weights_aMLLibrary_direct_read(
-              graph,
-              params.devices[i].id,
-              Utilities::combine_path(Utilities::combine_path(params.temporary_directory, basic), "prediction.csv"));
+            import_weights_aMLLibrary_direct_read(graph,
+                                                  params.devices[i].id,
+                                                  Utilities::combine_path(tmp_dir_path, "prediction.csv"));
           }
 
 
@@ -473,6 +479,29 @@ namespace network_butcher_io::Weight_importer_helpers
 
 
   void
+  prepare_predict_file(std::string const &inference_variable, std::string const &input_path, std::string output_path)
+  {
+    if (output_path.back() == '/' || output_path.back() == '\\')
+      {
+        output_path += "predict.ini";
+      }
+
+    std::ofstream out_file(output_path);
+
+    if (out_file.is_open())
+      {
+        out_file << "[General]" << std::endl;
+        out_file << "y = " << inference_variable << std::endl << std::endl;
+
+        out_file << "[DataPreparation]" << std::endl;
+        out_file << "input_path = " << input_path;
+
+        out_file.close();
+      }
+  }
+
+
+  void
   import_weights_aMLLibrary_local_block(block_graph_type                             &new_graph,
                                         graph_type const                             &graph,
                                         network_butcher_parameters::Parameters const &params)
@@ -517,17 +546,23 @@ namespace network_butcher_io::Weight_importer_helpers
 
         for (std::size_t i = 0; i < params.devices.size(); ++i)
           {
-            std::string basic = "predict_" + std::to_string(i);
+            std::string tmp_dir_path =
+              Utilities::combine_path(params.temporary_directory, "predict_" + std::to_string(i));
+
+            if (Utilities::directory_exists(tmp_dir_path))
+              Utilities::directory_delete(tmp_dir_path);
+
+            prepare_predict_file(params.weight_inference_variables[i], csv_path, tmp_dir_path + ".ini");
+
             execute_weight_generator(params.devices[i].weights_path,
-                                     basic + ".ini",
-                                     Utilities::combine_path(params.temporary_directory, basic),
+                                     tmp_dir_path + ".ini",
+                                     tmp_dir_path,
                                      params.package_aMLLibrary_location);
 
-            import_weights_aMLLibrary_direct_read(
-              new_graph,
-              params.devices[i].id,
-              params.devices.size(),
-              Utilities::combine_path(Utilities::combine_path(params.temporary_directory, basic), "prediction.csv"));
+            import_weights_aMLLibrary_direct_read(new_graph,
+                                                  params.devices[i].id,
+                                                  params.devices.size(),
+                                                  Utilities::combine_path(tmp_dir_path, "prediction.csv"));
           }
 
         pybind11::finalize_interpreter();
@@ -733,9 +768,6 @@ namespace network_butcher_io::Weight_importer_helpers
   {
     using namespace pybind11::literals;
     namespace py = pybind11;
-
-    if (Utilities::directory_exists(output_path))
-      Utilities::directory_delete(output_path);
 
     py::object Predictor = py::module_::import("aMLLibrary.model_building.predictor").attr("Predictor");
     py::object predict =

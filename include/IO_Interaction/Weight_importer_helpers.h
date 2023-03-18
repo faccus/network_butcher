@@ -64,6 +64,12 @@ namespace network_butcher_io::Weight_importer_helpers
                                         network_butcher_parameters::Parameters const &params);
 
 
+  void
+  prepare_predict_file(std::string const &inference_variable,
+                       std::string const &input_path,
+                       std::string        output_path = "");
+
+
 #if PYBIND_ACTIVE
 
   void

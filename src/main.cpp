@@ -1,5 +1,5 @@
 #include "General_Manager.h"
-
+/*
 int
 main(int argc, char **argv)
 {
@@ -7,10 +7,12 @@ main(int argc, char **argv)
 
   return 0;
 }
-/*
-int main() {
+*/
+
+int
+main()
+{
   network_butcher_io::General_Manager::boot("test_data/configs/test5_parameters.conf", true);
 
   return 0;
 }
-*/
