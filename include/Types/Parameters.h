@@ -34,27 +34,6 @@ namespace network_butcher_parameters
     std::string weights_path;
   };
 
-  struct network_domain
-  {
-    std::string name;
-
-    std::size_t bandwidth;
-    double      access_delay;
-
-    std::size_t depth;
-  };
-
-  struct device
-  {
-    std::string name;
-    std::string domain_name;
-
-    std::size_t ram;
-    std::size_t vram;
-
-    std::size_t id;
-  };
-
   /// Enumerator for the different KSP methods
   enum KSP_Method
   {
@@ -83,7 +62,7 @@ namespace network_butcher_parameters
     std::string export_directory;
 
     /// The temporary directory
-    std::string temporary_directory = "tmp";
+    std::string temporary_directory;
 
     /// The (absolute) path to the onnx_tool package (if not default)
     std::string package_onnx_tool_location;
