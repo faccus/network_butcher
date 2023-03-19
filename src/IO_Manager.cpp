@@ -6,8 +6,6 @@
 
 namespace network_butcher_io::IO_Manager
 {
-
-
   void
   utilities::reconstruct_model_and_export(
     const network_butcher_types::Real_Path     &partitions,
@@ -257,12 +255,17 @@ namespace network_butcher_io::IO_Manager
     std::string const                      basic_infos  = "basic_config";
     std::string const                      weight_infos = "weight_config";
 
-    res.model_name                  = file(basic_infos + "/model_name", "model");
-    res.model_path                  = file(basic_infos + "/model_path", "");
-    res.export_directory            = file(basic_infos + "/export_directory", "ksp_result");
-    res.temporary_directory         = file(basic_infos + "/temporary_directory", "tmp");
-    res.package_onnx_tool_location  = file(basic_infos + "/package_onnx_tool_location", "");
-    res.package_aMLLibrary_location = file(basic_infos + "/package_aMLLibrary_location", "");
+    res.model_name          = file(basic_infos + "/model_name", "model");
+    res.model_path          = file(basic_infos + "/model_path", "");
+    res.export_directory    = file(basic_infos + "/export_directory", "ksp_result");
+    res.temporary_directory = file(basic_infos + "/temporary_directory", "tmp");
+
+    {
+      auto const len = file.vector_variable_size(basic_infos + "/extra_packages_location");
+      res.extra_packages_location.reserve(len);
+      for (std::size_t i = 0; i < len; ++i)
+        res.extra_packages_location.emplace_back(file(basic_infos + "/extra_packages_location", i, ""));
+    }
 
     res.K                    = file(basic_infos + "/K", 100);
     std::string const method = Utilities::trim_copy(Utilities::to_lowercase_copy(file(basic_infos + "/method", "")));
@@ -281,37 +284,44 @@ namespace network_butcher_io::IO_Manager
       Utilities::trim_copy(Utilities::to_lowercase_copy(file(weight_infos + "/import_mode", "")));
 
 
-    if (weight_import_method == "amllibrary_direct_read")
-      res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::aMLLibrary_direct_read;
-    else if (weight_import_method == "amllibrary_local_inference_original")
-      res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::aMLLibrary_local_inference_original;
+    if (weight_import_method == "amllibrary_local_inference_original")
+      res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::aMLLibrary_inference_original;
     else if (weight_import_method == "amllibrary_local_inference_block")
-      res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::aMLLibrary_local_inference_block;
-    else if (weight_import_method == "amllibrary_cloud_inference")
-      res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::aMLLibrary_cloud_inference;
-    else if (weight_import_method == "multi_operation_time")
-      res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::multi_operation_time;
-    else if (weight_import_method == "official_operation_time")
-      res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::official_operation_time;
-    else if (weight_import_method == "operation_time")
-      res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::operation_time;
+      res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::aMLLibrary_inference_block;
+    else if (weight_import_method == "single_direct_read")
+      res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::single_direct_read;
+    else if (weight_import_method == "multiple_direct_read")
+      res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::multiple_direct_read;
     else
       std::cout << "Unavaible weight import mode!" << std::endl;
 
 
     {
-      auto const len = file.vector_variable_size(weight_infos + "/inference_variables");
-      res.weight_inference_variables.reserve(len);
+      auto const len = file.vector_variable_size(weight_infos + "/aMLLibrary_inference_variables");
+      res.aMLLibrary_inference_variables.reserve(len);
       for (std::size_t i = 0; i < len; ++i)
-        res.weight_inference_variables.emplace_back(file(weight_infos + "/inference_variables", i, ""));
+        res.aMLLibrary_inference_variables.emplace_back(file(weight_infos + "/aMLLibrary_inference_variables", i, ""));
     }
 
     {
-      auto const len = file.vector_variable_size(weight_infos + "/csv_features");
-      res.weight_csv_features.reserve(len);
+      auto const len = file.vector_variable_size(weight_infos + "/aMLLibrary_features");
+      res.aMLLibrary_csv_features.reserve(len);
       for (std::size_t i = 0; i < len; ++i)
-        res.weight_csv_features.emplace_back(file(weight_infos + "/csv_features", i, ""));
+        res.aMLLibrary_csv_features.emplace_back(file(weight_infos + "/aMLLibrary_features", i, ""));
     }
+
+    {
+      auto const len = file.vector_variable_size(weight_infos + "/single_csv_columns_weights");
+      res.single_csv_columns_weights.reserve(len);
+      for (std::size_t i = 0; i < len; ++i)
+        res.single_csv_columns_weights.emplace_back(file(weight_infos + "/single_csv_columns_weights", i, ""));
+
+      Utilities::trim(res.single_csv_columns_weights);
+      Utilities::to_lowercase(res.single_csv_columns_weights);
+    }
+
+    res.single_weight_import_path = file(weight_infos + "/single_weight_import_path", "");
+    res.separator                 = file(weight_infos + "/separator", ',');
 
     res.memory_constraint = file(basic_infos + "/memory_constraint", false);
     if (res.memory_constraint)
@@ -346,7 +356,8 @@ namespace network_butcher_io::IO_Manager
         dev.id             = i;
         dev.name           = file(prx + "/name", "");
         dev.maximum_memory = file(prx + "/maximum_memory", 0);
-        dev.weights_path   = file(prx + "/weight_path", "");
+        dev.weights_path   = file(prx + "/path", "");
+        dev.relevant_entry = file(prx + "/relevant_entry", "");
 
         res.devices.push_back(std::move(dev));
       }
@@ -402,69 +413,39 @@ namespace network_butcher_io::IO_Manager
 
 
   void
-  import_weights(network_butcher_parameters::Weight_Import_Mode const &weight_mode,
-                 graph_type                                           &graph,
-                 std::string const                                    &path,
-                 std::size_t                                           device)
-  {
-    switch (weight_mode)
-      {
-        case network_butcher_parameters::Weight_Import_Mode::aMLLibrary_direct_read:
-          Weight_importer_helpers::import_weights_aMLLibrary_direct_read(
-            graph, device, path, [](graph_type::Node_Type const &node) {
-              return node.content.get_operation_id() == "conv";
-            });
-          break;
-        case network_butcher_parameters::Weight_Import_Mode::operation_time:
-          Weight_importer_helpers::import_weights_custom_csv_operation_time(graph, device, path);
-          break;
-        default:
-          std::cout << "The specified Weight_Import_Mode is either not avaible or not found. Please, check that you "
-                       "specified the correct import mode!"
-                    << std::endl;
-          break;
-      }
-  }
-
-  void
   import_weights(graph_type &graph, const network_butcher_parameters::Parameters &params)
   {
     switch (params.weight_import_mode)
       {
-          case network_butcher_parameters::Weight_Import_Mode::aMLLibrary_local_inference_original: {
+          case network_butcher_parameters::Weight_Import_Mode::aMLLibrary_inference_original: {
             Weight_importer_helpers::import_weights_aMLLibrary_local_original(graph, params);
             break;
           }
-          case network_butcher_parameters::Weight_Import_Mode::aMLLibrary_local_inference_block: {
+          case network_butcher_parameters::Weight_Import_Mode::aMLLibrary_inference_block: {
+            break;
+          }
+          case network_butcher_parameters::Weight_Import_Mode::single_direct_read: {
+            Weight_importer_helpers::import_weights_direct_read(graph,
+                                                                params.single_weight_import_path,
+                                                                params.devices,
+                                                                params.single_csv_columns_weights,
+                                                                params.separator);
+            break;
+          }
+          case network_butcher_parameters::Weight_Import_Mode::multiple_direct_read: {
+            for (std::size_t i = 0; i < params.devices.size(); ++i)
+              {
+                Weight_importer_helpers::import_weights_direct_read(graph,
+                                                                    params.devices[i].weights_path,
+                                                                    params.devices[i].id,
+                                                                    params.devices[i].relevant_entry,
+                                                                    params.separator);
+              }
             break;
           }
         default:
-          std::cout << "The specified Weight_Import_Mode is either not avaible or not found. Please, check that you "
-                       "specified the correct import mode!"
-                    << std::endl;
-          break;
-      }
-  }
-
-
-  void
-  import_weights(network_butcher_parameters::Weight_Import_Mode const &weight_mode,
-                 graph_type                                           &graph,
-                 std::string const                                    &path,
-                 std::vector<std::size_t> const                       &devices)
-  {
-    switch (weight_mode)
-      {
-        case network_butcher_parameters::Weight_Import_Mode::multi_operation_time:
-          Weight_importer_helpers::import_weights_custom_csv_multi_operation_time(graph, devices, path);
-          break;
-        case network_butcher_parameters::Weight_Import_Mode::official_operation_time:
-          Weight_importer_helpers::import_weights_official_csv_multi_operation_time(graph, devices, path);
-          break;
-        default:
-          std::cout << "The specified Weight_Import_Mode is either not avaible or not found. Please, check that you "
-                       "specified the correct import mode!"
-                    << std::endl;
+          throw "The specified Weight_Import_Mode is either not avaible or not found. Please, check that you "
+                "specified the correct import mode!";
           break;
       }
   }
@@ -519,6 +500,7 @@ namespace network_butcher_io::IO_Manager
 
 namespace network_butcher_io::IO_Manager
 {
+
   std::vector<network_butcher_parameters::Parameters>
   read_parameters_yaml(std::string const &candidate_resources_path,
                        std::string const &candidate_deployments_path,
@@ -592,6 +574,6 @@ namespace network_butcher_io::IO_Manager
     return res;
   }
 
-
 } // namespace network_butcher_io::IO_Manager
+
 #endif

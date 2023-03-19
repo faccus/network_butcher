@@ -8,41 +8,7 @@ namespace network_butcher_io::Weight_importer_helpers
                                         std::string const                                        &path,
                                         std::function<bool(graph_type::Node_Type const &)> const &extra_condition)
   {
-    std::fstream file_in;
-    file_in.open(path, std::ios_base::in);
-
-    if (file_in.is_open())
-      {
-        weight_type tmp_weight;
-
-        std::string tmp_line;
-        std::getline(file_in, tmp_line);
-
-        auto it = ++graph.cbegin();
-        while (!file_in.eof())
-          {
-            std::getline(file_in, tmp_line);
-            std::stringstream stream_line(tmp_line);
-
-            while (std::getline(stream_line, tmp_line, ','))
-              ;
-
-            tmp_weight = ::atof(tmp_line.c_str());
-
-            while (extra_condition != nullptr && it != graph.cend() && !extra_condition(*it))
-              ++it;
-
-            if (it == graph.cend())
-              break;
-
-            for (auto const &in : graph.get_neighbors()[it->get_id()].first)
-              graph.set_weight(device, {in, it->get_id()}, tmp_weight);
-
-            ++it;
-          }
-
-        file_in.close();
-      }
+    import_weights_direct_read(graph, path, device, "pred", ',', extra_condition);
   }
 
 
@@ -53,51 +19,29 @@ namespace network_butcher_io::Weight_importer_helpers
                                         std::string const                                              &path,
                                         std::function<bool(block_graph_type::Node_Type const &)> const &extra_condition)
   {
-    std::fstream file_in;
-    file_in.open(path, std::ios_base::in);
+    auto const map = read_csv_numerics(path, ',', {"pred"});
 
-    if (file_in.is_open())
+    auto it = graph.cbegin();
+
+    for (std::size_t j = 0; it != graph.cend() && j < (device + 1); ++j, ++it)
+      ;
+
+    for (auto const &weight : map.cbegin()->second)
       {
-        weight_type tmp_weight;
-
-        std::string tmp_line;
-        std::getline(file_in, tmp_line);
-
-        auto it = ++graph.cbegin();
-
-        for (std::size_t j = 0; it != graph.cend() && j < device; ++j, ++it)
-          ;
-
-        if (it == graph.cend())
-          return;
-
-        while (!file_in.eof())
+        while (extra_condition != nullptr && it != graph.cend() && !extra_condition(*it))
           {
-            std::getline(file_in, tmp_line);
-            std::stringstream stream_line(tmp_line);
-
-            while (std::getline(stream_line, tmp_line, ','))
-              ;
-
-            tmp_weight = ::atof(tmp_line.c_str());
-
-            while (extra_condition != nullptr && it != graph.cend() && !extra_condition(*it))
-              {
-                for (std::size_t j = 0; it != graph.cend() && j < num_devices; ++j, ++it)
-                  ;
-              }
-
-            if (it == graph.cend())
-              break;
-
-            for (auto const &in : graph.get_neighbors()[it->get_id()].first)
-              graph.set_weight({in, it->get_id()}, tmp_weight);
-
             for (std::size_t j = 0; it != graph.cend() && j < num_devices; ++j, ++it)
               ;
           }
 
-        file_in.close();
+        if (it == graph.cend())
+          break;
+
+        for (auto const &in : graph.get_neighbors()[it->get_id()].first)
+          graph.set_weight({in, it->get_id()}, weight);
+
+        for (std::size_t j = 0; it != graph.cend() && j < num_devices; ++j, ++it)
+          ;
       }
   }
 
@@ -239,6 +183,7 @@ namespace network_butcher_io::Weight_importer_helpers
     if (params.devices.size() == 2 && !params.backward_connections_allowed)
       {
         pybind11::initialize_interpreter();
+        add_python_packages(params.extra_packages_location);
 
         auto const macs     = read_network_info_onnx_tool(network_info_onnx_tool(params));
         auto const csv_path = "aMLLibrary_input.csv";
@@ -252,10 +197,10 @@ namespace network_butcher_io::Weight_importer_helpers
         std::vector<std::vector<std::string>> aMLLibrary_input;
         aMLLibrary_input.reserve(graph.size() + 1);
 
-        aMLLibrary_input.push_back(Utilities::trim_copy(params.weight_csv_features));
+        aMLLibrary_input.push_back(Utilities::trim_copy(params.aMLLibrary_csv_features));
         aMLLibrary_input.front().insert(aMLLibrary_input.front().cend(),
-                                        params.weight_inference_variables.cbegin(),
-                                        params.weight_inference_variables.cend());
+                                        params.aMLLibrary_inference_variables.cbegin(),
+                                        params.aMLLibrary_inference_variables.cend());
 
         for (auto const &node : graph.get_nodes())
           {
@@ -283,7 +228,6 @@ namespace network_butcher_io::Weight_importer_helpers
 
         csv_assembler(aMLLibrary_input, csv_path);
 
-        add_aMLLibrary_to_path();
 
         for (std::size_t i = 0; i < params.devices.size(); ++i)
           {
@@ -293,12 +237,9 @@ namespace network_butcher_io::Weight_importer_helpers
             if (Utilities::directory_exists(tmp_dir_path))
               Utilities::directory_delete(tmp_dir_path);
 
-            prepare_predict_file(params.weight_inference_variables[i], csv_path, tmp_dir_path + ".ini");
+            prepare_predict_file(params.aMLLibrary_inference_variables[i], csv_path, tmp_dir_path + ".ini");
 
-            execute_weight_generator(params.devices[i].weights_path,
-                                     tmp_dir_path + ".ini",
-                                     tmp_dir_path,
-                                     params.package_aMLLibrary_location);
+            execute_weight_generator(params.devices[i].weights_path, tmp_dir_path + ".ini", tmp_dir_path);
 
             import_weights_aMLLibrary_direct_read(graph,
                                                   params.devices[i].id,
@@ -512,6 +453,8 @@ namespace network_butcher_io::Weight_importer_helpers
       {
         pybind11::initialize_interpreter();
 
+        add_python_packages(params.extra_packages_location);
+
         auto const macs     = read_network_info_onnx_tool(network_info_onnx_tool(params));
         auto const csv_path = "aMLLibrary_input.csv";
 
@@ -523,10 +466,10 @@ namespace network_butcher_io::Weight_importer_helpers
 
         std::vector<std::vector<std::string>> aMLLibrary_input;
         aMLLibrary_input.reserve(new_graph.size() + 1);
-        aMLLibrary_input.push_back(Utilities::trim_copy(params.weight_csv_features));
+        aMLLibrary_input.push_back(Utilities::trim_copy(params.aMLLibrary_csv_features));
         aMLLibrary_input.front().insert(aMLLibrary_input.front().cend(),
-                                        params.weight_inference_variables.cbegin(),
-                                        params.weight_inference_variables.cend());
+                                        params.aMLLibrary_inference_variables.cbegin(),
+                                        params.aMLLibrary_inference_variables.cend());
 
         for (auto const &node : new_graph.get_nodes())
           {
@@ -542,8 +485,6 @@ namespace network_butcher_io::Weight_importer_helpers
 
         csv_assembler(aMLLibrary_input, csv_path);
 
-        add_aMLLibrary_to_path();
-
         for (std::size_t i = 0; i < params.devices.size(); ++i)
           {
             std::string tmp_dir_path =
@@ -552,12 +493,9 @@ namespace network_butcher_io::Weight_importer_helpers
             if (Utilities::directory_exists(tmp_dir_path))
               Utilities::directory_delete(tmp_dir_path);
 
-            prepare_predict_file(params.weight_inference_variables[i], csv_path, tmp_dir_path + ".ini");
+            prepare_predict_file(params.aMLLibrary_inference_variables[i], csv_path, tmp_dir_path + ".ini");
 
-            execute_weight_generator(params.devices[i].weights_path,
-                                     tmp_dir_path + ".ini",
-                                     tmp_dir_path,
-                                     params.package_aMLLibrary_location);
+            execute_weight_generator(params.devices[i].weights_path, tmp_dir_path + ".ini", tmp_dir_path);
 
             import_weights_aMLLibrary_direct_read(new_graph,
                                                   params.devices[i].id,
@@ -749,22 +687,25 @@ namespace network_butcher_io::Weight_importer_helpers
 #if PYBIND_ACTIVE
 
   void
-  add_aMLLibrary_to_path()
+  add_python_packages(std::vector<std::string> const &extra_packages_location)
   {
     using namespace pybind11::literals;
     namespace py = pybind11;
 
     py::object path     = py::module_::import("sys").attr("path");
     py::object inserter = path.attr("append");
+
     inserter(NN_Source_Path);
+
+    for (auto const &package_location : extra_packages_location)
+      inserter(package_location);
   }
 
 
   void
   execute_weight_generator(const std::string &regressor_file,
                            const std::string &config_file,
-                           const std::string &output_path,
-                           const std::string &package_path)
+                           const std::string &output_path)
   {
     using namespace pybind11::literals;
     namespace py = pybind11;
@@ -779,19 +720,10 @@ namespace network_butcher_io::Weight_importer_helpers
 
 
   std::string
-  network_info_onnx_tool(const std::string &model_path,
-                         const std::string &package_onnx_tool_location,
-                         const std::string &temporary_directory)
+  network_info_onnx_tool(const std::string &model_path, const std::string &temporary_directory)
   {
     using namespace pybind11::literals;
     namespace py = pybind11;
-
-    if (!package_onnx_tool_location.empty())
-      {
-        py::object path     = py::module_::import("sys").attr("path");
-        py::object inserter = path.attr("append");
-        inserter(package_onnx_tool_location);
-      }
 
     if (!Utilities::directory_exists(temporary_directory))
       Utilities::create_directory(temporary_directory);
@@ -812,7 +744,7 @@ namespace network_butcher_io::Weight_importer_helpers
   std::string
   network_info_onnx_tool(const network_butcher_parameters::Parameters &params)
   {
-    return network_info_onnx_tool(params.model_path, params.package_onnx_tool_location, params.temporary_directory);
+    return network_info_onnx_tool(params.model_path, params.temporary_directory);
   }
 
 
@@ -872,5 +804,218 @@ namespace network_butcher_io::Weight_importer_helpers
   }
 
 #endif
+
+
+  std::vector<std::vector<std::string>>
+  read_csv(std::string const &path, char separator, std::vector<std::string> const &columns_to_read)
+  {
+    std::ifstream file(path);
+
+    std::vector<std::vector<std::string>> res(1);
+
+    if (file.is_open())
+      {
+        std::vector<std::size_t> indices;
+        std::string              tmp_line;
+
+        if (!std::getline(file, tmp_line))
+          return res;
+
+
+        {
+          std::stringstream reader(tmp_line);
+          std::size_t       i = 0;
+
+          if (!columns_to_read.empty())
+            {
+              while (std::getline(reader, tmp_line, separator))
+                {
+                  Utilities::to_lowercase(tmp_line);
+                  Utilities::trim(tmp_line);
+
+                  if (std::find(columns_to_read.cbegin(), columns_to_read.cend(), tmp_line) != columns_to_read.cend())
+                    {
+                      indices.push_back(i);
+                      res.front().push_back(tmp_line);
+                    }
+
+                  ++i;
+                }
+            }
+          else
+            {
+              while (std::getline(reader, tmp_line, separator))
+                {
+                  indices.push_back(i++);
+                  res.front().push_back(tmp_line);
+                }
+            }
+        }
+
+
+        while (std::getline(file, tmp_line))
+          {
+            std::stringstream reader(tmp_line);
+            std::size_t       i = 0, j = 0;
+            res.emplace_back();
+
+            while (std::getline(reader, tmp_line, separator))
+              {
+                if (indices[j] == i)
+                  {
+                    res.back().push_back(tmp_line);
+                    ++j;
+                  }
+
+                ++i;
+              }
+          }
+      }
+
+    return res;
+  }
+
+
+  std::map<std::string, std::vector<double>>
+  read_csv_numerics(std::string const &path, char separator, std::vector<std::string> const &columns_to_read)
+  {
+    std::ifstream file(path);
+
+    std::map<std::string, std::vector<double>> res;
+
+    if (file.is_open())
+      {
+        std::vector<std::size_t>           indices;
+        std::string                        tmp_line;
+        std::map<std::size_t, std::string> index_map;
+
+        if (!std::getline(file, tmp_line))
+          return res;
+
+        {
+          std::stringstream reader(tmp_line);
+          std::size_t       i = 0;
+
+          if (!columns_to_read.empty())
+            {
+              while (std::getline(reader, tmp_line, separator))
+                {
+                  Utilities::to_lowercase(tmp_line);
+                  Utilities::trim(tmp_line);
+
+                  if (std::find(columns_to_read.cbegin(), columns_to_read.cend(), tmp_line) != columns_to_read.cend())
+                    {
+                      indices.push_back(i);
+                      index_map[i] = tmp_line;
+                    }
+
+                  ++i;
+                }
+            }
+          else
+            {
+              while (std::getline(reader, tmp_line, separator))
+                {
+                  Utilities::to_lowercase(tmp_line);
+                  Utilities::trim(tmp_line);
+
+                  indices.push_back(i);
+                  index_map[i] = tmp_line;
+
+                  ++i;
+                }
+            }
+        }
+
+
+        while (std::getline(file, tmp_line))
+          {
+            std::stringstream reader(tmp_line);
+            std::size_t       i = 0, j = 0;
+
+            while (std::getline(reader, tmp_line, separator))
+              {
+                if (indices[j] == i)
+                  {
+                    res[index_map[indices[j]]].push_back(std::atof(tmp_line.c_str()));
+                    ++j;
+                  }
+
+                ++i;
+              }
+          }
+      }
+
+    return res;
+  }
+
+
+  void
+  import_weights_direct_read(graph_type                                               &graph,
+                             std::string const                                        &path,
+                             std::vector<std::size_t> const                           &devices,
+                             std::vector<std::string> const                           &relevant_entries,
+                             char                                                      separator,
+                             std::function<bool(graph_type::Node_Type const &)> const &extra_condition)
+  {
+    auto const map = read_csv_numerics(path, separator, relevant_entries);
+
+    for (std::size_t i = 0; i < devices.size(); ++i)
+      {
+        auto it = ++graph.cbegin();
+
+        auto map_it = map.find(relevant_entries[i]);
+
+        if (map_it == map.cend())
+          throw("Missing entry for device Id " + std::to_string(i));
+
+        for (auto const &weight : map_it->second)
+          {
+            while (extra_condition != nullptr && it != graph.cend() && !extra_condition(*it))
+              ++it;
+
+            if (it == graph.cend())
+              break;
+
+            for (auto const &in : graph.get_neighbors()[it->get_id()].first)
+              {
+                graph.set_weight(devices[i], {in, it->get_id()}, weight);
+              }
+
+            ++it;
+          }
+      }
+  }
+
+
+  void
+  import_weights_direct_read(graph_type                                               &graph,
+                             std::string const                                        &path,
+                             std::vector<network_butcher_parameters::Device> const    &devices,
+                             std::vector<std::string> const                           &relevant_entries,
+                             char                                                      separator,
+                             std::function<bool(graph_type::Node_Type const &)> const &extra_condition)
+  {
+    std::vector<std::size_t> dev;
+    dev.reserve(devices.size());
+
+    for (auto const &device : devices)
+      dev.push_back(device.id);
+
+    import_weights_direct_read(graph, path, dev, relevant_entries, separator, extra_condition);
+  }
+
+
+  void
+  import_weights_direct_read(graph_type                                               &graph,
+                             std::string const                                        &path,
+                             std::size_t                                               device,
+                             std::string const                                        &relevant_entry,
+                             char                                                      separator,
+                             std::function<bool(graph_type::Node_Type const &)> const &extra_condition)
+  {
+    import_weights_direct_read(
+      graph, path, std::vector{device}, std::vector{relevant_entry}, separator, extra_condition);
+  }
 
 } // namespace network_butcher_io::Weight_importer_helpers

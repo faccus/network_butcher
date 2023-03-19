@@ -807,7 +807,7 @@ Butcher<GraphType>::compute_k_shortest_path(
       !params.backward_connections_allowed)
     remove_unfeasible_paths(params.devices, new_graph, params.memory_constraint_type);
 
-  if (params.weight_import_mode == network_butcher_parameters::Weight_Import_Mode::aMLLibrary_local_inference_block)
+  if (params.weight_import_mode == network_butcher_parameters::Weight_Import_Mode::aMLLibrary_inference_block)
     {
       throw;
     }

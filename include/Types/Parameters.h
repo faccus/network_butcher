@@ -12,13 +12,10 @@ namespace network_butcher_parameters
   /// Enumerator for the weight import modes
   enum Weight_Import_Mode
   {
-    aMLLibrary_direct_read,
-    operation_time,
-    multi_operation_time,
-    official_operation_time,
-    aMLLibrary_local_inference_original,
-    aMLLibrary_local_inference_block,
-    aMLLibrary_cloud_inference
+    single_direct_read,
+    multiple_direct_read,
+    aMLLibrary_inference_original,
+    aMLLibrary_inference_block
   };
 
   /// Collection of parameters for a device
@@ -26,12 +23,18 @@ namespace network_butcher_parameters
   {
     // Device id
     std::size_t id;
+
     // Device name
     std::string name;
+
     // Maximum memory capacity (in bytes)
     memory_type maximum_memory;
+
     // The .csv file of weights
     std::string weights_path;
+
+
+    std::string relevant_entry;
   };
 
   /// Enumerator for the different KSP methods
@@ -65,9 +68,7 @@ namespace network_butcher_parameters
     std::string temporary_directory;
 
     /// The (absolute) path to the onnx_tool package (if not default)
-    std::string package_onnx_tool_location;
-
-    std::string package_aMLLibrary_location;
+    std::vector<std::string> extra_packages_location;
 
     /// The number of paths to return
     std::size_t K;
@@ -88,10 +89,14 @@ namespace network_butcher_parameters
     Weight_Import_Mode weight_import_mode;
 
     /// The variables of the .csv file that aMLLibrary should
-    std::vector<std::string> weight_inference_variables;
+    std::vector<std::string> aMLLibrary_inference_variables;
 
     /// The features of the .csv file to feed to aMLLibrary
-    std::vector<std::string> weight_csv_features;
+    std::vector<std::string> aMLLibrary_csv_features;
+
+    std::string              single_weight_import_path;
+    std::vector<std::string> single_csv_columns_weights;
+    char                     separator;
 
     /// Do we have to check for memory constraints?
     bool memory_constraint;

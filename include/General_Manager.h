@@ -26,12 +26,6 @@ namespace network_butcher_io
       generate_bandwidth_transmission_function(const network_butcher_parameters::Parameters &params,
                                                const graph_type                             &graph);
 
-      /// It will import into the graph the different collection of weights
-      /// \param graph The graph
-      /// \param params The collection of parameters
-      void
-      import_weights(graph_type &graph, network_butcher_parameters::Parameters const &params);
-
       /// It prints the help/usage message in the console
       void
       print_help();

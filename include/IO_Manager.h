@@ -101,30 +101,11 @@ namespace network_butcher_io
 
     /// It will read from a .csv file the collection of weights for the given
     /// graph on the specified device
-    /// \param weight_mode The import mode (different for different .csv files)
     /// \param graph The graph
-    /// \param device The device id
-    /// \param path The path of the file to be "imported"
-    void
-    import_weights(network_butcher_parameters::Weight_Import_Mode const &weight_mode,
-                   graph_type                                           &graph,
-                   std::string const                                    &path,
-                   std::size_t                                           device);
-
+    /// \param params The parameters
     void
     import_weights(graph_type &graph, const network_butcher_parameters::Parameters &params);
 
-    /// It will read from a .csv file the collection of weights for the given
-    /// graph on the specified device
-    /// \param weight_mode The import mode (different for different .csv files)
-    /// \param graph The graph
-    /// \param path The path of the file to be "imported"
-    /// \param devices The device ids
-    void
-    import_weights(network_butcher_parameters::Weight_Import_Mode const &weight_mode,
-                   graph_type                                           &graph,
-                   std::string const                                    &path,
-                   std::vector<std::size_t> const                       &devices);
 
     /// It will reconstruct the ModelProto objects associated to the different
     /// partitions and it will export them to the directory paths
