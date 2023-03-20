@@ -31,7 +31,7 @@ namespace
   TEST(IOManagerTestSuit, MultipleImportWeightsFromCsvTest)
   {
     std::string weight_path = Utilities::combine_path(base_path, "weights/official_operation_time.csv");
-    auto        graph       = std::get<0>(network_butcher_io::IO_Manager::import_from_onnx(graph2_path));
+    auto        graph       = std::get<0>(network_butcher_io::IO_Manager::import_from_onnx(graph2_path, true, true, 2));
 
     network_butcher_parameters::Device fake_1, fake_2;
     fake_1.id = 0;
