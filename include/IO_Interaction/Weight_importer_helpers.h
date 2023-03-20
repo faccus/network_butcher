@@ -168,7 +168,7 @@ namespace network_butcher_io::Weight_importer_helpers
   std::map<std::string, std::vector<double>>
   read_csv_numerics(std::string const              &path,
                     char                            separator       = ',',
-                    std::vector<std::string> const &columns_to_read = {});
+                    std::vector<std::string> columns_to_read = {});
 
 
   void

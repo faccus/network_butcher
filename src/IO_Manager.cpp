@@ -359,6 +359,9 @@ namespace network_butcher_io::IO_Manager
         dev.weights_path   = file(prx + "/path", "");
         dev.relevant_entry = file(prx + "/relevant_entry", "");
 
+        Utilities::trim(dev.relevant_entry);
+        Utilities::to_lowercase(dev.relevant_entry);
+
         res.devices.push_back(std::move(dev));
       }
 
