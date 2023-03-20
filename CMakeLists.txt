@@ -5,14 +5,19 @@ set(CMAKE_CXX_STANDARD 20)
 # #######################################################################################################################
 # ############ USER OPTIONS #############################################################################################
 # #######################################################################################################################
+
 option(BUILD_TESTS "Build tests" ON)
 message(STATUS "Build tests: ${BUILD_TESTS}")
 
-option(BUILD_BENCHMARK "Build benchmark tests" OFF)
+option(BUILD_BENCHMARK "Build benchmark tests" ON)
 message(STATUS "Build benchmark tests: ${BUILD_BENCHMARK}")
+
+
 
 option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
 message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
+
+
 
 option(USE_YAML_CPP "Use yaml-cpp" ON)
 message(STATUS "It will use the yaml-cpp library to read yaml files: " ${USE_YAML_CPP})
@@ -20,8 +25,7 @@ message(STATUS "It will use the yaml-cpp library to read yaml files: " ${USE_YAM
 option(BUILD_YAML_CPP_SOURCE "Download and compile yaml-cpp from git" ON)
 message(STATUS "Download and compile yaml-cpp from git: " ${BUILD_YAML_CPP_SOURCE})
 
-option(USE_CPR_CPP "Download and compile cpr-cpp from git:" OFF) # WIP
-message(STATUS "Download and compile cpr-cpp from git ${USE_CPR_CPP}")
+
 
 option(USE_PYBIND "Download and compile pybind11 from git:" ON) # WIP
 message(STATUS "Download and compile pybind11 from git ${USE_PYBIND}")

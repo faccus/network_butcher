@@ -34,16 +34,6 @@ else ()
 endif ()
 
 
-if (USE_CPR_CPP)
-    FetchContent_Declare(
-            cpr
-            GIT_REPOSITORY https://github.com/libcpr/cpr.git
-            GIT_TAG 0817715923c9705e68994eb52ef9df3f6845beba
-    ) # The commit hash for v1.10.0
-    FetchContent_MakeAvailable(cpr)
-
-    list(APPEND RUN_LIBRARIES_LOCATION cpr::cpr)
-endif()
 
 if(USE_PYBIND)
     FetchContent_Declare(
@@ -60,6 +50,7 @@ if(USE_PYBIND)
 
     list(APPEND RUN_LIBRARIES_LOCATION pybind11::embed pybind11::pybind11)
 endif()
+
 
 
 if (USE_YAML_CPP)
@@ -80,6 +71,7 @@ if (USE_YAML_CPP)
         list(APPEND RUN_LIBRARIES_LOCATION ${YAML_CPP_LIBRARIES})
     endif ()
 endif ()
+
 
 
 if (BUILD_TESTS)
