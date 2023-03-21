@@ -33,6 +33,77 @@ namespace network_butcher_io::Weight_importer_helpers
   };
 
 
+  std::vector<std::vector<std::string>>
+  read_csv(std::string const &path, char separator = ',', std::vector<std::string> const &columns_to_read = {});
+
+
+  std::map<std::string, std::vector<double>>
+  read_csv_numerics(std::string const &path, char separator = ',', std::vector<std::string> columns_to_read = {});
+
+
+  void
+  import_weights_direct_read(graph_type                                               &graph,
+                             std::string const                                        &path,
+                             std::vector<std::size_t> const                           &devices,
+                             std::vector<std::string> const                           &relevant_entries,
+                             char                                                      separator       = ',',
+                             std::function<bool(graph_type::Node_Type const &)> const &extra_condition = nullptr);
+
+
+  void
+  import_weights_direct_read(graph_type                                               &graph,
+                             std::string const                                        &path,
+                             std::size_t                                               device,
+                             std::string const                                        &relevant_entry,
+                             char                                                      separator       = ',',
+                             std::function<bool(graph_type::Node_Type const &)> const &extra_condition = nullptr);
+
+
+  void
+  import_weights_direct_read(graph_type                                               &graph,
+                             std::string const                                        &path,
+                             std::vector<network_butcher_parameters::Device> const    &devices,
+                             std::vector<std::string> const                           &relevant_entries,
+                             char                                                      separator       = ',',
+                             std::function<bool(graph_type::Node_Type const &)> const &extra_condition = nullptr);
+
+  std::vector<std::string>
+  aMLLibrary_block_generate_csv_entry(std::vector<std::string> const                &entries,
+                                      network_butcher_parameters::Parameters const  &params,
+                                      block_graph_type const                        &new_graph,
+                                      graph_type const                              &graph,
+                                      std::size_t                                    id,
+                                      std::map<std::string, onnx_tool_output> const &map_onnx_tool);
+
+
+  std::string
+  aMLLibrary_original_generate_csv_entry(std::string const                            &entry,
+                                         onnx_tool_output const                       &basic_info,
+                                         graph_type::Node_Type const                  &node,
+                                         const network_butcher_parameters::Parameters &params);
+
+
+  std::string
+  aMLLibrary_original_generate_csv_entry(std::string const                            &entry,
+                                         graph_type::Node_Type const                  &node,
+                                         const network_butcher_parameters::Parameters &params);
+
+  void
+  prepare_predict_file(std::string const &inference_variable,
+                       std::string const &input_path,
+                       std::string        output_path = "");
+
+
+  void
+  import_weights_aMLLibrary_local_original(graph_type &graph, network_butcher_parameters::Parameters const &params);
+
+
+  void
+  import_weights_aMLLibrary_local_block(block_graph_type                             &new_graph,
+                                        graph_type const                             &graph,
+                                        network_butcher_parameters::Parameters const &params);
+
+
   /// It will read from a .csv file the collection of weights for the given
   /// graph on the specified device. The .csv file must be produced by a prediction of the aMLLibrary
   /// \param graph The graph
@@ -56,23 +127,7 @@ namespace network_butcher_io::Weight_importer_helpers
 
 
   void
-  import_weights_aMLLibrary_local_original(graph_type &graph, network_butcher_parameters::Parameters const &params);
-
-
-  void
   csv_assembler(std::vector<std::vector<std::string>> const &content, std::string const &path);
-
-
-  void
-  import_weights_aMLLibrary_local_block(block_graph_type                             &new_graph,
-                                        graph_type const                             &graph,
-                                        network_butcher_parameters::Parameters const &params);
-
-
-  void
-  prepare_predict_file(std::string const &inference_variable,
-                       std::string const &input_path,
-                       std::string        output_path = "");
 
 
 #if PYBIND_ACTIVE
@@ -107,95 +162,6 @@ namespace network_butcher_io::Weight_importer_helpers
   read_network_info_onnx_tool(std::string const &path);
 
 #endif
-
-  /// It will read from a .csv file the collection of weights for the given
-  /// graph on the specified device
-  /// \param graph The graph
-  /// \param device The device id
-  /// \param path The path of the file to be "imported"
-  void
-  import_weights_custom_csv_operation_time(graph_type &graph, std::size_t device, std::string const &path);
-
-
-  /// It will read from a .csv file the collection of weights for the given
-  /// graph on the specified devices
-  /// \param graph The graph
-  /// \param devices The ids of the involved devices
-  /// \param path The path of the file to be "imported"
-  void
-  import_weights_official_csv_multi_operation_time(graph_type              &graph,
-                                                   std::vector<std::size_t> devices,
-                                                   std::string const       &path);
-
-
-  std::vector<std::string>
-  aMLLibrary_block_generate_csv_entry(std::vector<std::string> const                &entries,
-                                      network_butcher_parameters::Parameters const  &params,
-                                      block_graph_type const                        &new_graph,
-                                      graph_type const                              &graph,
-                                      std::size_t                                    id,
-                                      std::map<std::string, onnx_tool_output> const &map_onnx_tool);
-
-
-  std::string
-  aMLLibrary_original_generate_csv_entry(std::string const                            &entry,
-                                         onnx_tool_output const                       &basic_info,
-                                         graph_type::Node_Type const                  &node,
-                                         const network_butcher_parameters::Parameters &params);
-
-
-  std::string
-  aMLLibrary_original_generate_csv_entry(std::string const                            &entry,
-                                         graph_type::Node_Type const                  &node,
-                                         const network_butcher_parameters::Parameters &params);
-
-
-  /// It will read from a .csv file the collection of weights for the given
-  /// graph on the specified devices
-  /// \param graph The graph
-  /// \param devices The ids of the involved devices
-  /// \param path The path of the file to be "imported"
-  void
-  import_weights_custom_csv_multi_operation_time(graph_type              &graph,
-                                                 std::vector<std::size_t> devices,
-                                                 std::string const       &path);
-
-
-  std::vector<std::vector<std::string>>
-  read_csv(std::string const &path, char separator = ',', std::vector<std::string> const &columns_to_read = {});
-
-
-  std::map<std::string, std::vector<double>>
-  read_csv_numerics(std::string const              &path,
-                    char                            separator       = ',',
-                    std::vector<std::string> columns_to_read = {});
-
-
-  void
-  import_weights_direct_read(graph_type                                               &graph,
-                             std::string const                                        &path,
-                             std::vector<std::size_t> const                           &devices,
-                             std::vector<std::string> const                           &relevant_entries,
-                             char                                                      separator       = ',',
-                             std::function<bool(graph_type::Node_Type const &)> const &extra_condition = nullptr);
-
-
-  void
-  import_weights_direct_read(graph_type                                               &graph,
-                             std::string const                                        &path,
-                             std::size_t                                               device,
-                             std::string const                                        &relevant_entry,
-                             char                                                      separator       = ',',
-                             std::function<bool(graph_type::Node_Type const &)> const &extra_condition = nullptr);
-
-
-  void
-  import_weights_direct_read(graph_type                                               &graph,
-                             std::string const                                        &path,
-                             std::vector<network_butcher_parameters::Device> const    &devices,
-                             std::vector<std::string> const                           &relevant_entries,
-                             char                                                      separator       = ',',
-                             std::function<bool(graph_type::Node_Type const &)> const &extra_condition = nullptr);
 
 } // namespace network_butcher_io::Weight_importer_helpers
 

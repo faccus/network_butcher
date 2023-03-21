@@ -2,6 +2,223 @@
 
 namespace network_butcher_io::Weight_importer_helpers
 {
+
+  std::vector<std::vector<std::string>>
+  read_csv(std::string const &path, char separator, std::vector<std::string> const &columns_to_read)
+  {
+    std::ifstream file(path);
+
+    std::vector<std::vector<std::string>> res(1);
+
+    if (file.is_open())
+      {
+        std::vector<std::size_t> indices;
+        std::string              tmp_line;
+
+        if (!std::getline(file, tmp_line))
+          return res;
+
+
+        {
+          std::stringstream reader(tmp_line);
+          std::size_t       i = 0;
+
+          if (!columns_to_read.empty())
+            {
+              while (std::getline(reader, tmp_line, separator))
+                {
+                  Utilities::to_lowercase(tmp_line);
+                  Utilities::trim(tmp_line);
+
+                  if (std::find(columns_to_read.cbegin(), columns_to_read.cend(), tmp_line) != columns_to_read.cend())
+                    {
+                      indices.push_back(i);
+                      res.front().push_back(tmp_line);
+                    }
+
+                  ++i;
+                }
+            }
+          else
+            {
+              while (std::getline(reader, tmp_line, separator))
+                {
+                  indices.push_back(i++);
+                  res.front().push_back(tmp_line);
+                }
+            }
+        }
+
+
+        while (std::getline(file, tmp_line))
+          {
+            std::stringstream reader(tmp_line);
+            std::size_t       i = 0, j = 0;
+            res.emplace_back();
+
+            while (std::getline(reader, tmp_line, separator))
+              {
+                if (indices[j] == i)
+                  {
+                    res.back().push_back(tmp_line);
+                    ++j;
+                  }
+
+                ++i;
+              }
+          }
+      }
+
+    return res;
+  }
+
+
+  std::map<std::string, std::vector<double>>
+  read_csv_numerics(std::string const &path, char separator, std::vector<std::string> columns_to_read)
+  {
+    std::ifstream file(path);
+
+    std::map<std::string, std::vector<double>> res;
+
+
+    if (file.is_open())
+      {
+        Utilities::to_lowercase(columns_to_read);
+        Utilities::trim(columns_to_read);
+
+        std::vector<std::size_t>           indices;
+        std::string                        tmp_line;
+        std::map<std::size_t, std::string> index_map;
+
+        if (!std::getline(file, tmp_line))
+          return res;
+
+        {
+          std::stringstream reader(tmp_line);
+          std::size_t       i = 0;
+
+          if (!columns_to_read.empty())
+            {
+              while (std::getline(reader, tmp_line, separator))
+                {
+                  Utilities::to_lowercase(tmp_line);
+                  Utilities::trim(tmp_line);
+
+                  if (std::find(columns_to_read.cbegin(), columns_to_read.cend(), tmp_line) != columns_to_read.cend())
+                    {
+                      indices.push_back(i);
+                      index_map[i] = tmp_line;
+                    }
+
+                  ++i;
+                }
+            }
+          else
+            {
+              while (std::getline(reader, tmp_line, separator))
+                {
+                  Utilities::to_lowercase(tmp_line);
+                  Utilities::trim(tmp_line);
+
+                  indices.push_back(i);
+                  index_map[i] = tmp_line;
+
+                  ++i;
+                }
+            }
+        }
+
+
+        while (std::getline(file, tmp_line))
+          {
+            std::stringstream reader(tmp_line);
+            std::size_t       i = 0, j = 0;
+
+            while (std::getline(reader, tmp_line, separator))
+              {
+                if (indices[j] == i)
+                  {
+                    res[index_map[indices[j]]].push_back(std::atof(tmp_line.c_str()));
+                    ++j;
+                  }
+
+                ++i;
+              }
+          }
+      }
+
+    return res;
+  }
+
+
+  void
+  import_weights_direct_read(graph_type                                               &graph,
+                             std::string const                                        &path,
+                             std::vector<std::size_t> const                           &devices,
+                             std::vector<std::string> const                           &relevant_entries,
+                             char                                                      separator,
+                             std::function<bool(graph_type::Node_Type const &)> const &extra_condition)
+  {
+    auto const map = read_csv_numerics(path, separator, relevant_entries);
+
+    for (std::size_t i = 0; i < devices.size(); ++i)
+      {
+        auto it = ++graph.cbegin();
+
+        auto map_it = map.find(relevant_entries[i]);
+
+        if (map_it == map.cend())
+          throw("Missing entry for device Id " + std::to_string(i));
+
+        for (auto const &weight : map_it->second)
+          {
+            while (extra_condition != nullptr && it != graph.cend() && !extra_condition(*it))
+              ++it;
+
+            if (it == graph.cend())
+              break;
+
+            for (auto const &in : graph.get_neighbors()[it->get_id()].first)
+              {
+                graph.set_weight(devices[i], {in, it->get_id()}, weight);
+              }
+
+            ++it;
+          }
+      }
+  }
+
+
+  void
+  import_weights_direct_read(graph_type                                               &graph,
+                             std::string const                                        &path,
+                             std::vector<network_butcher_parameters::Device> const    &devices,
+                             std::vector<std::string> const                           &relevant_entries,
+                             char                                                      separator,
+                             std::function<bool(graph_type::Node_Type const &)> const &extra_condition)
+  {
+    std::vector<std::size_t> dev;
+    dev.reserve(devices.size());
+
+    for (auto const &device : devices)
+      dev.push_back(device.id);
+
+    import_weights_direct_read(graph, path, dev, relevant_entries, separator, extra_condition);
+  }
+
+
+  void
+  import_weights_direct_read(graph_type                                               &graph,
+                             std::string const                                        &path,
+                             std::size_t                                               device,
+                             std::string const                                        &relevant_entry,
+                             char                                                      separator,
+                             std::function<bool(graph_type::Node_Type const &)> const &extra_condition)
+  {
+    import_weights_direct_read(
+      graph, path, std::vector{device}, std::vector{relevant_entry}, separator, extra_condition);
+  }
+
   void
   import_weights_aMLLibrary_direct_read(graph_type                                               &graph,
                                         std::size_t                                               device,
@@ -44,53 +261,6 @@ namespace network_butcher_io::Weight_importer_helpers
           ;
       }
   }
-
-
-  void
-  import_weights_custom_csv_operation_time(graph_type &graph, std::size_t device, const std::string &path)
-  {
-    std::fstream file_in;
-    file_in.open(path, std::ios_base::in);
-    weight_type tmp_weight;
-
-    auto it = graph.get_nodes().cbegin();
-
-    std::string tmp_line;
-    std::getline(file_in, tmp_line);
-
-    while (!file_in.eof())
-      {
-        std::getline(file_in, tmp_line);
-        std::stringstream stream_line(tmp_line);
-
-        std::getline(stream_line, tmp_line, ',');
-        auto const operation_name = tmp_line;
-
-        std::getline(stream_line, tmp_line, ',');
-        tmp_weight = ::atof(tmp_line.c_str());
-
-
-        while (it != graph.get_nodes().cend() &&
-               Utilities::trim_copy(Utilities::to_lowercase_copy(operation_name)) !=
-                 Utilities::trim_copy(Utilities::to_lowercase_copy(it->content.get_operation_id())))
-          {
-            ++it;
-          }
-
-        if (it == graph.get_nodes().cend())
-          return;
-
-        for (auto const &successor : graph.get_neighbors()[it->get_id()].second)
-          {
-            graph.set_weight(device, {it->get_id(), successor}, tmp_weight);
-          }
-
-        ++it;
-      }
-
-    file_in.close();
-  }
-
 
   void
   csv_assembler(const std::vector<std::vector<std::string>> &content, const std::string &path)
@@ -516,174 +686,6 @@ namespace network_butcher_io::Weight_importer_helpers
   }
 
 
-  void
-  import_weights_official_csv_multi_operation_time(graph_type              &graph,
-                                                   std::vector<std::size_t> devices,
-                                                   const std::string       &path)
-  {
-    std::fstream file_in;
-    file_in.open(path, std::ios_base::in);
-    weight_type tmp_weight;
-
-
-    auto it = graph.get_nodes().cbegin();
-
-    std::string tmp_line;
-    std::getline(file_in, tmp_line);
-
-    std::map<std::size_t, Index_Type> indices;
-
-    {
-      std::stringstream stream_line(tmp_line);
-      std::size_t       j = 0;
-      while (std::getline(stream_line, tmp_line, ','))
-        {
-          Utilities::to_lowercase(tmp_line);
-
-          if (tmp_line.find("optype") != std::string::npos)
-            {
-              indices[j] = Index_Type::Operation;
-            }
-          else if (tmp_line.find("cloud") != std::string::npos)
-            {
-              indices[j] = Index_Type::Cloud;
-            }
-          else if (tmp_line.find("edge") != std::string::npos)
-            {
-              indices[j] = Index_Type::Edge;
-            }
-
-          ++j;
-        }
-
-      if (devices.size() + 1 > indices.size())
-        {
-          std::cout << "Missing weights" << std::endl;
-          return;
-        }
-    }
-
-    while (!file_in.eof())
-      {
-        std::list<weight_type> tmp_weights;
-
-        std::getline(file_in, tmp_line);
-
-        if (tmp_line.empty())
-          continue;
-
-        std::stringstream stream_line(tmp_line);
-
-        std::getline(stream_line, tmp_line, ',');
-        std::size_t jj = 0;
-
-        for (auto indices_it = indices.cbegin(); indices_it != indices.cend(); ++indices_it)
-          {
-            while (jj < indices_it->first)
-              {
-                std::getline(stream_line, tmp_line, ',');
-                ++jj;
-              }
-
-            switch (indices_it->second)
-              {
-                  case Operation: {
-                    while (it != graph.get_nodes().cend() &&
-                           Utilities::to_lowercase_copy(it->content.get_operation_id()) !=
-                             Utilities::to_lowercase_copy(tmp_line))
-                      {
-                        ++it;
-                      }
-                    break;
-                  }
-                  case Cloud: {
-                    tmp_weights.emplace_back(::atof(tmp_line.c_str()));
-                    break;
-                  }
-                  case Edge: {
-                    tmp_weights.emplace_back(::atof(tmp_line.c_str()));
-                    break;
-                  }
-                  default: {
-                    std::cout << "Missing weights" << std::endl;
-                    return;
-                  }
-              }
-          }
-
-        if (it == graph.get_nodes().cend())
-          {
-            std::cout << "Cannot find weight" << std::endl;
-            return;
-          }
-
-        std::size_t j = 0;
-        for (auto tmp_weights_it = tmp_weights.cbegin(); tmp_weights_it != tmp_weights.cend() && j < devices.size();
-             ++tmp_weights_it, ++j)
-          {
-            for (auto const &successor : graph.get_neighbors()[it->get_id()].second)
-              {
-                graph.set_weight(devices[j], {it->get_id(), successor}, tmp_weight);
-              }
-          }
-
-        ++it;
-      }
-  }
-
-
-  void
-  import_weights_custom_csv_multi_operation_time(graph_type              &graph,
-                                                 std::vector<std::size_t> devices,
-                                                 const std::string       &path)
-  {
-    // Import the file
-    std::fstream file_in;
-    file_in.open(path, std::ios_base::in);
-    weight_type tmp_weight;
-
-    auto it = graph.get_nodes().cbegin();
-
-    std::string tmp_line;
-    std::getline(file_in, tmp_line);
-
-    // If not the end of file,
-    while (!file_in.eof())
-      {
-        std::getline(file_in, tmp_line);
-        std::stringstream stream_line(tmp_line);
-
-        std::getline(stream_line, tmp_line, ',');
-        auto const operation_name = tmp_line;
-
-        while (it != graph.get_nodes().cend() && Utilities::to_lowercase_copy(it->content.get_operation_id()) !=
-                                                   Utilities::to_lowercase_copy(operation_name))
-          {
-            ++it;
-          }
-
-        if (it == graph.get_nodes().cend())
-          return;
-
-        std::size_t j = 0;
-        while (std::getline(stream_line, tmp_line, ','))
-          {
-            tmp_weight = ::atof(tmp_line.c_str());
-
-            for (auto const &successor : graph.get_neighbors()[it->get_id()].second)
-              {
-                graph.set_weight(devices[j], {it->get_id(), successor}, tmp_weight);
-              }
-
-            ++it;
-            ++j;
-          }
-      }
-
-    file_in.close();
-  }
-
-
 #if PYBIND_ACTIVE
 
   void
@@ -804,222 +806,4 @@ namespace network_butcher_io::Weight_importer_helpers
   }
 
 #endif
-
-
-  std::vector<std::vector<std::string>>
-  read_csv(std::string const &path, char separator, std::vector<std::string> const &columns_to_read)
-  {
-    std::ifstream file(path);
-
-    std::vector<std::vector<std::string>> res(1);
-
-    if (file.is_open())
-      {
-        std::vector<std::size_t> indices;
-        std::string              tmp_line;
-
-        if (!std::getline(file, tmp_line))
-          return res;
-
-
-        {
-          std::stringstream reader(tmp_line);
-          std::size_t       i = 0;
-
-          if (!columns_to_read.empty())
-            {
-              while (std::getline(reader, tmp_line, separator))
-                {
-                  Utilities::to_lowercase(tmp_line);
-                  Utilities::trim(tmp_line);
-
-                  if (std::find(columns_to_read.cbegin(), columns_to_read.cend(), tmp_line) != columns_to_read.cend())
-                    {
-                      indices.push_back(i);
-                      res.front().push_back(tmp_line);
-                    }
-
-                  ++i;
-                }
-            }
-          else
-            {
-              while (std::getline(reader, tmp_line, separator))
-                {
-                  indices.push_back(i++);
-                  res.front().push_back(tmp_line);
-                }
-            }
-        }
-
-
-        while (std::getline(file, tmp_line))
-          {
-            std::stringstream reader(tmp_line);
-            std::size_t       i = 0, j = 0;
-            res.emplace_back();
-
-            while (std::getline(reader, tmp_line, separator))
-              {
-                if (indices[j] == i)
-                  {
-                    res.back().push_back(tmp_line);
-                    ++j;
-                  }
-
-                ++i;
-              }
-          }
-      }
-
-    return res;
-  }
-
-
-  std::map<std::string, std::vector<double>>
-  read_csv_numerics(std::string const &path, char separator, std::vector<std::string> columns_to_read)
-  {
-    std::ifstream file(path);
-
-    std::map<std::string, std::vector<double>> res;
-
-
-    if (file.is_open())
-      {
-        Utilities::to_lowercase(columns_to_read);
-        Utilities::trim(columns_to_read);
-
-        std::vector<std::size_t>           indices;
-        std::string                        tmp_line;
-        std::map<std::size_t, std::string> index_map;
-
-        if (!std::getline(file, tmp_line))
-          return res;
-
-        {
-          std::stringstream reader(tmp_line);
-          std::size_t       i = 0;
-
-          if (!columns_to_read.empty())
-            {
-              while (std::getline(reader, tmp_line, separator))
-                {
-                  Utilities::to_lowercase(tmp_line);
-                  Utilities::trim(tmp_line);
-
-                  if (std::find(columns_to_read.cbegin(), columns_to_read.cend(), tmp_line) != columns_to_read.cend())
-                    {
-                      indices.push_back(i);
-                      index_map[i] = tmp_line;
-                    }
-
-                  ++i;
-                }
-            }
-          else
-            {
-              while (std::getline(reader, tmp_line, separator))
-                {
-                  Utilities::to_lowercase(tmp_line);
-                  Utilities::trim(tmp_line);
-
-                  indices.push_back(i);
-                  index_map[i] = tmp_line;
-
-                  ++i;
-                }
-            }
-        }
-
-
-        while (std::getline(file, tmp_line))
-          {
-            std::stringstream reader(tmp_line);
-            std::size_t       i = 0, j = 0;
-
-            while (std::getline(reader, tmp_line, separator))
-              {
-                if (indices[j] == i)
-                  {
-                    res[index_map[indices[j]]].push_back(std::atof(tmp_line.c_str()));
-                    ++j;
-                  }
-
-                ++i;
-              }
-          }
-      }
-
-    return res;
-  }
-
-
-  void
-  import_weights_direct_read(graph_type                                               &graph,
-                             std::string const                                        &path,
-                             std::vector<std::size_t> const                           &devices,
-                             std::vector<std::string> const                           &relevant_entries,
-                             char                                                      separator,
-                             std::function<bool(graph_type::Node_Type const &)> const &extra_condition)
-  {
-    auto const map = read_csv_numerics(path, separator, relevant_entries);
-
-    for (std::size_t i = 0; i < devices.size(); ++i)
-      {
-        auto it = ++graph.cbegin();
-
-        auto map_it = map.find(relevant_entries[i]);
-
-        if (map_it == map.cend())
-          throw("Missing entry for device Id " + std::to_string(i));
-
-        for (auto const &weight : map_it->second)
-          {
-            while (extra_condition != nullptr && it != graph.cend() && !extra_condition(*it))
-              ++it;
-
-            if (it == graph.cend())
-              break;
-
-            for (auto const &in : graph.get_neighbors()[it->get_id()].first)
-              {
-                graph.set_weight(devices[i], {in, it->get_id()}, weight);
-              }
-
-            ++it;
-          }
-      }
-  }
-
-
-  void
-  import_weights_direct_read(graph_type                                               &graph,
-                             std::string const                                        &path,
-                             std::vector<network_butcher_parameters::Device> const    &devices,
-                             std::vector<std::string> const                           &relevant_entries,
-                             char                                                      separator,
-                             std::function<bool(graph_type::Node_Type const &)> const &extra_condition)
-  {
-    std::vector<std::size_t> dev;
-    dev.reserve(devices.size());
-
-    for (auto const &device : devices)
-      dev.push_back(device.id);
-
-    import_weights_direct_read(graph, path, dev, relevant_entries, separator, extra_condition);
-  }
-
-
-  void
-  import_weights_direct_read(graph_type                                               &graph,
-                             std::string const                                        &path,
-                             std::size_t                                               device,
-                             std::string const                                        &relevant_entry,
-                             char                                                      separator,
-                             std::function<bool(graph_type::Node_Type const &)> const &extra_condition)
-  {
-    import_weights_direct_read(
-      graph, path, std::vector{device}, std::vector{relevant_entry}, separator, extra_condition);
-  }
-
 } // namespace network_butcher_io::Weight_importer_helpers
