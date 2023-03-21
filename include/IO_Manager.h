@@ -13,7 +13,6 @@
 #  include <yaml-cpp/yaml.h>
 #endif
 
-#include "Computer_flops.h"
 #include "GetPot"
 #include "Weight_importer_helpers.h"
 #include "chrono.h"
