@@ -7,48 +7,52 @@
 
 #include "Basic_traits.h"
 
-namespace network_butcher_kfinder
+namespace network_butcher
 {
-  using edge_pointer = std::shared_ptr<edge_type>;
-
-  struct path_info
+  namespace kfinder
   {
-    weight_type               length;
-    std::vector<node_id_type> path;
+    using edge_pointer = std::shared_ptr<edge_type>;
 
-    constexpr bool
-    operator<(const path_info &rhs) const
+    struct path_info
     {
-      return length < rhs.length || (length == rhs.length && path < rhs.path);
-    }
-  };
+      weight_type               length;
+      std::vector<node_id_type> path;
 
-  struct implicit_path_info
-  {
-    std::vector<edge_pointer> sidetracks;
-    weight_type               length;
+      constexpr bool
+      operator<(const path_info &rhs) const
+      {
+        return length < rhs.length || (length == rhs.length && path < rhs.path);
+      }
+    };
 
-    constexpr bool
-    operator<(const implicit_path_info &rhs) const
+    struct implicit_path_info
     {
-      return length < rhs.length || (length == rhs.length && sidetracks < rhs.sidetracks);
-    }
-  };
+      std::vector<edge_pointer> sidetracks;
+      weight_type               length;
 
-  /// A helper struct for the dijkstra algo
-  struct dijkstra_helper_struct
-  {
-    weight_type  weight;
-    node_id_type id;
+      constexpr bool
+      operator<(const implicit_path_info &rhs) const
+      {
+        return length < rhs.length || (length == rhs.length && sidetracks < rhs.sidetracks);
+      }
+    };
 
-    constexpr bool
-    operator<(const dijkstra_helper_struct &rhs) const
+    /// A helper struct for the dijkstra algo
+    struct dijkstra_helper_struct
     {
-      return weight < rhs.weight || (weight == rhs.weight && id < rhs.id);
-    }
-  };
+      weight_type  weight;
+      node_id_type id;
 
-  using dijkstra_result_type = std::pair<std::vector<node_id_type>, std::vector<weight_type>>;
-} // namespace network_butcher_kfinder
+      constexpr bool
+      operator<(const dijkstra_helper_struct &rhs) const
+      {
+        return weight < rhs.weight || (weight == rhs.weight && id < rhs.id);
+      }
+    };
+
+    using dijkstra_result_type = std::pair<std::vector<node_id_type>, std::vector<weight_type>>;
+  } // namespace kfinder
+
+} // namespace network_butcher
 
 #endif // NETWORK_BUTCHER_PATH_INFO_H

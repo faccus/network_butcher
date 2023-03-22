@@ -12,7 +12,9 @@
 #include <vector>
 
 
-namespace network_butcher_kfinder
+namespace network_butcher {
+
+namespace kfinder
 {
 
   /// A simple (static) class that performs the dijkstra on the given graph
@@ -201,6 +203,8 @@ namespace network_butcher_kfinder
     }
   }; // namespace Shortest_path_finder
 } // namespace network_butcher_kfinder
+
+}
 
 
 #endif // NETWORK_BUTCHER_KEPPSTEIN_H

@@ -1,8 +1,7 @@
 #include "Weight_importer_helpers.h"
 
-namespace network_butcher_io::Weight_importer_helpers
+namespace network_butcher::io::Weight_importer_helpers
 {
-
   std::vector<std::vector<std::string>>
   read_csv(std::string const &path, char separator, std::vector<std::string> const &columns_to_read)
   {
@@ -192,7 +191,7 @@ namespace network_butcher_io::Weight_importer_helpers
   void
   import_weights_direct_read(graph_type                                               &graph,
                              std::string const                                        &path,
-                             std::vector<network_butcher_parameters::Device> const    &devices,
+                             std::vector<network_butcher::parameters::Device> const   &devices,
                              std::vector<std::string> const                           &relevant_entries,
                              char                                                      separator,
                              std::function<bool(graph_type::Node_Type const &)> const &extra_condition)
@@ -284,9 +283,9 @@ namespace network_butcher_io::Weight_importer_helpers
 
 
   std::string
-  aMLLibrary_original_generate_csv_entry(const std::string                            &entry,
-                                         const graph_type::Node_Type                  &node,
-                                         const network_butcher_parameters::Parameters &params)
+  aMLLibrary_original_generate_csv_entry(const std::string                             &entry,
+                                         const graph_type::Node_Type                   &node,
+                                         const network_butcher::parameters::Parameters &params)
   {
     auto const lower_case = Utilities::to_lowercase_copy(entry);
     if (lower_case == "nrparameters")
@@ -297,7 +296,7 @@ namespace network_butcher_io::Weight_importer_helpers
         return std::to_string(cnt);
       }
     else if (lower_case == "memory")
-      return std::to_string(network_butcher_computer::Computer_memory::compute_memory_usage(node));
+      return std::to_string(network_butcher::computer::Computer_memory::compute_memory_usage(node));
     else if (lower_case == "macs")
       return "0";
     else
@@ -306,10 +305,10 @@ namespace network_butcher_io::Weight_importer_helpers
 
 
   std::string
-  aMLLibrary_original_generate_csv_entry(const std::string                            &entry,
-                                         const onnx_tool_output                       &basic_info,
-                                         const graph_type::Node_Type                  &node,
-                                         const network_butcher_parameters::Parameters &params)
+  aMLLibrary_original_generate_csv_entry(const std::string                             &entry,
+                                         const onnx_tool_output                        &basic_info,
+                                         const graph_type::Node_Type                   &node,
+                                         const network_butcher::parameters::Parameters &params)
   {
     // std::vector<std::string> header{"Layer", "TensorLength", "OpType", "NrParameters", "Memory", "MACs"};
     auto const lower_case = Utilities::to_lowercase_copy(entry);
@@ -326,7 +325,7 @@ namespace network_butcher_io::Weight_importer_helpers
     else if (lower_case == "networkingtime")
       {
         auto const net_time = params.bandwidth.cbegin()->second.second +
-                              network_butcher_computer::Computer_memory::compute_memory_usage_output(node) * 8 /
+                              network_butcher::computer::Computer_memory::compute_memory_usage_output(node) * 8 /
                                 (params.bandwidth.cbegin()->second.first * std::pow(10, 6));
         return std::to_string(net_time);
       }
@@ -346,7 +345,7 @@ namespace network_butcher_io::Weight_importer_helpers
 
 
   void
-  import_weights_aMLLibrary_local_original(graph_type &graph, const network_butcher_parameters::Parameters &params)
+  import_weights_aMLLibrary_local_original(graph_type &graph, const network_butcher::parameters::Parameters &params)
   {
 #if PYBIND_ACTIVE
 
@@ -432,7 +431,7 @@ namespace network_butcher_io::Weight_importer_helpers
 
   std::vector<std::string>
   aMLLibrary_block_generate_csv_entry(std::vector<std::string> const                &entries,
-                                      network_butcher_parameters::Parameters const  &params,
+                                      network_butcher::parameters::Parameters const &params,
                                       block_graph_type const                        &new_graph,
                                       graph_type const                              &graph,
                                       std::size_t                                    id,
@@ -504,7 +503,7 @@ namespace network_butcher_io::Weight_importer_helpers
               else
                 {
                   for (auto const &node_id : original_ids)
-                    mem += network_butcher_computer::Computer_memory::compute_memory_usage_output(graph[node_id]);
+                    mem += network_butcher::computer::Computer_memory::compute_memory_usage_output(graph[node_id]);
                   inserted["memory"] = mem;
                 }
             }
@@ -550,7 +549,7 @@ namespace network_butcher_io::Weight_importer_helpers
             }
             std::size_t mem = 0;
             for (auto const &node_id : original_ids)
-              mem += network_butcher_computer::Computer_memory::compute_memory_usage_output(graph[node_id]);
+              mem += network_butcher::computer::Computer_memory::compute_memory_usage_output(graph[node_id]);
 
             inserted["memory"] = mem;
             res.push_back(std::to_string(mem));
@@ -613,9 +612,9 @@ namespace network_butcher_io::Weight_importer_helpers
 
 
   void
-  import_weights_aMLLibrary_local_block(block_graph_type                             &new_graph,
-                                        graph_type const                             &graph,
-                                        network_butcher_parameters::Parameters const &params)
+  import_weights_aMLLibrary_local_block(block_graph_type                              &new_graph,
+                                        graph_type const                              &graph,
+                                        network_butcher::parameters::Parameters const &params)
   {
 #if PYBIND_ACTIVE
 
@@ -744,7 +743,7 @@ namespace network_butcher_io::Weight_importer_helpers
 
 
   std::string
-  network_info_onnx_tool(const network_butcher_parameters::Parameters &params)
+  network_info_onnx_tool(const network_butcher::parameters::Parameters &params)
   {
     return network_info_onnx_tool(params.model_path, params.temporary_directory);
   }
@@ -806,4 +805,4 @@ namespace network_butcher_io::Weight_importer_helpers
   }
 
 #endif
-} // namespace network_butcher_io::Weight_importer_helpers
+} // namespace network_butcher::io::Weight_importer_helpers

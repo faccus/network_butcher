@@ -4,7 +4,7 @@
 #include "Yaml_importer_helpers.h"
 
 
-namespace network_butcher_io::Yaml_importer_helpers
+namespace network_butcher::io::Yaml_importer_helpers
 {
   std::vector<std::vector<std::pair<std::string, std::size_t>>>
   get_devices_for_partitions(const std::vector<std::map<std::string, std::size_t>> &devices_ram)
@@ -273,4 +273,4 @@ namespace network_butcher_io::Yaml_importer_helpers
 
     return {network_domains, subdomain_to_domain, devices_map};
   }
-} // namespace network_butcher_io::Yaml_importer_helpers
+} // namespace network_butcher::io::Yaml_importer_helpers

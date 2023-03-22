@@ -7,10 +7,13 @@
 
 #include <string>
 
-using type_info_id_type = int;
-using shape_type        = std::size_t;
+namespace network_butcher
+{
+  using type_info_id_type = int;
+  using shape_type        = std::size_t;
 
-using memory_type         = std::size_t;
-using bandwidth_type      = double;
+  using memory_type    = std::size_t;
+  using bandwidth_type = double;
+} // namespace network_butcher
 
 #endif // NETWORK_BUTCHER_TYPE_INFO_TRAITS_H

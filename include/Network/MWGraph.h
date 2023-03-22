@@ -8,7 +8,9 @@
 #include "Graph.h"
 
 
-namespace network_butcher_types
+namespace network_butcher {
+  
+namespace types
 {
   /// A custom graph class. It contains a single graph and multiple weight maps. Technically, it can be viewed as a
   /// collection of graphs with the same structure, but different weight maps.
@@ -23,9 +25,9 @@ namespace network_butcher_types
     std::vector<weights_collection_type> weigth_map;
 
   public:
-    using Dependencies_Type    = network_butcher_types::Dependencies_Type;
-    using Node_Type            = network_butcher_types::Node_Type<T>;
-    using Node_Collection_Type = network_butcher_types::Node_Collection_Type<T>;
+    using Dependencies_Type    = network_butcher::types::Dependencies_Type;
+    using Node_Type            = network_butcher::types::Node_Type<T>;
+    using Node_Collection_Type = network_butcher::types::Node_Collection_Type<T>;
     using Node_Internal_Type   = T;
 
     MWGraph()                = delete;
@@ -89,9 +91,9 @@ namespace network_butcher_types
     std::vector<weights_collection_type> weigth_map;
 
   public:
-    using Dependencies_Type    = network_butcher_types::Dependencies_Type;
-    using Node_Type            = network_butcher_types::Node_Type<Content<T>>;
-    using Node_Collection_Type = network_butcher_types::Node_Collection_Type<Content<T>>;
+    using Dependencies_Type    = network_butcher::types::Dependencies_Type;
+    using Node_Type            = network_butcher::types::Node_Type<Content<T>>;
+    using Node_Collection_Type = network_butcher::types::Node_Collection_Type<Content<T>>;
     using Node_Internal_Type   = T;
     using Node_Content_Type    = Content<T>;
 
@@ -167,6 +169,8 @@ namespace network_butcher_types
       return weigth_map;
     }
   };
-} // namespace network_butcher_types
+} // namespace network_butcher::types
+
+}
 
 #endif // NETWORK_BUTCHER_MWGRAPH_H

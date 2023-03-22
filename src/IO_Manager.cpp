@@ -4,16 +4,16 @@
 
 #include "IO_Manager.h"
 
-namespace network_butcher_io::IO_Manager
+namespace network_butcher::io::IO_Manager
 {
   void
   utilities::reconstruct_model_and_export(
-    const network_butcher_types::Real_Path     &partitions,
+    const network_butcher::types::Real_Path    &partitions,
     const onnx::ModelProto                     &original_model,
     const std::map<node_id_type, node_id_type> &link_id_nodeproto,
     std::unordered_map<
       std::string,
-      std::pair<network_butcher_io::Onnx_model_reconstructor_helpers::IO_Type,
+      std::pair<network_butcher::io::Onnx_model_reconstructor_helpers::IO_Type,
                 std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
                           google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
                       &preprocessed_ios_nodes,
@@ -44,32 +44,34 @@ namespace network_butcher_io::IO_Manager
                    std::size_t        num_devices,
                    bool               unused_ios)
   {
+    using namespace network_butcher::io::Onnx_importer_helpers;
+
     std::map<node_id_type, node_id_type> link_id_nodeproto;
 
     // Parse from the file the onnx::ModelProto
-    onnx::ModelProto onnx_model = Utilities::parse_onnx_file(path);
+    onnx::ModelProto onnx_model = network_butcher::Utilities::parse_onnx_file(path);
 
     // Simple renaming
     auto const &onnx_graph = onnx_model.graph();
     auto const &onnx_nodes = onnx_graph.node();
 
     // Generate value_infos and the ids (names) of the inputs and outputs
-    auto [value_infos, onnx_inputs_ids, onnx_outputs_ids] = Onnx_importer_helpers::compute_value_infos(
-      onnx_graph.input(), onnx_graph.output(), onnx_graph.value_info(), onnx_graph.initializer());
+    auto [value_infos, onnx_inputs_ids, onnx_outputs_ids] =
+      compute_value_infos(onnx_graph.input(), onnx_graph.output(), onnx_graph.value_info(), onnx_graph.initializer());
 
     // Prepare the node vector for the graph
     std::vector<node_type> nodes;
     nodes.reserve(onnx_nodes.size() + 2);
 
-    auto const pointer_output = std::make_shared<network_butcher_types::Dense_tensor>(0, std::vector<shape_type>{});
-    auto const pointer_input  = std::make_shared<network_butcher_types::Dense_tensor>(0, std::vector<shape_type>{});
+    auto const pointer_output = std::make_shared<network_butcher::types::Dense_tensor>(0, std::vector<shape_type>{});
+    auto const pointer_input  = std::make_shared<network_butcher::types::Dense_tensor>(0, std::vector<shape_type>{});
 
     node_id_type node_id      = 0;
     node_id_type onnx_node_id = 0;
 
     std::set<std::string> unused_ios_set;
     if (unused_ios)
-      unused_ios_set = Onnx_importer_helpers::find_unused_ios(onnx_graph);
+      unused_ios_set = find_unused_ios(onnx_graph);
 
     // If add_input_padding, then we will add a "fake" input node
     if (add_input_padding)
@@ -77,7 +79,7 @@ namespace network_butcher_io::IO_Manager
         io_collection_type<type_info_pointer> tt;
         tt["__fake__input__"] = pointer_input;
 
-        nodes.emplace_back(network_butcher_types::Content<type_info_pointer>({}, std::move(tt)));
+        nodes.emplace_back(network_butcher::types::Content<type_info_pointer>({}, std::move(tt)));
         nodes.front().name = "__fake__input__";
         ++node_id;
       }
@@ -85,32 +87,32 @@ namespace network_butcher_io::IO_Manager
     // Populate every node
     for (auto const &node : onnx_nodes)
       {
-        auto operation_type = Utilities::to_lowercase_copy(node.op_type());
+        auto operation_type = network_butcher::Utilities::to_lowercase_copy(node.op_type());
 
         io_collection_type<type_info_pointer> parameters;
-        auto inputs  = Onnx_importer_helpers::process_node_ios(node.input(), parameters, value_infos, unused_ios_set);
-        auto outputs = Onnx_importer_helpers::process_node_ios(node.output(), parameters, value_infos, unused_ios_set);
+        auto inputs  = process_node_ios(node.input(), parameters, value_infos, unused_ios_set);
+        auto outputs = process_node_ios(node.output(), parameters, value_infos, unused_ios_set);
 
         // If the inputs of the node are the inputs of the NN, then add the connection with the padding node
-        if (add_input_padding && !Onnx_importer_helpers::get_common_elements(onnx_inputs_ids, inputs).empty())
+        if (add_input_padding && !get_common_elements(onnx_inputs_ids, inputs).empty())
           {
             inputs["__fake__input__"] = pointer_input;
           }
 
         // If the inputs of the node are the outputs of the NN, then add the connection with the padding node
-        if (add_output_padding && !Onnx_importer_helpers::get_common_elements(onnx_outputs_ids, outputs).empty())
+        if (add_output_padding && !get_common_elements(onnx_outputs_ids, outputs).empty())
           {
             outputs["__fake__output__"] = pointer_output;
           }
 
-        auto content = network_butcher_types::Content<type_info_pointer>::make_content(
-          std::move(inputs),
-          std::move(outputs),
-          std::move(parameters),
-          Onnx_importer_helpers::process_node_attributes(node),
-          std::move(operation_type));
+        auto content = network_butcher::types::Content<type_info_pointer>::make_content(std::move(inputs),
+                                                                                        std::move(outputs),
+                                                                                        std::move(parameters),
+                                                                                        process_node_attributes(node),
+                                                                                        std::move(operation_type));
         nodes.emplace_back(std::move(content));
-        // nodes.back().name = Utilities::to_lowercase_copy(node.op_type() + "_" + std::to_string(onnx_node_id));
+        // nodes.back().name = network_butcher::Utilities::to_lowercase_copy(node.op_type() + "_" +
+        // std::to_string(onnx_node_id));
         nodes.back().name = node.name();
 
         link_id_nodeproto.emplace(node_id++, onnx_node_id++);
@@ -122,30 +124,30 @@ namespace network_butcher_io::IO_Manager
         io_collection_type<type_info_pointer> tt;
         tt["__fake__output__"] = pointer_output;
 
-        nodes.emplace_back(network_butcher_types::Content<type_info_pointer>(std::move(tt)));
+        nodes.emplace_back(network_butcher::types::Content<type_info_pointer>(std::move(tt)));
         nodes.back().name = "__fake__output__";
         ++node_id;
       }
 
-    return {network_butcher_types::MWGraph(num_devices, nodes), onnx_model, link_id_nodeproto};
+    return {network_butcher::types::MWGraph(num_devices, nodes), onnx_model, link_id_nodeproto};
   }
 
 
   void
   export_to_onnx(const onnx::ModelProto &model, std::string path)
   {
-    Utilities::output_onnx_file(model, path);
+    network_butcher::Utilities::output_onnx_file(model, path);
   }
 
 
-  network_butcher_parameters::Parameters
+  network_butcher::parameters::Parameters
   read_parameters(const std::string &path)
   {
     GetPot file(path);
 
-    network_butcher_parameters::Parameters res;
-    std::string const                      basic_infos  = "basic_config";
-    std::string const                      weight_infos = "weight_config";
+    network_butcher::parameters::Parameters res;
+    std::string const                       basic_infos  = "basic_config";
+    std::string const                       weight_infos = "weight_config";
 
     res.model_name          = file(basic_infos + "/model_name", "model");
     res.model_path          = file(basic_infos + "/model_path", "");
@@ -160,30 +162,31 @@ namespace network_butcher_io::IO_Manager
     }
 
     res.K                    = file(basic_infos + "/K", 100);
-    std::string const method = Utilities::trim_copy(Utilities::to_lowercase_copy(file(basic_infos + "/method", "")));
+    std::string const method = network_butcher::Utilities::trim_copy(
+      network_butcher::Utilities::to_lowercase_copy(file(basic_infos + "/method", "")));
 
     if (method == "Eppstein")
-      res.method = network_butcher_parameters::KSP_Method::Eppstein;
+      res.method = network_butcher::parameters::KSP_Method::Eppstein;
     else
-      res.method = network_butcher_parameters::KSP_Method::Lazy_Eppstein;
+      res.method = network_butcher::parameters::KSP_Method::Lazy_Eppstein;
 
     res.starting_device_id = file(basic_infos + "/starting_device_id", 0);
     res.ending_device_id   = file(basic_infos + "/ending_device_id", 0);
 
     res.backward_connections_allowed = file(basic_infos + "/backward_connections_allowed", false);
 
-    std::string const weight_import_method =
-      Utilities::trim_copy(Utilities::to_lowercase_copy(file(weight_infos + "/import_mode", "")));
+    std::string const weight_import_method = network_butcher::Utilities::trim_copy(
+      network_butcher::Utilities::to_lowercase_copy(file(weight_infos + "/import_mode", "")));
 
 
     if (weight_import_method == "amllibrary_local_inference_original")
-      res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::aMLLibrary_inference_original;
+      res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::aMLLibrary_inference_original;
     else if (weight_import_method == "amllibrary_local_inference_block")
-      res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::aMLLibrary_inference_block;
+      res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::aMLLibrary_inference_block;
     else if (weight_import_method == "single_direct_read")
-      res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::single_direct_read;
+      res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::single_direct_read;
     else if (weight_import_method == "multiple_direct_read")
-      res.weight_import_mode = network_butcher_parameters::Weight_Import_Mode::multiple_direct_read;
+      res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::multiple_direct_read;
     else
       std::cout << "Unavaible weight import mode!" << std::endl;
 
@@ -208,8 +211,8 @@ namespace network_butcher_io::IO_Manager
       for (std::size_t i = 0; i < len; ++i)
         res.single_csv_columns_weights.emplace_back(file(weight_infos + "/single_csv_columns_weights", i, ""));
 
-      Utilities::trim(res.single_csv_columns_weights);
-      Utilities::to_lowercase(res.single_csv_columns_weights);
+      network_butcher::Utilities::trim(res.single_csv_columns_weights);
+      network_butcher::Utilities::to_lowercase(res.single_csv_columns_weights);
     }
 
     res.single_weight_import_path = file(weight_infos + "/single_weight_import_path", "");
@@ -218,20 +221,20 @@ namespace network_butcher_io::IO_Manager
     res.memory_constraint = file(basic_infos + "/memory_constraint", false);
     if (res.memory_constraint)
       {
-        std::string const memory_constraint_type =
-          Utilities::trim_copy(Utilities::to_lowercase_copy(file(basic_infos + "/memory_constraint_type", "none")));
+        std::string const memory_constraint_type = network_butcher::Utilities::trim_copy(
+          network_butcher::Utilities::to_lowercase_copy(file(basic_infos + "/memory_constraint_type", "none")));
 
         if (memory_constraint_type == "none")
           {
-            res.memory_constraint_type = network_butcher_parameters::Memory_Constraint_Type::None;
+            res.memory_constraint_type = network_butcher::parameters::Memory_Constraint_Type::None;
           }
         else if (memory_constraint_type == "max")
           {
-            res.memory_constraint_type = network_butcher_parameters::Memory_Constraint_Type::Max;
+            res.memory_constraint_type = network_butcher::parameters::Memory_Constraint_Type::Max;
           }
         else if (memory_constraint_type == "preload_parameters")
           {
-            res.memory_constraint_type = network_butcher_parameters::Memory_Constraint_Type::Preload_Parameters;
+            res.memory_constraint_type = network_butcher::parameters::Memory_Constraint_Type::Preload_Parameters;
           }
       }
 
@@ -243,7 +246,7 @@ namespace network_butcher_io::IO_Manager
       {
         std::string const prx = "device_" + std::to_string(i);
 
-        network_butcher_parameters::Device dev;
+        network_butcher::parameters::Device dev;
 
         dev.id             = i;
         dev.name           = file(prx + "/name", "");
@@ -251,8 +254,8 @@ namespace network_butcher_io::IO_Manager
         dev.weights_path   = file(prx + "/path", "");
         dev.relevant_entry = file(prx + "/relevant_entry", "");
 
-        Utilities::trim(dev.relevant_entry);
-        Utilities::to_lowercase(dev.relevant_entry);
+        network_butcher::Utilities::trim(dev.relevant_entry);
+        network_butcher::Utilities::to_lowercase(dev.relevant_entry);
 
         res.devices.push_back(std::move(dev));
       }
@@ -285,17 +288,17 @@ namespace network_butcher_io::IO_Manager
 
 
   void
-  export_network_partitions(const network_butcher_parameters::Parameters     &params,
-                            onnx::ModelProto const                           &model,
-                            std::map<node_id_type, node_id_type> const       &link_id_nodeproto,
-                            const network_butcher_types::Weighted_Real_Paths &paths)
+  export_network_partitions(const network_butcher::parameters::Parameters     &params,
+                            onnx::ModelProto const                            &model,
+                            std::map<node_id_type, node_id_type> const        &link_id_nodeproto,
+                            const network_butcher::types::Weighted_Real_Paths &paths)
   {
-    Utilities::create_directory(params.export_directory);
+    network_butcher::Utilities::create_directory(params.export_directory);
     auto const preprocessed_node_ios = Onnx_model_reconstructor_helpers::process_node_ios_nodes(model.graph());
 
     for (std::size_t j = 0; j < paths.size(); ++j)
       {
-        Utilities::create_directory(params.export_directory + "/" + std::to_string(j));
+        network_butcher::Utilities::create_directory(params.export_directory + "/" + std::to_string(j));
 
         utilities::reconstruct_model_and_export(paths[j].second,
                                                 model,
@@ -308,18 +311,18 @@ namespace network_butcher_io::IO_Manager
 
 
   void
-  import_weights(graph_type &graph, const network_butcher_parameters::Parameters &params)
+  import_weights(graph_type &graph, const network_butcher::parameters::Parameters &params)
   {
     switch (params.weight_import_mode)
       {
-          case network_butcher_parameters::Weight_Import_Mode::aMLLibrary_inference_original: {
+          case network_butcher::parameters::Weight_Import_Mode::aMLLibrary_inference_original: {
             Weight_importer_helpers::import_weights_aMLLibrary_local_original(graph, params);
             break;
           }
-          case network_butcher_parameters::Weight_Import_Mode::aMLLibrary_inference_block: {
+          case network_butcher::parameters::Weight_Import_Mode::aMLLibrary_inference_block: {
             break;
           }
-          case network_butcher_parameters::Weight_Import_Mode::single_direct_read: {
+          case network_butcher::parameters::Weight_Import_Mode::single_direct_read: {
             Weight_importer_helpers::import_weights_direct_read(graph,
                                                                 params.single_weight_import_path,
                                                                 params.devices,
@@ -327,7 +330,7 @@ namespace network_butcher_io::IO_Manager
                                                                 params.separator);
             break;
           }
-          case network_butcher_parameters::Weight_Import_Mode::multiple_direct_read: {
+          case network_butcher::parameters::Weight_Import_Mode::multiple_direct_read: {
             for (std::size_t i = 0; i < params.devices.size(); ++i)
               {
                 Weight_importer_helpers::import_weights_direct_read(graph,
@@ -348,12 +351,12 @@ namespace network_butcher_io::IO_Manager
 
   std::pair<bool, onnx::ModelProto>
   reconstruct_model_from_partition(
-    const network_butcher_types::Real_Partition &partition,
-    const onnx::ModelProto                      &original_model,
-    const std::map<node_id_type, node_id_type>  &link_id_nodeproto,
+    const network_butcher::types::Real_Partition &partition,
+    const onnx::ModelProto                       &original_model,
+    const std::map<node_id_type, node_id_type>   &link_id_nodeproto,
     const std::unordered_map<
       std::string,
-      std::pair<network_butcher_io::Onnx_model_reconstructor_helpers::IO_Type,
+      std::pair<network_butcher::io::Onnx_model_reconstructor_helpers::IO_Type,
                 std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
                           google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>>
                            &preprocessed_ios_nodes,
@@ -364,20 +367,20 @@ namespace network_butcher_io::IO_Manager
 
     if (!node_ids.empty())
       {
-        network_butcher_io::Onnx_model_reconstructor_helpers::prepare_new_model(original_model, new_model);
+        network_butcher::io::Onnx_model_reconstructor_helpers::prepare_new_model(original_model, new_model);
 
         auto current_edited_graph =
-          network_butcher_io::Onnx_model_reconstructor_helpers::prepare_new_graph(original_model);
+          network_butcher::io::Onnx_model_reconstructor_helpers::prepare_new_graph(original_model);
 
-        network_butcher_io::Onnx_model_reconstructor_helpers::add_nodes(
+        network_butcher::io::Onnx_model_reconstructor_helpers::add_nodes(
           link_id_nodeproto, model_graph, node_ids, current_edited_graph, preprocessed_ios_nodes);
 
         if (current_edited_graph->node_size() > 0)
           {
-            network_butcher_io::Onnx_model_reconstructor_helpers::add_missing_inputs(original_model,
-                                                                                     current_edited_graph);
-            network_butcher_io::Onnx_model_reconstructor_helpers::add_missing_outputs(original_model,
+            network_butcher::io::Onnx_model_reconstructor_helpers::add_missing_inputs(original_model,
                                                                                       current_edited_graph);
+            network_butcher::io::Onnx_model_reconstructor_helpers::add_missing_outputs(original_model,
+                                                                                       current_edited_graph);
 
             new_model.set_allocated_graph(current_edited_graph);
 
@@ -389,19 +392,19 @@ namespace network_butcher_io::IO_Manager
   }
 
 
-} // namespace network_butcher_io::IO_Manager
+} // namespace network_butcher::io::IO_Manager
 
 #if YAML_CPP_ACTIVE
 
-namespace network_butcher_io::IO_Manager
+namespace network_butcher::io::IO_Manager
 {
 
-  std::vector<network_butcher_parameters::Parameters>
+  std::vector<network_butcher::parameters::Parameters>
   read_parameters_yaml(std::string const &candidate_resources_path,
                        std::string const &candidate_deployments_path,
                        std::string const &annotations_path)
   {
-    std::vector<network_butcher_parameters::Parameters> res;
+    std::vector<network_butcher::parameters::Parameters> res;
 
     // Reads the candidate_resources file and tries to construct the network domain hierarchy. Moreover, it will produce
     // the list of avaible resources
@@ -433,7 +436,7 @@ namespace network_butcher_io::IO_Manager
                 params.starting_device_id = 0;
                 params.ending_device_id   = 0;
 
-                params.method                       = network_butcher_parameters::Lazy_Eppstein;
+                params.method                       = network_butcher::parameters::Lazy_Eppstein;
                 params.K                            = 100;
                 params.backward_connections_allowed = false;
 
@@ -469,6 +472,6 @@ namespace network_butcher_io::IO_Manager
     return res;
   }
 
-} // namespace network_butcher_io::IO_Manager
+} // namespace network_butcher::io::IO_Manager
 
 #endif

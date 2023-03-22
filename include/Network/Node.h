@@ -11,7 +11,9 @@
 #include <memory>
 #include <utility>
 
-namespace network_butcher_types
+namespace network_butcher {
+
+namespace types
 {
   template <class T>
   class Graph;
@@ -69,5 +71,7 @@ namespace network_butcher_types
     }
   };
 } // namespace network_butcher_types
+
+}
 
 #endif // NETWORK_BUTCHER_NODE_H

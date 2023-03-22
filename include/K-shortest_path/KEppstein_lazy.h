@@ -8,239 +8,243 @@
 #include "Heap_traits.h"
 #include "KFinder.h"
 
-namespace network_butcher_kfinder
+namespace network_butcher
 {
-  /// This class implements the Lazy Eppstein K-shortest path algorithm
-  /// \tparam Graph_type The graph type
-  template <class Graph_type>
-  class KFinder_Lazy_Eppstein : public KFinder<Graph_type>
+  namespace kfinder
   {
-  private:
-    using base          = KFinder<Graph_type>;
+    /// This class implements the Lazy Eppstein K-shortest path algorithm
+    /// \tparam Graph_type The graph type
+    template <class Graph_type>
+    class KFinder_Lazy_Eppstein : public KFinder<Graph_type>
+    {
+    private:
+      using base = KFinder<Graph_type>;
 
 
-    std::pair<bool, H_g_collection::iterator>
-    find_h_g_in_map(H_g_collection &h_g, node_id_type node) const;
+      std::pair<bool, H_g_collection::iterator>
+      find_h_g_in_map(H_g_collection &h_g, node_id_type node) const;
 
 
-    /// It will add to the h_out map the h_out associates to the current node
-    /// \param h_out The h_out map
-    /// \param sidetrack_distances The sidetrack distances
-    /// \param successors The successor collection
-    /// \param node The node associated to the h_out to construct
-    /// \return The iterator of the added h_out
-    H_out_collection::iterator
-    construct_partial_h_out(H_out_collection                &h_out,
+      /// It will add to the h_out map the h_out associates to the current node
+      /// \param h_out The h_out map
+      /// \param sidetrack_distances The sidetrack distances
+      /// \param successors The successor collection
+      /// \param node The node associated to the h_out to construct
+      /// \return The iterator of the added h_out
+      H_out_collection::iterator
+      construct_partial_h_out(H_out_collection                &h_out,
+                              weights_collection_type const   &sidetrack_distances,
+                              std::vector<node_id_type> const &successors,
+                              node_id_type                     node) const;
+
+      /// It will add to the h_g map the h_g associated to the current node. It
+      /// will also update the edge_edges map (that associated every edge to its
+      /// children)
+      /// \param h_g The h_g map
+      /// \param h_out The h_out map
+      /// \param sidetrack_distances The sidetrack distances
+      /// \param successors The successor collection
+      /// \param node The node associated to the h_out to construct
+      /// \param edge_edges The edge_edges map
+      /// \return The iterator to the added element
+      H_g_collection::iterator
+      construct_partial_h_g(H_g_collection                  &h_g,
+                            H_out_collection                &h_out,
                             weights_collection_type const   &sidetrack_distances,
                             std::vector<node_id_type> const &successors,
                             node_id_type                     node) const;
 
-    /// It will add to the h_g map the h_g associated to the current node. It
-    /// will also update the edge_edges map (that associated every edge to its
-    /// children)
-    /// \param h_g The h_g map
-    /// \param h_out The h_out map
-    /// \param sidetrack_distances The sidetrack distances
-    /// \param successors The successor collection
-    /// \param node The node associated to the h_out to construct
-    /// \param edge_edges The edge_edges map
-    /// \return The iterator to the added element
+      /// The basic function for the lazy Eppstein algorithm
+      /// \param weights The weights of the edges
+      /// \param K The number of shortest paths
+      /// \param dij_res The result of dijkstra
+      /// \return The (implicit) k shortest paths
+      [[nodiscard]] std::vector<implicit_path_info>
+      basic_lazy_eppstein(std::size_t K, dijkstra_result_type const &dij_res) const;
+
+    public:
+      /// Applies the lazy Eppstein algorithm to find the k-shortest paths on the
+      /// given graph (from the first node to the last one)
+      /// \param weights The weights associated to the different edges
+      /// \param K The number of shortest paths to find
+      /// \return The shortest paths
+      [[nodiscard]] std::vector<path_info>
+      compute(std::size_t K) const override;
+
+      explicit KFinder_Lazy_Eppstein(Graph_type const &g)
+        : base(g){};
+
+      ~KFinder_Lazy_Eppstein() override = default;
+    };
+
+
+    template <class Graph_type>
+    std::pair<bool, H_g_collection::iterator>
+    KFinder_Lazy_Eppstein<Graph_type>::find_h_g_in_map(H_g_collection &h_g, node_id_type node) const
+    {
+      auto it = h_g.find(node);
+      return {it != h_g.end(), it};
+    }
+
+    template <class Graph_type>
+    H_out_collection::iterator
+    KFinder_Lazy_Eppstein<Graph_type>::construct_partial_h_out(H_out_collection                &h_out,
+                                                               const weights_collection_type   &sidetrack_distances,
+                                                               const std::vector<node_id_type> &successors,
+                                                               node_id_type                     node) const
+    {
+      // If we can find the required H_out, return it
+      {
+        auto it = h_out.find(node);
+        if (it != h_out.cend())
+          return it;
+      }
+
+
+      auto const &graph = base::graph;
+
+      // Prepare the new H_out
+      auto it                   = h_out.emplace(node, std::make_shared<H_out<edge_info>>());
+      it.first->second->heap.id = node;
+
+      // Find the "next" node in the shortest path from node to the end node
+      auto const succ = successors[node];
+
+      // For every "sidetrack" node in the outer start of node
+      for (auto const &exit : graph.get_output_nodes(node))
+        if (exit != succ)
+          {
+            auto const edge    = std::make_pair(node, exit);
+            auto const it_dist = sidetrack_distances.find(edge);
+
+            if (it_dist == sidetrack_distances.cend())
+              {
+                continue;
+              }
+
+            edge_info tmp(edge, it_dist->second);
+            auto     &children = h_out[node]->heap.children;
+
+            // Add the sidetrack edge to H_out with weight equal to the sidetrack weight
+            children.insert(children.cend(), std::move(tmp)); // O(log(N))
+          }
+
+      return it.first;
+    }
+
+    template <class Graph_type>
     H_g_collection::iterator
-    construct_partial_h_g(H_g_collection                  &h_g,
-                          H_out_collection                &h_out,
-                          weights_collection_type const   &sidetrack_distances,
-                          std::vector<node_id_type> const &successors,
-                          node_id_type                     node) const;
-
-    /// The basic function for the lazy Eppstein algorithm
-    /// \param weights The weights of the edges
-    /// \param K The number of shortest paths
-    /// \param dij_res The result of dijkstra
-    /// \return The (implicit) k shortest paths
-    [[nodiscard]] std::vector<implicit_path_info>
-    basic_lazy_eppstein(std::size_t K, dijkstra_result_type const &dij_res) const;
-
-  public:
-    /// Applies the lazy Eppstein algorithm to find the k-shortest paths on the
-    /// given graph (from the first node to the last one)
-    /// \param weights The weights associated to the different edges
-    /// \param K The number of shortest paths to find
-    /// \return The shortest paths
-    [[nodiscard]] std::vector<path_info>
-    compute(std::size_t K) const override;
-
-    explicit KFinder_Lazy_Eppstein(Graph_type const &g)
-      : base(g){};
-
-    ~KFinder_Lazy_Eppstein() override = default;
-  };
-
-
-  template <class Graph_type>
-  std::pair<bool, H_g_collection::iterator>
-  KFinder_Lazy_Eppstein<Graph_type>::find_h_g_in_map(H_g_collection &h_g, node_id_type node) const
-  {
-    auto it = h_g.find(node);
-    return {it != h_g.end(), it};
-  }
-
-  template <class Graph_type>
-  H_out_collection::iterator
-  KFinder_Lazy_Eppstein<Graph_type>::construct_partial_h_out(H_out_collection                &h_out,
+    KFinder_Lazy_Eppstein<Graph_type>::construct_partial_h_g(H_g_collection                  &h_g,
+                                                             H_out_collection                &h_out,
                                                              const weights_collection_type   &sidetrack_distances,
                                                              const std::vector<node_id_type> &successors,
                                                              node_id_type                     node) const
-  {
-    // If we can find the required H_out, return it
     {
-      auto it = h_out.find(node);
-      if (it != h_out.cend())
-        return it;
-    }
+      // If H_g has been already computed, return it
+      {
+        auto pair_iterator = find_h_g_in_map(h_g, node);
+        if (pair_iterator.first)
+          return pair_iterator.second;
+      }
 
+      auto const &graph = base::graph;
 
-    auto const &graph = base::graph;
-
-    // Prepare the new H_out
-    auto it                   = h_out.emplace(node, std::make_shared<H_out<edge_info>>());
-    it.first->second->heap.id = node;
-
-    // Find the "next" node in the shortest path from node to the end node
-    auto const succ = successors[node];
-
-    // For every "sidetrack" node in the outer start of node
-    for (auto const &exit : graph.get_output_nodes(node))
-      if (exit != succ)
+      // If node is the last node in the graph
+      if (node == graph.size() - 1)
         {
-          auto const edge    = std::make_pair(node, exit);
-          auto const it_dist = sidetrack_distances.find(edge);
+          // Add a new H_g
+          auto inserted_h_g = h_g.emplace(node, H_g()).first;
 
-          if (it_dist == sidetrack_distances.cend())
-            {
-              continue;
-            }
+          // Since node is the last node in the graph, H_out was never constructed. So we have to construct it and
+          // add it to the H_g
+          auto to_insert_h_out = construct_partial_h_out(h_out, sidetrack_distances, successors, node);
 
-          edge_info tmp(edge, it_dist->second);
-          auto     &children = h_out[node]->heap.children;
+          if (!to_insert_h_out->second->heap.children.empty())
+            inserted_h_g->second.children.insert(to_insert_h_out->second);
 
-          // Add the sidetrack edge to H_out with weight equal to the sidetrack weight
-          children.insert(children.cend(), std::move(tmp)); // O(log(N))
+          return inserted_h_g;
         }
 
-    return it.first;
-  }
+      auto const successor = successors[node];
 
-  template <class Graph_type>
-  H_g_collection::iterator
-  KFinder_Lazy_Eppstein<Graph_type>::construct_partial_h_g(H_g_collection                  &h_g,
-                                                           H_out_collection                &h_out,
-                                                           const weights_collection_type   &sidetrack_distances,
-                                                           const std::vector<node_id_type> &successors,
-                                                           node_id_type                     node) const
-  {
-    // If H_g has been already computed, return it
-    {
-      auto pair_iterator = find_h_g_in_map(h_g, node);
-      if (pair_iterator.first)
-        return pair_iterator.second;
+      // Construct the H_g of the successor of node in the shortest path
+      auto previous_inserted_h_g = construct_partial_h_g(h_g, h_out, sidetrack_distances, successors, successor);
+
+      // Prepare a new H_g
+      auto inserted_h_g             = h_g.emplace(node, previous_inserted_h_g->second);
+      inserted_h_g.first->second.id = node;
+
+      // Construct the associated H_out
+      auto current_node_h_out = construct_partial_h_out(h_out, sidetrack_distances, successors, node);
+
+
+      if (!current_node_h_out->second->heap.children.empty())
+        {
+          inserted_h_g.first->second.children.insert(current_node_h_out->second);
+        }
+
+      return inserted_h_g.first;
     }
 
-    auto const &graph = base::graph;
-
-    // If node is the last node in the graph
-    if (node == graph.size() - 1)
-      {
-        // Add a new H_g
-        auto inserted_h_g = h_g.emplace(node, H_g()).first;
-
-        // Since node is the last node in the graph, H_out was never constructed. So we have to construct it and
-        // add it to the H_g
-        auto to_insert_h_out = construct_partial_h_out(h_out, sidetrack_distances, successors, node);
-
-        if (!to_insert_h_out->second->heap.children.empty())
-          inserted_h_g->second.children.insert(to_insert_h_out->second);
-
-        return inserted_h_g;
-      }
-
-    auto const successor = successors[node];
-
-    // Construct the H_g of the successor of node in the shortest path
-    auto previous_inserted_h_g = construct_partial_h_g(h_g, h_out, sidetrack_distances, successors, successor);
-
-    // Prepare a new H_g
-    auto inserted_h_g             = h_g.emplace(node, previous_inserted_h_g->second);
-    inserted_h_g.first->second.id = node;
-
-    // Construct the associated H_out
-    auto current_node_h_out = construct_partial_h_out(h_out, sidetrack_distances, successors, node);
+    template <class Graph_type>
+    std::vector<implicit_path_info>
+    KFinder_Lazy_Eppstein<Graph_type>::basic_lazy_eppstein(std::size_t K, const dijkstra_result_type &dij_res) const
+    {
+      auto const sidetrack_distances_res = base::sidetrack_distances(dij_res.second); // O(E)
 
 
-    if (!current_node_h_out->second->heap.children.empty())
-      {
-        inserted_h_g.first->second.children.insert(current_node_h_out->second);
-      }
+      H_out_collection h_out;
+      H_g_collection   h_g;
 
-    return inserted_h_g.first;
-  }
+      auto const &successors = dij_res.first;
 
-  template <class Graph_type>
-  std::vector<implicit_path_info>
-  KFinder_Lazy_Eppstein<Graph_type>::basic_lazy_eppstein(std::size_t K, const dijkstra_result_type &dij_res) const
-  {
-    auto const sidetrack_distances_res = base::sidetrack_distances(dij_res.second); // O(E)
+      // Firstly, compute the H_g for the source node
+      construct_partial_h_g(h_g, h_out, sidetrack_distances_res, successors, 0);
 
+      // Prepare the callback function to be called in the Eppstein algorithm
+      typename base::callback_function_helper_eppstein fun = [this](H_g_collection                &h_g_,
+                                                                    H_out_collection              &h_out_,
+                                                                    weights_collection_type const &sidetrack_distances_,
+                                                                    std::vector<node_id_type> const &successors_,
+                                                                    node_id_type                     node_) {
+        construct_partial_h_g(h_g_, h_out_, sidetrack_distances_, successors_, node_);
+      };
 
-    H_out_collection h_out;
-    H_g_collection   h_g;
+      // Execute the Eppstein algorithm
+      return base::general_algo_eppstein(K,
+                                         dij_res,
+                                         sidetrack_distances_res,
+                                         h_g,
+                                         h_out,
+                                         typename base::callback_function_helper_ptr_eppstein(
+                                           new typename base::callback_function_helper_eppstein(std::move(fun))));
+    }
 
-    auto const &successors = dij_res.first;
+    template <class Graph_type>
+    std::vector<path_info>
+    KFinder_Lazy_Eppstein<Graph_type>::compute(std::size_t K) const
+    {
+      auto const &graph = base::graph;
 
-    // Firstly, compute the H_g for the source node
-    construct_partial_h_g(h_g, h_out, sidetrack_distances_res, successors, 0);
+      if (graph.empty() || K == 0)
+        return {};
 
-    // Prepare the callback function to be called in the Eppstein algorithm
-    typename base::callback_function_helper_eppstein fun = [this](H_g_collection                  &h_g_,
-                                                                  H_out_collection                &h_out_,
-                                                                  weights_collection_type const   &sidetrack_distances_,
-                                                                  std::vector<node_id_type> const &successors_,
-                                                                  node_id_type                     node_) {
-      construct_partial_h_g(h_g_, h_out_, sidetrack_distances_, successors_, node_);
-    };
+      // Compute the shortest path tree
+      auto const dij_res = Shortest_path_finder::shortest_path_tree(graph); // time: ((N+E)log(N)), space: O(N)
 
-    // Execute the Eppstein algorithm
-    return base::general_algo_eppstein(K,
-                                       dij_res,
-                                       sidetrack_distances_res,
-                                       h_g,
-                                       h_out,
-                                       typename base::callback_function_helper_ptr_eppstein(
-                                         new typename base::callback_function_helper_eppstein(std::move(fun))));
-  }
+      // If a single path must be computed, we just have to return the shortest path from the source to the root
+      if (K == 1)
+        return {Shortest_path_finder::shortest_path_finder(graph, dij_res, 0)};
 
-  template <class Graph_type>
-  std::vector<path_info>
-  KFinder_Lazy_Eppstein<Graph_type>::compute(std::size_t K) const
-  {
-    auto const &graph = base::graph;
+      // Compute the K shortest paths in implicit form
+      auto const epp_res = basic_lazy_eppstein(K, dij_res);
 
-    if (graph.empty() || K == 0)
-      return {};
+      // Convert the implicitly defined path in an explicit path
+      return base::helper_eppstein(dij_res, epp_res);
+    }
 
-    // Compute the shortest path tree
-    auto const dij_res = Shortest_path_finder::shortest_path_tree(graph); // time: ((N+E)log(N)), space: O(N)
+  } // namespace kfinder
 
-    // If a single path must be computed, we just have to return the shortest path from the source to the root
-    if (K == 1)
-      return {Shortest_path_finder::shortest_path_finder(graph, dij_res, 0)};
-
-    // Compute the K shortest paths in implicit form
-    auto const epp_res = basic_lazy_eppstein(K, dij_res);
-
-    // Convert the implicitly defined path in an explicit path
-    return base::helper_eppstein(dij_res, epp_res);
-  }
-
-} // namespace network_butcher_kfinder
+} // namespace network_butcher
 
 #endif // NETWORK_BUTCHER_KEPPSTEIN_LAZY_H
