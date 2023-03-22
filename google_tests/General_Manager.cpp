@@ -60,4 +60,16 @@ namespace
     std::string const path = "test_data/configs/test4_parameters.conf";
     General_Manager::boot(path, true);
   }
+
+  TEST(GeneralManagerTest, boot_test5)
+  {
+    std::string const export_path = "ksp_result5";
+    if (Utilities::directory_exists(export_path))
+      {
+        Utilities::directory_delete(export_path);
+      }
+
+    std::string const path = "test_data/configs/test5_parameters.conf";
+    General_Manager::boot(path, true);
+  }
 } // namespace
