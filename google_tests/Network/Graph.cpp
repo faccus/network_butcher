@@ -8,7 +8,8 @@
 
 namespace
 {
-  using namespace network_butcher_types;
+  using namespace network_butcher;
+  using namespace network_butcher::types;
 
   TEST(GraphTests, DefaultConstructors)
   {

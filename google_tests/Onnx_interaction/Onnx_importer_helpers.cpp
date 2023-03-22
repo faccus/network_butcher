@@ -8,6 +8,9 @@
 
 namespace
 {
+  using namespace network_butcher;
+  using namespace network_butcher::io;
+
   onnx::ModelProto
   import_simple_model();
 
@@ -17,8 +20,8 @@ namespace
     auto const  model = import_simple_model();
     auto const &graph = model.graph();
 
-    network_butcher_io::Onnx_importer_helpers::Map_IO in_map;
-    network_butcher_io::Onnx_importer_helpers::read_ios(in_map, graph.output(), {});
+    Onnx_importer_helpers::Map_IO in_map;
+    Onnx_importer_helpers::read_ios(in_map, graph.output(), {});
 
     auto const name = "boxes";
 
@@ -26,7 +29,7 @@ namespace
     EXPECT_FALSE(in_map.find(name)->second->initialized());
 
     in_map.clear();
-    network_butcher_io::Onnx_importer_helpers::read_ios(in_map, graph.output(), {name});
+    Onnx_importer_helpers::read_ios(in_map, graph.output(), {name});
 
 
     EXPECT_NE(in_map.find(name), in_map.cend());
@@ -38,8 +41,8 @@ namespace
     auto const  model = import_simple_model();
     auto const &graph = model.graph();
 
-    network_butcher_io::Onnx_importer_helpers::Map_IO in_map;
-    network_butcher_io::Onnx_importer_helpers::read_ios(in_map, graph.initializer(), {});
+    Onnx_importer_helpers::Map_IO in_map;
+    Onnx_importer_helpers::read_ios(in_map, graph.initializer(), {});
 
     auto const name = "base_net.7.branch2.1.bn.running_var";
 
@@ -49,7 +52,7 @@ namespace
 
 
     in_map.clear();
-    network_butcher_io::Onnx_importer_helpers::read_ios(in_map, graph.initializer(), {name});
+    Onnx_importer_helpers::read_ios(in_map, graph.initializer(), {name});
 
     EXPECT_NE(in_map.find(name), in_map.cend());
     EXPECT_TRUE(in_map.find(name)->second->initialized());
@@ -60,11 +63,11 @@ namespace
     auto const  model = import_simple_model();
     auto const &graph = model.graph();
 
-    io_collection_type<type_info_pointer>             params;
-    network_butcher_io::Onnx_importer_helpers::Map_IO map;
-    map.emplace("245", std::make_shared<network_butcher_types::Dense_tensor>(10, std::vector<shape_type>{1, 1, 2, 2}));
+    io_collection_type<type_info_pointer> params;
+    Onnx_importer_helpers::Map_IO         map;
+    map.emplace("245", std::make_shared<network_butcher::types::Dense_tensor>(10, std::vector<shape_type>{1, 1, 2, 2}));
 
-    auto const in = network_butcher_io::Onnx_importer_helpers::process_node_ios(graph.node(0).output(), params, map);
+    auto const in = Onnx_importer_helpers::process_node_ios(graph.node(0).output(), params, map);
 
     EXPECT_EQ(in.size(), 1);
   }

@@ -7,11 +7,11 @@
 #include "Computer_memory.h"
 
 
-
-namespace ComputerMemoryTests
+namespace
 {
-  using namespace network_butcher_types;
-  using namespace network_butcher_computer;
+  using namespace network_butcher;
+  using namespace network_butcher::types;
+  using namespace network_butcher::computer;
 
   using basic_type    = int;
   using Input         = TestMemoryUsage<basic_type>;
@@ -95,4 +95,4 @@ namespace ComputerMemoryTests
 
     return WGraph<Content<Input>>(nodes);
   }
-} // namespace ComputerMemoryTests
+} // namespace

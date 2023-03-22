@@ -6,16 +6,17 @@
 #include <iostream>
 #include <random>
 
-#include "chrono.h"
 #include "Butcher.h"
 #include "IO_Manager.h"
 #include "TestClass.h"
+#include "chrono.h"
 
 namespace
 {
-  using namespace network_butcher_computer;
-  using namespace network_butcher_parameters;
-  using namespace network_butcher_types;
+  using namespace network_butcher;
+  using namespace network_butcher::computer;
+  using namespace network_butcher::parameters;
+  using namespace network_butcher::types;
 
   using type_weight             = double;
   using type_collection_weights = std::map<std::pair<node_id_type, node_id_type>, type_weight>;
@@ -35,12 +36,12 @@ namespace
   std::tuple<Butcher<graph_type>, onnx::ModelProto, std::map<node_id_type, node_id_type>>
   real_butcher();
 
-  network_butcher_parameters::Parameters
+  parameters::Parameters
   eppstein_parameters(std::size_t k, bool backward, std::size_t num_devices);
 
-  network_butcher_parameters::Parameters
+  parameters::Parameters
   lazy_eppstein_parameters(std::size_t k, bool backward, std::size_t num_devices);
-  network_butcher_parameters::Parameters
+  parameters::Parameters
   real_parameters(std::size_t k, bool backward);
 
   template <class Graph>
@@ -60,6 +61,7 @@ namespace
             }
         }
   };
+
 
   template <class Graph>
   void
@@ -91,8 +93,9 @@ namespace
         }
   }
 
-  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
-  basic_transmission(std::size_t, std::size_t);
+
+  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)> basic_transmission(std::size_t,
+                                                                                                std::size_t);
 
 
   void
@@ -107,7 +110,7 @@ namespace
     std::string path      = "test_data/models/resnet18-v2-7-inferred";
     std::string extension = ".onnx";
 
-    Butcher butcher(std::get<0>(network_butcher_io::IO_Manager::import_from_onnx(path + extension)));
+    Butcher butcher(std::get<0>(io::IO_Manager::import_from_onnx(path + extension)));
 
     auto       &graph = butcher.get_graph_ref();
     auto const &nodes = graph.get_nodes();
@@ -250,38 +253,7 @@ namespace
     std::size_t       num_devices     = 3;
     std::size_t const num_nodes       = 10000;
     std::size_t const number_of_tests = 1000;
-    std::size_t const k = 1000;
-
-    auto  butcher = basic_butcher(num_nodes);
-    auto &graph   = butcher.get_graph_ref();
-
-    double total_time = .0;
-
-    for (auto num_test = 0; num_test < number_of_tests; ++num_test)
-      {
-        std::vector<type_collection_weights> weight_maps;
-        basic_weight(graph, true);
-
-        auto transmission_fun = basic_transmission(num_devices, graph.get_nodes().size());
-
-        Chrono crono;
-        crono.start();
-        auto const res = butcher.compute_k_shortest_path(transmission_fun,
-                                                         lazy_eppstein_parameters(k, true, num_devices));
-        crono.stop();
-
-        total_time += crono.wallTime();
-        std::cout << "Current average time per test: " << total_time / (num_test + 1) / 1000 << " ms" << std::endl;
-      }
-  }
-
-
-  TEST(ButcherBenchmarkTest, compute_k_shortest_paths_eppstein_multiple_random)
-  {
-    std::size_t       num_devices     = 3;
-    std::size_t const num_nodes       = 1000;
-    std::size_t const number_of_tests = 1000;
-    std::size_t const k = 1000;
+    std::size_t const k               = 1000;
 
     auto  butcher = basic_butcher(num_nodes);
     auto &graph   = butcher.get_graph_ref();
@@ -298,7 +270,37 @@ namespace
         Chrono crono;
         crono.start();
         auto const res =
-          butcher.compute_k_shortest_path(transmission_fun, eppstein_parameters(k, true, num_devices));
+          butcher.compute_k_shortest_path(transmission_fun, lazy_eppstein_parameters(k, true, num_devices));
+        crono.stop();
+
+        total_time += crono.wallTime();
+        std::cout << "Current average time per test: " << total_time / (num_test + 1) / 1000 << " ms" << std::endl;
+      }
+  }
+
+
+  TEST(ButcherBenchmarkTest, compute_k_shortest_paths_eppstein_multiple_random)
+  {
+    std::size_t       num_devices     = 3;
+    std::size_t const num_nodes       = 1000;
+    std::size_t const number_of_tests = 1000;
+    std::size_t const k               = 1000;
+
+    auto  butcher = basic_butcher(num_nodes);
+    auto &graph   = butcher.get_graph_ref();
+
+    double total_time = .0;
+
+    for (auto num_test = 0; num_test < number_of_tests; ++num_test)
+      {
+        std::vector<type_collection_weights> weight_maps;
+        basic_weight(graph, true);
+
+        auto transmission_fun = basic_transmission(num_devices, graph.get_nodes().size());
+
+        Chrono crono;
+        crono.start();
+        auto const res = butcher.compute_k_shortest_path(transmission_fun, eppstein_parameters(k, true, num_devices));
         crono.stop();
 
         total_time += crono.wallTime();
@@ -383,23 +385,17 @@ namespace
   real_butcher()
   {
     std::string const path  = "test_data/models/version-RFB-640-inferred.onnx"; //"version-RFB-640.onnx";
-    auto              tuple = network_butcher_io::IO_Manager::import_from_onnx(path, true, 3);
+    auto              tuple = io::IO_Manager::import_from_onnx(path, true, 3);
     auto             &graph = std::get<0>(tuple);
 
-    network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode::aMLLibrary,
-                                                   graph,
-                                                   "test_data/weights/aMLLibrary_prediction_pi.csv",
-                                                   0);
+    Parameters params;
+    params.weight_import_mode = Weight_Import_Mode::multiple_direct_read;
 
-    network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode::aMLLibrary,
-                                                   graph,
-                                                   "test_data/weights/aMLLibrary_prediction_tegra.csv",
-                                                   1);
+    params.devices.push_back(Device{0, "", 100, "test_data/weights/aMLLibrary_prediction_pi.csv", "pred"});
+    params.devices.push_back(Device{1, "", 100, "test_data/weights/aMLLibrary_prediction_tegra.csv", "pred"});
+    params.devices.push_back(Device{2, "", 100, "test_data/weights/aMLLibrary_prediction_tegra.csv", "pred"});
 
-    network_butcher_io::IO_Manager::import_weights(Weight_Import_Mode::aMLLibrary,
-                                                   graph,
-                                                   "test_data/weights/aMLLibrary_prediction_tegra.csv",
-                                                   2);
+    io::IO_Manager::import_weights(graph, params);
 
     complete_weights(graph);
 

@@ -5,9 +5,9 @@
 #include <iostream>
 #include <random>
 
-#include "chrono.h"
 #include "Butcher.h"
 #include "TestClass.h"
+#include "chrono.h"
 
 /*
 void
@@ -20,8 +20,9 @@ PrintInputOutput(const onnx::ModelProto &);
 
 namespace
 {
-  using namespace network_butcher_computer;
-  using namespace network_butcher_types;
+  using namespace network_butcher;
+  using namespace network_butcher::computer;
+  using namespace network_butcher::types;
 
   using type_weight             = double;
   using type_collection_weights = std::map<std::pair<node_id_type, node_id_type>, type_weight>;
@@ -35,10 +36,10 @@ namespace
   Butcher<GraphType>
   basic_butcher();
 
-  network_butcher_parameters::Parameters
+  parameters::Parameters
   eppstein_parameters(std::size_t k, std::size_t num_devices);
 
-  network_butcher_parameters::Parameters
+  parameters::Parameters
   lazy_eppstein_parameters(std::size_t k, std::size_t num_devices);
 
   template <class Graph>
@@ -218,16 +219,16 @@ namespace
     };
   }
 
-  network_butcher_parameters::Parameters
+  parameters::Parameters
   eppstein_parameters(std::size_t k, std::size_t num_devices)
   {
-    network_butcher_parameters::Parameters res;
+    parameters::Parameters res;
 
     res.K                            = k;
     res.backward_connections_allowed = true;
-    res.method                       = network_butcher_parameters::KSP_Method::Eppstein;
-    res.devices                      = std::vector<network_butcher_parameters::Device>(num_devices);
-    res.memory_constraint_type       = network_butcher_parameters::Memory_Constraint_Type::None;
+    res.method                       = parameters::KSP_Method::Eppstein;
+    res.devices                      = std::vector<parameters::Device>(num_devices);
+    res.memory_constraint_type       = parameters::Memory_Constraint_Type::None;
 
     res.starting_device_id = 0;
     res.ending_device_id   = 0;
@@ -235,16 +236,16 @@ namespace
     return res;
   }
 
-  network_butcher_parameters::Parameters
+  parameters::Parameters
   lazy_eppstein_parameters(std::size_t k, std::size_t num_devices)
   {
-    network_butcher_parameters::Parameters res;
+    parameters::Parameters res;
 
     res.K                            = k;
     res.backward_connections_allowed = true;
-    res.method                       = network_butcher_parameters::KSP_Method::Lazy_Eppstein;
-    res.devices                      = std::vector<network_butcher_parameters::Device>(num_devices);
-    res.memory_constraint_type       = network_butcher_parameters::Memory_Constraint_Type::None;
+    res.method                       = parameters::KSP_Method::Lazy_Eppstein;
+    res.devices                      = std::vector<parameters::Device>(num_devices);
+    res.memory_constraint_type       = parameters::Memory_Constraint_Type::None;
 
     res.starting_device_id = 0;
     res.ending_device_id   = 0;

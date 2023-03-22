@@ -10,13 +10,15 @@
 
 namespace
 {
-  using namespace network_butcher_io;
+  using namespace network_butcher;
+  using namespace network_butcher::io;
 
   TEST(GeneralManagerTest, boot_test)
   {
     std::string const export_path = "ksp_result";
-    if(network_butcher_utilities::directory_exists(export_path)) {
-        network_butcher_utilities::directory_delete(export_path);
+    if (Utilities::directory_exists(export_path))
+      {
+        Utilities::directory_delete(export_path);
       }
 
     std::string const path = "test_data/configs/test_parameters.conf";
@@ -26,8 +28,9 @@ namespace
   TEST(GeneralManagerTest, boot_test2)
   {
     std::string const export_path = "ksp_result2";
-    if(network_butcher_utilities::directory_exists(export_path)) {
-        network_butcher_utilities::directory_delete(export_path);
+    if (Utilities::directory_exists(export_path))
+      {
+        Utilities::directory_delete(export_path);
       }
 
     std::string const path = "test_data/configs/test2_parameters.conf";
@@ -37,8 +40,9 @@ namespace
   TEST(GeneralManagerTest, boot_test3)
   {
     std::string const export_path = "ksp_result3";
-    if(network_butcher_utilities::directory_exists(export_path)) {
-        network_butcher_utilities::directory_delete(export_path);
+    if (Utilities::directory_exists(export_path))
+      {
+        Utilities::directory_delete(export_path);
       }
 
     std::string const path = "test_data/configs/test3_parameters.conf";
@@ -48,8 +52,9 @@ namespace
   TEST(GeneralManagerTest, boot_test4)
   {
     std::string const export_path = "ksp_result4";
-    if(network_butcher_utilities::directory_exists(export_path)) {
-        network_butcher_utilities::directory_delete(export_path);
+    if (Utilities::directory_exists(export_path))
+      {
+        Utilities::directory_delete(export_path);
       }
 
     std::string const path = "test_data/configs/test4_parameters.conf";

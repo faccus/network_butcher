@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD 20)
 option(BUILD_TESTS "Build tests" ON)
 message(STATUS "Build tests: ${BUILD_TESTS}")
 
-option(BUILD_BENCHMARK "Build benchmark tests" ON)
+option(BUILD_BENCHMARK "Build benchmark tests" OFF)
 message(STATUS "Build benchmark tests: ${BUILD_BENCHMARK}")
 
 
@@ -27,7 +27,7 @@ message(STATUS "Download and compile yaml-cpp from git: " ${BUILD_YAML_CPP_SOURC
 
 
 
-option(USE_PYBIND "Download and compile pybind11 from git:" ON) # WIP
+option(USE_PYBIND "Download and compile pybind11 from git:" ON)
 message(STATUS "Download and compile pybind11 from git ${USE_PYBIND}")
 
 option(BUILD_DOC "Build documentation" OFF)

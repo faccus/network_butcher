@@ -32,7 +32,7 @@ public:
 };
 
 template <class T>
-class network_butcher_kfinder::Weighted_Graph<TestGraph<T>>
+class network_butcher::kfinder::Weighted_Graph<TestGraph<T>>
 {
 public:
   using Node_Id_Type         = std::size_t;

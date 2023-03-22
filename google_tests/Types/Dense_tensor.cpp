@@ -5,8 +5,10 @@
 #include "Dense_tensor.h"
 #include <gtest/gtest.h>
 
-namespace {
-  using namespace network_butcher_types;
+namespace
+{
+  using namespace network_butcher;
+  using namespace network_butcher::types;
 
   TEST(DenseTensorTest, ConstuctorAndMemoryUsage)
   {
@@ -50,4 +52,4 @@ namespace {
 
     ASSERT_EQ(lhs, rhs);
   }
-}
+} // namespace

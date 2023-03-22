@@ -2,9 +2,9 @@
 // Created by faccus on 26/10/21.
 //
 
+#include "Graph_traits.h"
 #include "KEppstein.h"
 #include "KEppstein_lazy.h"
-#include "Graph_traits.h"
 
 #include "TestClass.h"
 #include "TestGraph.h"
@@ -12,16 +12,17 @@
 
 namespace
 {
-  using namespace network_butcher_types;
-  using namespace network_butcher_kfinder;
+  using namespace network_butcher;
+  using namespace types;
+  using namespace network_butcher::kfinder;
 
   using basic_type  = int;
   using type_weight = double;
 
   using Input         = TestMemoryUsage<basic_type>;
-  using Content_input = network_butcher_types::Content<Input>;
-  using Node_type     = network_butcher_types::Node<network_butcher_types::Content<Input>>;
-  using Graph_type    = network_butcher_types::WGraph<Content_input>;
+  using Content_input = types::Content<Input>;
+  using Node_type     = types::Node<types::Content<Input>>;
+  using Graph_type    = types::WGraph<Content_input>;
 
   using weights_collection_type = std::map<std::pair<node_id_type, node_id_type>, type_weight>;
 
@@ -87,7 +88,7 @@ namespace
   TEST(KspTests, LazyEppsteinOriginalNetwork)
   {
     auto const                                     graph = eppstein_graph();
-    network_butcher_kfinder::KFinder_Lazy_Eppstein kfinder(graph);
+    KFinder_Lazy_Eppstein kfinder(graph);
 
     int k = 100; // Up to 10
 
@@ -114,7 +115,7 @@ namespace
   TEST(KspTests, LazyEppsteinOriginalTestGraph)
   {
     auto const                                     graph = test_graph();
-    network_butcher_kfinder::KFinder_Lazy_Eppstein kfinder(graph);
+    KFinder_Lazy_Eppstein kfinder(graph);
 
     int k = 100; // Up to 10
 
@@ -141,7 +142,7 @@ namespace
   Graph_type
   basic_graph()
   {
-    using content_in = network_butcher_types::Content<Input>;
+    using content_in = types::Content<Input>;
 
     std::vector<Node_type> nodes;
 
@@ -153,7 +154,7 @@ namespace
     nodes.emplace_back(content_in({{"X2", 2}, {"X4", 4}}, {{"X5", 5}}));
     nodes.emplace_back(content_in({{"X5", 5}}, {{"X6", 6}}));
 
-    network_butcher_types::WGraph<Content_input> graph(nodes);
+    types::WGraph<Content_input> graph(nodes);
 
     graph.set_weight({0, 1}, 4);
     graph.set_weight({0, 2}, 1);
@@ -175,7 +176,7 @@ namespace
   Graph_type
   eppstein_graph()
   {
-    using content_in = network_butcher_types::Content<Input>;
+    using content_in = types::Content<Input>;
     std::vector<Node_type> nodes;
 
     nodes.emplace_back(content_in({}, {{"X0", 0}}));
@@ -197,7 +198,7 @@ namespace
                        {{"X" + std::to_string(i), i}}));
       }
 
-    network_butcher_types::WGraph<Content_input> graph(std::move(nodes));
+    types::WGraph<Content_input> graph(std::move(nodes));
 
     graph.set_weight({0, 1}, 2);
     graph.set_weight({1, 2}, 20);
@@ -223,20 +224,22 @@ namespace
   TestGraph<basic_type>
   test_graph()
   {
-    using content_in = network_butcher_types::Content<Input>;
+    using content_in = types::Content<Input>;
 
     auto const built_graph = eppstein_graph();
 
-    TestGraph<basic_type>  res;
-    auto &nodes = res.nodes;
-    auto &dependencies = res.dependencies;
-    auto &weights = res.map_weight;
+    TestGraph<basic_type> res;
+    auto                 &nodes        = res.nodes;
+    auto                 &dependencies = res.dependencies;
+    auto                 &weights      = res.map_weight;
 
-    for(auto const &node : built_graph.get_nodes()) {
+    for (auto const &node : built_graph.get_nodes())
+      {
         nodes.push_back({node.get_id(), 90});
       }
 
-    for(std::size_t i = 0; i < built_graph.get_neighbors().size(); ++i) {
+    for (std::size_t i = 0; i < built_graph.get_neighbors().size(); ++i)
+      {
         dependencies[i] = built_graph.get_neighbors()[i];
       }
 

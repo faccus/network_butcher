@@ -9,8 +9,10 @@
 #include "Node_traits.h"
 
 
-namespace {
-  using namespace network_butcher_types;
+namespace
+{
+  using namespace network_butcher;
+  using namespace network_butcher::types;
 
   TEST(NodeTests, Conctructor)
   {
@@ -26,4 +28,4 @@ namespace {
   {
     ASSERT_TRUE(std::is_move_assignable_v<node_type>);
   }
-}
+} // namespace

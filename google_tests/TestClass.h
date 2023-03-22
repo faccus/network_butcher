@@ -21,7 +21,7 @@ public:
   TestMemoryUsage &
   operator=(const TestMemoryUsage &) = default;
 
-  memory_type
+  network_butcher::memory_type
   compute_memory_usage() const
   {
     return data.size() * sizeof(T);

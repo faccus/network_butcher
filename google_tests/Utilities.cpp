@@ -5,6 +5,8 @@
 #include <gtest/gtest.h>
 
 namespace {
+  using namespace network_butcher;
+
   TEST(UtilitiesTestSuit, VerifyProtobufVersionTest) {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
   }
@@ -32,7 +34,8 @@ namespace {
     if (Utilities::file_exists(model_path_copy))
       std::filesystem::remove(model_path_copy);
 
-    Utilities::output_onnx_file(Utilities::parse_onnx_file(model_path), model_path_copy);
+    Utilities::output_onnx_file(Utilities::parse_onnx_file(model_path),
+                                                 model_path_copy);
 
     EXPECT_TRUE(Utilities::file_exists(model_path_copy));
     std::filesystem::remove(model_path_copy);
