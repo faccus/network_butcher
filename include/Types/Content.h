@@ -17,7 +17,8 @@ namespace network_butcher_types
   class Content
   {
   public:
-    using io_collection = io_collection_type<T>;
+    using io_collection        = io_collection_type<T>;
+    using attribute_collection = std::unordered_map<std::string, DynamicType>;
 
   private:
     /// @brief Collection of the ids of inputs of the node
@@ -30,15 +31,12 @@ namespace network_butcher_types
     io_collection parameters;
 
     /// @brief Collection of the attributes of the node
-    std::unordered_map<std::string, DynamicType> attributes;
+    attribute_collection attributes;
 
     /// @brief The operation id (name)
     std::string operation_id;
 
   public:
-    // Create a generic make_content function that takes as an input an arbitrary number of arguments and returns a
-    // Content<T> object
-
     /// @brief Generic make content class (only usable if T has default constructor)
     /// @tparam Arg The parameters
     /// @param arg The input parameters (if some of the fields are not provided, they are default initialized)
@@ -51,17 +49,17 @@ namespace network_butcher_types
     }
 
     /// @brief Generic make content class (only usable if T has default constructor)
-    Content(
-      io_collection                                &&in             = io_collection(),
-      io_collection                                &&out            = io_collection(),
-      io_collection                                &&params         = io_collection(),
-      std::unordered_map<std::string, DynamicType> &&in_attributes  = std::unordered_map<std::string, DynamicType>(),
-      std::string                                  &&operation_name = "")
-      : input(std::forward<io_collection>(in))
-      , output(std::forward<io_collection>(out))
-      , parameters(std::forward<io_collection>(params))
-      , attributes(std::forward<std::unordered_map<std::string, DynamicType>>(in_attributes))
-      , operation_id(std::forward<std::string>(operation_name))
+    template <typename A = io_collection, typename B = attribute_collection, typename C = std::string>
+    Content(A &&in             = io_collection(),
+            A &&out            = io_collection(),
+            A &&params         = io_collection(),
+            B &&in_attributes  = attribute_collection(),
+            C &&operation_name = "")
+      : input(std::forward<A>(in))
+      , output(std::forward<A>(out))
+      , parameters(std::forward<A>(params))
+      , attributes(std::forward<B>(in_attributes))
+      , operation_id(std::forward<C>(operation_name))
     {}
 
 
@@ -94,7 +92,7 @@ namespace network_butcher_types
 
     /// @brief Read-only getter for attributes
     /// @return Const reference to attributes
-    inline const std::unordered_map<std::string, DynamicType> &
+    inline const attribute_collection &
     get_attributes() const
     {
       return attributes;
