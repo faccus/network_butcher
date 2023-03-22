@@ -14,6 +14,8 @@
 
 #include "Content.h"
 #include "Node.h"
+
+#include "Graph_dev_traits.h"
 #include "Node_traits.h"
 
 namespace network_butcher_types
@@ -24,9 +26,9 @@ namespace network_butcher_types
   class Graph
   {
   public:
-    using Node_Type            = Node<T>;
-    using Dependencies_Type    = std::vector<std::pair<node_id_collection_type, node_id_collection_type>>;
-    using Node_Collection_Type = std::vector<Node_Type>;
+    using Dependencies_Type    = network_butcher_types::Dependencies_Type;
+    using Node_Type            = network_butcher_types::Node_Type<T>;
+    using Node_Collection_Type = network_butcher_types::Node_Collection_Type<T>;
     using Node_Internal_Type   = T;
 
 
@@ -211,11 +213,11 @@ namespace network_butcher_types
   class Graph<Content<T>>
   {
   public:
-    using Dependencies_Type    = std::vector<std::pair<node_id_collection_type, node_id_collection_type>>;
-    using Node_Type            = Node<Content<T>>;
-    using Node_Collection_Type = std::vector<Node_Type>;
-    using Node_Content_Type    = Content<T>;
+    using Dependencies_Type    = network_butcher_types::Dependencies_Type;
+    using Node_Type            = network_butcher_types::Node_Type<Content<T>>;
+    using Node_Collection_Type = network_butcher_types::Node_Collection_Type<Content<T>>;
     using Node_Internal_Type   = T;
+    using Node_Content_Type    = Content<T>;
 
 
     Graph() = default;

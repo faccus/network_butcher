@@ -19,9 +19,12 @@ namespace network_butcher_types
     using Parent_type = MWGraph<T>;
 
   public:
-    using Node_Type = typename Parent_type::Node_Type;
+    using Dependencies_Type    = network_butcher_types::Dependencies_Type;
+    using Node_Type            = network_butcher_types::Node_Type<T>;
+    using Node_Collection_Type = network_butcher_types::Node_Collection_Type<T>;
+    using Node_Internal_Type   = T;
 
-    WGraph()               = default;
+    WGraph()               = delete;
     WGraph(WGraph const &) = default;
     WGraph &
     operator=(WGraph const &) = default;
@@ -61,9 +64,13 @@ namespace network_butcher_types
     using Parent_type = MWGraph<Content<T>>;
 
   public:
-    using Node_Type = typename Parent_type::Node_Type;
+    using Dependencies_Type    = network_butcher_types::Dependencies_Type;
+    using Node_Type            = network_butcher_types::Node_Type<Content<T>>;
+    using Node_Collection_Type = network_butcher_types::Node_Collection_Type<Content<T>>;
+    using Node_Internal_Type   = T;
+    using Node_Content_Type    = Content<T>;
 
-    WGraph()               = default;
+    WGraph()               = delete;
     WGraph(WGraph const &) = default;
     WGraph &
     operator=(WGraph const &) = default;

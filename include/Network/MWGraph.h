@@ -23,9 +23,12 @@ namespace network_butcher_types
     std::vector<weights_collection_type> weigth_map;
 
   public:
-    using Node_Type = typename Parent_type::Node_Type;
+    using Dependencies_Type    = network_butcher_types::Dependencies_Type;
+    using Node_Type            = network_butcher_types::Node_Type<T>;
+    using Node_Collection_Type = network_butcher_types::Node_Collection_Type<T>;
+    using Node_Internal_Type   = T;
 
-    MWGraph()                = default;
+    MWGraph()                = delete;
     MWGraph(MWGraph const &) = default;
     MWGraph &
     operator=(MWGraph const &) = default;
@@ -34,10 +37,8 @@ namespace network_butcher_types
     MWGraph &
     operator=(MWGraph &&) = default;
 
-    explicit MWGraph(std::size_t                                                              num_maps,
-                     std::vector<Node<T>>                                                     v,
-                     std::vector<std::pair<node_id_collection_type, node_id_collection_type>> dep = {})
-      : Graph<T>(v, dep)
+    explicit MWGraph(std::size_t num_maps, Node_Collection_Type v, Dependencies_Type dep = {})
+      : Parent_type(v, dep)
       , weigth_map{}
     {
       weigth_map.resize(num_maps);
@@ -88,9 +89,13 @@ namespace network_butcher_types
     std::vector<weights_collection_type> weigth_map;
 
   public:
-    using Node_Type = typename Parent_type::Node_Type;
+    using Dependencies_Type    = network_butcher_types::Dependencies_Type;
+    using Node_Type            = network_butcher_types::Node_Type<Content<T>>;
+    using Node_Collection_Type = network_butcher_types::Node_Collection_Type<Content<T>>;
+    using Node_Internal_Type   = T;
+    using Node_Content_Type    = Content<T>;
 
-    MWGraph()                = default;
+    MWGraph()                = delete;
     MWGraph(MWGraph const &) = default;
     MWGraph &
     operator=(MWGraph const &) = default;
@@ -99,24 +104,22 @@ namespace network_butcher_types
     MWGraph &
     operator=(MWGraph &&) = default;
 
-    explicit MWGraph(std::size_t                                                              num_maps,
-                     std::vector<Node<Content<T>>>                                            v,
-                     std::vector<std::pair<node_id_collection_type, node_id_collection_type>> dep)
-      : Graph<Content<T>>(v, dep)
+    explicit MWGraph(std::size_t num_maps, Node_Collection_Type v, Dependencies_Type dep)
+      : Parent_type(v, dep)
       , weigth_map{}
     {
       weigth_map.resize(num_maps);
     }
 
-    explicit MWGraph(std::size_t num_maps, std::vector<Node_Type> const &v)
-      : Graph<Content<T>>(v)
+    explicit MWGraph(std::size_t num_maps, Node_Collection_Type const &v)
+      : Parent_type(v)
       , weigth_map{}
     {
       weigth_map.resize(num_maps);
     }
 
-    explicit MWGraph(std::size_t num_maps, std::vector<Node_Type> &&v)
-      : Graph<Content<T>>(std::move(v))
+    explicit MWGraph(std::size_t num_maps, Node_Collection_Type &&v)
+      : Parent_type(std::move(v))
       , weigth_map{}
     {
       weigth_map.resize(num_maps);
