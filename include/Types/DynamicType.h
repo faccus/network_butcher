@@ -10,6 +10,7 @@
 
 namespace network_butcher_types
 {
+  /// @brief A simple "helper" type used to store either an int, a float, a string or a collection of the previous
   class DynamicType
   {
   private:
