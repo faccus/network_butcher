@@ -23,8 +23,8 @@
 namespace network_butcher
 {
 
-  /// @brief  Butcher butchers a given graph into slices
-  /// @tparam GraphType The type of the graph
+  /// Butcher butchers a given graph into slices
+  /// \tparam GraphType The type of the graph
   template <class GraphType>
   class Butcher
   {
@@ -38,23 +38,23 @@ namespace network_butcher
     network graph;
 
 
-    /// @brief It will produce a linearized version of the current graph (with multiple devices)
-    /// @param backward_connections_allowed Allow backward connections between devices (i.e. data can be sent from device 2 to device 1)
-    /// @param graph_in_device Input device id
-    /// @param graph_out_device Output device id
-    /// @return The linearized graph (with multiple devices) and the map that associated every node id of the original graph to the respective node id of the "new" graph
+    /// It will produce a linearized version of the current graph (with multiple devices)
+    /// \param backward_connections_allowed Allow backward connections between devices (i.e. data can be sent from device 2 to device 1)
+    /// \param graph_in_device Input device id
+    /// \param graph_out_device Output device id
+    /// \return The linearized graph (with multiple devices) and the map that associated every node id of the original graph to the respective node id of the "new" graph
     [[nodiscard]] std::pair<new_network, std::map<node_id_type, node_id_type>>
     block_graph(bool backward_connections_allowed, std::size_t graph_in_device, std::size_t graph_out_device) const;
 
 
-    /// @brief Helper function used to estimate the memory usage of a group of nodes
-    /// @param devices The devices
-    /// @param constraint_type The type of the memory constraint
-    /// @param ids The set of nodes to "analyze"
-    /// @param input_memory The memory usage of all input nodes
-    /// @param output_memory The memory usage of all output nodes
-    /// @param params_memory The memory usage of all parameters nodes
-    /// @return The pair of maximum memory of ios and of memory of parameters
+    /// Helper function used to estimate the memory usage of a group of nodes
+    /// \param devices The devices
+    /// \param constraint_type The type of the memory constraint
+    /// \param ids The set of nodes to "analyze"
+    /// \param input_memory The memory usage of all input nodes
+    /// \param output_memory The memory usage of all output nodes
+    /// \param params_memory The memory usage of all parameters nodes
+    /// \return The pair of maximum memory of ios and of memory of parameters
     [[nodiscard]] std::tuple<memory_type, memory_type>
     estimate_maximum_memory_usage(std::vector<network_butcher::parameters::Device> const &devices,
                                   network_butcher::parameters::Memory_Constraint_Type     constraint_type,
@@ -64,29 +64,29 @@ namespace network_butcher
                                   std::vector<memory_type> const                         &params_memory) const;
 
 
-    /// @brief Removes the "unfeasible" paths due to memory constraints
-    /// @param devices The set of devices
-    /// @param new_graph The linearized graph
-    /// @param constraint_type The memory constraint
+    /// Removes the "unfeasible" paths due to memory constraints
+    /// \param devices The set of devices
+    /// \param new_graph The linearized graph
+    /// \param constraint_type The memory constraint
     void
     remove_unfeasible_paths(std::vector<network_butcher::parameters::Device> const &devices,
                             new_network                                            &new_graph,
                             network_butcher::parameters::Memory_Constraint_Type     constraint_type) const;
 
 
-    /// @brief Given the current graph and the original weight function, it will produce the weights for the linearized graph
-    /// @param new_graph The linearized graph (result of block_graph)
-    /// @param transmission_weights They are used when we are switching from a device to another. The node is the source while the two size_t are the input and output device ids
+    /// Given the current graph and the original weight function, it will produce the weights for the linearized graph
+    /// \param new_graph The linearized graph (result of block_graph)
+    /// \param transmission_weights They are used when we are switching from a device to another. The node is the source while the two size_t are the input and output device ids
     void
     block_graph_weights(
       new_network                                                                      &new_graph,
       std::function<weight_type(node_id_type const &, std::size_t, std::size_t)> const &transmission_weights) const;
 
 
-    /// @brief Given the current graph and the original weight function, it will produce the weights for the linearized graph
-    /// @param new_graph The linearized graph (result of block_graph)
-    /// @param params The parameters
-    /// @param transmission_weights They are used when we are switching from a device to another. The node is the source while the two size_t are the input and output device ids
+    /// Given the current graph and the original weight function, it will produce the weights for the linearized graph
+    /// \param new_graph The linearized graph (result of block_graph)
+    /// \param params The parameters
+    /// \param transmission_weights They are used when we are switching from a device to another. The node is the source while the two size_t are the input and output device ids
     void
     block_graph_weights(
       new_network                                                                      &new_graph,
@@ -94,34 +94,34 @@ namespace network_butcher
       const std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> &transmission_weights) const;
 
 
-    /// @brief It will produce the set of nodes associated to a given device
-    /// @param new_path The path
-    /// @param new_graph The linearized graph
-    /// @return The "real" path
+    /// It will produce the set of nodes associated to a given device
+    /// \param new_path The path
+    /// \param new_graph The linearized graph
+    /// \return The "real" path
     [[nodiscard]] network_butcher::types::Real_Path
     get_network_slices(path_info const &new_path, new_network const &new_graph) const;
 
 
-    /// @brief It will produce the set of nodes associated to a given device for every new_path
-    /// @param new_paths The collection of paths
-    /// @param new_graph The linearized graph
-    /// @return The "real" path
+    /// It will produce the set of nodes associated to a given device for every new_path
+    /// \param new_paths The collection of paths
+    /// \param new_graph The linearized graph
+    /// \return The "real" path
     [[nodiscard]] std::vector<network_butcher::types::Real_Path>
     get_network_slices(std::vector<path_info> const &new_paths, new_network const &new_graph) const;
 
 
-    /// @brief It will produce the set of nodes associated to a given device for every new_path with the associated path weight
-    /// @param new_paths The collection of paths
-    /// @param new_graph The linearized graph
-    /// @return The "real" weighted paths
+    /// It will produce the set of nodes associated to a given device for every new_path with the associated path weight
+    /// \param new_paths The collection of paths
+    /// \param new_graph The linearized graph
+    /// \return The "real" weighted paths
     [[nodiscard]] network_butcher::types::Weighted_Real_Paths
     get_weighted_network_slice(std::vector<path_info> const &new_paths, new_network const &new_graph) const;
 
 
-    /// @brief It will produce the set of nodes associated to a given device for every new_path with the associated path weight
-    /// @param new_paths The collection of paths
-    /// @param network_slice The network slices
-    /// @return The "real" weighted paths
+    /// It will produce the set of nodes associated to a given device for every new_path with the associated path weight
+    /// \param new_paths The collection of paths
+    /// \param network_slice The network slices
+    /// \return The "real" weighted paths
     [[nodiscard]] network_butcher::types::Weighted_Real_Paths
     get_weighted_network_slice(
       std::vector<path_info> const                                              &new_paths,
@@ -147,8 +147,8 @@ namespace network_butcher
     operator=(Butcher &&d) = default;
 
 
-    /// @brief Basic getter for graph
-    /// @return The graph (const reference)
+    /// Basic getter for graph
+    /// \return The graph (const reference)
     network const &
     get_graph() const
     {
@@ -156,8 +156,8 @@ namespace network_butcher
     }
 
 
-    /// @brief Basic getter (though simple reference) for graph
-    /// @return Reference to the graph
+    /// Basic getter (though simple reference) for graph
+    /// \return Reference to the graph
     network &
     get_graph_ref()
     {
@@ -165,10 +165,10 @@ namespace network_butcher
     }
 
 
-    /// @brief Computes the k shortest paths for the given graph
-    /// @param transmission_weights The transmission weight function
-    /// @param params The set of parameters
-    /// @return The set of "best" paths
+    /// Computes the k shortest paths for the given graph
+    /// \param transmission_weights The transmission weight function
+    /// \param params The set of parameters
+    /// \return The set of "best" paths
     network_butcher::types::Weighted_Real_Paths
     compute_k_shortest_path(
       std::function<weight_type(node_id_type const &, std::size_t, std::size_t)> const &transmission_weights,

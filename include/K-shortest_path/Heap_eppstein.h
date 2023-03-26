@@ -15,6 +15,7 @@ namespace network_butcher
 {
   namespace kfinder
   {
+    /// Simple struct used to store some edge information
     struct edge_info
     {
       std::shared_ptr<edge_type> edge;
@@ -44,6 +45,8 @@ namespace network_butcher
     };
 
 
+    /// Generic class to represent a (binary) Heap. It's implemented through a std::set
+    /// \tparam T The stored type
     template <class T>
     class Heap
     {
@@ -61,7 +64,9 @@ namespace network_butcher
       {}
     };
 
-
+    /// Generic class used to represent an H_out, a data structure similar to an heap: it's made by a node followed by
+    /// an heap. The nodes are ordered with the same criteria as in the heap.
+    /// \tparam T The stored type
     template <class T = edge_info>
     class H_out
     {

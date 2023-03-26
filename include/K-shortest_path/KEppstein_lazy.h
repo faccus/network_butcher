@@ -20,7 +20,11 @@ namespace network_butcher
     private:
       using base = KFinder<Graph_type>;
 
-
+      /// Simple function that will look for the H_g corresponding to the given node
+      /// \param h_g The H_g collections
+      /// \param node The node
+      /// \return A pair: a boolean that is true if the relevant H_g is found and the relevant iterator to the
+      /// relevant H_g
       std::pair<bool, H_g_collection::iterator>
       find_h_g_in_map(H_g_collection &h_g, node_id_type node) const;
 
@@ -37,15 +41,13 @@ namespace network_butcher
                               std::vector<node_id_type> const &successors,
                               node_id_type                     node) const;
 
-      /// It will add to the h_g map the h_g associated to the current node. It
-      /// will also update the edge_edges map (that associated every edge to its
-      /// children)
+      /// It will add to the h_g map the h_g associated to the current node. It will also update the edge_edges map
+      /// (that associated every edge to its children)
       /// \param h_g The h_g map
       /// \param h_out The h_out map
       /// \param sidetrack_distances The sidetrack distances
       /// \param successors The successor collection
       /// \param node The node associated to the h_out to construct
-      /// \param edge_edges The edge_edges map
       /// \return The iterator to the added element
       H_g_collection::iterator
       construct_partial_h_g(H_g_collection                  &h_g,
@@ -55,7 +57,6 @@ namespace network_butcher
                             node_id_type                     node) const;
 
       /// The basic function for the lazy Eppstein algorithm
-      /// \param weights The weights of the edges
       /// \param K The number of shortest paths
       /// \param dij_res The result of dijkstra
       /// \return The (implicit) k shortest paths
@@ -165,10 +166,8 @@ namespace network_butcher
           return inserted_h_g;
         }
 
-      auto const successor = successors[node];
-
       // Construct the H_g of the successor of node in the shortest path
-      auto previous_inserted_h_g = construct_partial_h_g(h_g, h_out, sidetrack_distances, successors, successor);
+      auto previous_inserted_h_g = construct_partial_h_g(h_g, h_out, sidetrack_distances, successors, successors[node]);
 
       // Prepare a new H_g
       auto inserted_h_g             = h_g.emplace(node, previous_inserted_h_g->second);

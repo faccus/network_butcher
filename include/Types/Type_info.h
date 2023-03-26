@@ -15,17 +15,17 @@ namespace network_butcher
 
   namespace types
   {
-    /// @brief Generic type contained in a onnx model (only type info, no values are actually stored)
+    /// Generic type contained in a onnx model (only type info, no values are actually stored)
     class Type_info
     {
     protected:
-      /// @brief Name of the type
+      /// Name of the type
       std::string name;
 
-      /// @brief Is the value of this type given by the network?
+      /// Is the value of this type given by the network?
       bool t_initialized;
 
-      /// @brief Is it constant?
+      /// Is it constant?
       bool constant;
 
     public:
@@ -38,8 +38,8 @@ namespace network_butcher
       {}
 
 
-      /// @brief Get the name of the type
-      /// @return The name
+      /// Get the name of the type
+      /// \return The name
       std::string
       get_name()
       {
@@ -47,8 +47,8 @@ namespace network_butcher
       }
 
 
-      /// @brief Get if the value of this type is given by the network
-      /// @return True if it has been already initialized
+      /// Get if the value of this type is given by the network
+      /// \return True if it has been already initialized
       bool
       initialized()
       {
@@ -56,25 +56,25 @@ namespace network_butcher
       }
 
 
-      /// @brief Virtual method to compute the total memory of the type
-      /// @return Memory usage of the associated type
+      /// Virtual method to compute the total memory of the type
+      /// \return Memory usage of the associated type
       virtual memory_type
       compute_memory_usage() const = 0;
 
 
-      /// @brief Basic getter for shape
-      /// @return The shape
+      /// Basic getter for shape
+      /// \return The shape
       virtual std::vector<shape_type> const &
       get_shape() const = 0;
 
 
-      /// @brief Compute the number of elements in the tensor
-      /// @return The number of elements in the tensor
+      /// Compute the number of elements in the tensor
+      /// \return The number of elements in the tensor
       virtual shape_type
       compute_shape_volume() const = 0;
 
 
-      /// @brief Default deconstructor
+      /// Default deconstructor
       virtual ~Type_info() = default;
     };
   } // namespace types

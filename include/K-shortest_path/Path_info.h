@@ -13,6 +13,7 @@ namespace network_butcher
   {
     using edge_pointer = std::shared_ptr<edge_type>;
 
+    /// Simple struct to represent an explicit path
     struct path_info
     {
       weight_type               length;
@@ -25,6 +26,7 @@ namespace network_butcher
       }
     };
 
+    /// Simple struct to represent an implicit path
     struct implicit_path_info
     {
       std::vector<edge_pointer> sidetracks;
@@ -50,6 +52,7 @@ namespace network_butcher
       }
     };
 
+    /// The output type of the Dijkstra algorithm
     using dijkstra_result_type = std::pair<std::vector<node_id_type>, std::vector<weight_type>>;
   } // namespace kfinder
 

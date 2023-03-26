@@ -12,6 +12,10 @@ namespace network_butcher
 {
   namespace kfinder
   {
+    /// Interface class for a Weighted Graph
+    /// \tparam Base_Weighted_Graph The class of the weighted graph to represent
+    /// \tparam Node_Type The type of a Node of the weight graph
+    /// \tparam Node_Collection_Type The type of the collection containing the nodes of the graph
     template <class Base_Weighted_Graph,
               class Node_Type            = typename Base_Weighted_Graph::Node_Type,
               class Node_Collection_Type = typename Base_Weighted_Graph::Node_Collection_Type>

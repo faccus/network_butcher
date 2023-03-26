@@ -11,7 +11,7 @@ namespace network_butcher
 {
   namespace parameters
   {
-    /// @brief Enumerator for the weight import modes
+    /// Enumerator for the weight import modes
     enum Weight_Import_Mode
     {
       single_direct_read,
@@ -20,33 +20,33 @@ namespace network_butcher
       aMLLibrary_inference_block
     };
 
-    /// @brief Collection of parameters for a device
+    /// Collection of parameters for a device
     struct Device
     {
-      /// @brief Device id
+      /// Device id
       std::size_t id;
 
-      /// @brief Device name
+      /// Device name
       std::string name;
 
-      /// @brief Maximum memory capacity (in bytes)
+      /// Maximum memory capacity (in bytes)
       memory_type maximum_memory;
 
-      /// @brief The .csv file of weights
+      /// The .csv file of weights
       std::string weights_path;
 
-      /// @brief The column of the .csv file containing the weights
+      /// The column of the .csv file containing the weights
       std::string relevant_entry;
     };
 
-    /// @brief Enumerator for the different KSP methods
+    /// Enumerator for the different KSP methods
     enum KSP_Method
     {
       Eppstein,
       Lazy_Eppstein
     };
 
-    /// @brief The memory constraints possibilities
+    /// The memory constraints possibilities
     enum Memory_Constraint_Type
     {
       None,
@@ -54,67 +54,67 @@ namespace network_butcher
       Preload_Parameters
     };
 
-    /// @brief The collection of parameters
+    /// The collection of parameters
     struct Parameters
     {
-      /// @brief The model name
+      /// The model name
       std::string model_name;
 
-      /// @brief The model path
+      /// The model path
       std::string model_path;
 
-      /// @brief The export directory
+      /// The export directory
       std::string export_directory;
 
-      /// @brief The temporary directory
+      /// The temporary directory
       std::string temporary_directory;
 
-      /// @brief The (absolute) path to the onnx_tool package (if not default)
+      /// The (absolute) path to the onnx_tool package (if not default)
       std::vector<std::string> extra_packages_location;
 
-      /// @brief The number of paths to return
+      /// The number of paths to return
       std::size_t K;
 
-      /// @brief The KSP method
+      /// The KSP method
       KSP_Method method;
 
-      /// @brief Starting device
+      /// Starting device
       std::size_t starting_device_id;
 
-      /// @brief End device
+      /// End device
       std::size_t ending_device_id;
 
-      /// @brief Are backward collection allowed? (i.e. can device j send data to device k with j>k?)
+      /// Are backward collection allowed? (i.e. can device j send data to device k with j>k?)
       bool backward_connections_allowed;
 
-      /// @brief Mode for weight import
+      /// Mode for weight import
       Weight_Import_Mode weight_import_mode;
 
-      /// @brief The variables of the .csv file that aMLLibrary should
+      /// The variables of the .csv file that aMLLibrary should
       std::vector<std::string> aMLLibrary_inference_variables;
 
-      /// @brief The features of the .csv file to feed to aMLLibrary
+      /// The features of the .csv file to feed to aMLLibrary
       std::vector<std::string> aMLLibrary_csv_features;
 
-      /// @brief The path of the .csv file that stores all the weights
+      /// The path of the .csv file that stores all the weights
       std::string single_weight_import_path;
 
-      /// @brief The columns of the .csv file that store the weights
+      /// The columns of the .csv file that store the weights
       std::vector<std::string> single_csv_columns_weights;
 
-      /// @brief The separator
+      /// The separator
       char separator;
 
-      /// @brief Do we have to check for memory constraints?
+      /// Do we have to check for memory constraints?
       bool memory_constraint;
 
-      /// @brief The type of memory constraint
+      /// The type of memory constraint
       Memory_Constraint_Type memory_constraint_type;
 
-      /// @brief The collection of devices
+      /// The collection of devices
       std::vector<Device> devices;
 
-      /// @brief The bandwidth information between the different devices (Mbps - s)
+      /// The bandwidth information between the different devices (Mbps - s)
       std::map<std::pair<std::size_t, std::size_t>, std::pair<bandwidth_type, bandwidth_type>> bandwidth;
     };
   } // namespace parameters

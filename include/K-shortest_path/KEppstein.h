@@ -21,22 +21,20 @@ namespace network_butcher
       using base = KFinder<Graph_type>;
 
 
-      /// Given the successors collection and the sidetrack distances, it will
-      /// construct the h_out map
-      /// \param successors The list of the successors of every node (the node
-      /// following the current one in the shortest path)
-      /// \param sidetrack_distances The collection of the sidetrack distances for
-      /// all the sidetrack edges
+      /// Given the successors collection and the sidetrack distances, it will construct the h_out map
+      /// \param successors The list of the successors of every node (the node following the current one in the
+      /// shortest path)
+      /// \param sidetrack_distances The collection of the sidetrack distances for all the sidetrack edges
       /// \return H_out map
       [[nodiscard]] H_out_collection
       construct_h_out(std::vector<node_id_type> const &successors,
                       weights_collection_type const   &sidetrack_distances) const;
 
 
-      /// It will produce the map associating every node to its corresponding H_g
-      /// map \param h_out The collection of h_outs \param successors The
-      /// successors list \return The map associating every node to its
-      /// corresponding H_g map
+      /// It will produce the map associating every node to its corresponding H_g map
+      /// \param h_out The collection of h_outs
+      /// \param successors The successors list
+      /// \return The map associating every node to its corresponding H_g map
       [[nodiscard]] H_g_collection
       construct_h_g(H_out_collection const &h_out, std::vector<node_id_type> const &successors) const;
 
@@ -188,7 +186,7 @@ namespace network_butcher
     {
       auto const &graph = base::graph;
 
-      auto const sidetrack_distances_res = base::sidetrack_distances(dij_res.second);                     // O(E)
+      auto const sidetrack_distances_res = base::sidetrack_distances(dij_res.second); // O(E)
       auto const shortest_path           = Shortest_path_finder::shortest_path_finder(graph, dij_res, 0); // O(N)
 
       auto const &successors          = dij_res.first;

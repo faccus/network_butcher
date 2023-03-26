@@ -120,6 +120,8 @@ namespace network_butcher
   namespace kfinder
   {
 
+    /// (Partial) Specialization of Weighted_Graph
+    /// \tparam T The internal type of WGraph
     template <class T>
     class Weighted_Graph<network_butcher::types::WGraph<T>>
     {

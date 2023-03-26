@@ -47,6 +47,7 @@ namespace types
     /// Node content
     Content_Type content;
 
+    /// Name of the node
     std::string name;
 
 

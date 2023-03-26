@@ -13,8 +13,8 @@ namespace network_butcher
 {
   namespace types
   {
-    /// @brief A simple class to store the content of an onnx layer
-    /// @tparam T The tensor type
+    /// A simple class to store the content of an onnx layer
+    /// \tparam T The tensor type
     template <class T>
     class Content
     {
@@ -23,26 +23,26 @@ namespace network_butcher
       using attribute_collection = std::unordered_map<std::string, DynamicType>;
 
     private:
-      /// @brief Collection of the ids of inputs of the node
+      /// Collection of the ids of inputs of the node
       io_collection input;
 
-      /// @brief Collection of the ids of outputs of the node
+      /// Collection of the ids of outputs of the node
       io_collection output;
 
-      /// @brief Collection of the ids of parameters of the node
+      /// Collection of the ids of parameters of the node
       io_collection parameters;
 
-      /// @brief Collection of the attributes of the node
+      /// Collection of the attributes of the node
       attribute_collection attributes;
 
-      /// @brief The operation id (name)
+      /// The operation id (name)
       std::string operation_id;
 
     public:
-      /// @brief Generic make content class (only usable if T has default constructor)
-      /// @tparam Arg The parameters
-      /// @param arg The input parameters (if some of the fields are not provided, they are default initialized)
-      /// @return The Content<T>
+      /// Generic make content class (only usable if T has default constructor)
+      /// \tparam Arg The parameters
+      /// \param arg The input parameters (if some of the fields are not provided, they are default initialized)
+      /// \return The Content<T>
       template <typename... Arg>
       static Content<T>
       make_content(Arg &&...arg)
@@ -50,7 +50,7 @@ namespace network_butcher
         return Content<T>(std::forward<Arg>(arg)...);
       }
 
-      /// @brief Generic make content class (only usable if T has default constructor)
+      /// Generic make content class (only usable if T has default constructor)
       template <typename A = io_collection, typename B = attribute_collection, typename C = std::string>
       Content(A &&in             = io_collection(),
               A &&out            = io_collection(),
@@ -65,8 +65,8 @@ namespace network_butcher
       {}
 
 
-      /// @brief Read-only getter for input
-      /// @return Const reference to input
+      /// Read-only getter for input
+      /// \return Const reference to input
       inline const io_collection &
       get_input() const
       {
@@ -74,8 +74,8 @@ namespace network_butcher
       }
 
 
-      /// @brief Read-only getter for output
-      /// @return Const reference to output
+      /// Read-only getter for output
+      /// \return Const reference to output
       inline const io_collection &
       get_output() const
       {
@@ -83,8 +83,8 @@ namespace network_butcher
       }
 
 
-      /// @brief Read-only getter for parameters
-      /// @return Const reference to parameters
+      /// Read-only getter for parameters
+      /// \return Const reference to parameters
       inline const io_collection &
       get_parameters() const
       {
@@ -92,8 +92,8 @@ namespace network_butcher
       }
 
 
-      /// @brief Read-only getter for attributes
-      /// @return Const reference to attributes
+      /// Read-only getter for attributes
+      /// \return Const reference to attributes
       inline const attribute_collection &
       get_attributes() const
       {
@@ -101,8 +101,8 @@ namespace network_butcher
       }
 
 
-      /// @brief Read-only getter for operation id
-      /// @return Const reference to operation id
+      /// Read-only getter for operation id
+      /// \return Const reference to operation id
       inline const std::string &
       get_operation_id() const
       {

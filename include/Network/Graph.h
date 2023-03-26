@@ -22,8 +22,8 @@ namespace network_butcher
 {
   namespace types
   {
-    /// @brief Just another graph class...
-    /// @tparam T Type of the content of the nodes
+    /// \brief Just another graph class...
+    /// \tparam T Type of the content of the nodes
     template <typename T>
     class Graph
     {
@@ -48,9 +48,9 @@ namespace network_butcher
       operator=(Graph &&) = default;
 
 
-      /// @brief Construct a new Graph object
-      /// @param v The collection of nodes ordered in an ascending order based on the id. To work with butcher, the nodes must be sorted in topological order, according to the Onnx IR specifications.
-      /// @param dep Node dependencies (input and outputs of every node)
+      /// Construct a new Graph object
+      /// \param v The collection of nodes ordered in an ascending order based on the id. To work with butcher, the nodes must be sorted in topological order, according to the Onnx IR specifications.
+      /// \param dep Node dependencies (input and outputs of every node)
       template <typename A, typename B>
       explicit Graph(A &&v, B &&dep = {})
         : nodes(std::forward<A>(v))
@@ -61,8 +61,8 @@ namespace network_butcher
       }
 
 
-      /// @brief Get the nodes collection
-      /// @return The vector of nodes
+      /// Get the nodes collection
+      /// \return The vector of nodes
       inline const Node_Collection_Type &
       get_nodes() const
       {
@@ -70,8 +70,8 @@ namespace network_butcher
       }
 
 
-      /// @brief Get the nodes collection (reference)
-      /// @return The vector of nodes (reference)
+      /// Get the nodes collection (reference)
+      /// \return The vector of nodes (reference)
       inline Node_Collection_Type &
       get_nodes_ref() const
       {
@@ -79,8 +79,8 @@ namespace network_butcher
       }
 
 
-      /// @brief Get the dependencies
-      /// @return The dependencies
+      /// Get the dependencies
+      /// \return The dependencies
       [[nodiscard]] inline const Dependencies_Type &
       get_neighbors() const
       {
@@ -88,8 +88,8 @@ namespace network_butcher
       }
 
 
-      /// @brief Get the dependencies (reference)
-      /// @return The dependencies (reference)
+      /// Get the dependencies (reference)
+      /// \return The dependencies (reference)
       [[nodiscard]] inline Dependencies_Type &
       get_neighbors_ref()
       {
@@ -97,8 +97,8 @@ namespace network_butcher
       }
 
 
-      /// @brief Get the number of nodes
-      /// @return The number of nodes
+      /// Get the number of nodes
+      /// \return The number of nodes
       [[nodiscard]] inline const std::size_t
       size() const
       {
@@ -106,8 +106,8 @@ namespace network_butcher
       }
 
 
-      /// @brief Checks if the graph is empty
-      /// @return True if there are no stored nodes
+      /// Checks if the graph is empty
+      /// \return True if there are no stored nodes
       [[nodiscard]] inline const std::size_t
       empty() const
       {
@@ -115,9 +115,9 @@ namespace network_butcher
       }
 
 
-      /// @brief Get the node with the given id
-      /// @param id The id of the node
-      /// @return The node
+      /// Get the node with the given id
+      /// \param id The id of the node
+      /// \return The node
       Node_Type const &
       operator[](int id) const
       {
@@ -125,8 +125,8 @@ namespace network_butcher
       }
 
 
-      /// @brief Get the begin iterator of the nodes collection
-      /// @return The iterator
+      /// Get the begin iterator of the nodes collection
+      /// \return The iterator
       typename Node_Collection_Type::const_iterator
       cbegin() const
       {
@@ -134,8 +134,8 @@ namespace network_butcher
       }
 
 
-      /// @brief Get the end iterator of the nodes collection
-      /// @return The iterator
+      /// Get the end iterator of the nodes collection
+      /// \return The iterator
       typename Node_Collection_Type::const_iterator
       cend() const
       {
@@ -143,8 +143,8 @@ namespace network_butcher
       }
 
 
-      /// @brief It remoces the node with the given id
-      /// @param nodes_to_remove The ids of the nodes to remove
+      /// It remoces the node with the given id
+      /// \param nodes_to_remove The ids of the nodes to remove
       void
       remove_nodes(std::set<node_id_type> const &nodes_to_remove)
       {
@@ -192,7 +192,7 @@ namespace network_butcher
       }
 
 
-      /// @brief It deletes the nodes and dependencies of the graph
+      /// It deletes the nodes and dependencies of the graph
       void
       clear()
       {
@@ -204,10 +204,10 @@ namespace network_butcher
       virtual ~Graph() = default;
 
     protected:
-      /// @brief Vector of all the nodes
+      /// Vector of all the nodes
       Node_Collection_Type nodes;
 
-      /// @brief Vector that contains all the neighbours of every node (first input, then output)
+      /// Vector that contains all the neighbours of every node (first input, then output)
       Dependencies_Type dependencies;
     };
 
@@ -233,9 +233,9 @@ namespace network_butcher
       operator=(Graph &&) = default;
 
 
-      /// @brief Construct a new Graph object
-      /// @param v The collection of nodes ordered in an ascending order based on the id. To work with butcher, the nodes must be sorted in topological order, according to the Onnx IR specifications.
-      /// @param dep Node dependencies (input and outputs of every node)
+      /// Construct a new Graph object
+      /// \param v The collection of nodes ordered in an ascending order based on the id. To work with butcher, the nodes must be sorted in topological order, according to the Onnx IR specifications.
+      /// \param dep Node dependencies (input and outputs of every node)
       template <typename A, typename B>
       explicit Graph(A &&v, B &&dep)
         : nodes(std::forward<A>(v))
@@ -246,8 +246,8 @@ namespace network_butcher
       }
 
 
-      /// @brief Construct a new Graph object
-      /// @param v The collection of nodes ordered in an ascending order based on the id. To work with butcher, the nodes must be sorted in topological order, according to the Onnx IR specifications.
+      /// Construct a new Graph object
+      /// \param v The collection of nodes ordered in an ascending order based on the id. To work with butcher, the nodes must be sorted in topological order, according to the Onnx IR specifications.
       template <typename A>
       explicit Graph(A &&v)
         : nodes(std::forward<A>(v))
@@ -259,8 +259,8 @@ namespace network_butcher
       }
 
 
-      /// @brief Get the nodes collection
-      /// @return The vector of nodes
+      /// Get the nodes collection
+      /// \return The vector of nodes
       inline const Node_Collection_Type &
       get_nodes() const
       {
@@ -268,8 +268,8 @@ namespace network_butcher
       }
 
 
-      /// @brief Get the nodes collection (reference)
-      /// @return The vector of nodes (reference)
+      /// Get the nodes collection (reference)
+      /// \return The vector of nodes (reference)
       inline Node_Collection_Type &
       get_nodes_ref() const
       {
@@ -277,8 +277,8 @@ namespace network_butcher
       }
 
 
-      /// @brief Get the dependencies
-      /// @return The dependencies
+      /// Get the dependencies
+      /// \return The dependencies
       [[nodiscard]] inline const Dependencies_Type &
       get_neighbors() const
       {
@@ -286,8 +286,8 @@ namespace network_butcher
       }
 
 
-      /// @brief Get the dependencies (reference)
-      /// @return The dependencies (reference)
+      /// Get the dependencies (reference)
+      /// \return The dependencies (reference)
       [[nodiscard]] inline Dependencies_Type &
       get_neighbors_ref()
       {
@@ -295,8 +295,8 @@ namespace network_butcher
       }
 
 
-      /// @brief Get the number of nodes
-      /// @return The number of nodes
+      /// Get the number of nodes
+      /// \return The number of nodes
       [[nodiscard]] inline const std::size_t
       size() const
       {
@@ -304,8 +304,8 @@ namespace network_butcher
       }
 
 
-      /// @brief Checks if the graph is empty
-      /// @return True if there are no stored nodes
+      /// Checks if the graph is empty
+      /// \return True if there are no stored nodes
       [[nodiscard]] inline const std::size_t
       empty() const
       {
@@ -313,9 +313,9 @@ namespace network_butcher
       }
 
 
-      /// @brief Get the node with the given id
-      /// @param id The id of the node
-      /// @return The node
+      /// Get the node with the given id
+      /// \param id The id of the node
+      /// \return The node
       Node_Type const &
       operator[](int id) const
       {
@@ -323,8 +323,8 @@ namespace network_butcher
       }
 
 
-      /// @brief Get the begin iterator of the nodes collection
-      /// @return The iterator
+      /// Get the begin iterator of the nodes collection
+      /// \return The iterator
       typename Node_Collection_Type::const_iterator
       cbegin() const
       {
@@ -332,8 +332,8 @@ namespace network_butcher
       }
 
 
-      /// @brief Get the end iterator of the nodes collection
-      /// @return The iterator
+      /// Get the end iterator of the nodes collection
+      /// \return The iterator
       typename Node_Collection_Type::const_iterator
       cend() const
       {
@@ -341,8 +341,8 @@ namespace network_butcher
       }
 
 
-      /// @brief It remoces the node with the given id
-      /// @param nodes_to_remove The ids of the nodes to remove
+      /// It removes the node with the given id
+      /// \param nodes_to_remove The ids of the nodes to remove
       void
       remove_nodes(std::set<node_id_type> const &nodes_to_remove)
       {
@@ -390,7 +390,7 @@ namespace network_butcher
       }
 
 
-      /// @brief It deletes the nodes and dependencies of the graph
+      /// It deletes the nodes and dependencies of the graph
       void
       clear()
       {

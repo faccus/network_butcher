@@ -14,8 +14,8 @@ namespace network_butcher
 {
   namespace kfinder
   {
-    /// A (pure) virtual class to find the K shortest path for a given path
-    /// \tparam Graph_type The graph type
+    /// A (pure) virtual class to find the K shortest path for a given graph
+    /// \tparam Graph_type The graph type. To be able to use the class, you must specialize Weighted_Graph<Graph_type>
     template <class Graph_type>
     class KFinder
     {
@@ -33,15 +33,12 @@ namespace network_butcher
       /// It extracts the first sidetrack associated to the given node
       /// \param j The index of the node
       /// \param h_g The h_g map
-      /// \return The pair: the operation completed successfully and the
-      /// corresponding sidetrack edge
+      /// \return The pair: the operation completed successfully and the corresponding sidetrack edge
       [[nodiscard]] std::pair<bool, edge_info>
       extrack_first_sidetrack_edge(node_id_type const &j, H_g_collection const &h_g) const;
 
       /// Computes the sidetrack distances for all the different sidetrack edges
-      /// \param weights The weight map (for the edges)
-      /// \param distances_from_sink The shortest distance from the given node to
-      /// the sink (the last node of the graph)
+      /// \param distances_from_sink The shortest distance from the given node to the sink (the last node of the graph)
       /// \return The collection of sidetrack distances for the different edges
       [[nodiscard]] weights_collection_type
       sidetrack_distances(std::vector<weight_type> const &distances_from_sink) const;
@@ -49,11 +46,17 @@ namespace network_butcher
 
       /// It will return edge_edges with the parent-child relationships in h_out
       /// \param h_out H_out of a given node
-      /// \return edge_edges The map of childrens for a given edge in h_out
+      /// \return The map of childrens for a given edge in h_out
       [[nodiscard]] h_edge_edges_type
       get_internal_edges(H_out_pointer const &h_out) const;
 
 
+      /// It contains the children of the given edge in the D(G) graph
+      /// \param h_g H_g
+      /// \param h_g_edge_edges The internal edges of H_g
+      /// \param h_out_edge_edges The internal edges of H_out
+      /// \param edge The edge
+      /// \return The children of the given edge in D(G)
       edge_sequence
       get_alternatives(H_g const          &h_g,
                        edge_edges_type    &h_g_edge_edges,
@@ -62,18 +65,21 @@ namespace network_butcher
 
 
       /// Helper function for the Eppstein algorithm. It converts a vector of implicit paths to a vector of explicit
-      /// paths \param dij_res The result of the Dijkstra result \param epp_res The result of basic_eppstein or
-      /// basic_eppstein_linear \return The shortest paths
+      /// paths
+      /// \param dij_res The result of the Dijkstra result
+      /// \param epp_res The collection of implicit paths
+      /// \return The shortest paths
       [[nodiscard]] std::vector<path_info>
       helper_eppstein(dijkstra_result_type const &dij_res, std::vector<implicit_path_info> const &epp_res) const;
 
-      /// The final function called by the basic_eppstein and
-      /// basic_eppstein_linear. It will construct the actual shortest paths
+
+      /// The "general" structure of the Eppstein algorithms. It will construct the  shortest paths
       /// \param K The number of shortest paths
       /// \param dij_res The result of the dijkstra algorithm
       /// \param sidetrack_distances_res The sidetrack distances of every edge
       /// \param h_g The h_g map
-      /// \param edge_edges The edge_edges map
+      /// \param h_out The h_out map
+      /// \param callback_fun_ptr A callback function called during the loop used to find the shortest paths
       /// \return The (implicit) shortest paths
       std::vector<implicit_path_info>
       general_algo_eppstein(std::size_t                                  K,
@@ -85,8 +91,8 @@ namespace network_butcher
 
 
     public:
-      /// Applies a K-shortest path algorithm to find the k-shortest paths on the
-      /// given graph (from the first node to the last one)
+      /// Applies a K-shortest path algorithm to find the k-shortest paths on the given graph (from the first node to
+      /// the last one)
       /// \param K The number of shortest paths to find
       /// \return The shortest paths
       [[nodiscard]] virtual std::vector<path_info>
@@ -150,9 +156,9 @@ namespace network_butcher
       //             |
       //             1
       //           /   \
-    //          2     3
+      //          2     3
       //         / \   / \
-    //        4  5  6   7
+      //        4  5  6   7
       for (auto it = h_out->heap.children.cbegin(); it != h_out->heap.children.cend(); ++it, ++j)
         {
           previous_steps.push_back(it);
