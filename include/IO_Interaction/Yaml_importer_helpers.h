@@ -71,9 +71,11 @@ namespace network_butcher
 
 
       /// Reads the candidate deployments file and returns the list of containers that can be deployed for every
-      /// partition of every model \param candidate_deployments_path The candidate deployments file path \param models
-      /// The collection of models (with ram and vram) \param devices_map The collection of devices \return A map that
-      /// associates to every model the collection of devices for each possible partition
+      /// partition of every model
+      /// \param candidate_deployments_path The candidate deployments file path
+      /// \param models The collection of models (with ram and vram)
+      /// \param devices_map The collection of devices
+      /// \return A map that associates to every model the collection of devices for each possible partition
       std::map<std::string, std::vector<std::map<std::string, std::size_t>>>
       read_candidate_deployments(std::string const &candidate_deployments_path,
                                  std::map<std::string, std::pair<std::size_t, std::size_t>> const &models,

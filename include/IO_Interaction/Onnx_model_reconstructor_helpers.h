@@ -27,6 +27,12 @@ namespace network_butcher
         NoConnection
       };
 
+      using preprocessed_ios_type =
+        std::unordered_map<std::string,
+                           std::pair<IO_Type,
+                                     std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
+                                               google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>>;
+
 
       /// From the model and the name of the Tensor, it will return if its found and the position
       /// \param original_model The model
@@ -44,7 +50,9 @@ namespace network_butcher
 
 
       /// From the original model, it will return a new graph with the same name and documentation string of the graph
-      /// of the original model \param original_model The original model \return The "new" graph
+      /// of the original model
+      /// \param original_model The original model
+      /// \return The "new" graph
       onnx::GraphProto *
       prepare_new_graph(const onnx::ModelProto &original_model);
 
@@ -54,29 +62,20 @@ namespace network_butcher
 
 
       /// It will add to the graph the inputs of the node to either to input, to value_info or to initializer
-      /// \param model_graph The model
       /// \param graph The graph
       /// \param node The node
+      /// \param preprocessed_ios_nodes The collection of IOs and initializers of the onnx model graph
       void
-      add_node_ios_nodes(
-        onnx::GraphProto      *graph,
-        const onnx::NodeProto *node,
-        std::unordered_map<
-          std::string,
-          std::pair<IO_Type,
-                    std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
-                              google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
-          &preprocessed_ios_nodes);
+      add_node_ios_nodes(onnx::GraphProto            *graph,
+                         const onnx::NodeProto       *node,
+                         preprocessed_ios_type const &preprocessed_ios_nodes);
 
 
       /// It will find the inputs/outputs and/or initializers of a given graph
       /// \param model_graph The graph of the given model
       /// \return A map that associates to the name of the tensor a pair describing if it's a in/out/init and its
       /// position in the object graph
-      std::unordered_map<std::string,
-                         std::pair<IO_Type,
-                                   std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
-                                             google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>>
+      preprocessed_ios_type
       process_node_ios_nodes(const onnx::GraphProto &model_graph);
 
 
@@ -92,12 +91,7 @@ namespace network_butcher
                 const onnx::GraphProto                     &model_graph,
                 const std::set<node_id_type>               &nodes,
                 onnx::GraphProto                           *current_edited_graph,
-                std::unordered_map<
-                  std::string,
-                  std::pair<IO_Type,
-                            std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
-                                      google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
-                  &preprocessed_ios_nodes);
+                preprocessed_ios_type const                &preprocessed_ios_nodes);
 
 
       /// Adds the "missing" inputs of the current graph. They represent the new inputs for the new model
