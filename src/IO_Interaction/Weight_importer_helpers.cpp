@@ -434,7 +434,7 @@ namespace network_butcher::io::Weight_importer_helpers
                                       network_butcher::parameters::Parameters const &params,
                                       block_graph_type const                        &new_graph,
                                       graph_type const                              &graph,
-                                      std::size_t                                    node_id,
+                                      std::size_t                                    id,
                                       std::map<std::string, onnx_tool_output> const &map_onnx_tool)
   {
     auto const v_lower_case = Utilities::to_lowercase_copy(entries);
