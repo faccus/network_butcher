@@ -7,17 +7,11 @@
 namespace network_butcher::io::IO_Manager
 {
   void
-  utilities::reconstruct_model_and_export(
-    const network_butcher::types::Real_Path    &partitions,
-    const onnx::ModelProto                     &original_model,
-    const std::map<node_id_type, node_id_type> &link_id_nodeproto,
-    std::unordered_map<
-      std::string,
-      std::pair<network_butcher::io::Onnx_model_reconstructor_helpers::IO_Type,
-                std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
-                          google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
-                      &preprocessed_ios_nodes,
-    const std::string &export_base_path)
+  utilities::reconstruct_model_and_export(const network_butcher::types::Real_Path    &partitions,
+                                          const onnx::ModelProto                     &original_model,
+                                          const std::map<node_id_type, node_id_type> &link_id_nodeproto,
+                                          preprocessed_ios_nodes_type const          &preprocessed_ios_nodes,
+                                          const std::string                          &export_base_path)
   {
     auto const &model_graph = original_model.graph();
 
@@ -310,57 +304,49 @@ namespace network_butcher::io::IO_Manager
   }
 
 
-  void
-  import_weights(graph_type &graph, const network_butcher::parameters::Parameters &params)
+  std::unique_ptr<Weight_Importer>
+  generate_weight_importer(graph_type &graph, network_butcher::parameters::Parameters const &params)
   {
     switch (params.weight_import_mode)
       {
           case network_butcher::parameters::Weight_Import_Mode::aMLLibrary_inference_original: {
-            Weight_importer_helpers::import_weights_aMLLibrary_local_original(graph, params);
-            break;
-          }
-          case network_butcher::parameters::Weight_Import_Mode::aMLLibrary_inference_block: {
-            break;
+            return std::make_unique<original_aMLLibrary_Weight_Importer>(
+              original_aMLLibrary_Weight_Importer(graph, params));
           }
           case network_butcher::parameters::Weight_Import_Mode::single_direct_read: {
-            Weight_importer_helpers::import_weights_direct_read(graph,
-                                                                params.single_weight_import_path,
-                                                                params.devices,
-                                                                params.single_csv_columns_weights,
-                                                                params.separator);
-            break;
+            return std::make_unique<Csv_Weight_Importer>(Csv_Weight_Importer(graph,
+                                                                             {params.single_weight_import_path},
+                                                                             params.single_csv_columns_weights,
+                                                                             params.devices,
+                                                                             params.separator));
           }
           case network_butcher::parameters::Weight_Import_Mode::multiple_direct_read: {
-            for (std::size_t i = 0; i < params.devices.size(); ++i)
-              {
-                Weight_importer_helpers::import_weights_direct_read(graph,
-                                                                    params.devices[i].weights_path,
-                                                                    params.devices[i].id,
-                                                                    params.devices[i].relevant_entry,
-                                                                    params.separator);
-              }
-            break;
+            return std::make_unique<Csv_Weight_Importer>(Csv_Weight_Importer(graph, params.devices, params.separator));
           }
         default:
           throw "The specified Weight_Import_Mode is either not avaible or not found. Please, check that you "
                 "specified the correct import mode!";
-          break;
       }
+
+    return nullptr;
+  }
+
+  void
+  import_weights(graph_type &graph, const network_butcher::parameters::Parameters &params)
+  {
+    if (params.weight_import_mode == network_butcher::parameters::Weight_Import_Mode::aMLLibrary_inference_block)
+      return;
+
+    generate_weight_importer(graph, params)->import_weights();
   }
 
 
   std::pair<bool, onnx::ModelProto>
-  reconstruct_model_from_partition(
-    const network_butcher::types::Real_Partition &partition,
-    const onnx::ModelProto                       &original_model,
-    const std::map<node_id_type, node_id_type>   &link_id_nodeproto,
-    const std::unordered_map<
-      std::string,
-      std::pair<network_butcher::io::Onnx_model_reconstructor_helpers::IO_Type,
-                std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
-                          google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>>
-                           &preprocessed_ios_nodes,
-    const onnx::GraphProto &model_graph)
+  reconstruct_model_from_partition(const network_butcher::types::Real_Partition &partition,
+                                   const onnx::ModelProto                       &original_model,
+                                   const std::map<node_id_type, node_id_type>   &link_id_nodeproto,
+                                   const preprocessed_ios_nodes_type            &preprocessed_ios_nodes,
+                                   const onnx::GraphProto                       &model_graph)
   {
     onnx::ModelProto new_model;
     auto const      &node_ids = partition.second;

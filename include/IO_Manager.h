@@ -27,6 +27,13 @@ namespace network_butcher
     /// file and to export a partitioned network to multiple .onnx files
     namespace IO_Manager
     {
+      using value_proto_collection_it  = google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator;
+      using tensor_proto_collection_it = google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator;
+      using preprocessed_ios_nodes_type =
+        std::unordered_map<std::string,
+                           std::pair<network_butcher::io::Onnx_model_reconstructor_helpers::IO_Type,
+                                     std::pair<value_proto_collection_it, tensor_proto_collection_it>>>;
+
       namespace utilities
       {
 
@@ -38,17 +45,11 @@ namespace network_butcher
         /// \param preprocessed_ios_nodes The extracted input, output and parameter tensors of every layer in the Model
         /// \param export_base_path The export path (+ the name of the final file)
         void
-        reconstruct_model_and_export(
-          network_butcher::types::Real_Path const    &partitions,
-          onnx::ModelProto const                     &original_model,
-          std::map<node_id_type, node_id_type> const &link_id_nodeproto,
-          std::unordered_map<
-            std::string,
-            std::pair<network_butcher::io::Onnx_model_reconstructor_helpers::IO_Type,
-                      std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
-                                google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
-                            &preprocessed_ios_nodes,
-          const std::string &export_base_path);
+        reconstruct_model_and_export(network_butcher::types::Real_Path const    &partitions,
+                                     onnx::ModelProto const                     &original_model,
+                                     std::map<node_id_type, node_id_type> const &link_id_nodeproto,
+                                     preprocessed_ios_nodes_type const          &preprocessed_ios_nodes,
+                                     const std::string                          &export_base_path);
 
       } // namespace utilities
 
@@ -91,6 +92,8 @@ namespace network_butcher
       void
       import_weights(graph_type &graph, const network_butcher::parameters::Parameters &params);
 
+      std::unique_ptr<Weight_Importer>
+      generate_weight_importer(graph_type &graph, network_butcher::parameters::Parameters const &params);
 
       /// It will export the network partitions to multiple .onnx files
       /// \param params The parameters
@@ -112,17 +115,11 @@ namespace network_butcher
       /// \param model_graph The graph
       /// \return A pair with a bool to represent if the operation was runned successfully and the reconstructed model
       std::pair<bool, onnx::ModelProto>
-      reconstruct_model_from_partition(
-        network_butcher::types::Real_Partition const &partition,
-        onnx::ModelProto const                       &original_model,
-        std::map<node_id_type, node_id_type> const   &link_id_nodeproto,
-        std::unordered_map<
-          std::string,
-          std::pair<network_butcher::io::Onnx_model_reconstructor_helpers::IO_Type,
-                    std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
-                              google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>>> const
-                               &preprocessed_ios_nodes,
-        onnx::GraphProto const &model_graph);
+      reconstruct_model_from_partition(network_butcher::types::Real_Partition const &partition,
+                                       onnx::ModelProto const                       &original_model,
+                                       std::map<node_id_type, node_id_type> const   &link_id_nodeproto,
+                                       preprocessed_ios_nodes_type const            &preprocessed_ios_nodes,
+                                       onnx::GraphProto const                       &model_graph);
 
 
 #if YAML_CPP_ACTIVE

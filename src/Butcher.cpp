@@ -10,7 +10,7 @@ namespace network_butcher
     const network_butcher::parameters::Parameters                                    &params,
     const std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> &transmission_weights) const
   {
-    network_butcher::io::Weight_importer_helpers::import_weights_aMLLibrary_local_block(new_graph, graph, params);
+    io::block_aMLLibrary_Weight_Importer(graph, new_graph, params).import_weights();
 
     auto const &nodes = new_graph.get_nodes();
     std::for_each(nodes.cbegin(),
