@@ -18,7 +18,9 @@ namespace
     std::string weight_path = Utilities::combine_path(base_path, "weights/aMLLibrary_prediction_tegra.csv");
     auto        graph       = std::get<0>(io::IO_Manager::import_from_onnx(graph_path));
 
-    io::Csv_Weight_Importer importer(graph, {weight_path}, {"pred"}, {0}, ',');
+    io::Csv_Weight_Importer importer(
+      graph, std::vector<std::string>{weight_path}, std::vector<std::string>{"pred"}, std::vector<std::size_t>{0}, ',');
+
     importer.import_weights([](const node_type &node) { return node.content.get_operation_id() == "conv"; });
 
     ASSERT_DOUBLE_EQ(graph.get_weight(0, {72, 73}), 0.018818040739131837);
@@ -33,8 +35,11 @@ namespace
     fake_1.id = 0;
     fake_2.id = 1;
 
-    io::Csv_Weight_Importer importer(
-      graph, {weight_path}, {"layerinftimeedge", "layerinftimecloud"}, {fake_1, fake_2}, ',');
+    io::Csv_Weight_Importer importer(graph,
+                                     std::vector<std::string>{weight_path},
+                                     std::vector<std::string>{"layerinftimeedge", "layerinftimecloud"},
+                                     std::vector<network_butcher::parameters::Device>{fake_1, fake_2},
+                                     ',');
     importer.import_weights([](const node_type &node) { return node.content.get_operation_id() == "conv"; });
 
     EXPECT_DOUBLE_EQ(graph.get_weight(0, {1, 2}), 0.000177);

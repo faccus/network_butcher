@@ -3,14 +3,14 @@ set(
         google_tests/TestClass.h google_tests/TestClass.h
         google_tests/Types/Dense_tensor.cpp
         google_tests/Utilities.cpp
-        google_tests/Onnx_interaction/Onnx_importer_helpers.cpp
+        google_tests/IO_interaction/Onnx_importer_helpers.cpp
         google_tests/Network/Node.cpp
         google_tests/Computer/Computer_memory.cpp
         google_tests/Network/Graph.cpp
         google_tests/IO_Manager.cpp
         google_tests/K-shortest_path/Shortest_path_finder.cpp
         google_tests/Butcher.cpp
-        google_tests/Onnx_interaction/Weight_importer_helpers.cpp
+        google_tests/IO_interaction/Weight_importer_helpers.cpp
 )
 
 set(
