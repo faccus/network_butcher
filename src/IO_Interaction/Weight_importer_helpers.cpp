@@ -5,79 +5,25 @@ namespace network_butcher::io::Weight_importer_helpers
   csv_result_type<double>
   read_csv_numerics(std::string const &path, char separator, std::vector<std::string> columns_to_read)
   {
-    std::ifstream file(path);
-
     csv_result_type<double> res;
 
+    auto const data = read_csv(path, separator, columns_to_read);
 
-    if (file.is_open())
+    for (auto const &[key, value] : data)
       {
-        Utilities::to_lowercase(columns_to_read);
-        Utilities::trim(columns_to_read);
+        std::vector<double> tmp_vec;
 
-        std::vector<std::size_t>           indices;
-        std::string                        tmp_line;
-        std::map<std::size_t, std::string> index_map;
-
-        if (!std::getline(file, tmp_line))
-          return res;
-
-        {
-          std::stringstream reader(tmp_line);
-          std::size_t       i = 0;
-
-          if (!columns_to_read.empty())
-            {
-              while (std::getline(reader, tmp_line, separator))
-                {
-                  Utilities::to_lowercase(tmp_line);
-                  Utilities::trim(tmp_line);
-
-                  if (std::find(columns_to_read.cbegin(), columns_to_read.cend(), tmp_line) != columns_to_read.cend())
-                    {
-                      indices.push_back(i);
-                      index_map[i] = tmp_line;
-                    }
-
-                  ++i;
-                }
-            }
-          else
-            {
-              while (std::getline(reader, tmp_line, separator))
-                {
-                  Utilities::to_lowercase(tmp_line);
-                  Utilities::trim(tmp_line);
-
-                  indices.push_back(i);
-                  index_map[i] = tmp_line;
-
-                  ++i;
-                }
-            }
-        }
-
-
-        while (std::getline(file, tmp_line))
+        for (auto const &val : value)
           {
-            std::stringstream reader(tmp_line);
-            std::size_t       i = 0, j = 0;
-
-            while (std::getline(reader, tmp_line, separator))
-              {
-                if (indices[j] == i)
-                  {
-                    res[index_map[indices[j]]].push_back(std::atof(tmp_line.c_str()));
-                    ++j;
-                  }
-
-                ++i;
-              }
+            tmp_vec.push_back(std::stod(val));
           }
+
+        res.emplace(key, std::move(tmp_vec));
       }
 
     return res;
   }
+
 
   csv_result_type<std::string>
   read_csv(std::string const &path, char separator, std::vector<std::string> columns_to_read)
@@ -259,7 +205,7 @@ namespace network_butcher::io
 
 
   void
-  basic_aMLLibrary_Weight_Importer::add_python_packages(std::vector<std::string> const &extra_packages_location) const
+  basic_aMLLibrary_Weight_Importer::add_python_packages() const
   {
 #if PYBIND_ACTIVE
     using namespace pybind11::literals;
@@ -270,7 +216,7 @@ namespace network_butcher::io
 
     inserter(NN_Source_Path);
 
-    for (auto const &package_location : extra_packages_location)
+    for (auto const &package_location : params.extra_packages_location)
       inserter(package_location);
 #endif
   }
@@ -296,7 +242,7 @@ namespace network_butcher::io
 
 
   std::string
-  basic_aMLLibrary_Weight_Importer::network_info_onnx_tool(const network_butcher::parameters::Parameters &params) const
+  basic_aMLLibrary_Weight_Importer::network_info_onnx_tool() const
   {
 #if PYBIND_ACTIVE
     using namespace pybind11::literals;
@@ -381,9 +327,7 @@ namespace network_butcher::io
 namespace network_butcher::io
 {
   std::string
-  original_aMLLibrary_Weight_Importer::generate_entry(const std::string                             &entry,
-                                                      const graph_type::Node_Type                   &node,
-                                                      const network_butcher::parameters::Parameters &params) const
+  original_aMLLibrary_Weight_Importer::generate_entry(const std::string &entry, const graph_type::Node_Type &node) const
   {
     auto const lower_case = Utilities::to_lowercase_copy(entry);
     if (lower_case == "nrparameters")
@@ -398,15 +342,14 @@ namespace network_butcher::io
     else if (lower_case == "macs")
       return "0";
     else
-      return generate_entry(entry, {}, node, params);
+      return generate_entry(entry, {}, node);
   }
 
 
   std::string
   original_aMLLibrary_Weight_Importer::generate_entry(const std::string                               &entry,
                                                       const Weight_importer_helpers::onnx_tool_output &basic_info,
-                                                      const graph_type::Node_Type                     &node,
-                                                      const network_butcher::parameters::Parameters   &params) const
+                                                      const graph_type::Node_Type                     &node) const
   {
     // std::vector<std::string> header{"Layer", "TensorLength", "OpType", "NrParameters", "Memory", "MACs"};
     auto const lower_case = Utilities::to_lowercase_copy(entry);
@@ -454,9 +397,9 @@ namespace network_butcher::io
     std::function<bool(graph_type::Node_Type const &)> const &extra_condition)
   {
     pybind11::initialize_interpreter();
-    add_python_packages(params.extra_packages_location);
+    add_python_packages();
 
-    auto const macs     = read_network_info_onnx_tool(network_info_onnx_tool(params));
+    auto const macs     = read_network_info_onnx_tool(network_info_onnx_tool());
     auto const csv_path = "aMLLibrary_input.csv";
 
     if (!Utilities::directory_exists(params.temporary_directory))
@@ -483,14 +426,14 @@ namespace network_butcher::io
           {
             for (auto const &entry : aMLLibrary_input.front())
               {
-                row.emplace_back(generate_entry(entry, info_it->second, node, params));
+                row.emplace_back(generate_entry(entry, info_it->second, node));
               }
           }
         else
           {
             for (auto const &entry : aMLLibrary_input.front())
               {
-                row.emplace_back(generate_entry(entry, node, params));
+                row.emplace_back(generate_entry(entry, node));
               }
           }
 
@@ -530,9 +473,6 @@ namespace network_butcher::io
   std::vector<std::string>
   block_aMLLibrary_Weight_Importer::generate_entry(
     std::vector<std::string> const                                         &entries,
-    network_butcher::parameters::Parameters const                          &params,
-    block_graph_type const                                                 &new_graph,
-    graph_type const                                                       &graph,
     std::size_t                                                             id,
     std::map<std::string, Weight_importer_helpers::onnx_tool_output> const &map_onnx_tool) const
   {
@@ -731,9 +671,9 @@ namespace network_butcher::io
   {
     pybind11::initialize_interpreter();
 
-    add_python_packages(params.extra_packages_location);
+    add_python_packages();
 
-    auto const macs     = read_network_info_onnx_tool(network_info_onnx_tool(params));
+    auto const macs     = read_network_info_onnx_tool(network_info_onnx_tool());
     auto const csv_path = "aMLLibrary_input.csv";
 
     if (!Utilities::directory_exists(params.temporary_directory))
@@ -756,8 +696,7 @@ namespace network_butcher::io
                                               graph[*node.content.second->cbegin()].name == "__fake__output__"))
           continue;
 
-        aMLLibrary_input.push_back(
-          generate_entry(aMLLibrary_input.front(), params, new_graph, graph, node.get_id(), macs));
+        aMLLibrary_input.push_back(generate_entry(aMLLibrary_input.front(), node.get_id(), macs));
       }
 
 

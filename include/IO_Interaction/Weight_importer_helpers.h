@@ -60,11 +60,8 @@ namespace network_butcher
     class Weight_Importer
     {
     protected:
-      graph_type &graph;
-
     public:
-      explicit Weight_Importer(graph_type &graph)
-        : graph{graph} {};
+      Weight_Importer() = default;
 
       virtual void
       import_weights() = 0;
@@ -76,6 +73,8 @@ namespace network_butcher
     class Csv_Weight_Importer : public Weight_Importer
     {
     protected:
+      graph_type &graph;
+
       std::vector<std::string> paths;
       std::vector<std::size_t> devices;
       std::vector<std::string> relevant_entries;
@@ -87,18 +86,21 @@ namespace network_butcher
                           std::vector<std::string> const &relevant_entries,
                           std::vector<std::size_t> const &devices,
                           char                            separator = ',')
-        : Weight_Importer{graph}
+        : Weight_Importer()
+        , graph{graph}
         , paths{paths}
         , devices{devices}
         , relevant_entries{relevant_entries}
         , separator{separator} {};
+
 
       Csv_Weight_Importer(graph_type                                             &graph,
                           std::vector<std::string> const                         &paths,
                           std::vector<std::string> const                         &relevant_entries,
                           std::vector<network_butcher::parameters::Device> const &devices,
                           char                                                    separator = ',')
-        : Weight_Importer{graph}
+        : Weight_Importer()
+        , graph{graph}
         , paths{paths}
         , devices{}
         , relevant_entries{relevant_entries}
@@ -110,10 +112,12 @@ namespace network_butcher
           }
       };
 
+
       Csv_Weight_Importer(graph_type                                             &graph,
                           std::vector<network_butcher::parameters::Device> const &devices,
                           char                                                    separator = ',')
-        : Weight_Importer{graph}
+        : Weight_Importer()
+        , graph{graph}
         , separator{separator}
       {
         paths.reserve(devices.size());
@@ -128,30 +132,33 @@ namespace network_butcher
           }
       };
 
+
       virtual void
       import_weights() override;
 
+
       void
       import_weights(std::function<bool(graph_type::Node_Type const &)> const &extra_condition);
+
 
       virtual ~Csv_Weight_Importer() override = default;
     };
 
 
-    class basic_aMLLibrary_Weight_Importer
+    class basic_aMLLibrary_Weight_Importer : public Weight_Importer
     {
     protected:
       network_butcher::parameters::Parameters const params;
 
 
-      /// @brief It will check if the aMLLibrary is available
+      /// It will check if the aMLLibrary is available
       void
       check_aMLLibrary() const;
 
 
-      /// @brief It will add the python packages to the python path
+      /// It will add the python packages to the python path
       void
-      add_python_packages(std::vector<std::string> const &extra_packages_location) const;
+      add_python_packages() const;
 
 
       /// It will create a .ini file in order to use aMLLibrary
@@ -164,10 +171,10 @@ namespace network_butcher
                            std::string        output_path = "") const;
 
 
-      /// @brief It will execute the weight generator
-      /// @param regressor_file The regressor file
-      /// @param config_file The configuration file
-      /// @param output_path The output path
+      /// It will execute the weight generator
+      /// \param regressor_file The regressor file
+      /// \param config_file The configuration file
+      /// \param output_path The output path
       void
       execute_weight_generator(const std::string &regressor_file,
                                const std::string &config_file,
@@ -175,7 +182,7 @@ namespace network_butcher
 
 
       std::string
-      network_info_onnx_tool(const network_butcher::parameters::Parameters &params) const;
+      network_info_onnx_tool() const;
 
 
       std::map<std::string, Weight_importer_helpers::onnx_tool_output>
@@ -187,7 +194,8 @@ namespace network_butcher
 
     public:
       basic_aMLLibrary_Weight_Importer(network_butcher::parameters::Parameters const &params)
-        : params{params}
+        : Weight_Importer()
+        , params{params}
       {
         check_aMLLibrary();
       };
@@ -196,24 +204,23 @@ namespace network_butcher
     };
 
 
-    class original_aMLLibrary_Weight_Importer : public basic_aMLLibrary_Weight_Importer, public Weight_Importer
+    class original_aMLLibrary_Weight_Importer : public basic_aMLLibrary_Weight_Importer
     {
     protected:
+      graph_type &graph;
+
       std::string
-      generate_entry(std::string const            &entry,
-                     graph_type::Node_Type const  &node,
-                     parameters::Parameters const &params) const;
+      generate_entry(std::string const &entry, graph_type::Node_Type const &node) const;
 
       std::string
       generate_entry(std::string const                               &entry,
                      Weight_importer_helpers::onnx_tool_output const &basic_info,
-                     graph_type::Node_Type const                     &node,
-                     parameters::Parameters const                    &params) const;
+                     graph_type::Node_Type const                     &node) const;
 
     public:
       original_aMLLibrary_Weight_Importer(graph_type &graph, network_butcher::parameters::Parameters const &params)
         : basic_aMLLibrary_Weight_Importer{params}
-        , Weight_Importer{graph} {};
+        , graph{graph} {};
 
 
       void
@@ -242,9 +249,6 @@ namespace network_butcher
       /// \return The relevant row
       std::vector<std::string>
       generate_entry(std::vector<std::string> const                                         &entries,
-                     network_butcher::parameters::Parameters const                          &params,
-                     block_graph_type const                                                 &new_graph,
-                     graph_type const                                                       &graph,
                      std::size_t                                                             id,
                      std::map<std::string, Weight_importer_helpers::onnx_tool_output> const &map_onnx_tool) const;
 
