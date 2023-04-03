@@ -21,6 +21,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: TEst
+        run: ls -la
+
       - name: Install aMLLibrary python packages
         run: pip install --upgrade --upgrade-strategy eager -r network_butcher/dep/aMLLibrary/requirements.txt
 
