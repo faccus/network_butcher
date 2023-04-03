@@ -15,7 +15,7 @@ namespace network_butcher
     /// A custom graph class. It contains a single graph and multiple weight maps. Technically, it can be viewed
     /// as a collection of graphs with the same structure, but different weight maps.
     /// \tparam T Type of the content of the nodes
-    template <class T>
+    template <typename T>
     class MWGraph : public Graph<T>
     {
     private:
@@ -29,6 +29,40 @@ namespace network_butcher
       using Node_Type            = network_butcher::types::Node_Type<T>;
       using Node_Collection_Type = network_butcher::types::Node_Collection_Type<T>;
       using Node_Internal_Type   = T;
+
+      friend std::ostream &
+      operator<<(std::ostream &os, MWGraph<T> const &g)
+      {
+        os << "Number of nodes: " << g.size() << std::endl;
+        os << "Weights: " << std::endl;
+
+        std::map<edge_type, std::vector<std::optional<weight_type>>> edge_map;
+        for (std::size_t i = 0; i < g.weigth_map.size(); ++i)
+          {
+            auto const &weight_map = g.weigth_map[i];
+
+            for (auto const &[edge, weight] : weight_map)
+              {
+                edge_map[edge].resize(g.weigth_map.size());
+                edge_map[edge][i] = weight;
+              }
+          }
+
+        for (auto const &[edge, weights] : edge_map)
+          {
+            os << "(" << edge.first << ", " << edge.second << ") : ";
+            for (auto const &weight : weights)
+              {
+                if (weight.has_value())
+                  os << weight.value() << " ";
+                else
+                  os << "N/A ";
+              }
+            os << std::endl;
+          }
+
+        return os;
+      }
 
       MWGraph()                = delete;
       MWGraph(MWGraph const &) = default;
@@ -46,6 +80,12 @@ namespace network_butcher
         weigth_map.resize(num_maps);
       }
 
+      [[nodiscard]] bool
+      check_weight(std::size_t device, edge_type const &edge) const
+      {
+        auto const &map = weigth_map[device];
+        return map.find(edge) != map.cend();
+      }
 
       /// Get the weight for the given edge on the given device
       /// \param device The device id
@@ -84,7 +124,7 @@ namespace network_butcher
     /// A custom graph class. It contains a single graph and multiple weight maps. Technically, it can be viewed
     /// as a collection of graphs with the same structure, but different weight maps.
     /// \tparam T Type of the content of the nodes
-    template <class T>
+    template <typename T>
     class MWGraph<Content<T>> : public Graph<Content<T>>
     {
     private:
@@ -99,6 +139,40 @@ namespace network_butcher
       using Node_Collection_Type = network_butcher::types::Node_Collection_Type<Content<T>>;
       using Node_Internal_Type   = T;
       using Node_Content_Type    = Content<T>;
+
+      friend std::ostream &
+      operator<<(std::ostream &os, MWGraph<Content<T>> const &g)
+      {
+        os << "Number of nodes: " << g.size() << std::endl;
+        os << "Weights: " << std::endl;
+
+        std::map<edge_type, std::vector<std::optional<weight_type>>> edge_map;
+        for (std::size_t i = 0; i < g.weigth_map.size(); ++i)
+          {
+            auto const &weight_map = g.weigth_map[i];
+
+            for (auto const &[edge, weight] : weight_map)
+              {
+                edge_map[edge].resize(g.weigth_map.size());
+                edge_map[edge][i] = weight;
+              }
+          }
+
+        for (auto const &[edge, weights] : edge_map)
+          {
+            os << "(" << edge.first << ", " << edge.second << ") : ";
+            for (auto const &weight : weights)
+              {
+                if (weight.has_value())
+                  os << weight.value() << " ";
+                else
+                  os << "N/A ";
+              }
+            os << std::endl;
+          }
+
+        return os;
+      }
 
       MWGraph()                = delete;
       MWGraph(MWGraph const &) = default;
@@ -128,6 +202,13 @@ namespace network_butcher
         , weigth_map{}
       {
         weigth_map.resize(num_maps);
+      }
+
+      [[nodiscard]] bool
+      check_weight(std::size_t device, edge_type const &edge) const
+      {
+        auto const &map = weigth_map[device];
+        return map.find(edge) != map.cend();
       }
 
 
@@ -172,6 +253,7 @@ namespace network_butcher
         return weigth_map;
       }
     };
+
   } // namespace types
 
 } // namespace network_butcher

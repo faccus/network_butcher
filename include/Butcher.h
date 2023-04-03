@@ -39,10 +39,10 @@ namespace network_butcher
 
 
     /// It will produce a linearized version of the current graph (with multiple devices)
-    /// \param backward_connections_allowed Allow backward connections between devices (i.e. data can be sent from device 2 to device 1)
-    /// \param graph_in_device Input device id
-    /// \param graph_out_device Output device id
-    /// \return The linearized graph (with multiple devices) and the map that associated every node id of the original graph to the respective node id of the "new" graph
+    /// \param backward_connections_allowed Allow backward connections between devices (i.e. data can be sent from
+    /// device 2 to device 1) \param graph_in_device Input device id \param graph_out_device Output device id \return
+    /// The linearized graph (with multiple devices) and the map that associated every node id of the original graph to
+    /// the respective node id of the "new" graph
     [[nodiscard]] std::pair<new_network, std::map<node_id_type, node_id_type>>
     block_graph(bool backward_connections_allowed, std::size_t graph_in_device, std::size_t graph_out_device) const;
 
@@ -76,7 +76,8 @@ namespace network_butcher
 
     /// Given the current graph and the original weight function, it will produce the weights for the linearized graph
     /// \param new_graph The linearized graph (result of block_graph)
-    /// \param transmission_weights They are used when we are switching from a device to another. The node is the source while the two size_t are the input and output device ids
+    /// \param transmission_weights They are used when we are switching from a device to another. The node is the source
+    /// while the two size_t are the input and output device ids
     void
     block_graph_weights(
       new_network                                                                      &new_graph,
@@ -86,7 +87,8 @@ namespace network_butcher
     /// Given the current graph and the original weight function, it will produce the weights for the linearized graph
     /// \param new_graph The linearized graph (result of block_graph)
     /// \param params The parameters
-    /// \param transmission_weights They are used when we are switching from a device to another. The node is the source while the two size_t are the input and output device ids
+    /// \param transmission_weights They are used when we are switching from a device to another. The node is the source
+    /// while the two size_t are the input and output device ids
     void
     block_graph_weights(
       new_network                                                                      &new_graph,
@@ -803,7 +805,7 @@ namespace network_butcher
         !params.backward_connections_allowed)
       remove_unfeasible_paths(params.devices, new_graph, params.memory_constraint_type);
 
-    if (params.weight_import_mode == network_butcher::parameters::Weight_Import_Mode::aMLLibrary_inference_block)
+    if (params.weight_import_mode == network_butcher::parameters::Weight_Import_Mode::aMLLibrary_block)
       {
         throw "Unsupported weight import mode. Please, check the graph type.";
       }

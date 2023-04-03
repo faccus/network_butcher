@@ -16,8 +16,8 @@ namespace network_butcher
     {
       single_direct_read,
       multiple_direct_read,
-      aMLLibrary_inference_original,
-      aMLLibrary_inference_block
+      aMLLibrary_original,
+      aMLLibrary_block
     };
 
     /// Collection of parameters for a device

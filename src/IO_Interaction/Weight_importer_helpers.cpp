@@ -208,13 +208,18 @@ namespace network_butcher::io
   basic_aMLLibrary_Weight_Importer::add_python_packages() const
   {
 #if PYBIND_ACTIVE
+    if (params.extra_packages_location.empty())
+      return;
+
     using namespace pybind11::literals;
     namespace py = pybind11;
 
     py::object path     = py::module_::import("sys").attr("path");
     py::object inserter = path.attr("append");
 
-    inserter(NN_Source_Path);
+    std::string const dep_import = std::string(NN_Source_Path) + "/dep";
+
+    inserter(dep_import);
 
     for (auto const &package_location : params.extra_packages_location)
       inserter(package_location);

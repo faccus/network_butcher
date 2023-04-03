@@ -173,10 +173,10 @@ namespace network_butcher::io::IO_Manager
       network_butcher::Utilities::to_lowercase_copy(file(weight_infos + "/import_mode", "")));
 
 
-    if (weight_import_method == "amllibrary_local_inference_original")
-      res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::aMLLibrary_inference_original;
-    else if (weight_import_method == "amllibrary_local_inference_block")
-      res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::aMLLibrary_inference_block;
+    if (weight_import_method == "amllibrary_original")
+      res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::aMLLibrary_original;
+    else if (weight_import_method == "amllibrary_block")
+      res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::aMLLibrary_block;
     else if (weight_import_method == "single_direct_read")
       res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::single_direct_read;
     else if (weight_import_method == "multiple_direct_read")
@@ -309,7 +309,7 @@ namespace network_butcher::io::IO_Manager
   {
     switch (params.weight_import_mode)
       {
-          case network_butcher::parameters::Weight_Import_Mode::aMLLibrary_inference_original: {
+          case network_butcher::parameters::Weight_Import_Mode::aMLLibrary_original: {
             return std::make_unique<original_aMLLibrary_Weight_Importer>(
               original_aMLLibrary_Weight_Importer(graph, params));
           }
@@ -334,7 +334,7 @@ namespace network_butcher::io::IO_Manager
   void
   import_weights(graph_type &graph, const network_butcher::parameters::Parameters &params)
   {
-    if (params.weight_import_mode == network_butcher::parameters::Weight_Import_Mode::aMLLibrary_inference_block)
+    if (params.weight_import_mode == network_butcher::parameters::Weight_Import_Mode::aMLLibrary_block)
       return;
 
     generate_weight_importer(graph, params)->import_weights();

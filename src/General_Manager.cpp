@@ -64,7 +64,7 @@ namespace network_butcher::io
   {
     bool weight_performance =
       performance &&
-      params.weight_import_mode != network_butcher::parameters::Weight_Import_Mode::aMLLibrary_inference_block;
+      params.weight_import_mode != network_butcher::parameters::Weight_Import_Mode::aMLLibrary_block;
 
     Chrono crono;
     crono.start();

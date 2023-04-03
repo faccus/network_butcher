@@ -45,4 +45,6 @@ namespace
     EXPECT_DOUBLE_EQ(graph.get_weight(0, {1, 2}), 0.000177);
     ASSERT_DOUBLE_EQ(graph.get_weight(1, {1, 2}), 0.000249);
   }
+
+
 } // namespace
