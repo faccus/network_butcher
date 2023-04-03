@@ -1,7 +1,7 @@
 [submodule "aMLLibrary"]
-	path = aMLLibrary
+	path = dep/aMLLibrary
 	url = https://github.com/brunoguindani/aMLLibrary
 
 [submodule "onnx-tool"]
-	path = onnx-tool
+	path = dep/onnx-tool
 	url = https://github.com/ThanatosShinji/onnx-tool
