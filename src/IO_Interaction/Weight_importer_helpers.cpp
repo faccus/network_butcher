@@ -208,18 +208,16 @@ namespace network_butcher::io
   basic_aMLLibrary_Weight_Importer::add_python_packages() const
   {
 #if PYBIND_ACTIVE
-    if (params.extra_packages_location.empty())
-      return;
-
     using namespace pybind11::literals;
     namespace py = pybind11;
 
     py::object path     = py::module_::import("sys").attr("path");
     py::object inserter = path.attr("append");
 
-    std::string const dep_import = std::string(NN_Source_Path) + "/dep";
+    std::string const dep_import = Utilities::combine_path(std::string(NN_Source_Path), "dep");
 
     inserter(dep_import);
+    inserter(Utilities::combine_path(dep_import, "onnx-tool"));
 
     for (auto const &package_location : params.extra_packages_location)
       inserter(package_location);
@@ -402,6 +400,7 @@ namespace network_butcher::io
     std::function<bool(graph_type::Node_Type const &)> const &extra_condition)
   {
     pybind11::initialize_interpreter();
+
     add_python_packages();
 
     auto const macs     = read_network_info_onnx_tool(network_info_onnx_tool());
