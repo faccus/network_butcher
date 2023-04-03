@@ -8,3 +8,4 @@
 /.vscode
 /.idea
 /output*
+/include/Extra/platform_specific_config.h.in

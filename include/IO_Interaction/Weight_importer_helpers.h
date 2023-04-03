@@ -12,6 +12,11 @@
 #  include "CMake_directives.h"
 #  include <pybind11/embed.h>
 #  include <pybind11/pybind11.h>
+
+#  if PLATFORM_SPECIFIC_CONFIG
+#    include "platform_specific_config.h"
+#  endif
+
 #endif
 
 namespace network_butcher
@@ -45,7 +50,10 @@ namespace network_butcher
       /// \param columns_to_read The (numeric) columns to read
       /// \return The numeric columns in a map
       static csv_result_type<double>
-      read_csv_numerics(std::string const &path, char separator, std::vector<std::string> columns_to_read);
+      read_csv_numerics(std::string const       &path,
+                        char                     separator,
+                        std::vector<std::string> columns_to_read,
+                        std::string const       &column_suffix = "");
 
       /// It will read a .csv file
       /// \param path The file path
@@ -53,7 +61,7 @@ namespace network_butcher
       /// \param columns_to_read The columns to read
       /// \return The columns in a map
       csv_result_type<std::string>
-      read_csv(std::string const &path, char separator = ',', std::vector<std::string> columns_to_read = {});
+      read_csv(std::string const &path, char separator = ',', std::vector<std::string> columns_to_read = {}, std::string const &column_suffix = "");
     } // namespace Weight_importer_helpers
 
 

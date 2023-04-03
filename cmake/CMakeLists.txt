@@ -43,7 +43,12 @@ if(USE_PYBIND)
     )
     FetchContent_MakeAvailable(pybind11)
 
-    configure_file(${CMAKE_SOURCE_DIR}/include/CMake_directives.h.in CMake_directives.h)
+    configure_file(${CMAKE_SOURCE_DIR}/include/Extra/CMake_directives.h.in CMake_directives.h)
+
+    if(EXISTS "${CMAKE_SOURCE_DIR}/include/Extra/platform_specific_config.h.in")
+        configure_file(${CMAKE_SOURCE_DIR}/include/Extra/platform_specific_config.h.in platform_specific_config.h)
+        add_compile_definitions(PLATFORM_SPECIFIC_CONFIG)
+    endif()
     
     #list(APPEND PYTHONPATH ${CMAKE_SOURCE_DIR}) 
     list(APPEND EXTRA_INCLUDE_DIR ${CMAKE_BINARY_DIR})

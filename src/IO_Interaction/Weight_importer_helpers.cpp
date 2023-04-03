@@ -3,11 +3,14 @@
 namespace network_butcher::io::Weight_importer_helpers
 {
   csv_result_type<double>
-  read_csv_numerics(std::string const &path, char separator, std::vector<std::string> columns_to_read)
+  read_csv_numerics(std::string const       &path,
+                    char                     separator,
+                    std::vector<std::string> columns_to_read,
+                    std::string const       &column_suffix)
   {
     csv_result_type<double> res;
 
-    auto const data = read_csv(path, separator, columns_to_read);
+    auto const data = read_csv(path, separator, columns_to_read, column_suffix);
 
     for (auto const &[key, value] : data)
       {
@@ -26,7 +29,10 @@ namespace network_butcher::io::Weight_importer_helpers
 
 
   csv_result_type<std::string>
-  read_csv(std::string const &path, char separator, std::vector<std::string> columns_to_read)
+  read_csv(std::string const       &path,
+           char                     separator,
+           std::vector<std::string> columns_to_read,
+           std::string const       &column_suffix)
   {
     std::ifstream file(path);
 
@@ -59,7 +65,7 @@ namespace network_butcher::io::Weight_importer_helpers
                   if (std::find(columns_to_read.cbegin(), columns_to_read.cend(), tmp_line) != columns_to_read.cend())
                     {
                       indices.push_back(i);
-                      index_map[i] = tmp_line;
+                      index_map[i] = (tmp_line + column_suffix);
                     }
 
                   ++i;
@@ -73,7 +79,7 @@ namespace network_butcher::io::Weight_importer_helpers
                   Utilities::trim(tmp_line);
 
                   indices.push_back(i);
-                  index_map[i] = tmp_line;
+                  index_map[i] = (tmp_line + column_suffix);
 
                   ++i;
                 }
@@ -113,9 +119,11 @@ namespace network_butcher::io
         paths.size() > devices.size() || relevant_entries.size() != devices.size())
       throw;
 
+    bool const single_call = paths.size() == 1;
+
     Weight_importer_helpers::csv_result_type<double> data;
 
-    if (paths.size() == 1)
+    if (single_call)
       {
         data = Weight_importer_helpers::read_csv_numerics(paths[0], separator, relevant_entries);
       }
@@ -123,7 +131,10 @@ namespace network_butcher::io
       {
         for (std::size_t i = 0; i < paths.size(); ++i)
           {
-            auto tmp = Weight_importer_helpers::read_csv_numerics(paths[i], separator, {relevant_entries[i]});
+            auto tmp = Weight_importer_helpers::read_csv_numerics(paths[i],
+                                                                  separator,
+                                                                  {relevant_entries[i]},
+                                                                  "_" + std::to_string(i));
             data.insert(tmp.begin(), tmp.end());
           }
       }
@@ -131,7 +142,7 @@ namespace network_butcher::io
     for (std::size_t i = 0; i < devices.size(); ++i)
       {
         auto const &device = devices[i];
-        auto const &entry  = relevant_entries[i];
+        auto const &entry  = single_call ? relevant_entries[i] : (relevant_entries[i] + "_" + std::to_string(i));
 
         auto const data_it = data.find(entry);
 
@@ -218,6 +229,12 @@ namespace network_butcher::io
 
     inserter(dep_import);
     inserter(Utilities::combine_path(dep_import, "onnx-tool"));
+
+#  if PLATFORM_SPECIFIC_CONFIG
+    std::string const local_lib_path = std::string(PYTHON_LOCAL_LIB_PATH);
+
+    inserter(local_lib_path);
+#  endif
 
     for (auto const &package_location : params.extra_packages_location)
       inserter(package_location);
