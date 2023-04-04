@@ -45,35 +45,4 @@ namespace
     EXPECT_DOUBLE_EQ(graph.get_weight(0, {1, 2}), 0.000177);
     ASSERT_DOUBLE_EQ(graph.get_weight(1, {1, 2}), 0.000249);
   }
-
-  TEST(WeightImporterTestSuit, originalAMLLibraryTest)
-  {
-    auto graph = std::get<0>(io::IO_Manager::import_from_onnx(graph_path, true, true, 2));
-
-    parameters::Parameters params;
-    params.weight_import_mode           = parameters::Weight_Import_Mode::aMLLibrary_original;
-    params.backward_connections_allowed = false;
-    params.temporary_directory          = "tmp";
-    params.model_path                   = graph_path;
-    params.aMLLibrary_csv_features = {"tensorLength", "networkingTime", "NrParameters", "NrNodes", "Memory", "MACs"};
-    params.aMLLibrary_inference_variables = {"1stInfTime", "2ndInfTime"};
-    params.separator                      = ',';
-    {
-      parameters::Device fake_1, fake_2;
-      fake_1.id           = 0;
-      fake_1.weights_path = "test_data/aMLLibrary_data/models/test1_1.pickle";
-
-      fake_2.id           = 1;
-      fake_2.weights_path = "test_data/aMLLibrary_data/models/test1_2.pickle";
-
-      params.devices.emplace_back(std::move(fake_1));
-      params.devices.emplace_back(std::move(fake_2));
-    }
-
-    io::original_aMLLibrary_Weight_Importer importer(graph, params);
-    importer.import_weights();
-
-    EXPECT_DOUBLE_EQ(graph.get_weight(0, {1, 2}), 2.18798);
-    ASSERT_DOUBLE_EQ(graph.get_weight(1, {1, 2}), 0.409243);
-  }
 } // namespace

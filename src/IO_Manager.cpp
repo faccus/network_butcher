@@ -40,8 +40,6 @@ namespace network_butcher::io::IO_Manager
   {
     using namespace network_butcher::io::Onnx_importer_helpers;
 
-    std::map<node_id_type, node_id_type> link_id_nodeproto;
-
     // Parse from the file the onnx::ModelProto
     onnx::ModelProto onnx_model = network_butcher::Utilities::parse_onnx_file(path);
 
@@ -49,79 +47,48 @@ namespace network_butcher::io::IO_Manager
     auto const &onnx_graph = onnx_model.graph();
     auto const &onnx_nodes = onnx_graph.node();
 
-    // Generate value_infos and the ids (names) of the inputs and outputs
-    auto [value_infos, onnx_inputs_ids, onnx_outputs_ids] =
-      compute_value_infos(onnx_graph.input(), onnx_graph.output(), onnx_graph.value_info(), onnx_graph.initializer());
+    // Prepare for the import
+    auto const basic_data = prepare_import_from_onnx(onnx_graph, add_input_padding, add_output_padding, unused_ios);
 
-    // Prepare the node vector for the graph
+    std::size_t total_size = onnx_nodes.size();
+
+    if (add_input_padding)
+      total_size += 1;
+
     std::vector<node_type> nodes;
     nodes.reserve(onnx_nodes.size() + 2);
-
-    auto const pointer_output = std::make_shared<network_butcher::types::Dense_tensor>(0, std::vector<shape_type>{});
-    auto const pointer_input  = std::make_shared<network_butcher::types::Dense_tensor>(0, std::vector<shape_type>{});
-
-    node_id_type node_id      = 0;
-    node_id_type onnx_node_id = 0;
-
-    std::set<std::string> unused_ios_set;
-    if (unused_ios)
-      unused_ios_set = find_unused_ios(onnx_graph);
+    nodes.resize(total_size);
 
     // If add_input_padding, then we will add a "fake" input node
     if (add_input_padding)
       {
         io_collection_type<type_info_pointer> tt;
-        tt["__fake__input__"] = pointer_input;
+        tt["__fake__input__"] = basic_data.pointer_input;
 
-        nodes.emplace_back(network_butcher::types::Content<type_info_pointer>({}, std::move(tt)));
+        nodes.front()      = node_type(network_butcher::types::Content<type_info_pointer>({}, std::move(tt)));
         nodes.front().name = "__fake__input__";
-        ++node_id;
       }
 
     // Populate every node
-    for (auto const &node : onnx_nodes)
-      {
-        auto operation_type = network_butcher::Utilities::to_lowercase_copy(node.op_type());
-
-        io_collection_type<type_info_pointer> parameters;
-        auto inputs  = process_node_ios(node.input(), parameters, value_infos, unused_ios_set);
-        auto outputs = process_node_ios(node.output(), parameters, value_infos, unused_ios_set);
-
-        // If the inputs of the node are the inputs of the NN, then add the connection with the padding node
-        if (add_input_padding && !get_common_elements(onnx_inputs_ids, inputs).empty())
-          {
-            inputs["__fake__input__"] = pointer_input;
-          }
-
-        // If the inputs of the node are the outputs of the NN, then add the connection with the padding node
-        if (add_output_padding && !get_common_elements(onnx_outputs_ids, outputs).empty())
-          {
-            outputs["__fake__output__"] = pointer_output;
-          }
-
-        auto content = network_butcher::types::Content<type_info_pointer>::make_content(std::move(inputs),
-                                                                                        std::move(outputs),
-                                                                                        std::move(parameters),
-                                                                                        process_node_attributes(node),
-                                                                                        std::move(operation_type));
-        nodes.emplace_back(std::move(content));
-        // nodes.back().name = network_butcher::Utilities::to_lowercase_copy(node.op_type() + "_" +
-        // std::to_string(onnx_node_id));
-        nodes.back().name = node.name();
-
-        link_id_nodeproto.emplace(node_id++, onnx_node_id++);
-      }
+    std::transform(PAR_UNSEQ,
+                   onnx_nodes.cbegin(),
+                   onnx_nodes.cend(),
+                   add_input_padding ? ++nodes.begin() : nodes.begin(),
+                   [&basic_data](auto const &onnx_node) { return process_node(onnx_node, basic_data); });
 
     // If add_output_padding, then we will add a "fake" output node
     if (add_output_padding)
       {
         io_collection_type<type_info_pointer> tt;
-        tt["__fake__output__"] = pointer_output;
+        tt["__fake__output__"] = basic_data.pointer_output;
 
         nodes.emplace_back(network_butcher::types::Content<type_info_pointer>(std::move(tt)));
         nodes.back().name = "__fake__output__";
-        ++node_id;
       }
+
+    std::map<node_id_type, node_id_type> link_id_nodeproto;
+    for (std::size_t i = add_input_padding ? 1 : 0, onnx_node_id = 0; i < nodes.size(); ++i, ++onnx_node_id)
+      link_id_nodeproto.emplace_hint(link_id_nodeproto.end(), i, onnx_node_id);
 
     return {network_butcher::types::MWGraph(num_devices, nodes), onnx_model, link_id_nodeproto};
   }
@@ -159,7 +126,7 @@ namespace network_butcher::io::IO_Manager
     std::string const method = network_butcher::Utilities::trim_copy(
       network_butcher::Utilities::to_lowercase_copy(file(basic_infos + "/method", "")));
 
-    if (method == "Eppstein")
+    if (method == "eppstein")
       res.method = network_butcher::parameters::KSP_Method::Eppstein;
     else
       res.method = network_butcher::parameters::KSP_Method::Lazy_Eppstein;
@@ -172,17 +139,27 @@ namespace network_butcher::io::IO_Manager
     std::string const weight_import_method = network_butcher::Utilities::trim_copy(
       network_butcher::Utilities::to_lowercase_copy(file(weight_infos + "/import_mode", "")));
 
-
     if (weight_import_method == "amllibrary_original")
-      res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::aMLLibrary_original;
+      {
+        res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::aMLLibrary_original;
+      }
     else if (weight_import_method == "amllibrary_block")
-      res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::aMLLibrary_block;
+      {
+        res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::aMLLibrary_block;
+      }
     else if (weight_import_method == "single_direct_read")
-      res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::single_direct_read;
+      {
+        res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::single_direct_read;
+      }
     else if (weight_import_method == "multiple_direct_read")
-      res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::multiple_direct_read;
+      {
+        res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::multiple_direct_read;
+      }
     else
-      std::cout << "Unavaible weight import mode!" << std::endl;
+      {
+        std::cout << "Unavaible weight import mode!" << std::endl;
+        throw;
+      }
 
 
     {

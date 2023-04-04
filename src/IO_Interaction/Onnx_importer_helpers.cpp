@@ -18,7 +18,7 @@ namespace network_butcher::io
         switch (attribute.type())
           {
               case onnx::AttributeProto_AttributeType_FLOAT: {
-                attributes.emplace(attribute.name(), DynamicType(attribute.f()));
+                attributes.emplace(attribute.name(), DynamicType(std::vector<float>{attribute.f()}));
                 break;
               }
               case onnx::AttributeProto_AttributeType_FLOATS: {
@@ -26,7 +26,7 @@ namespace network_butcher::io
                 break;
               }
               case onnx::AttributeProto_AttributeType_INT: {
-                attributes.emplace(attribute.name(), DynamicType(attribute.i()));
+                attributes.emplace(attribute.name(), DynamicType(std::vector<long int>{attribute.i()}));
                 break;
               }
               case onnx::AttributeProto_AttributeType_INTS: {
@@ -34,7 +34,7 @@ namespace network_butcher::io
                 break;
               }
               case onnx::AttributeProto_AttributeType_STRING: {
-                attributes.emplace(attribute.name(), DynamicType(attribute.s()));
+                attributes.emplace(attribute.name(), DynamicType(std::vector<std::string>{attribute.s()}));
               }
               case onnx::AttributeProto_AttributeType_STRINGS: {
                 attributes.emplace(attribute.name(), DynamicType(converter(attribute.strings())));
@@ -143,7 +143,7 @@ namespace network_butcher::io
             // Add it to the input_map
             input_map[value_info.name()] =
               std::make_shared<network_butcher::types::Dense_tensor>(value_info,
-                                                                    initialized.contains(value_info.name()));
+                                                                     initialized.contains(value_info.name()));
           }
       }
   }
@@ -171,7 +171,7 @@ namespace network_butcher::io
   Onnx_importer_helpers::process_node_ios(const google::protobuf::RepeatedPtrField<std::basic_string<char>> &io_names,
                                           io_collection_type<type_info_pointer> &parameters_collection,
                                           Map_IO const                          &value_infos,
-                                          std::set<std::string>                  unused_ios)
+                                          std::set<std::string> const           &unused_ios)
   {
     io_collection_type<type_info_pointer> res;
     for (auto const &io_name : io_names)
@@ -256,5 +256,72 @@ namespace network_butcher::io
 
     return to_remove_ios;
   }
+  Onnx_importer_helpers::prepared_import_onnx
+  Onnx_importer_helpers::prepare_import_from_onnx(const onnx::GraphProto &onnx_graph,
+                                                  bool                    add_input_padding,
+                                                  bool                    add_output_padding,
+                                                  bool                    unused_ios)
+  {
+      prepared_import_onnx res;
+
+      auto const &[value_infos, onnx_inputs_ids, onnx_outputs_ids] = compute_value_infos(onnx_graph.input(),
+                                                                                         onnx_graph.output(),
+                                                                                         onnx_graph.value_info(),
+                                                                                         onnx_graph.initializer());
+
+      res.value_infos      = value_infos;
+      res.onnx_inputs_ids  = onnx_inputs_ids;
+      res.onnx_outputs_ids = onnx_outputs_ids;
+
+      res.pointer_output = std::make_shared<network_butcher::types::Dense_tensor>(0, std::vector<shape_type>{});
+      res.pointer_input  = std::make_shared<network_butcher::types::Dense_tensor>(0, std::vector<shape_type>{});
+
+      if (unused_ios)
+          res.unused_ios_set = find_unused_ios(onnx_graph);
+
+      res.add_input_padding  = add_input_padding;
+      res.add_output_padding = add_output_padding;
+
+      return res;
+  }
+  node_type
+  Onnx_importer_helpers::process_node(const onnx::NodeProto                             &node,
+                                      const Onnx_importer_helpers::prepared_import_onnx &prepared_data)
+  {
+    auto const &value_infos    = prepared_data.value_infos;
+    auto const &unused_ios_set = prepared_data.unused_ios_set;
+
+    auto operation_type = network_butcher::Utilities::to_lowercase_copy(node.op_type());
+
+    io_collection_type<type_info_pointer> parameters;
+    auto inputs  = process_node_ios(node.input(), parameters, value_infos, unused_ios_set);
+    auto outputs = process_node_ios(node.output(), parameters, value_infos, unused_ios_set);
+
+    // If the inputs of the node are the inputs of the NN, then add the connection with the padding
+    // node
+    if (prepared_data.add_input_padding && !get_common_elements(prepared_data.onnx_inputs_ids, inputs).empty())
+    {
+      inputs["__fake__input__"] = prepared_data.pointer_input;
+    }
+
+    // If the inputs of the node are the outputs of the NN, then add the connection with the padding
+    // node
+    if (prepared_data.add_output_padding && !get_common_elements(prepared_data.onnx_outputs_ids, outputs).empty())
+    {
+      outputs["__fake__output__"] = prepared_data.pointer_output;
+    }
+
+    auto content = network_butcher::types::Content<type_info_pointer>::make_content(std::move(inputs),
+                                                                                    std::move(outputs),
+                                                                                    std::move(parameters),
+                                                                                    process_node_attributes(node),
+                                                                                    std::move(operation_type));
+
+    auto res = node_type(std::move(content));
+    res.name = node.name();
+
+    return res;
+  }
+
 
 } // namespace network_butcher::io

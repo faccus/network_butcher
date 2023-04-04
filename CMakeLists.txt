@@ -12,6 +12,8 @@ message(STATUS "Build tests: ${BUILD_TESTS}")
 option(BUILD_BENCHMARK "Build benchmark tests" OFF)
 message(STATUS "Build benchmark tests: ${BUILD_BENCHMARK}")
 
+option(ENABLE_PARALLEL "Enable parallel execution" ON)
+message(STATUS "Enable parallel execution: ${ENABLE_PARALLEL}")
 
 
 option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
@@ -55,6 +57,10 @@ endif()
 
 if(USE_PYBIND)
     add_compile_definitions(PYBIND_ACTIVE)
+endif()
+
+if(ENABLE_PARALLEL)
+    add_compile_definitions(PARALLEL)
 endif()
 
 add_executable(network_butcher src/main.cpp ${BASE_SOURCE} ${PROTO_SRCS})

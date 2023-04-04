@@ -52,13 +52,12 @@ namespace network_butcher
         std::vector<memory_type> memory_usages;
         memory_usages.resize(nodes.size());
 
-        std::transform(nodes.cbegin(), nodes.cend(), memory_usages.begin(), func);
+        std::transform(PAR_UNSEQ, nodes.cbegin(), nodes.cend(), memory_usages.begin(), func);
 
         return memory_usages;
       }
 
     public:
-    
       template <class T>
       [[nodiscard]] inline static memory_type
       compute_memory_usage(const T &in)
@@ -185,7 +184,7 @@ namespace network_butcher
       {
         auto const nodes_memory_usage = compute_nodes_memory_usage(graph);
 
-        return std::reduce(nodes_memory_usage.cbegin(), nodes_memory_usage.cend());
+        return std::reduce(PAR_UNSEQ, nodes_memory_usage.cbegin(), nodes_memory_usage.cend());
       }
 
 
@@ -197,9 +196,12 @@ namespace network_butcher
         std::vector<memory_type> memory_usages;
         memory_usages.resize(nodes.size());
 
-        std::transform(nodes.cbegin(), nodes.cend(), memory_usages.begin(), [](Content_Node_Type<T> const &node) {
-          return compute_memory_usage_input(node);
-        });
+        std::transform(PAR_UNSEQ,
+                       nodes.cbegin(),
+                       nodes.cend(),
+                       memory_usages.begin(),
+                       [](Content_Node_Type<T> const &node) { return compute_memory_usage_input(node); });
+
         return memory_usages;
       }
 
@@ -212,18 +214,20 @@ namespace network_butcher
         std::vector<memory_type> memory_usages;
         memory_usages.resize(nodes.size());
 
+        std::function<memory_type(Content_Node_Type<T> const &)> func;
+
         if (include_parameters)
           {
-            std::transform(nodes.cbegin(), nodes.cend(), memory_usages.begin(), [](Content_Node_Type<T> const &node) {
+            func = [](Content_Node_Type<T> const &node) {
               return compute_memory_usage_output(node) + compute_memory_usage_parameters(node);
-            });
+            };
           }
         else
           {
-            std::transform(nodes.cbegin(), nodes.cend(), memory_usages.begin(), [](Content_Node_Type<T> const &node) {
-              return compute_memory_usage_output(node);
-            });
+            func = [](Content_Node_Type<T> const &node) { return compute_memory_usage_output(node); };
           }
+
+        std::transform(PAR_UNSEQ, nodes.cbegin(), nodes.cend(), memory_usages.begin(), func);
 
         return memory_usages;
       }
@@ -237,9 +241,11 @@ namespace network_butcher
         std::vector<memory_type> memory_usages;
         memory_usages.resize(nodes.size());
 
-        std::transform(nodes.cbegin(), nodes.cend(), memory_usages.begin(), [](Content_Node_Type<T> const &node) {
-          return compute_memory_usage_parameters(node);
-        });
+        std::transform(PAR_UNSEQ,
+                       nodes.cbegin(),
+                       nodes.cend(),
+                       memory_usages.begin(),
+                       [](Content_Node_Type<T> const &node) { return compute_memory_usage_parameters(node); });
         return memory_usages;
       }
 
@@ -249,7 +255,7 @@ namespace network_butcher
       compute_memory_usage_input(Contented_Graph_Type<T> const &graph)
       {
         auto const nodes_usage = compute_nodes_memory_usage_input(graph);
-        return std::reduce(nodes_usage.cbegin(), nodes_usage.cend());
+        return std::reduce(PAR_UNSEQ, nodes_usage.cbegin(), nodes_usage.cend());
       }
 
 
@@ -258,7 +264,7 @@ namespace network_butcher
       compute_memory_usage_parameters(Contented_Graph_Type<T> const &graph)
       {
         auto const nodes_usage = compute_nodes_memory_usage_parameters(graph);
-        return std::reduce(nodes_usage.cbegin(), nodes_usage.cend());
+        return std::reduce(PAR_UNSEQ, nodes_usage.cbegin(), nodes_usage.cend());
       }
     };
   } // namespace computer

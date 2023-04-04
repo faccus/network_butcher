@@ -9,12 +9,27 @@
 #include "Graph_traits.h"
 #include "Parameters.h"
 
-namespace network_butcher {
-  namespace io {
+namespace network_butcher
+{
+  namespace io
+  {
     /// This namespace contains all the methods required to import a .onnx model to a Graph object
     namespace Onnx_importer_helpers
     {
       using Map_IO = std::unordered_map<std::string, type_info_pointer>;
+
+      struct prepared_import_onnx
+      {
+        Map_IO                                                value_infos;
+        std::shared_ptr<network_butcher::types::Dense_tensor> pointer_input;
+        std::shared_ptr<network_butcher::types::Dense_tensor> pointer_output;
+        std::set<std::string>                                 onnx_inputs_ids;
+        std::set<std::string>                                 onnx_outputs_ids;
+
+        std::set<std::string> unused_ios_set;
+        bool                  add_input_padding;
+        bool                  add_output_padding;
+      };
 
       namespace Utilities
       {
@@ -92,7 +107,7 @@ namespace network_butcher {
       process_node_ios(google::protobuf::RepeatedPtrField<std::basic_string<char>> const &io_names,
                        io_collection_type<type_info_pointer>                             &parameters_collection,
                        Map_IO const                                                      &value_infos,
-                       std::set<std::string>                                              unused_ios = {});
+                       std::set<std::string> const                                       &unused_ios = {});
 
       /// It will insert into onnx_io_ids the names of the elements of onnx_io
       /// \param onnx_io A collection of onnx::ValueInfoProto
@@ -131,9 +146,19 @@ namespace network_butcher {
       /// \return The attribute map
       std::unordered_map<std::string, network_butcher::types::DynamicType>
       process_node_attributes(const onnx::NodeProto &node);
+
+      prepared_import_onnx
+      prepare_import_from_onnx(onnx::GraphProto const &onnx_graph,
+                               bool                    add_input_padding,
+                               bool                    add_output_padding,
+                               bool                    unused_ios);
+
+      node_type
+      process_node(const onnx::NodeProto &node, prepared_import_onnx const &prepared_data);;
+
     } // namespace Onnx_importer_helpers
-  }
-}
+  }   // namespace io
+} // namespace network_butcher
 
 
 #endif // NETWORK_BUTCHER_ONNX_IMPORTER_HELPERS_H

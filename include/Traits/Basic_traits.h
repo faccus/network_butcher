@@ -5,6 +5,7 @@
 #ifndef NETWORK_BUTCHER_BASIC_TRAITS_H
 #define NETWORK_BUTCHER_BASIC_TRAITS_H
 
+#include <execution>
 #include <iostream>
 #include <list>
 #include <map>
@@ -14,6 +15,14 @@
 #include <unordered_map>
 
 #include "Type_info.h"
+
+#if PARALLEL
+#  define PAR std::execution::par
+#  define PAR_UNSEQ std::execution::par_unseq
+#else
+#  define PAR std::execution::seq
+#  define PAR_UNSEQ std::execution::seq
+#endif
 
 namespace network_butcher
 {
