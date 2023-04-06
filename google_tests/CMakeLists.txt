@@ -42,10 +42,3 @@ FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test6_parameters.conf DESTINATIO
 
 FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/aMLLibrary_data/models/test1_1.pickle DESTINATION ${CMAKE_BINARY_DIR}/test_data/aMLLibrary_data/models)
 FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/aMLLibrary_data/models/test1_2.pickle DESTINATION ${CMAKE_BINARY_DIR}/test_data/aMLLibrary_data/models)
-
-
-if (BUILD_BENCHMARK)
-    set(FINAL_TESTS_SOURCE ${TESTS_SOURCE} ${BENCHMARK_TESTS_SOURCE})
-else ()
-    set(FINAL_TESTS_SOURCE ${TESTS_SOURCE})
-endif ()
