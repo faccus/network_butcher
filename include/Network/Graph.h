@@ -42,10 +42,10 @@ namespace network_butcher
       operator=(Graph const &) = default;
 
 
-      Graph(Graph &&) = default;
+      Graph(Graph &&) noexcept = default;
 
       Graph &
-      operator=(Graph &&) = default;
+      operator=(Graph &&) noexcept = default;
 
 
       /// Construct a new Graph object

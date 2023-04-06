@@ -40,4 +40,5 @@ namespace {
     EXPECT_TRUE(Utilities::file_exists(model_path_copy));
     std::filesystem::remove(model_path_copy);
   }
+
 }

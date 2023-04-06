@@ -178,7 +178,7 @@ namespace
 
     std::size_t k = 1000;
 
-    std::size_t number_of_tests = 1000;
+    std::size_t number_of_tests = 10;
 
 
     auto  butcher = basic_butcher(num_nodes);
@@ -245,68 +245,6 @@ namespace
     std::cout << "Lazy Eppstein: " << time_lazy / 1000 / number_of_tests << " milliseconds" << std::endl;
 
     std::cout << "Eppstein: " << time_std / 1000 / number_of_tests << " milliseconds" << std::endl;
-  }
-
-
-  TEST(ButcherBenchmarkTest, compute_k_shortest_paths_lazy_eppstein_multiple_random)
-  {
-    std::size_t       num_devices     = 3;
-    std::size_t const num_nodes       = 10000;
-    std::size_t const number_of_tests = 1000;
-    std::size_t const k               = 1000;
-
-    auto  butcher = basic_butcher(num_nodes);
-    auto &graph   = butcher.get_graph_ref();
-
-    double total_time = .0;
-
-    for (auto num_test = 0; num_test < number_of_tests; ++num_test)
-      {
-        std::vector<type_collection_weights> weight_maps;
-        basic_weight(graph, true);
-
-        auto transmission_fun = basic_transmission(num_devices, graph.get_nodes().size());
-
-        Chrono crono;
-        crono.start();
-        auto const res =
-          butcher.compute_k_shortest_path(transmission_fun, lazy_eppstein_parameters(k, true, num_devices));
-        crono.stop();
-
-        total_time += crono.wallTime();
-        std::cout << "Current average time per test: " << total_time / (num_test + 1) / 1000 << " ms" << std::endl;
-      }
-  }
-
-
-  TEST(ButcherBenchmarkTest, compute_k_shortest_paths_eppstein_multiple_random)
-  {
-    std::size_t       num_devices     = 3;
-    std::size_t const num_nodes       = 1000;
-    std::size_t const number_of_tests = 1000;
-    std::size_t const k               = 1000;
-
-    auto  butcher = basic_butcher(num_nodes);
-    auto &graph   = butcher.get_graph_ref();
-
-    double total_time = .0;
-
-    for (auto num_test = 0; num_test < number_of_tests; ++num_test)
-      {
-        std::vector<type_collection_weights> weight_maps;
-        basic_weight(graph, true);
-
-        auto transmission_fun = basic_transmission(num_devices, graph.get_nodes().size());
-
-        Chrono crono;
-        crono.start();
-        auto const res = butcher.compute_k_shortest_path(transmission_fun, eppstein_parameters(k, true, num_devices));
-        crono.stop();
-
-        total_time += crono.wallTime();
-      }
-
-    std::cout << "Average time per test: " << total_time / number_of_tests / 1000 << " milli-seconds" << std::endl;
   }
 
 

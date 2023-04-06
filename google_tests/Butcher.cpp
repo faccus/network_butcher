@@ -9,15 +9,6 @@
 #include "TestClass.h"
 #include "chrono.h"
 
-/*
-void
-Analyze(const onnx::ValueInfoProto &);
-void
-Analyze(const onnx::NodeProto &);
-void
-PrintInputOutput(const onnx::ModelProto &);
-*/
-
 namespace
 {
   using namespace network_butcher;

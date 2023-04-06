@@ -245,13 +245,13 @@ namespace network_butcher
       // Basically, we start from the specified node and go along the shortest path until we meet a sidetrack edge
       // contained in the implicit path. In that case, we add the sidetrack edge and proceed along the "new" shortest
       // path until either the "sink" node is reached or another sidetrack edge is met
-      for (auto implicit_path = epp_res.cbegin(); implicit_path != epp_res.cend(); ++implicit_path)
+      for (const auto &implicit_path : epp_res)
         {
           path_info info;
-          info.length = implicit_path->length;
+          info.length = implicit_path.length;
           info.path.reserve(graph.size());
 
-          auto const &sidetracks = implicit_path->sidetracks;
+          auto const &sidetracks = implicit_path.sidetracks;
 
           auto        it             = sidetracks.cbegin();
           std::size_t node_to_insert = 0;
@@ -287,8 +287,9 @@ namespace network_butcher
     {
       auto const &successors = dij_res.first;
 
-      std::vector<implicit_path_info> res;
-      res.push_back({{}, dij_res.second.front()});
+      // Start with the shortest path
+      std::vector<implicit_path_info> res(1);
+      res.front().length = dij_res.second.front();
 
       // Find the first sidetrack edge
       auto const first_side_track_res = extrack_first_sidetrack_edge(0, h_g);

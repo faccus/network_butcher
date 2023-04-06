@@ -143,10 +143,10 @@ namespace network_butcher
     Butcher
     operator=(Butcher const &) = delete;
 
-    Butcher(Butcher &&d) = default;
+    Butcher(Butcher &&d) noexcept = default;
 
     Butcher &
-    operator=(Butcher &&d) = default;
+    operator=(Butcher &&d) noexcept = default;
 
 
     /// Basic getter for graph

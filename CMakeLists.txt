@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD 20)
 option(BUILD_TESTS "Build tests" ON)
 message(STATUS "Build tests: ${BUILD_TESTS}")
 
-option(BUILD_BENCHMARK "Build benchmark tests" OFF)
+option(BUILD_BENCHMARK "Build benchmark tests" ON)
 message(STATUS "Build benchmark tests: ${BUILD_BENCHMARK}")
 
 option(ENABLE_PARALLEL "Enable parallel execution" ON)
