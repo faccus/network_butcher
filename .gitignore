@@ -1,11 +1,11 @@
 # Project exclude paths
-/cmake-build-debug/
-/cmake-build-release/
+/cmake-build-debug*/
+/cmake-build-release*/
 /build/
 /ML_inputs/
+/.idea
 /test_data/aMLLibrary_data/output
 /onnx_proto/onnx
 /.vscode
-/.idea
 /output*
 /include/Extra/platform_specific_config.h.in
