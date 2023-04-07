@@ -1,27 +1,50 @@
 #include "Weight_importer_helpers.h"
 
+#include <utility>
+
 namespace network_butcher::io::Weight_importer_helpers
 {
   csv_result_type<double>
-  read_csv_numerics(std::string const       &path,
-                    char                     separator,
-                    std::vector<std::string> columns_to_read,
-                    std::string const       &column_suffix)
+  read_csv_numerics(std::string const              &path,
+                    char                            separator,
+                    std::vector<std::string> const &columns_to_read,
+                    std::string const              &column_suffix,
+                    bool                            only_non_negative)
   {
     csv_result_type<double> res;
 
     auto const data = read_csv(path, separator, columns_to_read, column_suffix);
 
+    std::function<std::vector<double>(std::vector<std::string> const &)> process_data_entry;
+
+    if (only_non_negative)
+      {
+        process_data_entry = [](auto const &value) {
+          std::vector<double> tmp_vec;
+          tmp_vec.reserve(value.size());
+          for (auto const &val : value)
+            {
+              tmp_vec.push_back(std::max(std::stod(val), 0.));
+            }
+          return tmp_vec;
+        };
+      }
+    else
+      {
+        process_data_entry = [](auto const &value) {
+          std::vector<double> tmp_vec;
+          tmp_vec.reserve(value.size());
+          for (auto const &val : value)
+            {
+              tmp_vec.push_back(std::stod(val));
+            }
+          return tmp_vec;
+        };
+      }
+
     for (auto const &[key, value] : data)
       {
-        std::vector<double> tmp_vec;
-
-        for (auto const &val : value)
-          {
-            tmp_vec.push_back(std::stod(val));
-          }
-
-        res.emplace(key, std::move(tmp_vec));
+        res.emplace(key, process_data_entry(value));
       }
 
     return res;
@@ -125,16 +148,14 @@ namespace network_butcher::io
 
     if (single_call)
       {
-        data = Weight_importer_helpers::read_csv_numerics(paths[0], separator, relevant_entries);
+        data = Weight_importer_helpers::read_csv_numerics(paths[0], separator, relevant_entries, "", only_non_negative);
       }
     else
       {
         for (std::size_t i = 0; i < paths.size(); ++i)
           {
-            auto tmp = Weight_importer_helpers::read_csv_numerics(paths[i],
-                                                                  separator,
-                                                                  {relevant_entries[i]},
-                                                                  "_" + std::to_string(i));
+            auto tmp = Weight_importer_helpers::read_csv_numerics(
+              paths[i], separator, {relevant_entries[i]}, "_" + std::to_string(i), only_non_negative);
             data.insert(tmp.begin(), tmp.end());
           }
       }
@@ -483,7 +504,7 @@ namespace network_butcher::io
 
     pybind11::finalize_interpreter();
 
-    Csv_Weight_Importer importer(graph, paths, relevant_entries, params.devices, params.separator);
+    Csv_Weight_Importer importer(graph, paths, relevant_entries, params.devices, params.separator, true);
     importer.import_weights(extra_condition);
   }
 } // namespace network_butcher::io
@@ -654,7 +675,7 @@ namespace network_butcher::io
     std::string const                                              &path,
     std::function<bool(block_graph_type::Node_Type const &)> const &extra_condition = nullptr)
   {
-    auto const map = Weight_importer_helpers::read_csv_numerics(path, ',', {"pred"});
+    auto const map = Weight_importer_helpers::read_csv_numerics(path, ',', {"pred"}, "", true);
 
     auto it = new_graph.cbegin();
 

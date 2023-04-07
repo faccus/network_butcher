@@ -108,7 +108,8 @@ namespace kfinder
                       else
                         std::cout << head_node << ", " << current_node.id;
 
-                      std::cout << ")" << " or it's negative" << std::endl;
+                      std::cout << ")"
+                                << "is missing or it's negative" << std::endl;
 
                       throw;
                     }

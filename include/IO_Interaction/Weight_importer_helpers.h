@@ -50,10 +50,11 @@ namespace network_butcher
       /// \param columns_to_read The (numeric) columns to read
       /// \return The numeric columns in a map
       static csv_result_type<double>
-      read_csv_numerics(std::string const       &path,
-                        char                     separator,
-                        std::vector<std::string> columns_to_read,
-                        std::string const       &column_suffix = "");
+      read_csv_numerics(std::string const              &path,
+                        char                            separator,
+                        std::vector<std::string> const &columns_to_read,
+                        std::string const              &column_suffix     = "",
+                        bool                            only_non_negative = false);
 
       /// It will read a .csv file
       /// \param path The file path
@@ -61,7 +62,10 @@ namespace network_butcher
       /// \param columns_to_read The columns to read
       /// \return The columns in a map
       csv_result_type<std::string>
-      read_csv(std::string const &path, char separator = ',', std::vector<std::string> columns_to_read = {}, std::string const &column_suffix = "");
+      read_csv(std::string const       &path,
+               char                     separator       = ',',
+               std::vector<std::string> columns_to_read = {},
+               std::string const       &column_suffix   = "");
     } // namespace Weight_importer_helpers
 
 
@@ -87,32 +91,37 @@ namespace network_butcher
       std::vector<std::size_t> devices;
       std::vector<std::string> relevant_entries;
       char const               separator;
+      bool                     only_non_negative;
 
     public:
       Csv_Weight_Importer(graph_type                     &graph,
                           std::vector<std::string> const &paths,
                           std::vector<std::string> const &relevant_entries,
                           std::vector<std::size_t> const &devices,
-                          char                            separator = ',')
+                          char                            separator         = ',',
+                          bool                            only_non_negative = false)
         : Weight_Importer()
         , graph{graph}
         , paths{paths}
         , devices{devices}
         , relevant_entries{relevant_entries}
-        , separator{separator} {};
+        , separator{separator}
+        , only_non_negative{only_non_negative} {};
 
 
       Csv_Weight_Importer(graph_type                                             &graph,
                           std::vector<std::string> const                         &paths,
                           std::vector<std::string> const                         &relevant_entries,
                           std::vector<network_butcher::parameters::Device> const &devices,
-                          char                                                    separator = ',')
+                          char                                                    separator         = ',',
+                          bool                                                    only_non_negative = false)
         : Weight_Importer()
         , graph{graph}
         , paths{paths}
         , devices{}
         , relevant_entries{relevant_entries}
         , separator{separator}
+        , only_non_negative{only_non_negative}
       {
         for (auto const &device : devices)
           {
@@ -123,10 +132,12 @@ namespace network_butcher
 
       Csv_Weight_Importer(graph_type                                             &graph,
                           std::vector<network_butcher::parameters::Device> const &devices,
-                          char                                                    separator = ',')
+                          char                                                    separator         = ',',
+                          bool                                                    only_non_negative = false)
         : Weight_Importer()
         , graph{graph}
         , separator{separator}
+        , only_non_negative{only_non_negative}
       {
         paths.reserve(devices.size());
         relevant_entries.reserve(devices.size());
