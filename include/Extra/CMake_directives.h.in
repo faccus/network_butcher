@@ -1,1 +1,10 @@
+//
+// Created by faccus on 07/04/23.
+//
+
+#ifndef NETWORK_BUTCHER_CMAKE_DIRECTIVES_H_IN_H
+#define NETWORK_BUTCHER_CMAKE_DIRECTIVES_H_IN_H
+
 #define NN_Source_Path "@CMAKE_SOURCE_DIR@"
+
+#endif // NETWORK_BUTCHER_CMAKE_DIRECTIVES_H_IN_H

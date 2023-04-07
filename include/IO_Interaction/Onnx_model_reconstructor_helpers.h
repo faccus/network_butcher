@@ -26,7 +26,7 @@ namespace network_butcher::io
     };
 
     template <typename T>
-    class FakeIterator
+    class BidirectionalCustomIterator
     {
     private:
       T::const_iterator         forward;
@@ -35,15 +35,15 @@ namespace network_butcher::io
       bool reversed;
 
     public:
-      explicit FakeIterator(T::const_iterator it)
+      explicit BidirectionalCustomIterator(T::const_iterator it)
         : forward{it}
         , reversed{false}
       {}
-      explicit FakeIterator(T::const_reverse_iterator it)
+      explicit BidirectionalCustomIterator(T::const_reverse_iterator it)
         : backward{it}
         , reversed{true} {};
 
-      FakeIterator &
+      BidirectionalCustomIterator &
       operator++()
       {
         if (reversed)
@@ -55,7 +55,7 @@ namespace network_butcher::io
       }
 
       bool
-      operator==(FakeIterator const &rhs)
+      operator==(BidirectionalCustomIterator const &rhs)
       {
         if (reversed == rhs.reversed)
           {
@@ -69,7 +69,7 @@ namespace network_butcher::io
       }
 
       bool
-      operator!=(FakeIterator const &rhs)
+      operator!=(BidirectionalCustomIterator const &rhs)
       {
         return !(*this == rhs);
       }

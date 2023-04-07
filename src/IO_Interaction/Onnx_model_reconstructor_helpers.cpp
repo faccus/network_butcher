@@ -3,6 +3,8 @@
 //
 #include "Onnx_model_reconstructor_helpers.h"
 
+#include <ranges>
+
 namespace network_butcher::io
 {
 
@@ -65,7 +67,7 @@ namespace network_butcher::io
     onnx::GraphProto                                              *current_edited_graph,
     Onnx_model_reconstructor_helpers::preprocessed_ios_type const &preprocessed_ios_nodes)
   {
-    for (auto const &node : nodes)
+    for (unsigned long node : nodes)
       {
         auto const it = link_id_nodeproto.find(node);
 
@@ -239,8 +241,8 @@ namespace network_butcher::io
     const std::function<onnx::ValueInfoProto *()> &get_new_entry,
     bool                                           reversed)
   {
-    using fake_iterator_type =
-      Onnx_model_reconstructor_helpers::FakeIterator<google::protobuf::RepeatedPtrField<onnx::NodeProto>>;
+    using fake_iterator_type = Onnx_model_reconstructor_helpers::BidirectionalCustomIterator<
+      google::protobuf::RepeatedPtrField<onnx::NodeProto>>;
 
     auto const &nodes = edit_graph->mutable_node();
 

@@ -4,11 +4,19 @@
 #include "Utilities.h"
 #include <gtest/gtest.h>
 
-namespace {
+namespace
+{
   using namespace network_butcher;
+  std::string const base_path_no_extension = "test_data/models/resnet18-v2-7-inferred";
 
-  TEST(UtilitiesTestSuit, VerifyProtobufVersionTest) {
+  TEST(UtilitiesTestSuit, VerifyProtobufVersionTest)
+  {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
+  }
+
+  TEST(UtilitiesTestSUit, ParseNonExistingOnnxFileTest)
+  {
+    EXPECT_THROW(Utilities::parse_onnx_file("this_model_doesnt_exists.onnx"), std::runtime_error);
   }
 
   TEST(UtilitiesTestSuit, ComputeMemoryUsageFromEnumTest)
@@ -22,23 +30,21 @@ namespace {
 
   TEST(UtilitiesTestSuit, ParseOnnxFileTest)
   {
-    const std::string model_path = "resnet18-v2-7-inferred.onnx";
-    auto const        res        = Utilities::parse_onnx_file(model_path);
+    EXPECT_NO_THROW(Utilities::parse_onnx_file(base_path_no_extension + ".onnx"));
   }
 
   TEST(UtilitiesTestSuit, OutputOnnxFileTest)
   {
-    std::string model_path      = "resnet18-v2-7-inferred.onnx";
-    std::string model_path_copy = "resnet18-v2-7-inferred-copy.onnx";
+    std::string const model_path{base_path_no_extension + ".onnx"};
+    std::string const model_path_copy{base_path_no_extension + "-copy.onnx"};
 
     if (Utilities::file_exists(model_path_copy))
       std::filesystem::remove(model_path_copy);
 
-    Utilities::output_onnx_file(Utilities::parse_onnx_file(model_path),
-                                                 model_path_copy);
+    EXPECT_NO_THROW(Utilities::output_onnx_file(Utilities::parse_onnx_file(model_path), model_path_copy));
 
     EXPECT_TRUE(Utilities::file_exists(model_path_copy));
     std::filesystem::remove(model_path_copy);
   }
 
-}
+} // namespace

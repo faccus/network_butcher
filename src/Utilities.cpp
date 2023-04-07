@@ -77,6 +77,9 @@ namespace network_butcher
   onnx::ModelProto
   Utilities::parse_onnx_file(const std::string &model_path)
   {
+    if (!network_butcher::Utilities::file_exists(model_path))
+      throw std::runtime_error("The model in the specified path " + model_path + " doesn't exist");
+
     GOOGLE_PROTOBUF_VERIFY_VERSION;
     onnx::ModelProto model;
     parse_onnx_file(model, model_path);

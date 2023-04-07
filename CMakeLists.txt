@@ -16,6 +16,7 @@ option(ENABLE_PARALLEL "Enable parallel execution" ON)
 message(STATUS "Enable parallel execution: ${ENABLE_PARALLEL}")
 
 
+
 option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
 message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
 
@@ -28,7 +29,8 @@ message(STATUS "Download and compile yaml-cpp from git: " ${BUILD_YAML_CPP_SOURC
 
 
 option(USE_PYBIND "Download and compile pybind11 from git:" ON)
-message(STATUS "Download and compile pybind11 from git ${USE_PYBIND}")
+message(STATUS "Download and compile pybind11 from git: " ${USE_PYBIND})
+
 
 option(BUILD_DOC "Build documentation" OFF)
 message(STATUS "Build documentation: ${BUILD_DOC}")

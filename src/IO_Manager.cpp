@@ -76,6 +76,10 @@ namespace network_butcher::io::IO_Manager
                    add_input_padding ? ++nodes.begin() : nodes.begin(),
                    [&basic_data](auto const &onnx_node) { return process_node(onnx_node, basic_data); });
 
+    std::map<node_id_type, node_id_type> link_id_nodeproto;
+    for (std::size_t i = add_input_padding ? 1 : 0, onnx_node_id = 0; i < nodes.size(); ++i, ++onnx_node_id)
+      link_id_nodeproto.emplace_hint(link_id_nodeproto.end(), i, onnx_node_id);
+
     // If add_output_padding, then we will add a "fake" output node
     if (add_output_padding)
       {
@@ -85,10 +89,6 @@ namespace network_butcher::io::IO_Manager
         nodes.emplace_back(network_butcher::types::Content<type_info_pointer>(std::move(tt)));
         nodes.back().name = "__fake__output__";
       }
-
-    std::map<node_id_type, node_id_type> link_id_nodeproto;
-    for (std::size_t i = add_input_padding ? 1 : 0, onnx_node_id = 0; i < nodes.size(); ++i, ++onnx_node_id)
-      link_id_nodeproto.emplace_hint(link_id_nodeproto.end(), i, onnx_node_id);
 
     return {network_butcher::types::MWGraph(num_devices, nodes), onnx_model, link_id_nodeproto};
   }
@@ -264,19 +264,22 @@ namespace network_butcher::io::IO_Manager
                             std::map<node_id_type, node_id_type> const        &link_id_nodeproto,
                             const network_butcher::types::Weighted_Real_Paths &paths)
   {
+    if (network_butcher::Utilities::directory_exists(params.export_directory))
+      network_butcher::Utilities::directory_delete(params.export_directory);
     network_butcher::Utilities::create_directory(params.export_directory);
+
+    Utilities::output_onnx_file(model, Utilities::combine_path(params.export_directory, params.model_name + ".onnx"));
+
     auto const preprocessed_node_ios = Onnx_model_reconstructor_helpers::process_node_ios_nodes(model.graph());
 
     for (std::size_t j = 0; j < paths.size(); ++j)
       {
-        network_butcher::Utilities::create_directory(params.export_directory + "/" + std::to_string(j));
+        auto const dir_path = Utilities::combine_path(params.export_directory, std::to_string(j));
+        network_butcher::Utilities::create_directory(dir_path);
 
-        utilities::reconstruct_model_and_export(paths[j].second,
-                                                model,
-                                                link_id_nodeproto,
-                                                preprocessed_node_ios,
-                                                params.export_directory + "/" + std::to_string(j) + "/" +
-                                                  params.model_name);
+        auto const output_path = Utilities::combine_path(dir_path, params.model_name);
+        utilities::reconstruct_model_and_export(
+          paths[j].second, model, link_id_nodeproto, preprocessed_node_ios, output_path);
       }
   }
 
