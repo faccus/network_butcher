@@ -94,7 +94,9 @@ namespace
     if (Utilities::file_exists(exported_model))
       Utilities::file_delete(exported_model);
 
-    io::IO_Manager::export_to_onnx(std::get<1>(model), exported_model);
+    EXPECT_NO_THROW(io::IO_Manager::export_to_onnx(std::get<1>(model), exported_model));
+
+    Utilities::file_delete(exported_model);
   }
 
 

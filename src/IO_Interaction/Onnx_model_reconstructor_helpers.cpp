@@ -193,42 +193,57 @@ namespace network_butcher::io
                 found_value_info = it != model_graph.value_info().end();
               }
 
-            if (found_initializer)
-              {
-                auto iterator_pair = std::make_pair(it, init);
-                if (found_input)
-                  {
-                    res.emplace(input, std::make_pair(Initializer_Input, iterator_pair));
-                  }
-                else if (found_value_info)
-                  {
-                    res.emplace(input, std::make_pair(Initializer_ValueInfo, iterator_pair));
-                  }
-                else
-                  {
-                    res.emplace(input, std::make_pair(Initializer, iterator_pair));
-                  }
-              }
-            else
-              {
-                auto iterator_pair = std::make_pair(it, model_graph.initializer().cend());
-                if (found_input)
-                  {
-                    res.emplace(input, std::make_pair(Input, iterator_pair));
-                  }
-                else if (found_value_info)
-                  {
-                    res.emplace(input, std::make_pair(ValueInfo, iterator_pair));
-                  }
-                else
-                  {
-                    res.emplace(input, std::make_pair(NoConnection, iterator_pair));
-                  }
-              }
+            res.emplace(
+              input,
+              prepocessed_ios_new_entry(model_graph, found_initializer, found_input, found_value_info, init, it));
           }
       }
 
     return res;
+  }
+
+
+  Onnx_model_reconstructor_helpers::preprocessed_ios_type::mapped_type
+  Onnx_model_reconstructor_helpers::prepocessed_ios_new_entry(
+    const onnx::GraphProto                                                   &model_graph,
+    bool                                                                      found_initializer,
+    bool                                                                      found_input,
+    bool                                                                      found_value_info,
+    google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator    &init,
+    google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator &it)
+  {
+    if (found_initializer)
+      {
+        auto iterator_pair = std::make_pair(it, init);
+        if (found_input)
+          {
+            return std::make_pair(Initializer_Input, iterator_pair);
+          }
+        else if (found_value_info)
+          {
+            return std::make_pair(Initializer_ValueInfo, iterator_pair);
+          }
+        else
+          {
+            return std::make_pair(Initializer, iterator_pair);
+          }
+      }
+    else
+      {
+        auto iterator_pair = std::make_pair(it, model_graph.initializer().cend());
+        if (found_input)
+          {
+            return std::make_pair(Input, iterator_pair);
+          }
+        else if (found_value_info)
+          {
+            return std::make_pair(ValueInfo, iterator_pair);
+          }
+        else
+          {
+            return std::make_pair(NoConnection, iterator_pair);
+          }
+      }
   }
 
   void

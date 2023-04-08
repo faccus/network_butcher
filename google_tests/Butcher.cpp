@@ -77,7 +77,7 @@ namespace
 
     auto butcher = basic_butcher();
 
-    auto      &graph     = butcher.get_graph_ref();
+    auto      &graph     = butcher.get_graph();
     auto const num_nodes = graph.get_nodes().size();
 
     auto transmission_fun = basic_transmission(num_devices, num_nodes);

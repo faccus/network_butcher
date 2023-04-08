@@ -6,7 +6,7 @@
 namespace network_butcher::io
 {
   std::unordered_map<std::string, network_butcher::types::DynamicType>
-  Onnx_importer_helpers::process_node_attributes(const onnx::NodeProto &node)
+  Onnx_importer_helpers::process_node_attributes(onnx::NodeProto const &node)
   {
     using DynamicType = network_butcher::types::DynamicType;
     using namespace Utilities;
@@ -18,26 +18,26 @@ namespace network_butcher::io
         switch (attribute.type())
           {
               case onnx::AttributeProto_AttributeType_FLOAT: {
-                attributes.emplace(attribute.name(), DynamicType(std::vector<float>{attribute.f()}));
+                attributes.emplace(attribute.name(), std::vector<float>{attribute.f()});
                 break;
               }
               case onnx::AttributeProto_AttributeType_FLOATS: {
-                attributes.emplace(attribute.name(), DynamicType(converter(attribute.floats())));
+                attributes.emplace(attribute.name(), converter(attribute.floats()));
                 break;
               }
               case onnx::AttributeProto_AttributeType_INT: {
-                attributes.emplace(attribute.name(), DynamicType(std::vector<long int>{attribute.i()}));
+                attributes.emplace(attribute.name(), std::vector<long int>{attribute.i()});
                 break;
               }
               case onnx::AttributeProto_AttributeType_INTS: {
-                attributes.emplace(attribute.name(), DynamicType(converter(attribute.ints())));
+                attributes.emplace(attribute.name(), converter(attribute.ints()));
                 break;
               }
               case onnx::AttributeProto_AttributeType_STRING: {
-                attributes.emplace(attribute.name(), DynamicType(std::vector<std::string>{attribute.s()}));
+                attributes.emplace(attribute.name(), std::vector<std::string>{attribute.s()});
               }
               case onnx::AttributeProto_AttributeType_STRINGS: {
-                attributes.emplace(attribute.name(), DynamicType(converter(attribute.strings())));
+                attributes.emplace(attribute.name(), converter(attribute.strings()));
                 break;
               }
             default:
@@ -70,6 +70,7 @@ namespace network_butcher::io
 
     // Collection of the tensor names that have already been initialized
     std::set<std::string> initialized;
+
     for (auto const &p : onnx_initializer)
       {
         initialized.insert(p.name());
@@ -79,11 +80,13 @@ namespace network_butcher::io
     std::vector<std::string> int_res(std::max(tmp_onnx_inputs_ids.size(), initialized.size()));
 
     // Add to int_res the non-initialized inputs
-    auto it = std::set_difference(tmp_onnx_inputs_ids.cbegin(),
+    auto it = std::set_difference(PAR,
+                                  tmp_onnx_inputs_ids.cbegin(),
                                   tmp_onnx_inputs_ids.cend(),
                                   initialized.cbegin(),
                                   initialized.cend(),
                                   int_res.begin());
+
     int_res.resize(it - int_res.begin());
     onnx_inputs_ids.insert(int_res.cbegin(), int_res.cend());
 
@@ -262,27 +265,25 @@ namespace network_butcher::io
                                                   bool                    add_output_padding,
                                                   bool                    unused_ios)
   {
-      prepared_import_onnx res;
+    prepared_import_onnx res;
 
-      auto const &[value_infos, onnx_inputs_ids, onnx_outputs_ids] = compute_value_infos(onnx_graph.input(),
-                                                                                         onnx_graph.output(),
-                                                                                         onnx_graph.value_info(),
-                                                                                         onnx_graph.initializer());
+    auto const &[value_infos, onnx_inputs_ids, onnx_outputs_ids] =
+      compute_value_infos(onnx_graph.input(), onnx_graph.output(), onnx_graph.value_info(), onnx_graph.initializer());
 
-      res.value_infos      = value_infos;
-      res.onnx_inputs_ids  = onnx_inputs_ids;
-      res.onnx_outputs_ids = onnx_outputs_ids;
+    res.value_infos      = value_infos;
+    res.onnx_inputs_ids  = onnx_inputs_ids;
+    res.onnx_outputs_ids = onnx_outputs_ids;
 
-      res.pointer_output = std::make_shared<network_butcher::types::Dense_tensor>(0, std::vector<shape_type>{});
-      res.pointer_input  = std::make_shared<network_butcher::types::Dense_tensor>(0, std::vector<shape_type>{});
+    res.pointer_output = std::make_shared<network_butcher::types::Dense_tensor>(0, std::vector<shape_type>{});
+    res.pointer_input  = std::make_shared<network_butcher::types::Dense_tensor>(0, std::vector<shape_type>{});
 
-      if (unused_ios)
-          res.unused_ios_set = find_unused_ios(onnx_graph);
+    if (unused_ios)
+      res.unused_ios_set = find_unused_ios(onnx_graph);
 
-      res.add_input_padding  = add_input_padding;
-      res.add_output_padding = add_output_padding;
+    res.add_input_padding  = add_input_padding;
+    res.add_output_padding = add_output_padding;
 
-      return res;
+    return res;
   }
   node_type
   Onnx_importer_helpers::process_node(const onnx::NodeProto                             &node,
@@ -300,16 +301,16 @@ namespace network_butcher::io
     // If the inputs of the node are the inputs of the NN, then add the connection with the padding
     // node
     if (prepared_data.add_input_padding && !get_common_elements(prepared_data.onnx_inputs_ids, inputs).empty())
-    {
-      inputs["__fake__input__"] = prepared_data.pointer_input;
-    }
+      {
+        inputs["__fake__input__"] = prepared_data.pointer_input;
+      }
 
     // If the inputs of the node are the outputs of the NN, then add the connection with the padding
     // node
     if (prepared_data.add_output_padding && !get_common_elements(prepared_data.onnx_outputs_ids, outputs).empty())
-    {
-      outputs["__fake__output__"] = prepared_data.pointer_output;
-    }
+      {
+        outputs["__fake__output__"] = prepared_data.pointer_output;
+      }
 
     auto content = network_butcher::types::Content<type_info_pointer>::make_content(std::move(inputs),
                                                                                     std::move(outputs),

@@ -192,6 +192,13 @@ namespace network_butcher::io
     void
     add_missing_outputs(const onnx::ModelProto &original_model, onnx::GraphProto *current_edited_graph);
 
+    Onnx_model_reconstructor_helpers::preprocessed_ios_type::mapped_type
+    prepocessed_ios_new_entry(const onnx::GraphProto                                                &model_graph,
+                              bool                                                                   found_initializer,
+                              bool                                                                   found_input,
+                              bool                                                                   found_value_info,
+                              google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator &init,
+                              google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator &it);
   } // namespace Onnx_model_reconstructor_helpers
 } // namespace network_butcher::io
 

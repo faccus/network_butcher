@@ -14,7 +14,7 @@ namespace
   using namespace network_butcher::io;
 
   void
-  execute_boot(std::string export_path, std::string conf_path)
+  execute_boot(std::string const &export_path, std::string const &conf_path)
   {
     if (Utilities::directory_exists(export_path))
       {

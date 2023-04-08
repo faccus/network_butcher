@@ -11,24 +11,21 @@ namespace
   using namespace network_butcher;
   using namespace network_butcher::types;
 
+  using basic_type    = int;
+  using Input         = TestMemoryUsage<basic_type>;
+  using Content_type  = Content<Input>;
+  using Graph_type    = Graph<Content_type>;
+  using IO_collection = io_collection_type<Input>;
+  using Node_type     = Graph_type::Node_Type;
+
   TEST(GraphTests, DefaultConstructors)
   {
-    using basic_type = int;
-    using Input      = TestMemoryUsage<basic_type>;
-
     Graph<Input>            graph_empty;
     Graph<graph_input_type> graph_empty2;
   }
 
   TEST(GraphTests, ConstructorFromCustomClass)
   {
-    using basic_type    = int;
-    using Input         = TestMemoryUsage<basic_type>;
-    using Content_type  = Content<Input>;
-    using Graph_type    = Graph<Content_type>;
-    using IO_collection = io_collection_type<Input>;
-    using Node_type     = Graph_type::Node_Type;
-
     int number_of_nodes = 10;
 
     std::vector<Node_type> nodes;
@@ -53,12 +50,6 @@ namespace
 
   TEST(GraphTests, RemoveNodes)
   {
-    using basic_type    = int;
-    using Input         = TestMemoryUsage<basic_type>;
-    using Content_type  = Content<Input>;
-    using Graph_type    = Graph<Content_type>;
-    using IO_collection = io_collection_type<Input>;
-    using Node_type     = Graph_type::Node_Type;
 
     int number_of_nodes = 10;
 
@@ -86,8 +77,8 @@ namespace
 
     graph.remove_nodes({3, 5, 6, 1, 11});
 
-    EXPECT_TRUE(graph.size() == 6);
-    EXPECT_TRUE(graph[5].content.get_input().begin()->first == "X80");
+    EXPECT_EQ(graph.size(), 6);
+    EXPECT_EQ(graph[5].content.get_input().begin()->first, "X80");
   }
 
 } // namespace
