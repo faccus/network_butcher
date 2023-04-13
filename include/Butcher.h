@@ -18,7 +18,7 @@
 #include "Parameters.h"
 #include "Paths.h"
 #include "Utilities.h"
-#include "Weight_importer_helpers.h"
+#include "Weight_importers.h"
 
 namespace network_butcher
 {
@@ -709,6 +709,7 @@ namespace network_butcher
                         else
                           {
                             std::cout << "Warning: we couldn't determine a weight!" << std::endl;
+                            throw;
                           }
 
                         new_graph.set_weight(edge, final_cost);

@@ -294,14 +294,16 @@ namespace network_butcher::io::IO_Manager
               original_aMLLibrary_Weight_Importer(graph, params));
           }
           case network_butcher::parameters::Weight_Import_Mode::single_direct_read: {
-            return std::make_unique<Csv_Weight_Importer>(Csv_Weight_Importer(graph,
-                                                                             {params.single_weight_import_path},
-                                                                             params.single_csv_columns_weights,
-                                                                             params.devices,
-                                                                             params.separator));
+            return std::make_unique<Csv_Weight_Importer<graph_type>>(
+              Csv_Weight_Importer(graph,
+                                  {params.single_weight_import_path},
+                                  params.single_csv_columns_weights,
+                                  params.devices,
+                                  params.separator));
           }
           case network_butcher::parameters::Weight_Import_Mode::multiple_direct_read: {
-            return std::make_unique<Csv_Weight_Importer>(Csv_Weight_Importer(graph, params.devices, params.separator));
+            return std::make_unique<Csv_Weight_Importer<graph_type>>(
+              Csv_Weight_Importer(graph, params.devices, params.separator));
           }
         default:
           throw "The specified Weight_Import_Mode is either not avaible or not found. Please, check that you "

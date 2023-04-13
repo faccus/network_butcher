@@ -1,5 +1,5 @@
-#include "Weight_importer_helpers.h"
 #include "IO_Manager.h"
+#include "Weight_importers.h"
 
 #include <gtest/gtest.h>
 

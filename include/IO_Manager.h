@@ -14,7 +14,7 @@
 #endif
 
 #include "GetPot"
-#include "Weight_importer_helpers.h"
+#include "Weight_importers.h"
 #include "chrono.h"
 
 
