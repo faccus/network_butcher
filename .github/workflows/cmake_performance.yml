@@ -2,8 +2,8 @@ name: CMake
 
 on:
   schedule:
-    # * is a special character in YAML so you have to quote this string
-    - cron: '30 4 * * *'
+    # * is a special character in YAML, so you have to quote this string
+    - cron: '30 5,17 * * *'
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
