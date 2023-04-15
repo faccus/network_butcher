@@ -41,7 +41,7 @@ namespace network_butcher
       /// Get the name of the type
       /// \return The name
       std::string
-      get_name()
+      get_name() const
       {
         return name;
       }
@@ -50,7 +50,7 @@ namespace network_butcher
       /// Get if the value of this type is given by the network
       /// \return True if it has been already initialized
       bool
-      initialized()
+      initialized() const
       {
         return t_initialized;
       }

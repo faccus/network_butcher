@@ -26,7 +26,7 @@
 
 namespace network_butcher
 {
-  using type_info_pointer = std::shared_ptr<network_butcher::types::Type_info>;
+  using type_info_pointer = std::shared_ptr<network_butcher::types::Type_info const>;
 
   template <class T = type_info_pointer>
   using io_collection_type = std::map<std::string, T>;
