@@ -49,8 +49,9 @@ namespace network_butcher
 
 
       /// Construct a new Graph object
-      /// \param v The collection of nodes ordered in an ascending order based on the id. To work with butcher, the nodes must be sorted in topological order, according to the Onnx IR specifications.
-      /// \param dep Node dependencies (input and outputs of every node)
+      /// \param v The collection of nodes ordered in an ascending order based on the id. To work with butcher, the
+      /// nodes must be sorted in topological order, according to the Onnx IR specifications. \param dep Node
+      /// dependencies (input and outputs of every node)
       template <typename A, typename B>
       explicit Graph(A &&v, B &&dep = {})
         : nodes(std::forward<A>(v))
@@ -234,8 +235,9 @@ namespace network_butcher
 
 
       /// Construct a new Graph object
-      /// \param v The collection of nodes ordered in an ascending order based on the id. To work with butcher, the nodes must be sorted in topological order, according to the Onnx IR specifications.
-      /// \param dep Node dependencies (input and outputs of every node)
+      /// \param v The collection of nodes ordered in an ascending order based on the id. To work with butcher, the
+      /// nodes must be sorted in topological order, according to the Onnx IR specifications. \param dep Node
+      /// dependencies (input and outputs of every node)
       template <typename A, typename B>
       explicit Graph(A &&v, B &&dep)
         : nodes(std::forward<A>(v))
@@ -247,7 +249,8 @@ namespace network_butcher
 
 
       /// Construct a new Graph object
-      /// \param v The collection of nodes ordered in an ascending order based on the id. To work with butcher, the nodes must be sorted in topological order, according to the Onnx IR specifications.
+      /// \param v The collection of nodes ordered in an ascending order based on the id. To work with butcher, the
+      /// nodes must be sorted in topological order, according to the Onnx IR specifications.
       template <typename A>
       explicit Graph(A &&v)
         : nodes(std::forward<A>(v))
