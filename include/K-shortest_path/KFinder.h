@@ -33,8 +33,8 @@ namespace network_butcher
       /// It extracts the first sidetrack associated to the given node
       /// \param j The index of the node
       /// \param h_g The h_g map
-      /// \return The pair: the operation completed successfully and the corresponding sidetrack edge
-      [[nodiscard]] std::pair<bool, edge_info>
+      /// \return The corresponding sidetrack edge
+      [[nodiscard]] std::optional<edge_info>
       extrack_first_sidetrack_edge(node_id_type const &j, H_g_collection const &h_g) const;
 
       /// Computes the sidetrack distances for all the different sidetrack edges
@@ -108,16 +108,28 @@ namespace network_butcher
     };
 
     template <class Graph_type>
-    std::pair<bool, edge_info>
+    std::optional<edge_info>
     KFinder<Graph_type>::extrack_first_sidetrack_edge(const node_id_type &j, const H_g_collection &h_g) const
     {
-      auto const it = h_g.find(j);
-      if (it == h_g.cend() || it->second.children.empty() || (*it->second.children.begin())->heap.children.empty())
-        {
-          return {false, {{-1, -1}, std::numeric_limits<weight_type>::max()}};
-        }
+      auto const               it = h_g.find(j);
+      std::optional<edge_info> res;
 
-      return {true, *(*it->second.children.begin())->heap.children.begin()};
+      if (it == h_g.cend())
+        return res;
+
+      auto const &children = it->second.children;
+
+      if (children.empty())
+        return res;
+
+      auto const &children_head = (*children.cbegin())->heap.children;
+
+      if (children_head.empty())
+        return res;
+
+      res = *children_head.cbegin();
+
+      return res;
     }
 
     template <class Graph_type>
@@ -293,7 +305,7 @@ namespace network_butcher
 
       // Find the first sidetrack edge
       auto const first_side_track_res = extrack_first_sidetrack_edge(0, h_g);
-      if (!first_side_track_res.first)
+      if (!first_side_track_res.has_value())
         return res;
       res.reserve(K);
 
@@ -305,7 +317,7 @@ namespace network_butcher
       std::set<implicit_path_info> Q;
 
       implicit_path_info first_path;
-      auto const        &first_side_track = first_side_track_res.second;
+      auto const        &first_side_track = first_side_track_res.value();
       first_path.sidetracks               = {first_side_track.edge};
       first_path.length                   = first_side_track.delta_weight + dij_res.second.front();
 
@@ -343,9 +355,9 @@ namespace network_butcher
           // Extract the first sidetrack edge, if it exists
           auto const f_res = extrack_first_sidetrack_edge(e_edge.second, h_g);
 
-          if (f_res.first)
+          if (f_res.has_value())
             {
-              auto const &f = f_res.second;
+              auto const &f = f_res.value();
 
               auto mod_sk = SK;
               mod_sk.sidetracks.push_back(f.edge);
