@@ -3,10 +3,10 @@
 //
 #include "Utilities.h"
 
-namespace network_butcher
+namespace network_butcher::Utilities
 {
   memory_type
-  Utilities::compute_memory_usage_from_enum(type_info_id_type input)
+  compute_memory_usage_from_enum(type_info_id_type input)
   {
     if (onnx::TensorProto_DataType_IsValid(input))
       {
@@ -54,7 +54,7 @@ namespace network_butcher
 
 
   void
-  Utilities::parse_onnx_file(onnx::ModelProto &m, const std::string &model_path)
+  parse_onnx_file(onnx::ModelProto &m, const std::string &model_path)
   {
     std::fstream input(model_path, std::ios::in | std::ios::binary);
 
@@ -65,7 +65,7 @@ namespace network_butcher
 
 
   void
-  Utilities::output_onnx_file(onnx::ModelProto const &m, const std::string &path)
+  output_onnx_file(onnx::ModelProto const &m, const std::string &path)
   {
     std::fstream output(path, std::ios::out | std::ios::trunc | std::ios::binary);
 
@@ -75,9 +75,9 @@ namespace network_butcher
 
 
   onnx::ModelProto
-  Utilities::parse_onnx_file(const std::string &model_path)
+  parse_onnx_file(const std::string &model_path)
   {
-    if (!network_butcher::Utilities::file_exists(model_path))
+    if (!file_exists(model_path))
       throw std::runtime_error("The model in the specified path " + model_path + " doesn't exist");
 
     GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -88,7 +88,7 @@ namespace network_butcher
 
 
   std::vector<std::string>
-  Utilities::split(std::string s, std::string delimiter)
+  split(std::string s, std::string delimiter)
   {
     size_t                   pos_start = 0, pos_end, delim_len = delimiter.length();
     std::string              token;
@@ -110,7 +110,7 @@ namespace network_butcher
 
 
   std::string
-  Utilities::combine_path(const std::string &first, const std::string &second)
+  combine_path(const std::string &first, const std::string &second)
   {
     if (first.back() != '/' && second.front() != '/')
       return first + "/" + second;
@@ -118,6 +118,117 @@ namespace network_butcher
       return first + second.substr(1);
     else
       return first + second;
+  }
+  bool
+  file_exists(const std::string &name)
+  {
+    const std::filesystem::path p = name;
+    return std::filesystem::exists(p);
+  }
+  bool
+  directory_exists(const std::string &name)
+  {
+    const std::filesystem::path p = name;
+    return std::filesystem::exists(p);
+  }
+  void
+  file_delete(const std::string &path)
+  {
+    std::filesystem::remove_all(path);
+  }
+  void
+  directory_delete(const std::string &path)
+  {
+    std::filesystem::remove_all(path);
+  }
+  void
+  create_directory(const std::string &path)
+  {
+    if (!std::filesystem::is_directory(path) || !std::filesystem::exists(path))
+      {
+        std::filesystem::create_directory(path);
+      }
+  }
+  void
+  ltrim(std::string &s)
+  {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) { return !std::isspace(ch); }));
+  }
+  void
+  rtrim(std::string &s)
+  {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), s.end());
+  }
+  void
+  ltrim(std::vector<std::string> &vect)
+  {
+    for (auto &s : vect)
+      s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) { return !std::isspace(ch); }));
+  }
+  void
+  rtrim(std::vector<std::string> &vect)
+  {
+    for (auto &s : vect)
+      s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), s.end());
+  }
+  void
+  trim(std::string &s)
+  {
+    ltrim(s);
+    rtrim(s);
+  }
+  void
+  trim(std::vector<std::string> &s)
+  {
+    ltrim(s);
+    rtrim(s);
+  }
+  void
+  to_lowercase(std::string &s)
+  {
+    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+  }
+  void
+  to_lowercase(std::vector<std::string> &vect)
+  {
+    for (auto &s : vect)
+      std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+  }
+  std::string
+  ltrim_copy(std::string s)
+  {
+    ltrim(s);
+    return s;
+  }
+  std::string
+  rtrim_copy(std::string s)
+  {
+    rtrim(s);
+    return s;
+  }
+  std::string
+  trim_copy(std::string s)
+  {
+    trim(s);
+    return s;
+  }
+  std::vector<std::string>
+  trim_copy(std::vector<std::string> s)
+  {
+    trim(s);
+    return s;
+  }
+  std::string
+  to_lowercase_copy(std::string s)
+  {
+    to_lowercase(s);
+    return s;
+  }
+  std::vector<std::string>
+  to_lowercase_copy(std::vector<std::string> s)
+  {
+    to_lowercase(s);
+    return s;
   }
 
 } // namespace network_butcher
