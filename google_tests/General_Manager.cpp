@@ -44,8 +44,8 @@ namespace
     execute_boot("ksp_result4", "test_data/configs/test4_parameters.conf");
   }
 
-  /*TEST(GeneralManagerTest, boot_test5)
+  TEST(GeneralManagerTest, boot_test5)
   {
     execute_boot("ksp_result5", "test_data/configs/test5_parameters.conf");
-  }*/
+  }
 } // namespace
