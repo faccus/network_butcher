@@ -18,7 +18,7 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install TBB
+      - name: Install TBB and python
         run: sudo apt-get update && sudo apt-get install libtbb2-dev python3-dev python3-pip
 
       - name: Install aMLLibrary and onnx-tool requirements
