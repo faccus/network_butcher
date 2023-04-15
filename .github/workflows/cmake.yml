@@ -22,7 +22,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install libtbb2-dev python3-dev python3-pip
 
       - name: Install aMLLibrary and onnx-tool requirements
-        run: pip install --upgrade --upgrade-strategy eager -r dep/requirements.txt
+        run: pip install -r dep/requirements.txt
 
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory.
