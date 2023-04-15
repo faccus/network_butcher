@@ -26,6 +26,5 @@ WORKDIR ${MY_DIR}/build
 
 RUN cmake -DCMAKE_BUILD_TYPE=Release -S .. -B . #-DPYTHON_EXECUTABLE=/usr/bin/python3.8
 RUN cmake --build . --target test_run
-RUN ./test_run --gtest_color=yes
 
 CMD bash

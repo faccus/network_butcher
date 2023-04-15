@@ -9,7 +9,10 @@
 #include "Parameters.h"
 
 #include <tuple>
-#include <yaml-cpp/yaml.h>
+
+#if YAML_CPP_ACTIVE
+#  include <yaml-cpp/yaml.h>
+#endif
 
 namespace network_butcher
 {

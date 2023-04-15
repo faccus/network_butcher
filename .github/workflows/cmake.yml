@@ -26,7 +26,7 @@ jobs:
 
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory.
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_BENCHMARK=OFF -DBUILD_TESTS=ON
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_BENCHMARK=OFF -DBUILD_TESTS=ON -DUSE_YAML_CPP=OFF
 
       - name: Build
         # Build your program with the given configuration
