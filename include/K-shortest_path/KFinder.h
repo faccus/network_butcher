@@ -325,8 +325,8 @@ namespace network_butcher
       Q.insert(std::move(first_path));
 
       auto print_missing_sidetrack_distance = [](edge_type const &e) {
-        std::cout << "Error: cannot find proper sidetrack distance for edge (" << e.first << ", " << e.second << ")"
-                  << std::endl;
+        return "Error: cannot find proper sidetrack distance for edge (" + std::to_string(e.first) + ", " +
+               std::to_string(e.second) + ")";
       };
 
       // Loop through Q until either Q is empty or the number of paths found is K
@@ -344,8 +344,7 @@ namespace network_butcher
 
           if (e_sidetrack_edge_it == sidetrack_distances_res.cend())
             {
-              print_missing_sidetrack_distance(e_edge);
-              continue;
+              throw std::runtime_error(print_missing_sidetrack_distance(e_edge));
             }
 
           // "Helper" function that can be called if needed
@@ -388,8 +387,7 @@ namespace network_butcher
 
                   if (f_sidetrack_weight_it == sidetrack_distances_res.cend())
                     {
-                      print_missing_sidetrack_distance(f_edge);
-                      continue;
+                      throw std::runtime_error(print_missing_sidetrack_distance(e_edge));
                     }
 
                   auto mod_sk = SK;

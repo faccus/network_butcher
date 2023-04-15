@@ -288,7 +288,7 @@ namespace network_butcher
           }
         else
           {
-            std::cout << "Unknown node found during block_graph construction" << std::endl;
+            throw std::runtime_error("Unknown node found during block_graph construction");
           }
       }
 
@@ -708,8 +708,9 @@ namespace network_butcher
                           }
                         else
                           {
-                            std::cout << "Warning: we couldn't determine a weight!" << std::endl;
-                            throw;
+                            throw std::logic_error("The edge (" + std::to_string(edge.first) + ", " +
+                                                   std::to_string(edge.second) +
+                                                   ") has both multiple inputs and outputs!");
                           }
 
                         new_graph.set_weight(edge, final_cost);
@@ -730,10 +731,9 @@ namespace network_butcher
     auto const  new_graph_size = new_graph.get_nodes().size();
     auto const &path_nodes     = new_path.path;
 
-    for (std::size_t i = 0; i < path_nodes.size(); ++i)
+    for (auto const &node_id_new_graph : path_nodes)
       {
-        auto const  node_id_new_graph = path_nodes[i];
-        auto const &node              = new_graph[node_id_new_graph];
+        auto const &node = new_graph[node_id_new_graph];
 
         if (node.content.first != current_model_device)
           {
@@ -774,7 +774,9 @@ namespace network_butcher
     final_res.reserve(network_slice.size());
 
     for (std::size_t i = 0; i < network_slice.size(); ++i)
-      final_res.emplace_back(new_paths[i].length, std::move(network_slice[i]));
+      {
+        final_res.emplace_back(new_paths[i].length, std::move(network_slice[i]));
+      }
     return final_res;
   }
 
@@ -788,7 +790,9 @@ namespace network_butcher
     network_butcher::types::Weighted_Real_Paths final_res;
     final_res.reserve(network_slice.size());
     for (std::size_t i = 0; i < network_slice.size(); ++i)
-      final_res.emplace_back(new_paths[i].length, network_slice[i]);
+      {
+        final_res.emplace_back(new_paths[i].length, network_slice[i]);
+      }
     return final_res;
   }
 
@@ -808,7 +812,7 @@ namespace network_butcher
 
     if (params.weight_import_mode == network_butcher::parameters::Weight_Import_Mode::aMLLibrary_block)
       {
-        throw "Unsupported weight import mode. Please, check the graph type.";
+        throw std::logic_error("Unsupported weight import mode. Please, check the graph type");
       }
 
 

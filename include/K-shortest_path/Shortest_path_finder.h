@@ -85,8 +85,7 @@ namespace kfinder
           auto const &start_distance = total_distance[current_node.id];
           if (start_distance == std::numeric_limits<weight_type>::max())
             {
-              std::cout << "Dijkstra error: the node current distance is +inf" << std::endl;
-              throw;
+              throw std::logic_error("Dijkstra error: the node current distance is +inf");
             }
 
           to_visit.erase(to_visit.begin()); // O(log(N))
@@ -101,17 +100,18 @@ namespace kfinder
 
                   if (weight < 0)
                     {
-                      std::cout << "Error: either the weight (";
+                      std::stringstream error_msg;
+                      error_msg << "Error: either the weight (";
 
                       if (!reversed)
-                        std::cout << current_node.id << ", " << head_node;
+                        error_msg << current_node.id << ", " << head_node;
                       else
-                        std::cout << head_node << ", " << current_node.id;
+                        error_msg << head_node << ", " << current_node.id;
 
-                      std::cout << ")"
+                      error_msg << ")"
                                 << "is missing or it's negative" << std::endl;
 
-                      throw;
+                      throw std::logic_error(error_msg.str());
                     }
 
                   auto const candidate_distance = start_distance + weight; // O(1)
