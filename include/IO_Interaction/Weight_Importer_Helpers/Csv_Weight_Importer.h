@@ -158,7 +158,7 @@ namespace network_butcher::io
         }
     };
 
-    virtual void
+    void
     import_weights() override;
 
 

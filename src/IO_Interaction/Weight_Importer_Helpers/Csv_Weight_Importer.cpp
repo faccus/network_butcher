@@ -67,4 +67,15 @@ namespace network_butcher::io
   {
     import_weights(nullptr);
   }
+
+  void
+  Csv_Weight_Importer<block_graph_type>::import_weights(
+    std::function<bool(block_graph_type::Node_Type const &)> const &extra_condition)
+  {}
+
+  void
+  Csv_Weight_Importer<block_graph_type>::import_weights()
+  {
+    import_weights(nullptr);
+  }
 } // namespace network_butcher::io
