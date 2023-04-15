@@ -87,9 +87,7 @@ namespace network_butcher
                     {
                       auto &children = h_out_entry_it->second->heap.children;
 
-                      edge_info tmp(sidetrack_it->first, sidetrack_it->second);
-
-                      children.insert(std::move(tmp));
+                      children.emplace(sidetrack_it->first, sidetrack_it->second);
                     }
                 }
             }
