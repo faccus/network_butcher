@@ -77,6 +77,10 @@ if (USE_YAML_CPP)
     endif ()
 endif ()
 
+if (ENABLE_PARALLEL)
+    find_package(TBB REQUIRED)
+    list(APPEND RUN_LIBRARIES_LOCATION TBB::tbb)
+endif ()
 
 
 if (BUILD_TESTS)
