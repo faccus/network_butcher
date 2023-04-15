@@ -10,16 +10,17 @@ ENV TZ=Europe/Rome
 # Install build requirments
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN apt-get update && apt-get install wget build-essential cmake git libtbb-dev --no-install-recommends -y
+#RUN apt-get update && apt-get install build-essential git libtbb-dev --no-install-recommends -y
+#RUN apt-get install python3.8 python3.8-dev python3-pip --no-install-recommends -y
 
 # Compile python from source - avoid unsupported library problems (https://stackoverflow.com/a/70866416)
 RUN apt-get update &&  apt-get install -y software-properties-common
 
-# Download and install python3.8
+
 RUN add-apt-repository -y ppa:deadsnakes/ppa && \
     apt-get update && \
     apt install -y python3.8-dev python3.8-distutils
 
-# Downalod and install pip for python3.8
 RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python3.8 get-pip.py
 
