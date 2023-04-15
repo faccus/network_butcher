@@ -10,24 +10,11 @@ ENV TZ=Europe/Rome
 # Install build requirments
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN apt-get update && apt-get install wget build-essential cmake git libtbb-dev --no-install-recommends -y
-#RUN apt-get update && apt-get install build-essential git libtbb-dev --no-install-recommends -y
-RUN apt-get install python3 python3-pip --no-install-recommends -y
-
-# Compile python from source - avoid unsupported library problems (https://stackoverflow.com/a/70866416)
-#RUN apt-get update &&  apt-get install -y software-properties-common
-
-
-#RUN add-apt-repository -y ppa:deadsnakes/ppa && \
-#    apt-get update && \
-#    apt install -y python3.8-dev python3.8-distutils
-
-#RUN wget https://bootstrap.pypa.io/get-pip.py
-#RUN python3.8 get-pip.py
+RUN apt-get install python3-dev python3-pip --no-install-recommends -y
 
 # Install python libraries
 WORKDIR ${MY_DIR}
 COPY dep/requirements.txt .
-#RUN python3.8 -m pip install -r requirements.txt
 RUN python3 -m pip install -r requirements.txt
 
 
