@@ -24,6 +24,9 @@ jobs:
       - name: Install aMLLibrary and onnx-tool requirements
         run: pip install -r dep/requirements.txt
 
+      - name: Prepare a platform_specific_config.h.in
+        run: printf "#ifndef NETWORK_BUTCHER_TEMPLATE_PLATFORM_SPECIFIC_CONFIG_H_IN_H \n #define NETWORK_BUTCHER_TEMPLATE_PLATFORM_SPECIFIC_CONFIG_H_IN_H \n #define PYTHON_LOCAL_LIB_PATH "/usr/lib/python3/dist-packages" \n #endif" > include/Extra/platform_specific_config.h.in
+
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory.
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_BENCHMARK=OFF -DBUILD_TESTS=ON -DUSE_YAML_CPP=OFF
