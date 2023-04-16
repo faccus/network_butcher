@@ -184,8 +184,107 @@ namespace network_butcher
                                   std::size_t graph_in_device,
                                   std::size_t graph_out_device) const
   {
-    auto const num_of_devices = graph.get_num_devices();
+    auto const linearize_graph = [](GraphType::Dependencies_Type const    &old_dependencies,
+                                    GraphType::Node_Collection_Type const &old_nodes) {
+      node_id_type id = 0;
+      // Counter is used to establish if the current node has more output
+      // connections than the inputs one.
+      int counter = old_dependencies.front().second.size() - old_dependencies.front().first.size() - 1;
 
+      std::list<new_network::Node_Type>    starting_nodes;
+      std::map<node_id_type, node_id_type> old_to_new; // Old node -> New node
+
+      starting_nodes.emplace_back(new_network::Node_Internal_Type{0, nullptr});
+      starting_nodes.back().content.second = std::make_shared<node_id_collection_type>(node_id_collection_type{0});
+
+      old_to_new[old_nodes.begin()->get_id()] = id;
+      ++id;
+
+      // Cycle through all the nodes of the graph
+      for (auto it = ++old_nodes.begin(); it != old_nodes.end(); ++it)
+        {
+          // Node of the old graph
+          auto const &node          = *it;
+          auto const &dep           = old_dependencies[node.get_id()];
+          int const   local_counter = dep.second.size() - dep.first.size();
+
+          // Add new node
+          if (local_counter <= 0 && counter == 0)
+            {
+              starting_nodes.emplace_back(new_network::Node_Internal_Type{0, nullptr});
+              starting_nodes.back().content.second =
+                std::make_shared<node_id_collection_type>(node_id_collection_type{node.get_id()});
+
+              old_to_new[node.get_id()] = id;
+
+              ++id;
+            }
+          // Add new node and add master node for next steps
+          else if (local_counter > 0 && counter == 0)
+            {
+              starting_nodes.emplace_back(new_network::Node_Internal_Type{0, nullptr});
+              starting_nodes.back().content.second =
+                std::make_shared<node_id_collection_type>(node_id_collection_type{node.get_id()});
+
+              old_to_new[node.get_id()] = id;
+
+              starting_nodes.emplace_back(new_network::Node_Internal_Type{0, nullptr});
+              starting_nodes.back().content.second = std::make_shared<node_id_collection_type>();
+              old_to_new[++id];
+
+              counter += local_counter;
+            }
+          // Add node link to the "big" node
+          else if ((local_counter == 0 && dep.second.size() == 1 || local_counter > 0 && dep.first.size() <= 1) &&
+                   counter > 0)
+            {
+              starting_nodes.back().content.second->insert(starting_nodes.back().content.second->end(), node.get_id());
+
+              counter += local_counter;
+
+              old_to_new[node.get_id()] = id;
+            }
+          else if (counter > 0 && ((local_counter >= 0 && dep.first.size() > 1) || (local_counter < 0)))
+            {
+              counter -= (dep.first.size() - 1);
+
+              // End of the master node
+              if (counter == 0)
+                {
+                  starting_nodes.emplace_back(new_network::Node_Internal_Type{0, nullptr});
+                  old_to_new[node.get_id()] = ++id;
+                  starting_nodes.back().content.second =
+                    std::make_shared<node_id_collection_type>(node_id_collection_type{node.get_id()});
+
+                  // Do we have to add another master node?
+                  if (local_counter >= 0)
+                    {
+                      starting_nodes.emplace_back(new_network::Node_Internal_Type{0, nullptr});
+                      starting_nodes.back().content.second = std::make_shared<node_id_collection_type>();
+                      old_to_new[++id];
+                    }
+                  else
+                    ++id;
+                }
+              else
+                {
+                  old_to_new[node.get_id()] = id;
+                  starting_nodes.back().content.second->insert(starting_nodes.back().content.second->end(),
+                                                               node.get_id());
+                }
+
+              counter += (dep.second.size() - 1);
+            }
+          else
+            {
+              throw std::runtime_error("Unknown node found during block_graph construction");
+            }
+        }
+
+      return std::tuple{id, starting_nodes, old_to_new};
+    };
+
+    auto const num_of_devices = graph.get_num_devices();
 
     new_network::Dependencies_Type new_dependencies;
 
@@ -193,107 +292,9 @@ namespace network_butcher
     auto const &old_nodes        = graph.get_nodes();
 
 
-    new_network::Node_Collection_Type    new_nodes;
-    std::map<node_id_type, node_id_type> old_to_new; // Old node -> New node
+    auto [id, starting_nodes, old_to_new] = linearize_graph(old_dependencies, old_nodes);
 
-    // Counter is used to establish if the current node has more output
-    // connections than the inputs one.
-    int counter = old_dependencies.front().second.size() - old_dependencies.front().first.size() - 1;
-
-    // Id of the node to be inserted
-    node_id_type id = 0;
-
-    // Add the source node with content equal to the id of the first node in the
-    // original graph
-    new_nodes.reserve(old_nodes.size());
-    new_nodes.emplace_back(new_network::Node_Internal_Type{0, nullptr});
-    new_nodes.back().content.second = std::make_shared<node_id_collection_type>(node_id_collection_type{0});
-
-    old_to_new[old_nodes.begin()->get_id()] = id;
-    ++id;
-
-    // Cycle through all the nodes of the graph
-    for (auto it = ++old_nodes.begin(); it != old_nodes.end(); ++it)
-      {
-        // Node of the old graph
-        auto const &node          = *it;
-        auto const &dep           = old_dependencies[node.get_id()];
-        int const   local_counter = dep.second.size() - dep.first.size();
-
-        // Add new node
-        if (local_counter <= 0 && counter == 0)
-          {
-            new_nodes.emplace_back(new_network::Node_Internal_Type{0, nullptr});
-            new_nodes.back().content.second =
-              std::make_shared<node_id_collection_type>(node_id_collection_type{node.get_id()});
-
-            old_to_new[node.get_id()] = id;
-
-            ++id;
-          }
-        // Add new node and add master node for next steps
-        else if (local_counter > 0 && counter == 0)
-          {
-            new_nodes.emplace_back(new_network::Node_Internal_Type{0, nullptr});
-            new_nodes.back().content.second =
-              std::make_shared<node_id_collection_type>(node_id_collection_type{node.get_id()});
-
-            old_to_new[node.get_id()] = id;
-
-            new_nodes.emplace_back(new_network::Node_Internal_Type{0, nullptr});
-            new_nodes.back().content.second = std::make_shared<node_id_collection_type>();
-            old_to_new[++id];
-
-            counter += local_counter;
-          }
-        // Add node link to the "big" node
-        else if ((local_counter == 0 && dep.second.size() == 1 || local_counter > 0 && dep.first.size() <= 1) &&
-                 counter > 0)
-          {
-            new_nodes.back().content.second->insert(new_nodes.back().content.second->end(), node.get_id());
-
-            counter += local_counter;
-
-            old_to_new[node.get_id()] = id;
-          }
-        else if (counter > 0 && ((local_counter >= 0 && dep.first.size() > 1) || (local_counter < 0)))
-          {
-            counter -= (dep.first.size() - 1);
-
-            // End of the master node
-            if (counter == 0)
-              {
-                new_nodes.emplace_back(new_network::Node_Internal_Type{0, nullptr});
-                old_to_new[node.get_id()] = ++id;
-                new_nodes.back().content.second =
-                  std::make_shared<node_id_collection_type>(node_id_collection_type{node.get_id()});
-
-                // Do we have to add another master node?
-                if (local_counter >= 0)
-                  {
-                    new_nodes.emplace_back(new_network::Node_Internal_Type{0, nullptr});
-                    new_nodes.back().content.second = std::make_shared<node_id_collection_type>();
-                    old_to_new[++id];
-                  }
-                else
-                  ++id;
-              }
-            else
-              {
-                old_to_new[node.get_id()] = id;
-                new_nodes.back().content.second->insert(new_nodes.back().content.second->end(), node.get_id());
-              }
-
-            counter += (dep.second.size() - 1);
-          }
-        else
-          {
-            throw std::runtime_error("Unknown node found during block_graph construction");
-          }
-      }
-
-
-    auto const basic_size = new_nodes.size();
+    auto const basic_size = starting_nodes.size();
     auto const supp_size  = basic_size - 2;
 
     // Adjusting the indices
@@ -305,7 +306,12 @@ namespace network_butcher
           }
       }
 
+    new_network::Node_Collection_Type new_nodes;
     new_nodes.reserve(2 + supp_size * num_of_devices);
+
+    new_nodes.insert(new_nodes.end(),
+                     std::make_move_iterator(starting_nodes.begin()),
+                     std::make_move_iterator(starting_nodes.end()));
 
 
     // Add the other nodes. Their content is not needed right now
