@@ -25,7 +25,7 @@ jobs:
         run: pip install -r dep/requirements.txt
 
       - name: Prepare a platform_specific_config.h.in
-        run: printf "#ifndef NETWORK_BUTCHER_TEMPLATE_PLATFORM_SPECIFIC_CONFIG_H_IN_H \n #define NETWORK_BUTCHER_TEMPLATE_PLATFORM_SPECIFIC_CONFIG_H_IN_H \n #define PYTHON_LOCAL_LIB_PATH "/usr/lib/python3/dist-packages" \n #endif" > include/Extra/platform_specific_config.h.in
+        run: printf "#ifndef NETWORK_BUTCHER_TEMPLATE_PLATFORM_SPECIFIC_CONFIG_H_IN_H \n #define NETWORK_BUTCHER_TEMPLATE_PLATFORM_SPECIFIC_CONFIG_H_IN_H \n #define PYTHON_LOCAL_LIB_PATH \"/usr/lib/python3/dist-packages\" \n #endif" > include/Extra/platform_specific_config.h.in
 
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory.
