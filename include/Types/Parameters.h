@@ -12,12 +12,19 @@ namespace network_butcher
   namespace parameters
   {
     /// Enumerator for the weight import modes
-    enum Weight_Import_Mode
+    enum struct Weight_Import_Mode
     {
       single_direct_read,
       multiple_direct_read,
       aMLLibrary_original,
       aMLLibrary_block
+    };
+
+    enum struct Block_Graph_Generation_Mode
+    {
+      classic,
+      output,
+      input
     };
 
     /// Collection of parameters for a device
@@ -89,6 +96,9 @@ namespace network_butcher
 
       /// Mode for weight import
       Weight_Import_Mode weight_import_mode;
+
+      /// Block Graph Generation mode for Butcher
+      Block_Graph_Generation_Mode block_graph_mode;
 
       /// The variables of the .csv file that aMLLibrary should
       std::vector<std::string> aMLLibrary_inference_variables;

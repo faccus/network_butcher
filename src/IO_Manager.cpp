@@ -157,8 +157,27 @@ namespace network_butcher::io::IO_Manager
       }
     else
       {
-        std::cout << "Unavaible weight import mode!" << std::endl;
-        throw;
+        throw std::logic_error("Unavailable weight import mode!");
+      }
+
+    std::string const block_graph_mode = network_butcher::Utilities::trim_copy(
+      network_butcher::Utilities::to_lowercase_copy(file(weight_infos + "/block_graph_mode", "classic")));
+
+    if (block_graph_mode == "classic")
+      {
+        res.block_graph_mode = network_butcher::parameters::Block_Graph_Generation_Mode::classic;
+      }
+    else if (block_graph_mode == "input")
+      {
+        res.block_graph_mode = network_butcher::parameters::Block_Graph_Generation_Mode::input;
+      }
+    else if (block_graph_mode == "output")
+      {
+        res.block_graph_mode = network_butcher::parameters::Block_Graph_Generation_Mode::output;
+      }
+    else
+      {
+        throw std::logic_error("Unavailable Block Graph generation mode!");
       }
 
 
@@ -195,17 +214,17 @@ namespace network_butcher::io::IO_Manager
         std::string const memory_constraint_type = network_butcher::Utilities::trim_copy(
           network_butcher::Utilities::to_lowercase_copy(file(basic_infos + "/memory_constraint_type", "none")));
 
-        if (memory_constraint_type == "none")
-          {
-            res.memory_constraint_type = network_butcher::parameters::Memory_Constraint_Type::None;
-          }
-        else if (memory_constraint_type == "max")
+        if (memory_constraint_type == "max")
           {
             res.memory_constraint_type = network_butcher::parameters::Memory_Constraint_Type::Max;
           }
         else if (memory_constraint_type == "preload_parameters")
           {
             res.memory_constraint_type = network_butcher::parameters::Memory_Constraint_Type::Preload_Parameters;
+          }
+        else
+          {
+            res.memory_constraint_type = network_butcher::parameters::Memory_Constraint_Type::None;
           }
       }
 
@@ -306,8 +325,9 @@ namespace network_butcher::io::IO_Manager
               Csv_Weight_Importer(graph, params.devices, params.separator));
           }
         default:
-          throw "The specified Weight_Import_Mode is either not avaible or not found. Please, check that you "
-                "specified the correct import mode!";
+          throw std::logic_error(
+            "The specified Weight_Import_Mode is either not available or not found. Please, check that you "
+            "specified the correct import mode!");
       }
 
     return nullptr;
