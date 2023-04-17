@@ -184,9 +184,9 @@ namespace network_butcher
                                   std::size_t graph_in_device,
                                   std::size_t graph_out_device) const
   {
-    auto const linearize_graph = [](GraphType::Dependencies_Type const    &old_dependencies,
-                                    GraphType::Node_Collection_Type const &old_nodes) {
-      node_id_type id = 0;
+    auto const linearize_graph = [](GraphType::Dependencies_Type const                             &old_dependencies,
+                                    GraphType::Node_Collection_Type const                          &old_nodes,
+                                    network_butcher::parameters::Block_Graph_Generation_Mode const &mode) {
       // Counter is used to establish if the current node has more output
       // connections than the inputs one.
       int counter = old_dependencies.front().second.size() - old_dependencies.front().first.size() - 1;
@@ -194,11 +194,9 @@ namespace network_butcher
       std::list<new_network::Node_Type>    starting_nodes;
       std::map<node_id_type, node_id_type> old_to_new; // Old node -> New node
 
+
       starting_nodes.emplace_back(new_network::Node_Internal_Type{0, nullptr});
       starting_nodes.back().content.second = std::make_shared<node_id_collection_type>(node_id_collection_type{0});
-
-      old_to_new[old_nodes.begin()->get_id()] = id;
-      ++id;
 
       // Cycle through all the nodes of the graph
       for (auto it = ++old_nodes.begin(); it != old_nodes.end(); ++it)
@@ -214,10 +212,6 @@ namespace network_butcher
               starting_nodes.emplace_back(new_network::Node_Internal_Type{0, nullptr});
               starting_nodes.back().content.second =
                 std::make_shared<node_id_collection_type>(node_id_collection_type{node.get_id()});
-
-              old_to_new[node.get_id()] = id;
-
-              ++id;
             }
           // Add new node and add master node for next steps
           else if (local_counter > 0 && counter == 0)
@@ -226,11 +220,8 @@ namespace network_butcher
               starting_nodes.back().content.second =
                 std::make_shared<node_id_collection_type>(node_id_collection_type{node.get_id()});
 
-              old_to_new[node.get_id()] = id;
-
               starting_nodes.emplace_back(new_network::Node_Internal_Type{0, nullptr});
               starting_nodes.back().content.second = std::make_shared<node_id_collection_type>();
-              old_to_new[++id];
 
               counter += local_counter;
             }
@@ -241,8 +232,6 @@ namespace network_butcher
               starting_nodes.back().content.second->insert(starting_nodes.back().content.second->end(), node.get_id());
 
               counter += local_counter;
-
-              old_to_new[node.get_id()] = id;
             }
           else if (counter > 0 && ((local_counter >= 0 && dep.first.size() > 1) || (local_counter < 0)))
             {
@@ -252,7 +241,6 @@ namespace network_butcher
               if (counter == 0)
                 {
                   starting_nodes.emplace_back(new_network::Node_Internal_Type{0, nullptr});
-                  old_to_new[node.get_id()] = ++id;
                   starting_nodes.back().content.second =
                     std::make_shared<node_id_collection_type>(node_id_collection_type{node.get_id()});
 
@@ -261,14 +249,10 @@ namespace network_butcher
                     {
                       starting_nodes.emplace_back(new_network::Node_Internal_Type{0, nullptr});
                       starting_nodes.back().content.second = std::make_shared<node_id_collection_type>();
-                      old_to_new[++id];
                     }
-                  else
-                    ++id;
                 }
               else
                 {
-                  old_to_new[node.get_id()] = id;
                   starting_nodes.back().content.second->insert(starting_nodes.back().content.second->end(),
                                                                node.get_id());
                 }
@@ -281,167 +265,200 @@ namespace network_butcher
             }
         }
 
-      return std::tuple{id, starting_nodes, old_to_new};
+      if (starting_nodes.size() > 1)
+        {
+          if (mode == network_butcher::parameters::Block_Graph_Generation_Mode::input)
+            {
+              for (auto it = ++starting_nodes.begin(), it_follower = starting_nodes.begin(); it != starting_nodes.end();
+                   ++it, ++it_follower)
+                {
+                  if (it->content.second->size() > 1)
+                    {
+                      auto &content_big_node = it->content.second;
+
+                      it_follower->content.second->insert(std::make_move_iterator(content_big_node->begin()),
+                                                          std::make_move_iterator(content_big_node->end()));
+
+                      starting_nodes.erase(it);
+                      it = ++it_follower;
+
+                      if (it == starting_nodes.end())
+                        break;
+                    }
+                }
+            }
+          else if (mode == network_butcher::parameters::Block_Graph_Generation_Mode::output)
+            {
+              for (auto it          = ++starting_nodes.begin(),
+                        it_follower = starting_nodes.begin(),
+                        it_mem      = starting_nodes.begin();
+                   it != starting_nodes.end();
+                   ++it, ++it_follower)
+                {
+                  if (it->content.second->size() > 1)
+                    {
+                      it_mem = it_follower;
+                    }
+                  else if (it_follower->content.second->size() > 1)
+                    {
+                      auto &content_small_node = it->content.second;
+
+                      it_follower->content.second->insert(std::make_move_iterator(content_small_node->begin()),
+                                                          std::make_move_iterator(content_small_node->end()));
+
+                      starting_nodes.erase(it);
+                      it          = it_follower;
+                      it_follower = it_mem;
+                    }
+                }
+            }
+        }
+
+      return std::tuple{starting_nodes, old_to_new};
     };
 
-    auto const num_of_devices = graph.get_num_devices();
+    auto const add_extra_nodes_per_device = [](std::list<new_network::Node_Type> &starting_nodes,
+                                               std::size_t                        num_devices) {
+      for (auto it_follower = ++starting_nodes.cbegin(), it = ++(++starting_nodes.cbegin());
+           it != starting_nodes.cend();
+           it_follower = it, ++it)
+        {
+          for (std::size_t i = 1; i < num_devices; ++i)
+            {
+              starting_nodes.emplace(it, new_network::Node_Internal_Type{i, it_follower->content.second});
+            }
+        }
+    };
 
-    new_network::Dependencies_Type new_dependencies;
+    auto const process_dependencies =
+      [backward_connections_allowed](std::size_t dep_size, std::size_t supp_size, std::size_t num_devices) {
+        new_network::Dependencies_Type new_dependencies;
+        new_dependencies.reserve(dep_size);
 
-    auto const &old_dependencies = graph.get_neighbors();
-    auto const &old_nodes        = graph.get_nodes();
+        // The first node is fully connected with the first layer
+        {
+          new_dependencies.emplace_back();
+
+          auto &out = new_dependencies.back().second;
+          for (std::size_t k = 0; k < num_devices; ++k)
+            out.insert(out.end(), k + 1);
+        }
+
+        // Inputs: first node, Outputs: following layer nodes
+        {
+          new_dependencies.emplace_back(std::make_pair<node_id_collection_type, node_id_collection_type>({0}, {}));
+          auto &out = new_dependencies.back().second;
+          for (std::size_t k = 0; k < num_devices; ++k)
+            out.insert(out.end(), 1 + num_devices + k);
+
+          for (std::size_t k = 1; k < num_devices; ++k)
+            {
+              auto dep_cpy = new_dependencies.back();
+
+              if (!backward_connections_allowed)
+                dep_cpy.second.erase(num_devices + k);
+
+              new_dependencies.push_back(std::move(dep_cpy));
+            }
+        }
+
+        // Inputs: previous layer nodes, Outputs: following layer nodes
+        {
+          for (std::size_t i = 2; i < supp_size; ++i)
+            {
+              auto const id = new_dependencies.size();
+              new_dependencies.emplace_back(std::make_pair<node_id_collection_type, node_id_collection_type>({}, {}));
+
+              auto &in  = new_dependencies.back().first;
+              auto &out = new_dependencies.back().second;
+
+              if (!backward_connections_allowed)
+                in.insert(in.end(), id - num_devices);
 
 
-    auto [id, starting_nodes, old_to_new] = linearize_graph(old_dependencies, old_nodes);
+              for (std::size_t k = 0; k < num_devices; ++k)
+                {
+                  if (backward_connections_allowed)
+                    in.insert(in.end(), id - num_devices + k);
 
-    auto const basic_size = starting_nodes.size();
-    auto const supp_size  = basic_size - 2;
+                  out.insert(out.end(), id + num_devices + k);
+                }
 
-    // Adjusting the indices
-    for (auto &el : old_to_new)
-      {
-        if (el.second >= 2)
-          {
-            el.second = el.second * num_of_devices - (num_of_devices - 1);
-          }
-      }
+              for (std::size_t k = 1; k < num_devices; ++k)
+                {
+                  auto tmp_dep = new_dependencies.back();
+
+                  if (!backward_connections_allowed)
+                    {
+                      tmp_dep.first.insert(id - num_devices + k);
+                      tmp_dep.second.erase(id + num_devices + k - 1);
+                    }
+
+                  new_dependencies.emplace_back(std::move(tmp_dep));
+                }
+            }
+        }
+
+        // Inputs: previous layer nodes, Outputs: last node
+        {
+          auto const id = new_dependencies.size();
+
+          new_dependencies.emplace_back(
+            std::make_pair<node_id_collection_type, node_id_collection_type>({}, {id + num_devices}));
+
+          auto &in = new_dependencies.back().first;
+          in.insert(in.end(), id - num_devices);
+
+          if (backward_connections_allowed)
+            for (std::size_t k = 1; k < num_devices; ++k)
+              in.insert(in.end(), id - num_devices + k);
+
+          for (std::size_t k = 1; k < num_devices; ++k)
+            {
+              auto dep_cpy = new_dependencies.back();
+
+              if (!backward_connections_allowed)
+                dep_cpy.first.insert(id - num_devices + k);
+
+              new_dependencies.emplace_back(std::move(dep_cpy));
+            }
+        }
+
+        // The last layer is fully connected with the last node
+        {
+          new_dependencies.emplace_back(std::make_pair<node_id_collection_type, node_id_collection_type>({}, {}));
+
+          auto &in = new_dependencies.back().first;
+          for (std::size_t k = 0; k < num_devices; ++k)
+            in.insert(in.end(), new_dependencies.size() - 1 - num_devices + k);
+        }
+
+        return std::move(new_dependencies);
+      };
+
+    auto [starting_nodes, old_to_new] =
+      linearize_graph(graph.get_neighbors(),
+                      graph.get_nodes(),
+                      network_butcher::parameters::Block_Graph_Generation_Mode::classic);
+
+    if (starting_nodes.size() <= 2)
+      throw; // Too small
+
+    auto const supp_size = starting_nodes.size() - 2;
+    add_extra_nodes_per_device(starting_nodes, graph.get_num_devices());
 
     new_network::Node_Collection_Type new_nodes;
-    new_nodes.reserve(2 + supp_size * num_of_devices);
+    new_nodes.reserve(starting_nodes.size());
 
     new_nodes.insert(new_nodes.end(),
                      std::make_move_iterator(starting_nodes.begin()),
                      std::make_move_iterator(starting_nodes.end()));
 
-
-    // Add the other nodes. Their content is not needed right now
-    for (std::size_t k = 1; k < num_of_devices; ++k)
-      for (std::size_t i = 1; i < basic_size - 1; ++i)
-        {
-          new_nodes.emplace_back(new_network::Node_Internal_Type{k, nullptr});
-          ++id;
-        }
-
-    // Move the content of the first nodes to their appropriate final position
-    for (std::size_t i = basic_size - 1; i > 1; --i)
-      {
-        new_nodes[1 + num_of_devices * (i - 1)].content = new_nodes[i].content;
-      }
-
-    for (std::size_t i = 1; i < basic_size - 1; ++i)
-      {
-        for (std::size_t k = 1; k < num_of_devices; ++k)
-          {
-            new_nodes[1 + (i - 1) * num_of_devices + k].content =
-              new_network::Node_Internal_Type{k, new_nodes[1 + (i - 1) * num_of_devices].content.second};
-          }
-      }
-
-
-    new_dependencies.reserve(2 + supp_size * num_of_devices);
-
-    // The first node is fully connected with the first layer
-    {
-      new_dependencies.emplace_back();
-
-      auto &out = new_dependencies.back().second;
-      for (std::size_t k = 0; k < num_of_devices; ++k)
-        out.insert(out.end(), k + 1);
-    }
-
-    // Inputs: first node, Outputs: following layer nodes
-    {
-      new_dependencies.emplace_back(std::make_pair<node_id_collection_type, node_id_collection_type>({0}, {}));
-      auto &out = new_dependencies.back().second;
-      for (std::size_t k = 0; k < num_of_devices; ++k)
-        out.insert(out.end(), 1 + num_of_devices + k);
-
-      for (std::size_t k = 1; k < num_of_devices; ++k)
-        {
-          auto dep_cpy = new_dependencies.back();
-
-          if (!backward_connections_allowed)
-            dep_cpy.second.erase(num_of_devices + k);
-
-          new_dependencies.push_back(std::move(dep_cpy));
-        }
-    }
-
-    // Inputs: previous layer nodes, Outputs: following layer nodes
-    {
-      for (std::size_t i = 2; i < supp_size; ++i)
-        {
-          auto const id = new_dependencies.size();
-          new_dependencies.emplace_back(std::make_pair<node_id_collection_type, node_id_collection_type>({}, {}));
-
-          auto &in  = new_dependencies.back().first;
-          auto &out = new_dependencies.back().second;
-
-          if (!backward_connections_allowed)
-            in.insert(in.end(), id - num_of_devices);
-
-
-          for (std::size_t k = 0; k < num_of_devices; ++k)
-            {
-              if (backward_connections_allowed)
-                in.insert(in.end(), id - num_of_devices + k);
-
-              out.insert(out.end(), id + num_of_devices + k);
-            }
-
-          for (std::size_t k = 1; k < num_of_devices; ++k)
-            {
-              auto tmp_dep = new_dependencies.back();
-
-              if (!backward_connections_allowed)
-                {
-                  tmp_dep.first.insert(id - num_of_devices + k);
-                  tmp_dep.second.erase(id + num_of_devices + k - 1);
-                }
-
-              new_dependencies.emplace_back(std::move(tmp_dep));
-            }
-        }
-    }
-
-    // Inputs: previous layer nodes, Outputs: last node
-    {
-      auto const id = new_dependencies.size();
-
-      new_dependencies.emplace_back(
-        std::make_pair<node_id_collection_type, node_id_collection_type>({}, {id + num_of_devices}));
-
-      auto &in = new_dependencies.back().first;
-      in.insert(in.end(), id - num_of_devices);
-
-      if (backward_connections_allowed)
-        for (std::size_t k = 1; k < num_of_devices; ++k)
-          in.insert(in.end(), id - num_of_devices + k);
-
-      for (std::size_t k = 1; k < num_of_devices; ++k)
-        {
-          auto dep_cpy = new_dependencies.back();
-
-          if (!backward_connections_allowed)
-            dep_cpy.first.insert(id - num_of_devices + k);
-
-          new_dependencies.emplace_back(std::move(dep_cpy));
-        }
-    }
-
-    // The last layer is fully connected with the last node
-    {
-      new_dependencies.emplace_back(std::make_pair<node_id_collection_type, node_id_collection_type>({}, {}));
-
-      auto &in = new_dependencies.back().first;
-      for (std::size_t k = 0; k < num_of_devices; ++k)
-        in.insert(in.end(), new_dependencies.size() - 1 - num_of_devices + k);
-    }
-
     new_nodes.front().content.first = graph_in_device;
     new_nodes.back().content.first  = graph_out_device;
 
-    return {new_network(new_nodes, new_dependencies), old_to_new};
+    return {new_network(new_nodes, process_dependencies(new_nodes.size(), supp_size, graph.get_num_devices())),
+            old_to_new};
   }
 
 
