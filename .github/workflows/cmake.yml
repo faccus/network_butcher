@@ -25,10 +25,10 @@ jobs:
         run: sed 's+\$NON_STANDARD_PACKAGE_PATH\$+/usr/lib/python3/dist-packages+g' include/Extra/template_platform_specific_config.h.in > include/Extra/platform_specific_config.h.in
 
       - name: Install aMLLibrary and onnx-tool requirements
-        run: python3 pip install -r dep/requirements.txt
+        run: python3 -m pip install -r dep/requirements.txt
 
       - name: Install onnx-tool
-        run: python3 pip install onnx-tool
+        run: python3 -m pip install onnx-tool
 
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory.
