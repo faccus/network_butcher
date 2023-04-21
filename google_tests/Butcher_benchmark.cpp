@@ -44,6 +44,12 @@ namespace
   parameters::Parameters
   real_parameters(std::size_t k, bool backward);
 
+  struct path_comparison
+  {
+    bool
+    operator()(Weighted_Real_Path const &rhs, Weighted_Real_Path const &lhs) const;
+  };
+
   template <class Graph>
   void
   complete_weights(Graph &graph)
@@ -137,32 +143,10 @@ namespace
 
     std::cout << "Eppstein: " << crono.wallTime() / 1000 << " milliseconds" << std::endl;
 
-
-    ASSERT_EQ(eppstein_res.size(), lazy_eppstein_res.size());
-
-    auto const last_weight_epp = eppstein_res.back().first;
-    ASSERT_EQ(last_weight_epp, lazy_eppstein_res.back().first);
-
-    auto tmp_it  = --eppstein_res.end();
-    auto tmp_it2 = --lazy_eppstein_res.end();
-
-    for (; tmp_it != eppstein_res.begin() && tmp_it2 != lazy_eppstein_res.begin(); --tmp_it, --tmp_it2)
-      {
-        if (tmp_it->first != last_weight_epp)
-          break;
-      }
-
-    ++tmp_it;
-    ++tmp_it2;
-
-    eppstein_res.erase(tmp_it, eppstein_res.end());
-    lazy_eppstein_res.erase(tmp_it2, lazy_eppstein_res.end());
-
-
-    std::set<Weighted_Real_Path> eppstein;
+    std::set<Weighted_Real_Path, path_comparison> eppstein;
     eppstein.insert(eppstein_res.begin(), eppstein_res.end());
 
-    std::set<Weighted_Real_Path> lazy_eppstein;
+    std::set<Weighted_Real_Path, path_comparison> lazy_eppstein;
     lazy_eppstein.insert(lazy_eppstein_res.begin(), lazy_eppstein_res.end());
 
     ASSERT_EQ(eppstein, lazy_eppstein);
@@ -209,30 +193,10 @@ namespace
         double const time_instance_lazy = crono.wallTime();
         time_lazy += time_instance_lazy;
 
-        ASSERT_EQ(eppstein_res.size(), lazy_eppstein_res.size());
-
-        auto const last_weight_epp = eppstein_res.back().first;
-        ASSERT_EQ(last_weight_epp, lazy_eppstein_res.back().first);
-
-        auto tmp_it  = --eppstein_res.end();
-        auto tmp_it2 = --lazy_eppstein_res.end();
-
-        for (; tmp_it != eppstein_res.begin() && tmp_it2 != lazy_eppstein_res.begin(); --tmp_it, --tmp_it2)
-          {
-            if (tmp_it->first != last_weight_epp)
-              break;
-          }
-
-        ++tmp_it;
-        ++tmp_it2;
-
-        eppstein_res.erase(tmp_it, eppstein_res.end());
-        lazy_eppstein_res.erase(tmp_it2, lazy_eppstein_res.end());
-
-        std::set<Weighted_Real_Path> eppstein;
+        std::set<Weighted_Real_Path, path_comparison> eppstein;
         eppstein.insert(eppstein_res.begin(), eppstein_res.end());
 
-        std::set<Weighted_Real_Path> lazy_eppstein;
+        std::set<Weighted_Real_Path, path_comparison> lazy_eppstein;
         lazy_eppstein.insert(lazy_eppstein_res.begin(), lazy_eppstein_res.end());
 
         ASSERT_EQ(eppstein, lazy_eppstein);
@@ -370,4 +334,10 @@ namespace
     return res;
   }
 
+  bool
+  path_comparison::operator()(const network_butcher::types::Weighted_Real_Path &rhs,
+                              const network_butcher::types::Weighted_Real_Path &lhs) const
+  {
+    return rhs.first < lhs.first || rhs.first == lhs.first && rhs.second < lhs.second;
+  }
 }; // namespace

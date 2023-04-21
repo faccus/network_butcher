@@ -33,6 +33,12 @@ namespace
   parameters::Parameters
   lazy_eppstein_parameters(std::size_t k, std::size_t num_devices);
 
+  struct path_comparison
+  {
+    bool
+    operator()(Weighted_Real_Path const &rhs, Weighted_Real_Path const &lhs) const;
+  };
+
   template <class Graph>
   void
   complete_weights(Graph &graph)
@@ -54,7 +60,6 @@ namespace
 
   std::function<type_weight(node_id_type const &, std::size_t, std::size_t)> basic_transmission(std::size_t,
                                                                                                 std::size_t);
-
 
   TEST(ButcherTest, compute_k_shortest_paths_eppstein_linear)
   {
@@ -114,37 +119,13 @@ namespace
     crono2.stop();
     crono2.wallTime();
 
-    ASSERT_EQ(eppstein_res.size(), lazy_eppstein_res.size());
-
-    auto const last_weight_epp = eppstein_res.back().first;
-    ASSERT_EQ(last_weight_epp, lazy_eppstein_res.back().first);
-
-    auto tmp_it  = --eppstein_res.end();
-    auto tmp_it2 = --lazy_eppstein_res.end();
-
-    for (; tmp_it != eppstein_res.begin() && tmp_it2 != lazy_eppstein_res.begin(); --tmp_it, --tmp_it2)
-      {
-        if (tmp_it->first != last_weight_epp)
-          break;
-      }
-
-    ++tmp_it;
-    ++tmp_it2;
-
-    eppstein_res.erase(tmp_it, eppstein_res.end());
-    lazy_eppstein_res.erase(tmp_it2, lazy_eppstein_res.end());
-
-    std::set<Weighted_Real_Path> eppstein;
+    std::set<Weighted_Real_Path, path_comparison> eppstein;
     eppstein.insert(eppstein_res.begin(), eppstein_res.end());
 
-    std::set<Weighted_Real_Path> lazy_eppstein;
+    std::set<Weighted_Real_Path, path_comparison> lazy_eppstein;
     lazy_eppstein.insert(lazy_eppstein_res.begin(), lazy_eppstein_res.end());
 
     ASSERT_EQ(eppstein, lazy_eppstein);
-
-
-    std::cout << "Eppstein: " << crono.wallTime() / 1000 << " milliseconds" << std::endl;
-    std::cout << "Lazy compute: " << crono2.wallTime() / 1000 << " milliseconds" << std::endl;
   }
 
   Butcher<GraphType>
@@ -165,13 +146,13 @@ namespace
 
     for (std::size_t k = 0; k < graph.get_num_devices(); ++k)
       {
-        graph.set_weight(k, {0, 1}, 1000. / std::pow(2, k));
-        graph.set_weight(k, {1, 2}, 1000. / std::pow(2, k));
-        graph.set_weight(k, {1, 3}, 500. / std::pow(2, k));
-        graph.set_weight(k, {3, 4}, 500. / std::pow(2, k));
-        graph.set_weight(k, {2, 5}, 1000. / std::pow(2, k));
-        graph.set_weight(k, {4, 5}, 1000. / std::pow(2, k));
-        graph.set_weight(k, {5, 6}, 1000. / std::pow(2, k));
+        graph.set_weight(k, {0, 1}, 1000. / std::pow(2, k) + k);
+        graph.set_weight(k, {1, 2}, 1000. / std::pow(2, k) + k);
+        graph.set_weight(k, {1, 3}, 500. / std::pow(2, k) + k);
+        graph.set_weight(k, {3, 4}, 500. / std::pow(2, k) + k);
+        graph.set_weight(k, {2, 5}, 1000. / std::pow(2, k) + k);
+        graph.set_weight(k, {4, 5}, 1000. / std::pow(2, k) + k);
+        graph.set_weight(k, {5, 6}, 1000. / std::pow(2, k) + k);
         graph.set_weight(k, {6, 7}, 0.);
       }
 
@@ -242,5 +223,12 @@ namespace
     res.ending_device_id   = 0;
 
     return res;
+  }
+
+  bool
+  path_comparison::operator()(const network_butcher::types::Weighted_Real_Path &rhs,
+                              const network_butcher::types::Weighted_Real_Path &lhs) const
+  {
+    return rhs.first < lhs.first || rhs.first == lhs.first && rhs.second < lhs.second;
   }
 } // namespace
