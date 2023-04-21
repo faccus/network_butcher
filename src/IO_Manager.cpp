@@ -161,7 +161,7 @@ namespace network_butcher::io::IO_Manager
       }
 
     std::string const block_graph_mode = network_butcher::Utilities::trim_copy(
-      network_butcher::Utilities::to_lowercase_copy(file(weight_infos + "/block_graph_mode", "classic")));
+      network_butcher::Utilities::to_lowercase_copy(file(basic_infos + "/block_graph_mode", "classic")));
 
     if (block_graph_mode == "classic")
       {
