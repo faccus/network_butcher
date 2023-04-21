@@ -10,9 +10,11 @@ namespace network_butcher::io
   {
 #if PYBIND_ACTIVE
     if (params.devices.size() != 2 || params.backward_connections_allowed)
-      throw; // ("aMLLibrary only supports 2 devices and no backward connections");
+      throw std::logic_error(
+        "aMLLibrary only supports 2 devices and no backward connections"); // ("aMLLibrary only supports 2 devices and
+                                                                           // no backward connections");
 #else
-    throw; // ("aMLLibrary not supported. Please compile with PYBIND_ACTIVE");
+    throw std::logic_error("aMLLibrary not supported. Please compile with PYBIND_ACTIVE"); //
 #endif
   }
 
@@ -52,7 +54,7 @@ namespace network_butcher::io
     std::string const dep_import = Utilities::combine_path(std::string(NN_Source_Path), "dep");
 
     inserter(dep_import);
-    inserter(Utilities::combine_path(dep_import, "onnx-tool"));
+    // inserter(Utilities::combine_path(dep_import, "onnx-tool"));
 
 #  if PLATFORM_SPECIFIC_CONFIG
     std::string const local_lib_path = std::string(PYTHON_LOCAL_LIB_PATH);
