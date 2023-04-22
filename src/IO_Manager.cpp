@@ -424,7 +424,7 @@ namespace network_butcher::io::IO_Manager
                 params.starting_device_id = 0;
                 params.ending_device_id   = 0;
 
-                params.method                       = network_butcher::parameters::Lazy_Eppstein;
+                params.method                       = network_butcher::parameters::KSP_Method::Lazy_Eppstein;
                 params.K                            = 100;
                 params.backward_connections_allowed = false;
 
