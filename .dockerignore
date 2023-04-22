@@ -1,0 +1,20 @@
+# Project exclude paths
+/cmake-build-*/
+/build/
+/ML_inputs/
+/.idea
+/.github
+
+.git
+.gitignore
+
+Dockerfile*
+docker-compose*
+README.md
+LICENSE
+
+/test_data/aMLLibrary_data/output
+/onnx_proto/onnx
+/.vscode
+/output*
+/include/Extra/platform_specific_config.h.in
