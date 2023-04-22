@@ -8,6 +8,7 @@ set(
         google_tests/Computer/Computer_memory.cpp
         google_tests/Network/Graph.cpp
         google_tests/IO_Manager.cpp
+        google_tests/K-shortest_path/KFinder.cpp
         google_tests/K-shortest_path/Shortest_path_finder.cpp
         google_tests/Butcher.cpp
         google_tests/IO_interaction/Weight_importer_helpers.cpp
