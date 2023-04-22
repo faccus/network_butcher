@@ -6,37 +6,44 @@
 #define NETWORK_BUTCHER_PARAMETERS_H
 
 #include "Graph_traits.h"
+#include "KSP_Method.h"
 
-namespace network_butcher
+namespace network_butcher::parameters
 {
-  namespace parameters
+  /// Enumerator for the weight import modes
+  enum struct Weight_Import_Mode
   {
-    /// Enumerator for the weight import modes
-    enum struct Weight_Import_Mode
-    {
-      single_direct_read,
-      multiple_direct_read,
-      aMLLibrary_original,
-      aMLLibrary_block
-    };
+    single_direct_read,
+    multiple_direct_read,
+    aMLLibrary_original,
+    aMLLibrary_block
+  };
 
-    enum struct Block_Graph_Generation_Mode
-    {
-      classic,
-      output,
-      input
-    };
+  enum struct Block_Graph_Generation_Mode
+  {
+    classic,
+    output,
+    input
+  };
 
-    /// Collection of parameters for a device
-    struct Device
-    {
-      /// Device id
-      std::size_t id;
+  /// The memory constraints possibilities
+  enum Memory_Constraint_Type
+  {
+    None,
+    Max,
+    Preload_Parameters
+  };
 
-      /// Device name
-      std::string name;
+  /// Collection of parameters for a device
+  struct Device
+  {
+    /// Device id
+    std::size_t id;
 
-      /// Maximum memory capacity (in bytes)
+    /// Device name
+    std::string name;
+
+    /// Maximum memory capacity (in bytes)
       memory_type maximum_memory;
 
       /// The .csv file of weights
@@ -44,21 +51,6 @@ namespace network_butcher
 
       /// The column of the .csv file containing the weights
       std::string relevant_entry;
-    };
-
-    /// Enumerator for the different KSP methods
-    enum KSP_Method
-    {
-      Eppstein,
-      Lazy_Eppstein
-    };
-
-    /// The memory constraints possibilities
-    enum Memory_Constraint_Type
-    {
-      None,
-      Max,
-      Preload_Parameters
     };
 
     /// The collection of parameters
@@ -127,9 +119,7 @@ namespace network_butcher
       /// The bandwidth information between the different devices (Mbps - s)
       std::map<std::pair<std::size_t, std::size_t>, std::pair<bandwidth_type, bandwidth_type>> bandwidth;
     };
-  } // namespace parameters
-
-} // namespace network_butcher
+} // namespace network_butcher::parameters
 
 
 #endif // NETWORK_BUTCHER_PARAMETERS_H
