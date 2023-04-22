@@ -6,38 +6,36 @@
 #define NETWORK_BUTCHER_KEPPSTEIN_LAZY_H
 
 #include "Heap_traits.h"
-#include "KFinder.h"
+#include "basic_KEppstein.h"
 
-namespace network_butcher
+namespace network_butcher::kfinder
 {
-  namespace kfinder
+  /// This class implements the Lazy Eppstein K-shortest path algorithm
+  /// \tparam Graph_type The graph type
+  template <class Graph_type>
+  class KFinder_Lazy_Eppstein final : public basic_KEppstein<Graph_type>
   {
-    /// This class implements the Lazy Eppstein K-shortest path algorithm
-    /// \tparam Graph_type The graph type
-    template <class Graph_type>
-    class KFinder_Lazy_Eppstein : public KFinder<Graph_type>
-    {
-    private:
-      using base = KFinder<Graph_type>;
+  private:
+    using base = basic_KEppstein<Graph_type>;
 
-      /// Simple function that will look for the H_g corresponding to the given node
-      /// \param h_g The H_g collections
-      /// \param node The node
-      /// \return A pair: a boolean that is true if the relevant H_g is found and the relevant iterator to the
-      /// relevant H_g
-      std::pair<bool, H_g_collection::iterator>
-      find_h_g_in_map(H_g_collection &h_g, node_id_type node) const;
+    /// Simple function that will look for the H_g corresponding to the given node
+    /// \param h_g The H_g collections
+    /// \param node The node
+    /// \return A pair: a boolean that is true if the relevant H_g is found and the relevant iterator to the
+    /// relevant H_g
+    std::pair<bool, H_g_collection::iterator>
+    find_h_g_in_map(H_g_collection &h_g, node_id_type node) const;
 
 
-      /// It will add to the h_out map the h_out associates to the current node
-      /// \param h_out The h_out map
-      /// \param sidetrack_distances The sidetrack distances
-      /// \param successors The successor collection
-      /// \param node The node associated to the h_out to construct
-      /// \return The iterator of the added h_out
-      H_out_collection::iterator
-      construct_partial_h_out(H_out_collection                &h_out,
-                              weights_collection_type const   &sidetrack_distances,
+    /// It will add to the h_out map the h_out associates to the current node
+    /// \param h_out The h_out map
+    /// \param sidetrack_distances The sidetrack distances
+    /// \param successors The successor collection
+    /// \param node The node associated to the h_out to construct
+    /// \return The iterator of the added h_out
+    H_out_collection::iterator
+    construct_partial_h_out(H_out_collection                &h_out,
+                            weights_collection_type const   &sidetrack_distances,
                               std::vector<node_id_type> const &successors,
                               node_id_type                     node) const;
 
@@ -75,11 +73,14 @@ namespace network_butcher
       explicit KFinder_Lazy_Eppstein(Graph_type const &g)
         : base(g){};
 
-      ~KFinder_Lazy_Eppstein() override = default;
-    };
+      explicit KFinder_Lazy_Eppstein(Weighted_Graph<Graph_type> const &g)
+        : base(g){};
+
+      virtual ~KFinder_Lazy_Eppstein() = default;
+  };
 
 
-    template <class Graph_type>
+  template <class Graph_type>
     std::pair<bool, H_g_collection::iterator>
     KFinder_Lazy_Eppstein<Graph_type>::find_h_g_in_map(H_g_collection &h_g, node_id_type node) const
     {
@@ -242,8 +243,6 @@ namespace network_butcher
       return base::helper_eppstein(dij_res, epp_res);
     }
 
-  } // namespace kfinder
-
-} // namespace network_butcher
+} // namespace network_butcher::kfinder
 
 #endif // NETWORK_BUTCHER_KEPPSTEIN_LAZY_H

@@ -6,27 +6,25 @@
 #define NETWORK_BUTCHER_KEPPSTEIN_H
 
 #include "Heap_traits.h"
-#include "KFinder.h"
+#include "basic_KEppstein.h"
 
-namespace network_butcher
+namespace network_butcher::kfinder
 {
-  namespace kfinder
+  /// This class implements the Eppstein K-shortest path algorithm
+  /// \tparam Graph_type The graph type
+  template <class Graph_type>
+  class KFinder_Eppstein final : public basic_KEppstein<Graph_type>
   {
-    /// This class implements the Eppstein K-shortest path algorithm
-    /// \tparam Graph_type The graph type
-    template <class Graph_type>
-    class KFinder_Eppstein : public KFinder<Graph_type>
-    {
-    private:
-      using base = KFinder<Graph_type>;
+  private:
+    using base = basic_KEppstein<Graph_type>;
 
 
-      /// Given the successors collection and the sidetrack distances, it will construct the h_out map
-      /// \param successors The list of the successors of every node (the node following the current one in the
-      /// shortest path)
-      /// \param sidetrack_distances The collection of the sidetrack distances for all the sidetrack edges
-      /// \return H_out map
-      [[nodiscard]] H_out_collection
+    /// Given the successors collection and the sidetrack distances, it will construct the h_out map
+    /// \param successors The list of the successors of every node (the node following the current one in the
+    /// shortest path)
+    /// \param sidetrack_distances The collection of the sidetrack distances for all the sidetrack edges
+    /// \return H_out map
+    [[nodiscard]] H_out_collection
       construct_h_out(std::vector<node_id_type> const &successors,
                       weights_collection_type const   &sidetrack_distances) const;
 
@@ -58,8 +56,11 @@ namespace network_butcher
       explicit KFinder_Eppstein(Graph_type const &g)
         : base(g){};
 
-      ~KFinder_Eppstein() override = default;
-    };
+      explicit KFinder_Eppstein(Weighted_Graph<Graph_type> const &g)
+        : base(g){};
+
+      virtual ~KFinder_Eppstein() = default;
+  };
 
 
     template <class Graph_type>
@@ -216,9 +217,7 @@ namespace network_butcher
       return base::helper_eppstein(dij_res, epp_res);
     }
 
-  } // namespace kfinder
-
-} // namespace network_butcher
+} // namespace network_butcher::kfinder
 
 
 #endif // NETWORK_BUTCHER_KEPPSTEIN_H
