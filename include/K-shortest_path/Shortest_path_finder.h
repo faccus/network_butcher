@@ -12,9 +12,7 @@
 #include <vector>
 
 
-namespace network_butcher {
-
-namespace kfinder
+namespace network_butcher::kfinder
 {
   /// A simple collection of functions that perform the dijkstra algorithm on the given graph
   namespace Shortest_path_finder
@@ -204,8 +202,6 @@ namespace kfinder
       return shortest_path_finder(Weighted_Graph(graph), dij_res, root);
     }
   }; // namespace Shortest_path_finder
-} // namespace network_butcher_kfinder
-
 }
 
 
