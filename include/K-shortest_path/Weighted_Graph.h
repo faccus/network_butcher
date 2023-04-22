@@ -64,12 +64,7 @@ namespace network_butcher
         : graph(g)
       {}
 
-      Weighted_Graph(Weighted_Graph const &) = delete;
-      Weighted_Graph
-      operator=(Weighted_Graph const &) = delete;
-      Weighted_Graph(Weighted_Graph &&) = delete;
-      Weighted_Graph
-      operator=(Weighted_Graph &&) = delete;
+      ~Weighted_Graph() = default;
 
     private:
       Graph_Type const &graph;

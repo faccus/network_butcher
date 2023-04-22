@@ -8,20 +8,18 @@
 #include "Graph.h"
 
 
-namespace network_butcher
+namespace network_butcher::types
 {
-  namespace types
+  /// A custom graph class. It contains a single graph and multiple weight maps. Technically, it can be viewed
+  /// as a collection of graphs with the same structure, but different weight maps.
+  /// \tparam T Type of the content of the nodes
+  template <typename T>
+  class MWGraph : public Graph<T>
   {
-    /// A custom graph class. It contains a single graph and multiple weight maps. Technically, it can be viewed
-    /// as a collection of graphs with the same structure, but different weight maps.
-    /// \tparam T Type of the content of the nodes
-    template <typename T>
-    class MWGraph : public Graph<T>
-    {
-    private:
-      using Parent_type = Graph<T>;
+  private:
+    using Parent_type = Graph<T>;
 
-    protected:
+  protected:
       std::vector<weights_collection_type> weigth_map;
 
     public:
@@ -254,8 +252,6 @@ namespace network_butcher
       }
     };
 
-  } // namespace types
-
-} // namespace network_butcher
+} // namespace network_butcher::types
 
 #endif // NETWORK_BUTCHER_MWGRAPH_H

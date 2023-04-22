@@ -11,8 +11,6 @@
 
 namespace network_butcher
 {
-
-
   namespace types
   {
     /// Just another weighted graph class...
@@ -59,6 +57,12 @@ namespace network_butcher
       set_weight(edge_type const &edge, weight_type weight)
       {
         Parent_type::set_weight(0, edge, weight);
+      }
+
+      [[nodiscard]] bool
+      check_weight(edge_type const &edge) const
+      {
+        return Parent_type::check_weight(0, edge);
       }
     };
 
@@ -112,6 +116,12 @@ namespace network_butcher
       set_weight(edge_type const &edge, weight_type weight)
       {
         Parent_type::set_weight(0, edge, weight);
+      }
+
+      [[nodiscard]] bool
+      check_weight(edge_type const &edge) const
+      {
+        return Parent_type::check_weight(0, edge);
       }
     };
 
