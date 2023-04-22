@@ -11,8 +11,7 @@
 
 #include "Graph_traits.h"
 
-#include "KEppstein.h"
-#include "KEppstein_lazy.h"
+#include "KFinder_Factory.h"
 
 #include "Computer_memory.h"
 #include "Parameters.h"
@@ -44,7 +43,11 @@ namespace network_butcher
     /// The linearized graph (with multiple devices) and the map that associated every node id of the original graph to
     /// the respective node id of the "new" graph
     [[nodiscard]] std::pair<new_network, std::map<node_id_type, node_id_type>>
-    block_graph(bool backward_connections_allowed, std::size_t graph_in_device, std::size_t graph_out_device) const;
+    block_graph(bool                                                     backward_connections_allowed,
+                std::size_t                                              graph_in_device,
+                std::size_t                                              graph_out_device,
+                network_butcher::parameters::Block_Graph_Generation_Mode mode =
+                  network_butcher::parameters::Block_Graph_Generation_Mode::classic) const;
 
 
     /// Helper function used to estimate the memory usage of a group of nodes
@@ -72,16 +75,6 @@ namespace network_butcher
     remove_unfeasible_paths(std::vector<network_butcher::parameters::Device> const &devices,
                             new_network                                            &new_graph,
                             network_butcher::parameters::Memory_Constraint_Type     constraint_type) const;
-
-
-    /// Given the current graph and the original weight function, it will produce the weights for the linearized graph
-    /// \param new_graph The linearized graph (result of block_graph)
-    /// \param transmission_weights They are used when we are switching from a device to another. The node is the source
-    /// while the two size_t are the input and output device ids
-    void
-    block_graph_weights(
-      new_network                                                                      &new_graph,
-      std::function<weight_type(node_id_type const &, std::size_t, std::size_t)> const &transmission_weights) const;
 
 
     /// Given the current graph and the original weight function, it will produce the weights for the linearized graph
@@ -180,9 +173,10 @@ namespace network_butcher
 
   template <class GraphType>
   std::pair<typename Butcher<GraphType>::new_network, std::map<node_id_type, node_id_type>>
-  Butcher<GraphType>::block_graph(bool        backward_connections_allowed,
-                                  std::size_t graph_in_device,
-                                  std::size_t graph_out_device) const
+  Butcher<GraphType>::block_graph(bool                                                     backward_connections_allowed,
+                                  std::size_t                                              graph_in_device,
+                                  std::size_t                                              graph_out_device,
+                                  network_butcher::parameters::Block_Graph_Generation_Mode mode) const
   {
     auto const linearize_graph = [](GraphType::Dependencies_Type const                             &old_dependencies,
                                     GraphType::Node_Collection_Type const                          &old_nodes,
@@ -436,16 +430,11 @@ namespace network_butcher
         return std::move(new_dependencies);
       };
 
-    auto [starting_nodes, old_to_new] =
-      linearize_graph(graph.get_neighbors(),
-                      graph.get_nodes(),
-                      network_butcher::parameters::Block_Graph_Generation_Mode::classic);
-
-    if (starting_nodes.size() <= 2)
-      throw; // Too small
+    auto [starting_nodes, old_to_new] = linearize_graph(graph.get_neighbors(), graph.get_nodes(), mode);
 
     auto const supp_size = starting_nodes.size() - 2;
-    add_extra_nodes_per_device(starting_nodes, graph.get_num_devices());
+    if (starting_nodes.size() > 2)
+      add_extra_nodes_per_device(starting_nodes, graph.get_num_devices());
 
     new_network::Node_Collection_Type new_nodes;
     new_nodes.reserve(starting_nodes.size());
@@ -629,116 +618,246 @@ namespace network_butcher
   template <class GraphType>
   void
   Butcher<GraphType>::block_graph_weights(
-    Butcher::new_network                                                             &new_graph,
+    new_network                                                                      &new_graph,
+    network_butcher::parameters::Parameters const                                    &params,
     const std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> &transmission_weights) const
   {
+    using namespace network_butcher::parameters;
+
     auto const &nodes = new_graph.get_nodes();
-    std::for_each(nodes.cbegin(),
-                  nodes.cend(),
-                  [&new_graph, &graph = graph, &transmission_weights](new_network::Node_Type const &node) {
-                    auto const first = node.get_id();
 
-                    for (auto const &second : new_graph.get_neighbors()[node.get_id()].second)
-                      {
-                        auto const &out_node = new_graph[second];
+    if (params.weight_import_mode == Weight_Import_Mode::aMLLibrary_block)
+      {
+        if constexpr (std::is_same_v<GraphType, graph_type>)
+          {
+            io::block_aMLLibrary_Weight_Importer(graph, new_graph, params).import_weights();
+          }
+        else
+          {
+            throw std::runtime_error("The specified weight import mode is not supported!");
+          }
+      }
+    else
+      {
+        auto const add_weight_cost = [&new_graph,
+                                      &graph = graph,
+                                      &transmission_weights,
+                                      mode = params.block_graph_mode](new_network::Node_Type const &node) {
+          auto const first = node.get_id();
 
-                        edge_type const edge = {first, second};
+          // Look for the nodes of the original graph that are
+          // represented by the input node (in the linearized
+          // graph)
+          auto const &inputs = *node.content.second;
 
-                        // The device id of the input node (=0 starting device, >0 other
-                        // device)
-                        auto const in_device_id = node.content.first;
-                        // The device id of the output node (=0 starting device, >0 other
-                        // device)
-                        auto const out_device_id = out_node.content.first;
+          // The device id of the input node (=0 starting device, >0 other device)
+          auto const in_device_id = node.content.first;
 
-                        // Look for the nodes of the original graph that are
-                        // represented by the output node (in the linearized
-                        // graph)
-                        auto const &outputs = *out_node.content.second;
+          for (auto const &second : new_graph.get_neighbors()[first].second)
+            {
+              auto const &out_node = new_graph[second];
 
-                        // Look for the nodes of the original graph that are
-                        // represented by the input node (in the linearized
-                        // graph)
-                        auto const &inputs = *node.content.second;
+              edge_type const edge = {first, second};
+              // The device id of the output node (=0 starting device, >0 other device)
+              auto const out_device_id = out_node.content.first;
 
-                        double final_cost = -1.;
+              // Look for the nodes of the original graph that are represented by the output node (in the
+              // linearized graph)
+              auto const &outputs = *out_node.content.second;
 
-                        // 1-1 correspondence
-                        if (outputs.size() == 1 && inputs.size() == 1)
-                          {
-                            auto const &input  = *inputs.begin();
-                            auto const &output = *outputs.begin();
+              double weight_cost = 0.;
 
-                            auto const tmp_edge = std::make_pair(input, output);
+              // 1-1 correspondence
+              if (outputs.size() == 1 && inputs.size() == 1)
+                {
+                  auto const &input  = *inputs.begin();
+                  auto const &output = *outputs.begin();
 
-                            auto const transmission_weight = transmission_weights(input, in_device_id, out_device_id);
-                            auto const weight              = graph.get_weight(out_device_id, tmp_edge);
+                  auto const tmp_edge = std::make_pair(input, output);
 
-                            final_cost = transmission_weight + weight;
-                          }
-                        // (2+)-1 correspondence. The idea is that the input nodes must
-                        // transmit to the output node the different values. Thus, the
-                        // transmission cost is paid several times.
-                        else if (outputs.size() == 1)
-                          {
-                            weight_type weight_cost        = .0;
-                            weight_type transmission_costs = .0;
+                  weight_cost = graph.get_weight(out_device_id, tmp_edge);
+                }
+              // (2+)-1 correspondence
+              else if (outputs.size() == 1)
+                {
+                  auto const &output           = *outputs.begin();
+                  auto const &inputs_of_output = graph.get_neighbors()[output].first;
 
-                            auto const &output       = *outputs.begin();
-                            auto const &dependencies = graph.get_neighbors();
+                  weight_cost = graph.get_weight(out_device_id, std::make_pair(*inputs_of_output.cbegin(), output));
+                }
+              // 1-(2+) correspondence
+              else if (inputs.size() == 1)
+                {
+                  auto const &input             = *inputs.begin();
+                  auto const &interface_outputs = graph.get_neighbors()[input].second;
 
-                            // The inputs on the original graph of the output node have to
-                            // transmit their values to the output node
-                            for (auto const &input : dependencies[output].first)
-                              {
-                                transmission_costs += transmission_weights(input, in_device_id, out_device_id);
-                                weight_cost += graph.get_weight(out_device_id, std::make_pair(input, output));
-                              }
+                  for (auto const &output : interface_outputs)
+                    weight_cost += graph.get_weight(out_device_id, std::make_pair(input, output));
 
-                            final_cost = transmission_costs + weight_cost;
-                          }
-                        // 1-(2+). In this case, the input is sent to the device of the
-                        // output nodes a single time. Thus, this transmission cost is taken
-                        // into account only once.
-                        else if (inputs.size() == 1)
-                          {
-                            weight_type weight_costs      = .0;
-                            weight_type transmission_cost = .0;
+                  // Compute the total weight associated to the internal edges
+                  for (auto const &internal_input : outputs)
+                    {
+                      for (auto &internal_output : graph.get_neighbors()[internal_input].second)
+                        {
+                          if (outputs.find(internal_output) != outputs.cend())
+                            {
+                              weight_cost +=
+                                graph.get_weight(out_device_id, std::make_pair(internal_input, internal_output));
+                            }
+                        }
+                    }
+                }
+              // (2+)-(2+). In this case, there are two possibilities: either the block graph mode is classic
+              // (and the program should trow) or the block graph mode is input/output. In the latter case, we
+              // should consider the transmission of the "frontier" nodes of inputs and the overall execution
+              // cost for the outputs
+              else
+                {
+                  // In classic mode, every edge can have at most one 2+ node.
+                  if (mode == Block_Graph_Generation_Mode::classic)
+                    {
+                      throw std::logic_error("The edge (" + std::to_string(edge.first) + ", " +
+                                             std::to_string(edge.second) + ") has both multiple inputs and outputs!");
+                    }
+                  // In input and output mode, every edge can have up to two 2+ nodes.
+                  else
+                    {
+                      bool set = false;
 
-                            auto const &dependencies = graph.get_neighbors();
-                            auto const &input        = *inputs.begin();
-                            auto const &comm_outputs = dependencies[*inputs.begin()].second;
+                      // Compute the total weight associated to the internal edges
+                      for (auto const &internal_input : outputs)
+                        {
+                          for (auto &internal_output : graph.get_neighbors()[internal_input].second)
+                            {
+                              if (outputs.find(internal_output) != outputs.cend())
+                                {
+                                  weight_cost +=
+                                    graph.get_weight(out_device_id, std::make_pair(internal_input, internal_output));
+                                  set = true;
+                                }
+                            }
+                        }
 
-                            for (auto const &output : comm_outputs)
-                              weight_costs += graph.get_weight(out_device_id, std::make_pair(input, output));
-                            transmission_cost += transmission_weights(input, in_device_id, out_device_id);
+                      if (!set)
+                        {
+                          std::stringstream stt;
+                          stt << "Missing weight in block graph generation!" << std::endl;
 
-                            // Compute the total weight associated to the internal edges
-                            for (auto const &internal_input : outputs)
-                              {
-                                for (auto &internal_output : dependencies[internal_input].second)
-                                  {
-                                    if (outputs.find(internal_output) != outputs.cend())
-                                      {
-                                        weight_costs +=
-                                          graph.get_weight(out_device_id,
-                                                           std::make_pair(internal_input, internal_output));
-                                      }
-                                  }
-                              }
+                          throw std::logic_error(stt.str());
+                        }
+                    }
+                }
 
-                            final_cost = weight_costs + transmission_cost;
-                          }
-                        else
-                          {
-                            throw std::logic_error("The edge (" + std::to_string(edge.first) + ", " +
-                                                   std::to_string(edge.second) +
-                                                   ") has both multiple inputs and outputs!");
-                          }
+              new_graph.set_weight(edge, weight_cost);
+            }
+        };
 
-                        new_graph.set_weight(edge, final_cost);
-                      }
-                  });
+        std::for_each(nodes.cbegin(), nodes.cend(), add_weight_cost);
+      }
+
+    auto const add_transmission_weights = [&new_graph,
+                                           &graph = graph,
+                                           &transmission_weights,
+                                           mode = params.block_graph_mode](new_network::Node_Type const &node) {
+      auto const &inputs = *node.content.second;
+      auto const  first  = node.get_id();
+
+      auto const in_device_id = node.content.first;
+
+      for (auto const &second : new_graph.get_neighbors()[first].second)
+        {
+          auto const &out_node = new_graph[second];
+
+          edge_type const edge = {first, second};
+          // The device id of the output node (=0 starting device, >0 other device)
+          auto const out_device_id = out_node.content.first;
+
+          // Look for the nodes of the original graph that are represented by the output node (in the
+          // linearized graph)
+          auto const &outputs = *out_node.content.second;
+
+          double final_cost = 0.;
+
+          // 1-1 correspondence
+          if (outputs.size() == 1 && inputs.size() == 1)
+            {
+              auto const &input  = *inputs.begin();
+              auto const &output = *outputs.begin();
+
+              auto const tmp_edge = std::make_pair(input, output);
+
+              final_cost = transmission_weights(input, in_device_id, out_device_id);
+            }
+          // (2+)-1 correspondence. The idea is that the input nodes must transmit to the output node the
+          // different values. Thus, the transmission cost is paid several times.
+          else if (outputs.size() == 1)
+            {
+              auto const &output = *outputs.begin();
+              // The inputs on the original graph of the output node have to
+              // transmit their values to the output node
+              for (auto const &input : graph.get_neighbors()[output].first)
+                {
+                  final_cost += transmission_weights(input, in_device_id, out_device_id);
+                }
+            }
+          // 1-(2+). In this case, the input is sent to the device of the output nodes a single time.
+          // Thus, this transmission cost is taken into account only once.
+          else if (inputs.size() == 1)
+            {
+              auto const &input        = *inputs.begin();
+              auto const &comm_outputs = graph.get_neighbors()[input].second;
+
+              final_cost += transmission_weights(input, in_device_id, out_device_id);
+            }
+          // (2+)-(2+). In this case, there are two possibilities: either the block graph mode is classic
+          // (and the program should trow) or the block graph mode is input/output. In the latter case, we
+          // should consider the transmission of the "frontier" nodes of inputs and the overall execution
+          // cost for the outputs
+          else
+            {
+              // In classic mode, every edge can have at most one 2+ node.
+              if (mode == Block_Graph_Generation_Mode::classic)
+                {
+                  throw std::logic_error("The edge (" + std::to_string(edge.first) + ", " +
+                                         std::to_string(edge.second) + ") has both multiple inputs and outputs!");
+                }
+              // In input and output mode, every edge can have up to two 2+ nodes.
+              else
+                {
+                  // This is the collection of the input nodes of every node contained in outputs
+                  std::set<node_id_type> output_node_inputs;
+
+                  for (auto const &node_id : outputs)
+                    {
+                      auto const &nodes = graph.get_neighbors()[node_id].first;
+                      output_node_inputs.insert(nodes.cbegin(), nodes.cend());
+                    }
+
+                  // This is the collection of nodes in inputs whose output tensors are fed to outputs
+                  std::vector<node_id_type> frontier_input;
+                  frontier_input.reserve(std::max(inputs.size(), output_node_inputs.size()));
+                  std::set_intersection(output_node_inputs.cbegin(),
+                                        output_node_inputs.cend(),
+                                        inputs.cbegin(),
+                                        inputs.cend(),
+                                        frontier_input.begin());
+
+                  // We have to consider the transmission cost for every node in the frontier_input
+                  for (auto const &input : frontier_input)
+                    {
+                      final_cost += transmission_weights(input, in_device_id, out_device_id);
+                    }
+                }
+            }
+
+          if (new_graph.check_weight(edge))
+            final_cost += new_graph.get_weight(edge);
+
+          new_graph.set_weight(edge, final_cost);
+        }
+    };
+
+    std::for_each(nodes.cbegin(), nodes.cend(), add_transmission_weights);
   }
 
 
@@ -826,6 +945,8 @@ namespace network_butcher
     const std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> &transmission_weights,
     const network_butcher::parameters::Parameters                                    &params) const
   {
+    using namespace network_butcher::kfinder;
+
     auto [new_graph, connection_map] =
       block_graph(params.backward_connections_allowed, params.starting_device_id, params.ending_device_id);
 
@@ -833,27 +954,9 @@ namespace network_butcher
         !params.backward_connections_allowed)
       remove_unfeasible_paths(params.devices, new_graph, params.memory_constraint_type);
 
-    if (params.weight_import_mode == network_butcher::parameters::Weight_Import_Mode::aMLLibrary_block)
-      {
-        throw std::logic_error("Unsupported weight import mode. Please, check the graph type");
-      }
+    block_graph_weights(new_graph, params, transmission_weights);
 
-
-    block_graph_weights(new_graph, transmission_weights);
-
-
-    std::unique_ptr<network_butcher::kfinder::KFinder<new_network>> kFinder;
-    switch (params.method)
-      {
-        case network_butcher::parameters::KSP_Method::Eppstein:
-          kFinder = std::make_unique<network_butcher::kfinder::KFinder_Eppstein<new_network>>(new_graph);
-          break;
-        case network_butcher::parameters::KSP_Method::Lazy_Eppstein:
-          kFinder = std::make_unique<network_butcher::kfinder::KFinder_Lazy_Eppstein<new_network>>(new_graph);
-          break;
-        default:
-          return {};
-      }
+    auto kFinder = KFinder_Factory<new_network>::Instance().create(params.method, new_graph);
 
     auto const res = kFinder->compute(params.K);
     return get_weighted_network_slice(res, new_graph);
