@@ -4,6 +4,5 @@
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/dep/aMLLibrary" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/dep/aMLLibrary/hyperopt_aml" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/dep/onnx-tool" vcs="Git" />
   </component>
 </project>
