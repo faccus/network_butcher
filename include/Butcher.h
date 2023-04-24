@@ -19,6 +19,8 @@
 #include "Utilities.h"
 #include "Weight_importers.h"
 
+#include "Path_Converter.h"
+
 namespace network_butcher
 {
 
@@ -87,40 +89,6 @@ namespace network_butcher
       new_network                                                                      &new_graph,
       network_butcher::parameters::Parameters const                                    &params,
       const std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> &transmission_weights) const;
-
-
-    /// It will produce the set of nodes associated to a given device
-    /// \param new_path The path
-    /// \param new_graph The linearized graph
-    /// \return The "real" path
-    [[nodiscard]] network_butcher::types::Real_Path
-    get_network_slices(path_info const &new_path, new_network const &new_graph) const;
-
-
-    /// It will produce the set of nodes associated to a given device for every new_path
-    /// \param new_paths The collection of paths
-    /// \param new_graph The linearized graph
-    /// \return The "real" path
-    [[nodiscard]] std::vector<network_butcher::types::Real_Path>
-    get_network_slices(std::vector<path_info> const &new_paths, new_network const &new_graph) const;
-
-
-    /// It will produce the set of nodes associated to a given device for every new_path with the associated path weight
-    /// \param new_paths The collection of paths
-    /// \param new_graph The linearized graph
-    /// \return The "real" weighted paths
-    [[nodiscard]] network_butcher::types::Weighted_Real_Paths
-    get_weighted_network_slice(std::vector<path_info> const &new_paths, new_network const &new_graph) const;
-
-
-    /// It will produce the set of nodes associated to a given device for every new_path with the associated path weight
-    /// \param new_paths The collection of paths
-    /// \param network_slice The network slices
-    /// \return The "real" weighted paths
-    [[nodiscard]] network_butcher::types::Weighted_Real_Paths
-    get_weighted_network_slice(
-      std::vector<path_info> const                                              &new_paths,
-      std::vector<std::vector<std::pair<size_t, std::set<node_id_type>>>> const &network_slice) const;
 
   public:
     Butcher() = default;
@@ -862,84 +830,6 @@ namespace network_butcher
 
 
   template <class GraphType>
-  network_butcher::types::Real_Path
-  Butcher<GraphType>::get_network_slices(const path_info &new_path, const Butcher::new_network &new_graph) const
-  {
-    network_butcher::types::Real_Path res;
-    std::size_t                       current_model_device = 0;
-
-    res.emplace_back(current_model_device, std::set<node_id_type>());
-
-    auto const  new_graph_size = new_graph.get_nodes().size();
-    auto const &path_nodes     = new_path.path;
-
-    for (auto const &node_id_new_graph : path_nodes)
-      {
-        auto const &node = new_graph[node_id_new_graph];
-
-        if (node.content.first != current_model_device)
-          {
-            current_model_device = node.content.first;
-            res.emplace_back(current_model_device, std::set<node_id_type>());
-          }
-
-        res.back().second.insert(node.content.second->begin(), node.content.second->end());
-      }
-
-    return res;
-  }
-
-
-  template <class GraphType>
-  std::vector<network_butcher::types::Real_Path>
-  Butcher<GraphType>::get_network_slices(const std::vector<path_info> &new_paths,
-                                         const Butcher::new_network   &new_graph) const
-  {
-    std::vector<network_butcher::types::Real_Path> res(new_paths.size());
-
-    std::transform(new_paths.begin(), new_paths.end(), res.begin(), [&new_graph, this](path_info const &path) {
-      return get_network_slices(path, new_graph);
-    });
-
-    return res;
-  }
-
-
-  template <class GraphType>
-  network_butcher::types::Weighted_Real_Paths
-  Butcher<GraphType>::get_weighted_network_slice(const std::vector<path_info> &new_paths,
-                                                 const Butcher::new_network   &new_graph) const
-  {
-    auto                                        network_slice = get_network_slices(new_paths, new_graph);
-    network_butcher::types::Weighted_Real_Paths final_res;
-
-    final_res.reserve(network_slice.size());
-
-    for (std::size_t i = 0; i < network_slice.size(); ++i)
-      {
-        final_res.emplace_back(new_paths[i].length, std::move(network_slice[i]));
-      }
-    return final_res;
-  }
-
-
-  template <class GraphType>
-  network_butcher::types::Weighted_Real_Paths
-  Butcher<GraphType>::get_weighted_network_slice(
-    const std::vector<path_info>                                              &new_paths,
-    const std::vector<std::vector<std::pair<size_t, std::set<node_id_type>>>> &network_slice) const
-  {
-    network_butcher::types::Weighted_Real_Paths final_res;
-    final_res.reserve(network_slice.size());
-    for (std::size_t i = 0; i < network_slice.size(); ++i)
-      {
-        final_res.emplace_back(new_paths[i].length, network_slice[i]);
-      }
-    return final_res;
-  }
-
-
-  template <class GraphType>
   network_butcher::types::Weighted_Real_Paths
   Butcher<GraphType>::compute_k_shortest_path(
     const std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> &transmission_weights,
@@ -959,7 +849,9 @@ namespace network_butcher
     auto kFinder = KFinder_Factory<new_network>::Instance().create(params.method, new_graph);
 
     auto const res = kFinder->compute(params.K);
-    return get_weighted_network_slice(res, new_graph);
+
+    network_butcher::Utilities::Path_Converter converter(new_graph);
+    return converter.convert_to_weighted_real_path(res);
   }
 
 } // namespace network_butcher

@@ -68,6 +68,7 @@ target_include_directories(network_butcher PUBLIC
         include
         include/APSC
         include/Computer
+        include/Butcher
         include/IO_Interaction
         include/IO_Interaction/Weight_Importer_Helpers
         include/K-shortest_path
@@ -89,6 +90,7 @@ if (BUILD_TESTS)
             include
             include/APSC
             include/Computer
+            include/Butcher
             include/IO_Interaction
             include/IO_Interaction/Weight_Importer_Helpers
             include/K-shortest_path
@@ -105,6 +107,7 @@ if (BUILD_TESTS)
             include
             include/APSC
             include/Computer
+            include/Butcher
             include/IO_Interaction
             include/IO_Interaction/Weight_Importer_Helpers
             include/K-shortest_path
