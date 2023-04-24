@@ -25,7 +25,7 @@ jobs:
         run: sed 's+\$NON_STANDARD_PACKAGE_PATH\$+/home/runner/.local/lib/python3.10/site-packages+g' include/Extra/template_platform_specific_config.h.in > include/Extra/platform_specific_config.h.in
 
       - name: Install aMLLibrary and onnx-tool requirements
-        run: python3 -m pip install -r dep/requirements.txt
+        run: python3 -m pip install -r dep/aMLLibrary/requirements.txt
 
       - name: Install onnx-tool
         run: python3 -m pip install onnx-tool
