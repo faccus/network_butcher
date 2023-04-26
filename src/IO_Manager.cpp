@@ -337,8 +337,6 @@ namespace network_butcher::io::IO_Manager
             "The specified Weight_Import_Mode is either not available or not found. Please, check that you "
             "specified the correct import mode!");
       }
-
-    return nullptr;
   }
 
   void
