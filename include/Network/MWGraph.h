@@ -215,12 +215,14 @@ namespace network_butcher::types
       /// \param edge The edge
       /// \return The weight
       [[nodiscard]] weight_type
-      get_weight(std::size_t device, edge_type const &edge) const
+      get_weight(std::size_t device, edge_type const &edge, bool print_missing = true) const
       {
         auto const &map = weigth_map[device];
         auto const  p   = map.find(edge);
         if (p == map.cend())
-          return 0.;
+          {
+            return 0.;
+          }
         else
           return p->second;
       }

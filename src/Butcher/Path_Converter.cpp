@@ -6,7 +6,7 @@
 namespace network_butcher::Utilities
 {
   network_butcher::types::Weighted_Real_Path
-  Path_Converter::convert_to_weighted_real_path(network_butcher::kfinder::path_info const &path)
+  Path_Converter::convert_to_weighted_real_path(network_butcher::kfinder::path_info const &path) const
   {
     network_butcher::types::Real_Path res;
     std::size_t                       current_model_device = 0;
@@ -32,7 +32,7 @@ namespace network_butcher::Utilities
   }
 
   network_butcher::types::Weighted_Real_Paths
-  Path_Converter::convert_to_weighted_real_path(std::vector<network_butcher::kfinder::path_info> const &paths)
+  Path_Converter::convert_to_weighted_real_path(std::vector<network_butcher::kfinder::path_info> const &paths) const
   {
     network_butcher::types::Weighted_Real_Paths final_res(paths.size());
 

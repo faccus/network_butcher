@@ -20,11 +20,11 @@ namespace network_butcher::Utilities
     explicit Path_Converter(block_graph_type const &graph)
       : graph{graph} {};
 
-    network_butcher::types::Weighted_Real_Paths
-    convert_to_weighted_real_path(std::vector<network_butcher::kfinder::path_info> const &paths);
+    [[nodiscard]] network_butcher::types::Weighted_Real_Paths
+    convert_to_weighted_real_path(std::vector<network_butcher::kfinder::path_info> const &paths) const;
 
-    network_butcher::types::Weighted_Real_Path
-    convert_to_weighted_real_path(network_butcher::kfinder::path_info const &paths);
+    [[nodiscard]] network_butcher::types::Weighted_Real_Path
+    convert_to_weighted_real_path(network_butcher::kfinder::path_info const &paths) const;
   };
 } // namespace network_butcher::Utilities
 
