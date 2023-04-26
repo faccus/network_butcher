@@ -12,6 +12,9 @@ namespace
   std::string graph_path  = Utilities::combine_path(base_path, "models/version-RFB-640-inferred.onnx");
   std::string graph2_path = Utilities::combine_path(base_path, "models/mobilenet_v2-inferred.onnx");
 
+  block_graph_type
+  simple_graph_generator();
+
 
   TEST(WeightImporterTestSuit, DirectImportWeightsFromCsvTest)
   {
@@ -45,4 +48,97 @@ namespace
     EXPECT_DOUBLE_EQ(graph.get_weight(0, {1, 2}), 0.000177);
     ASSERT_DOUBLE_EQ(graph.get_weight(1, {1, 2}), 0.000249);
   }
+
+  TEST(WeightImporterTestSuit, SingleBlockImportWeightsFromCsvTest)
+  {
+    std::string weight_path = Utilities::combine_path(base_path, "weights/sample_weights.csv");
+
+    auto graph = simple_graph_generator();
+
+    parameters::Device fake_1, fake_2;
+    fake_1.id = 0;
+    fake_2.id = 1;
+
+    io::Csv_Weight_Importer importer(graph,
+                                     std::vector<std::string>{weight_path},
+                                     std::vector<std::string>{"fake_weight_1", "fake_weight_2"},
+                                     std::vector<network_butcher::parameters::Device>{fake_1, fake_2},
+                                     ',');
+    importer.import_weights();
+
+    EXPECT_DOUBLE_EQ(graph.get_weight({1, 3}), 5.1);
+    EXPECT_DOUBLE_EQ(graph.get_weight({1, 4}), 5.2);
+
+    EXPECT_DOUBLE_EQ(graph.get_weight({0, 1}), 1234.1);
+    EXPECT_DOUBLE_EQ(graph.get_weight({0, 2}), 1234.2);
+  }
+
+  TEST(WeightImporterTestSuit, MultipleBlockImportWeightsFromCsvTest)
+  {
+    std::string weight_path = Utilities::combine_path(base_path, "weights/sample_weights.csv");
+
+    auto graph = simple_graph_generator();
+
+    parameters::Device fake_1, fake_2;
+    fake_1.id = 0;
+    fake_2.id = 1;
+
+    io::Csv_Weight_Importer importer(graph,
+                                     std::vector<std::string>{weight_path, weight_path},
+                                     std::vector<std::string>{"fake_weight_1", "fake_weight_2"},
+                                     std::vector<network_butcher::parameters::Device>{fake_1, fake_2},
+                                     ',');
+    importer.import_weights();
+
+    EXPECT_DOUBLE_EQ(graph.get_weight({1, 3}), 5.1);
+    EXPECT_DOUBLE_EQ(graph.get_weight({1, 4}), 5.2);
+
+    EXPECT_DOUBLE_EQ(graph.get_weight({0, 1}), 1234.1);
+    EXPECT_DOUBLE_EQ(graph.get_weight({0, 2}), 1234.2);
+  }
+
+  block_graph_type
+  simple_graph_generator()
+  {
+    std::vector<block_graph_type::Node_Type> nodes;
+    block_graph_type::Dependencies_Type      deps(8);
+
+    nodes.emplace_back(std::pair{0, nullptr});
+    deps[0].second.insert({1, 2});
+
+
+    nodes.emplace_back(std::pair{0, nullptr});
+    deps[1].first.insert({0});
+    deps[1].second.insert({3, 4});
+
+    nodes.emplace_back(std::pair{1, nullptr});
+    deps[2].first.insert({0});
+    deps[2].second.insert({3, 4});
+
+
+    nodes.emplace_back(std::pair{0, nullptr});
+    deps[3].first.insert({1, 2});
+    deps[3].second.insert({5, 6});
+
+    nodes.emplace_back(std::pair{1, nullptr});
+    deps[4].first.insert({1, 2});
+    deps[4].second.insert({5, 6});
+
+
+    nodes.emplace_back(std::pair{0, nullptr});
+    deps[5].first.insert({3, 4});
+    deps[5].second.insert({7});
+
+    nodes.emplace_back(std::pair{1, nullptr});
+    deps[6].first.insert({3, 4});
+    deps[6].second.insert({7});
+
+
+    nodes.emplace_back(std::pair{0, nullptr});
+    deps[7].first.insert({5, 6});
+
+
+    return block_graph_type(std::move(nodes), std::move(deps));
+  }
+
 } // namespace

@@ -45,8 +45,14 @@ namespace network_butcher
       /// \param edge The edge
       /// \return The weight
       [[nodiscard]] weight_type
-      get_weight(edge_type const &edge) const
+      get_weight(edge_type const &edge, bool print_missing = true) const
       {
+        if (print_missing && !check_weight(edge))
+          {
+            std::cout << "Requested a non-existing weight for edge (" << edge.first << ", " << edge.second
+                      << "). I will return .0" << std::endl;
+          }
+
         return Parent_type::get_weight(0, edge);
       }
 

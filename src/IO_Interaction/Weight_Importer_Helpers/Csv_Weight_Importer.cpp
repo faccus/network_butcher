@@ -90,26 +90,35 @@ namespace network_butcher::io
           }
       }
 
+    for (std::size_t i = 0; i < relevant_entries.size(); ++i)
+      {
+        auto const &entry = relevant_entries[i];
+        if (single_call ? data.find(entry) == data.cend() : data.find(entry + "_" + std::to_string(i)) == data.cend())
+          {
+            throw std::runtime_error("The entry " + entry + " doesn't exist! We cannot import the weights");
+          }
+      }
+
+    auto const skip_device = [end = graph.cend()](auto &it, auto const &dev) {
+      for (std::size_t j = 0; it != end && j < dev; ++j, ++it)
+        ;
+    };
+
     for (std::size_t i = 0; i < devices.size(); ++i)
       {
         auto const &device = devices[i];
 
-        auto        it = graph.cbegin();
-        auto const &weights_it =
-          single_call ? data.find(relevant_entries[i]) : data.find(relevant_entries[i] + "_" + std::to_string(i));
+        auto it = ++graph.cbegin();
+        skip_device(it, device);
 
-        if (weights_it == data.cend())
-          throw std::runtime_error("The entry " + relevant_entries[i] + " doesn't exist! We cannot import the weights");
+        auto const &weights = single_call ? data.find(relevant_entries[i])->second :
+                                            data.find(relevant_entries[i] + "_" + std::to_string(i))->second;
 
-        for (std::size_t j = 0; it != graph.cend() && j < (device + 1); ++j, ++it)
-          ;
-
-        for (auto const &weight : weights_it->second)
+        for (auto const &weight : weights)
           {
             while (extra_condition != nullptr && it != graph.cend() && !extra_condition(*it))
               {
-                for (std::size_t j = 0; it != graph.cend() && j < devices.size(); ++j, ++it)
-                  ;
+                skip_device(it, devices.size());
               }
 
             if (it == graph.cend())
@@ -118,8 +127,7 @@ namespace network_butcher::io
             for (auto const &in : graph.get_neighbors()[it->get_id()].first)
               graph.set_weight({in, it->get_id()}, weight);
 
-            for (std::size_t j = 0; it != graph.cend() && j < devices.size(); ++j, ++it)
-              ;
+            skip_device(it, devices.size());
           }
       }
   }

@@ -312,9 +312,14 @@ namespace
     res.backward_connections_allowed = backward;
     res.method                       = KSP_Method::Eppstein;
     res.devices                      = std::vector<Device>(num_devices);
-    res.memory_constraint_type       = Memory_Constraint_Type::None;
-    res.starting_device_id           = 0;
-    res.ending_device_id             = 0;
+
+    for (std::size_t i = 0; i < res.devices.size(); ++i)
+      res.devices[i].id = i;
+
+    res.memory_constraint_type = Memory_Constraint_Type::None;
+    res.starting_device_id     = 0;
+    res.ending_device_id       = 0;
+    res.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
 
     return res;
   }
@@ -327,9 +332,14 @@ namespace
     res.backward_connections_allowed = backward;
     res.method                       = KSP_Method::Lazy_Eppstein;
     res.devices                      = std::vector<Device>(num_devices);
-    res.memory_constraint_type       = Memory_Constraint_Type::None;
-    res.starting_device_id           = 0;
-    res.ending_device_id             = 0;
+
+    for (std::size_t i = 0; i < res.devices.size(); ++i)
+      res.devices[i].id = i;
+
+    res.memory_constraint_type = Memory_Constraint_Type::None;
+    res.starting_device_id     = 0;
+    res.ending_device_id       = 0;
+    res.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
 
     return res;
   }

@@ -155,6 +155,14 @@ namespace network_butcher::io::IO_Manager
       {
         res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::multiple_direct_read;
       }
+    else if (weight_import_method == "block_single_direct_read")
+      {
+        res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::block_single_direct_read;
+      }
+    else if (weight_import_method == "block_multiple_direct_read")
+      {
+        res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::block_multiple_direct_read;
+      }
     else
       {
         throw std::logic_error("Unavailable weight import mode!");
@@ -336,8 +344,14 @@ namespace network_butcher::io::IO_Manager
   void
   import_weights(graph_type &graph, const network_butcher::parameters::Parameters &params)
   {
-    if (params.weight_import_mode == network_butcher::parameters::Weight_Import_Mode::aMLLibrary_block)
-      return;
+    using namespace network_butcher::parameters;
+
+    if (params.weight_import_mode == Weight_Import_Mode::aMLLibrary_block ||
+        params.weight_import_mode == Weight_Import_Mode::block_multiple_direct_read ||
+        params.weight_import_mode == Weight_Import_Mode::block_single_direct_read)
+      {
+        return;
+      }
 
     generate_weight_importer(graph, params)->import_weights();
   }

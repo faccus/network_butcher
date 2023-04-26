@@ -16,7 +16,10 @@ namespace network_butcher::parameters
     single_direct_read,
     multiple_direct_read,
     aMLLibrary_original,
-    aMLLibrary_block
+
+    aMLLibrary_block,
+    block_single_direct_read,
+    block_multiple_direct_read
   };
 
   enum struct Block_Graph_Generation_Mode

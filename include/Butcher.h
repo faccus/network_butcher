@@ -26,7 +26,7 @@ namespace network_butcher
 
   /// Butcher butchers a given graph into slices
   /// \tparam GraphType The type of the graph
-  template <class GraphType>
+  template <typename GraphType>
   class Butcher
   {
   public:
@@ -34,8 +34,6 @@ namespace network_butcher
     using new_network = block_graph_type;
 
   private:
-    using path_info = network_butcher::kfinder::path_info;
-
     network graph;
 
 
@@ -242,7 +240,8 @@ namespace network_butcher
                                                           std::make_move_iterator(content_big_node->end()));
 
                       starting_nodes.erase(it);
-                      it = ++it_follower;
+                      it = it_follower;
+                      ++it;
 
                       if (it == starting_nodes.end())
                         break;
@@ -253,7 +252,7 @@ namespace network_butcher
             {
               for (auto it          = ++starting_nodes.begin(),
                         it_follower = starting_nodes.begin(),
-                        it_mem      = starting_nodes.begin();
+                        it_mem      = starting_nodes.end();
                    it != starting_nodes.end();
                    ++it, ++it_follower)
                 {
@@ -261,7 +260,7 @@ namespace network_butcher
                     {
                       it_mem = it_follower;
                     }
-                  else if (it_follower->content.second->size() > 1)
+                  else if (it_mem != starting_nodes.end())
                     {
                       auto &content_small_node = it->content.second;
 
@@ -271,6 +270,7 @@ namespace network_butcher
                       starting_nodes.erase(it);
                       it          = it_follower;
                       it_follower = it_mem;
+                      it_mem      = starting_nodes.end();
                     }
                 }
             }
@@ -605,6 +605,27 @@ namespace network_butcher
             throw std::runtime_error("The specified weight import mode is not supported!");
           }
       }
+    else if (params.weight_import_mode == Weight_Import_Mode::block_single_direct_read)
+      {
+        io::Csv_Weight_Importer<block_graph_type>(new_graph,
+                                                  {params.single_weight_import_path},
+                                                  params.single_csv_columns_weights,
+                                                  params.devices,
+                                                  params.separator)
+          .import_weights();
+      }
+    else if (params.weight_import_mode == Weight_Import_Mode::block_multiple_direct_read)
+      {
+        std::vector<std::string> paths, entries;
+        for (auto const &device : params.devices)
+          {
+            paths.push_back(device.weights_path);
+            entries.push_back(device.relevant_entry);
+          }
+
+        io::Csv_Weight_Importer<block_graph_type>(new_graph, paths, entries, params.devices, params.separator)
+          .import_weights();
+      }
     else
       {
         auto const add_weight_cost = [&new_graph,
@@ -837,8 +858,10 @@ namespace network_butcher
   {
     using namespace network_butcher::kfinder;
 
-    auto [new_graph, connection_map] =
-      block_graph(params.backward_connections_allowed, params.starting_device_id, params.ending_device_id);
+    auto [new_graph, connection_map] = block_graph(params.backward_connections_allowed,
+                                                   params.starting_device_id,
+                                                   params.ending_device_id,
+                                                   params.block_graph_mode);
 
     if (params.memory_constraint != network_butcher::parameters::Memory_Constraint_Type::None &&
         !params.backward_connections_allowed)

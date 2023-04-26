@@ -24,6 +24,8 @@ namespace
   using Node_type    = Node<Content_type>;
   using GraphType    = MWGraph<Content_type>;
 
+  GraphType basic_graph(std::size_t);
+
   Butcher<GraphType>
   basic_butcher();
 
@@ -93,6 +95,85 @@ namespace
     ASSERT_EQ(res.size(), 81);
   }
 
+  TEST(ButcherTest, BlockGraphConstructionOutput)
+  {
+    std::size_t num_devices = 3;
+
+    auto butcher = basic_butcher();
+
+    auto const &graph     = butcher.get_graph();
+    auto const  num_nodes = graph.get_nodes().size();
+
+    auto params             = eppstein_parameters(1000, num_devices);
+    params.block_graph_mode = parameters::Block_Graph_Generation_Mode::output;
+
+    auto const res = butcher.compute_k_shortest_path(basic_transmission(graph.get_num_devices(), num_nodes), params);
+
+    ASSERT_EQ(res.size(), 27);
+  }
+
+  TEST(ButcherTest, BlockGraphConstructionInput)
+  {
+    std::size_t num_devices = 3;
+
+    auto butcher = basic_butcher();
+
+    auto const &graph     = butcher.get_graph();
+    auto const  num_nodes = graph.get_nodes().size();
+
+    auto params             = eppstein_parameters(1000, num_devices);
+    params.block_graph_mode = parameters::Block_Graph_Generation_Mode::input;
+
+    auto const res = butcher.compute_k_shortest_path(basic_transmission(graph.get_num_devices(), num_nodes), params);
+
+    ASSERT_EQ(res.size(), 27);
+  }
+
+  TEST(ButcherTest, BlockGraphCsvSingleWeights)
+  {
+    std::size_t num_devices = 2;
+
+    auto        butcher   = Butcher<GraphType>(basic_graph(num_devices));
+    auto const &graph     = butcher.get_graph();
+    auto const  num_nodes = graph.get_nodes().size();
+
+    auto params               = eppstein_parameters(1000, num_devices);
+    params.block_graph_mode   = parameters::Block_Graph_Generation_Mode::input;
+    params.weight_import_mode = parameters::Weight_Import_Mode::block_single_direct_read;
+
+    params.separator = ',';
+
+    params.single_weight_import_path  = "test_data/weights/sample_weights.csv";
+    params.single_csv_columns_weights = {"fake_weight_1", "fake_weight_2"};
+
+    auto const res = butcher.compute_k_shortest_path(basic_transmission(num_devices, num_nodes), params);
+  }
+
+  TEST(ButcherTest, BlockGraphCsvMultipleWeights)
+  {
+    std::size_t num_devices = 2;
+
+    auto        butcher   = Butcher<GraphType>(basic_graph(num_devices));
+    auto const &graph     = butcher.get_graph();
+    auto const  num_nodes = graph.get_nodes().size();
+
+    auto params               = eppstein_parameters(1000, num_devices);
+    params.block_graph_mode   = parameters::Block_Graph_Generation_Mode::output;
+    params.weight_import_mode = parameters::Weight_Import_Mode::block_multiple_direct_read;
+
+    params.separator = ',';
+
+
+    params.devices[0].relevant_entry = "fake_weight_1";
+    params.devices[0].weights_path   = "test_data/weights/sample_weights.csv";
+
+    params.devices[1].relevant_entry = "fake_weight_2";
+    params.devices[1].weights_path   = "test_data/weights/sample_weights.csv";
+
+
+    auto const res = butcher.compute_k_shortest_path(basic_transmission(num_devices, num_nodes), params);
+  }
+
   TEST(ButcherTest, compute_k_shortest_paths_eppstein_vs_lazy_linear)
   {
     std::size_t num_devices = 3;
@@ -128,8 +209,9 @@ namespace
     ASSERT_EQ(eppstein, lazy_eppstein);
   }
 
-  Butcher<GraphType>
-  basic_butcher()
+
+  GraphType
+  basic_graph(std::size_t num_devices)
   {
     std::vector<Node_type> nodes;
 
@@ -142,7 +224,13 @@ namespace
     nodes.emplace_back(Content_type({{"X5", 5}}, {{"X6", 6}}));
     nodes.emplace_back(Content_type({{"X6", 6}}, {{"X7", 7}}));
 
-    GraphType graph(3, std::move(nodes));
+    return GraphType(num_devices, std::move(nodes));
+  }
+
+  Butcher<GraphType>
+  basic_butcher()
+  {
+    auto graph = basic_graph(3);
 
     for (std::size_t k = 0; k < graph.get_num_devices(); ++k)
       {
@@ -163,7 +251,7 @@ namespace
   basic_transmission(std::size_t devices, std::size_t size)
   {
     return [devices, size](node_id_type const &input, std::size_t first, std::size_t second) {
-      if (0 <= input && input < size && 0 <= first < devices && 0 <= second && second < devices)
+      if (0 <= input && input < size && first < devices && second < devices)
         {
           auto in_device_id  = first;
           auto out_device_id = second;
@@ -200,7 +288,12 @@ namespace
     res.backward_connections_allowed = true;
     res.method                       = parameters::KSP_Method::Eppstein;
     res.devices                      = std::vector<parameters::Device>(num_devices);
-    res.memory_constraint_type       = parameters::Memory_Constraint_Type::None;
+
+    for (std::size_t i = 0; i < res.devices.size(); ++i)
+      res.devices[i].id = i;
+
+    res.memory_constraint_type = parameters::Memory_Constraint_Type::None;
+    res.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
 
     res.starting_device_id = 0;
     res.ending_device_id   = 0;
@@ -217,7 +310,12 @@ namespace
     res.backward_connections_allowed = true;
     res.method                       = parameters::KSP_Method::Lazy_Eppstein;
     res.devices                      = std::vector<parameters::Device>(num_devices);
-    res.memory_constraint_type       = parameters::Memory_Constraint_Type::None;
+
+    for (std::size_t i = 0; i < res.devices.size(); ++i)
+      res.devices[i].id = i;
+
+    res.memory_constraint_type = parameters::Memory_Constraint_Type::None;
+    res.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
 
     res.starting_device_id = 0;
     res.ending_device_id   = 0;

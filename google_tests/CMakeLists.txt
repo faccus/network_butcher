@@ -20,26 +20,46 @@ set(
         google_tests/Butcher_benchmark.cpp
 )
 
+file(GLOB TMP_MODELS
+        "${CMAKE_SOURCE_DIR}/test_data/models/*.onnx"
+        )
+file(COPY ${TMP_MODELS} DESTINATION ${CMAKE_BINARY_DIR}/test_data/models)
+
+file(GLOB TMP_WEIGHTS
+        "${CMAKE_SOURCE_DIR}/test_data/weights/*.csv"
+        )
+file(COPY ${TMP_WEIGHTS} DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
+
+file(GLOB TMP_CONFIGS
+        "${CMAKE_SOURCE_DIR}/test_data/configs/*.conf"
+        )
+file(COPY ${TMP_CONFIGS} DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
+
+file(GLOB TMP_PICKLE_MODELS
+        "${CMAKE_SOURCE_DIR}/test_data/aMLLibrary_data/models/*.pickle"
+        )
+file(COPY ${TMP_PICKLE_MODELS} DESTINATION ${CMAKE_BINARY_DIR}/test_data/aMLLibrary_data/models)
+
 
 # Add model for tests
-FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/models/resnet18-v2-7-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR}/test_data/models)
-FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/models/version-RFB-640-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR}/test_data/models)
-FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/models/mobilenet_v2-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR}/test_data/models)
+#FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/models/resnet18-v2-7-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR}/test_data/models)
+#FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/models/version-RFB-640-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR}/test_data/models)
+#FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/models/mobilenet_v2-inferred.onnx DESTINATION ${CMAKE_BINARY_DIR}/test_data/models)
 
-FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/weights/aMLLibrary_prediction_tegra.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
-FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/weights/aMLLibrary_prediction_pi.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
-FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/weights/official_operation_time.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
-FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/weights/operation_time_cloud.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
-FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/weights/operation_time_cloud_slow.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
-FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/weights/operation_time_edge.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
-FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/weights/resnetLayerInfTimes.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
+#FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/weights/aMLLibrary_prediction_tegra.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
+#FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/weights/aMLLibrary_prediction_pi.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
+#FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/weights/official_operation_time.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
+#FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/weights/operation_time_cloud.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
+#FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/weights/operation_time_cloud_slow.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
+#FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/weights/operation_time_edge.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
+#FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/weights/resnetLayerInfTimes.csv DESTINATION ${CMAKE_BINARY_DIR}/test_data/weights)
 
-FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
-FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test2_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
-FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test3_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
-FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test4_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
-FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test5_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
-FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test6_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
+#FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
+#FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test2_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
+#FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test3_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
+#FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test4_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
+#FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test5_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
+#FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/configs/test6_parameters.conf DESTINATION ${CMAKE_BINARY_DIR}/test_data/configs)
 
-FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/aMLLibrary_data/models/test1_1.pickle DESTINATION ${CMAKE_BINARY_DIR}/test_data/aMLLibrary_data/models)
-FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/aMLLibrary_data/models/test1_2.pickle DESTINATION ${CMAKE_BINARY_DIR}/test_data/aMLLibrary_data/models)
+#FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/aMLLibrary_data/models/test1_1.pickle DESTINATION ${CMAKE_BINARY_DIR}/test_data/aMLLibrary_data/models)
+#FILE(COPY ${CMAKE_SOURCE_DIR}/test_data/aMLLibrary_data/models/test1_2.pickle DESTINATION ${CMAKE_BINARY_DIR}/test_data/aMLLibrary_data/models)
