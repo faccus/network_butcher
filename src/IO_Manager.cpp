@@ -7,19 +7,32 @@
 namespace network_butcher::io::IO_Manager
 {
   void
-  utilities::reconstruct_model_and_export(const network_butcher::types::Real_Path    &partitions,
-                                          const onnx::ModelProto                     &original_model,
-                                          const std::map<node_id_type, node_id_type> &link_id_nodeproto,
-                                          preprocessed_ios_nodes_type const          &preprocessed_ios_nodes,
-                                          const std::string                          &export_base_path)
+  utilities::reconstruct_model_and_export(network_butcher::types::Weighted_Real_Path const &weighted_path,
+                                          const onnx::ModelProto                           &original_model,
+                                          const std::map<node_id_type, node_id_type>       &link_id_nodeproto,
+                                          preprocessed_ios_nodes_type const                &preprocessed_ios_nodes,
+                                          const std::string                                &export_base_path)
   {
     auto const &model_graph = original_model.graph();
+
+    auto const &[weight, partitions] = weighted_path;
+
+    std::ofstream report_file(export_base_path + "-report.txt");
+
+    report_file << "Overall path length: " << weight << std::endl;
 
     for (std::size_t i = 0; i < partitions.size(); ++i)
       {
         auto const &partition       = partitions[i];
         auto const  partition_model = reconstruct_model_from_partition(
           partition, original_model, link_id_nodeproto, preprocessed_ios_nodes, model_graph);
+
+        report_file << "Device: " << partition.first << ", Nodes: ";
+
+        for (auto const &node : partition.second)
+          report_file << node << ", ";
+
+        report_file << std::endl;
 
         if (partition_model.first)
           {
@@ -28,6 +41,8 @@ namespace network_butcher::io::IO_Manager
                              ".onnx");
           }
       }
+
+    report_file.close();
   }
 
 
@@ -52,29 +67,39 @@ namespace network_butcher::io::IO_Manager
 
     std::size_t total_size = onnx_nodes.size();
 
-    if (add_input_padding)
-      total_size += 1;
-
     std::vector<node_type> nodes;
     nodes.reserve(onnx_nodes.size() + 2);
-    nodes.resize(total_size);
+
+    std::set<type_info_pointer> graph_inputs, graph_outputs;
+
+    for (auto const &onnx_node : onnx_nodes)
+      {
+        auto        res  = Onnx_importer_helpers::process_node(onnx_node, basic_data);
+        auto const &ins  = std::get<1>(res);
+        auto const &outs = std::get<2>(res);
+
+        if (add_input_padding)
+          graph_inputs.insert(ins.cbegin(), ins.cend());
+
+        if (add_output_padding)
+          graph_outputs.insert(outs.cbegin(), outs.cend());
+
+        nodes.push_back(std::move(std::get<0>(res)));
+      }
+
 
     // If add_input_padding, then we will add a "fake" input node
     if (add_input_padding)
       {
         io_collection_type<type_info_pointer> tt;
-        tt["__fake__input__"] = basic_data.pointer_input;
+        // tt["__fake__input__"] = basic_data.pointer_input;
 
-        nodes.front()      = node_type(network_butcher::types::Content<type_info_pointer>({}, std::move(tt)));
+        for (auto const &in : graph_inputs)
+          tt.emplace(in->get_name(), in);
+
+        nodes.emplace(nodes.begin(), network_butcher::types::Content<type_info_pointer>({}, std::move(tt)));
         nodes.front().name = "__fake__input__";
       }
-
-    // Populate every node
-    std::transform(PAR_UNSEQ,
-                   onnx_nodes.cbegin(),
-                   onnx_nodes.cend(),
-                   add_input_padding ? ++nodes.begin() : nodes.begin(),
-                   [&basic_data](auto const &onnx_node) { return process_node(onnx_node, basic_data); });
 
     std::map<node_id_type, node_id_type> link_id_nodeproto;
     for (std::size_t i = add_input_padding ? 1 : 0, onnx_node_id = 0; i < nodes.size(); ++i, ++onnx_node_id)
@@ -84,7 +109,10 @@ namespace network_butcher::io::IO_Manager
     if (add_output_padding)
       {
         io_collection_type<type_info_pointer> tt;
-        tt["__fake__output__"] = basic_data.pointer_output;
+        // tt["__fake__output__"] = basic_data.pointer_output;
+
+        for (auto const &out : graph_outputs)
+          tt.emplace(out->get_name(), out);
 
         nodes.emplace_back(network_butcher::types::Content<type_info_pointer>(std::move(tt)));
         nodes.back().name = "__fake__output__";
@@ -305,8 +333,7 @@ namespace network_butcher::io::IO_Manager
         network_butcher::Utilities::create_directory(dir_path);
 
         auto const output_path = Utilities::combine_path(dir_path, params.model_name);
-        utilities::reconstruct_model_and_export(
-          paths[j].second, model, link_id_nodeproto, preprocessed_node_ios, output_path);
+        utilities::reconstruct_model_and_export(paths[j], model, link_id_nodeproto, preprocessed_node_ios, output_path);
       }
   }
 

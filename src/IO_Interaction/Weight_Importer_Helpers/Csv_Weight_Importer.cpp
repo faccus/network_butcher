@@ -114,6 +114,15 @@ namespace network_butcher::io
         auto const &weights = single_call ? data.find(relevant_entries[i])->second :
                                             data.find(relevant_entries[i] + "_" + std::to_string(i))->second;
 
+        if ((!single_call || i == 0) && weights.size() != (graph.size() - 2) / devices.size())
+          {
+            std::cout << "The number of weights (" << weights.size() << ") that were provided in "
+                      << (single_call ? paths.front() : paths[i])
+                      << " file do not coincide with the number of "
+                         "nodes in the block graph ("
+                      << (graph.size() - 2) / devices.size() << "). I will still proceed with the import" << std::endl;
+          }
+
         for (auto const &weight : weights)
           {
             while (extra_condition != nullptr && it != graph.cend() && !extra_condition(*it))

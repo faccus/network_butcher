@@ -48,4 +48,14 @@ namespace
   {
     execute_boot("ksp_result5", "test_data/configs/test5_parameters.conf");
   }
+
+  TEST(GeneralManagerTest, boot_test7)
+  {
+    execute_boot("ksp_result7", "test_data/configs/test7_parameters.conf");
+  }
+
+  TEST(GeneralManagerTest, boot_test8)
+  {
+    execute_boot("ksp_result8", "test_data/configs/test8_parameters.conf");
+  }
 } // namespace

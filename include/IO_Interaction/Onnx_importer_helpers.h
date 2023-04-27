@@ -120,8 +120,8 @@ namespace network_butcher
       /// same name in io_collection
       /// \param onnx_io_ids The collection of IO ids
       /// \param io_collection The collection IO/parameters for the given node
-      /// \return The collection of "common" names
-      std::vector<std::string>
+      /// \return The collection of "common" tensors
+      std::vector<type_info_pointer>
       get_common_elements(const std::set<std::string>           &onnx_io_ids,
                           io_collection_type<type_info_pointer> &io_collection);
 
@@ -153,7 +153,7 @@ namespace network_butcher
                                bool                    add_output_padding,
                                bool                    unused_ios);
 
-      node_type
+      std::tuple<node_type, std::vector<type_info_pointer>, std::vector<type_info_pointer>>
       process_node(const onnx::NodeProto &node, prepared_import_onnx const &prepared_data);;
 
     } // namespace Onnx_importer_helpers

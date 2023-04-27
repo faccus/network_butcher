@@ -24,16 +24,22 @@ namespace network_butcher::io
             // The memory dimension of the output tensor for the given node in bytes
             auto const mem = network_butcher::computer::Computer_memory::compute_memory_usage_output(graph[node_id]);
 
-            // Conversion from MBit to Bytes
-            constexpr double MBit_to_Bytes = 1000000 / 8;
-
             // Bandwidth
             auto const bdw = it->second.first;
 
             // Access delay
             auto const acc = it->second.second;
 
-            return mem / (bdw * MBit_to_Bytes) + acc;
+
+            if (mem > 0)
+              {
+                // Conversion from MBit to Bytes
+                constexpr double MBit_to_Bytes = 1000000. / 8;
+
+                return (mem / MBit_to_Bytes) / bdw + acc;
+              }
+            else
+              return acc;
           }
       };
     return transmission_weights;

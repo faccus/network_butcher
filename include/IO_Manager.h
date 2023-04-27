@@ -32,17 +32,17 @@ namespace network_butcher::io::IO_Manager
 
     /// Based on the original graph and the partitions device/nodes, it will produce the "butchered" models and
     /// export them to the specified path (directory / name)
-    /// \param partitions The partitions device/nodes
+    /// \param weighted_path The partitions device/nodes and the overall length
     /// \param original_model The original imported model
     /// \param link_id_nodeproto The map that associated every node of the graph to a node in the imported model
     /// \param preprocessed_ios_nodes The extracted input, output and parameter tensors of every layer in the Model
     /// \param export_base_path The export path (+ the name of the final file)
     void
-    reconstruct_model_and_export(network_butcher::types::Real_Path const    &partitions,
-                                 onnx::ModelProto const                     &original_model,
-                                 std::map<node_id_type, node_id_type> const &link_id_nodeproto,
-                                 preprocessed_ios_nodes_type const          &preprocessed_ios_nodes,
-                                 const std::string                          &export_base_path);
+    reconstruct_model_and_export(network_butcher::types::Weighted_Real_Path const &weighted_path,
+                                 onnx::ModelProto const                           &original_model,
+                                 std::map<node_id_type, node_id_type> const       &link_id_nodeproto,
+                                 preprocessed_ios_nodes_type const                &preprocessed_ios_nodes,
+                                 const std::string                                &export_base_path);
 
   } // namespace utilities
 

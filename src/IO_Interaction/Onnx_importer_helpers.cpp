@@ -100,7 +100,7 @@ namespace network_butcher::io
   }
 
 
-  std::vector<std::string>
+  std::vector<type_info_pointer>
   Onnx_importer_helpers::get_common_elements(const std::set<std::string>           &onnx_io_ids,
                                              io_collection_type<type_info_pointer> &io_collection)
   {
@@ -118,7 +118,13 @@ namespace network_butcher::io
       std::set_intersection(onnx_io_ids.cbegin(), onnx_io_ids.cend(), in_keys.cbegin(), in_keys.cend(), tmp.begin());
     tmp.resize(it - tmp.begin());
 
-    return tmp;
+    std::vector<type_info_pointer> res;
+    res.reserve(tmp.size());
+
+    for (auto const &tensor_name : tmp)
+      res.push_back(io_collection[tensor_name]);
+
+    return res;
   }
 
 
@@ -285,7 +291,8 @@ namespace network_butcher::io
 
     return res;
   }
-  node_type
+
+  std::tuple<node_type, std::vector<type_info_pointer>, std::vector<type_info_pointer>>
   Onnx_importer_helpers::process_node(const onnx::NodeProto                             &node,
                                       const Onnx_importer_helpers::prepared_import_onnx &prepared_data)
   {
@@ -298,19 +305,19 @@ namespace network_butcher::io
     auto inputs  = process_node_ios(node.input(), parameters, value_infos, unused_ios_set);
     auto outputs = process_node_ios(node.output(), parameters, value_infos, unused_ios_set);
 
-    // If the inputs of the node are the inputs of the NN, then add the connection with the padding
-    // node
-    if (prepared_data.add_input_padding && !get_common_elements(prepared_data.onnx_inputs_ids, inputs).empty())
+    auto const graph_inputs = get_common_elements(prepared_data.onnx_inputs_ids, inputs);
+    /*// If the inputs of the node are the inputs of the NN, then add the connection with the padding node
+    if (prepared_data.add_input_padding && !graph_inputs.empty())
       {
         inputs["__fake__input__"] = prepared_data.pointer_input;
-      }
+      }*/
 
-    // If the inputs of the node are the outputs of the NN, then add the connection with the padding
-    // node
-    if (prepared_data.add_output_padding && !get_common_elements(prepared_data.onnx_outputs_ids, outputs).empty())
+    auto const graph_outputs = get_common_elements(prepared_data.onnx_outputs_ids, outputs);
+    // If the output of the node are the outputs of the NN, then add the connection with the padding node
+    /*if (prepared_data.add_output_padding && !graph_outputs.empty())
       {
         outputs["__fake__output__"] = prepared_data.pointer_output;
-      }
+      }*/
 
     auto content = network_butcher::types::Content<type_info_pointer>::make_content(std::move(inputs),
                                                                                     std::move(outputs),
@@ -321,7 +328,7 @@ namespace network_butcher::io
     auto res = node_type(std::move(content));
     res.name = node.name();
 
-    return res;
+    return {res, graph_inputs, graph_outputs};
   }
 
 
