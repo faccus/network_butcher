@@ -5,16 +5,9 @@
 
 namespace network_butcher::constraints
 {
-  std::vector<std::unique_ptr<Extra_Constraint>>
-  generate_constraints(parameters::Parameters const &params)
+  std::unique_ptr<Extra_Constraint>
+  Extra_Constraint::copy() const
   {
-    std::vector<std::unique_ptr<Extra_Constraint>> res;
-
-    if (params.memory_constraint)
-      {
-        // res.push_back(std::make_unique<Memory_Constraint>());
-      }
-
-    return res;
+    return {};
   }
 } // namespace network_butcher::constraints

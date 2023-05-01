@@ -14,39 +14,17 @@ namespace network_butcher
   class Block_Graph_Builder
   {
   protected:
-    GraphType const                     &original_graph;
-    block_graph_type                     new_graph;
-    std::map<node_id_type, node_id_type> old_to_new;
+    GraphType const &original_graph;
 
   public:
     explicit Block_Graph_Builder(GraphType const &original_graph)
-      : original_graph{original_graph} {};
+      : original_graph(original_graph){};
 
-    virtual void
+    virtual block_graph_type
     construct_block_graph() = 0;
-
-    block_graph_type &&
-    get_block_graph();
-
-    std::map<node_id_type, node_id_type> &&
-    get_old_to_new();
 
     virtual ~Block_Graph_Builder() = default;
   };
-
-  template <typename GraphType>
-  block_graph_type &&
-  Block_Graph_Builder<GraphType>::get_block_graph()
-  {
-    return std::move(this->new_graph);
-  }
-
-  template <typename GraphType>
-  std::map<node_id_type, node_id_type> &&
-  Block_Graph_Builder<GraphType>::get_old_to_new()
-  {
-    return std::move(this->old_to_new);
-  }
 } // namespace network_butcher
 
 #endif // NETWORK_BUTCHER_BLOCK_GRAPH_BUILDER_H
