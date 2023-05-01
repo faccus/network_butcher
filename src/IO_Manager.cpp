@@ -327,6 +327,24 @@ namespace network_butcher::io::IO_Manager
 
     auto const preprocessed_node_ios = Onnx_model_reconstructor_helpers::process_node_ios_nodes(model.graph());
 
+#if PARALLEL
+    // https://stackoverflow.com/a/63340360
+
+    std::vector<std::size_t> v(paths.size());
+    std::generate(v.begin(), v.end(), [n = 0]() mutable { return n++; });
+
+    std::for_each(PAR_UNSEQ,
+                  v.cbegin(),
+                  v.cend(),
+                  [&params, &paths, &model, &link_id_nodeproto, &preprocessed_node_ios](std::size_t j) {
+                    auto const dir_path = Utilities::combine_path(params.export_directory, std::to_string(j));
+                    network_butcher::Utilities::create_directory(dir_path);
+
+                    auto const output_path = Utilities::combine_path(dir_path, params.model_name);
+                    utilities::reconstruct_model_and_export(
+                      paths[j], model, link_id_nodeproto, preprocessed_node_ios, output_path);
+                  });
+#else
     for (std::size_t j = 0; j < paths.size(); ++j)
       {
         auto const dir_path = Utilities::combine_path(params.export_directory, std::to_string(j));
@@ -335,6 +353,7 @@ namespace network_butcher::io::IO_Manager
         auto const output_path = Utilities::combine_path(dir_path, params.model_name);
         utilities::reconstruct_model_and_export(paths[j], model, link_id_nodeproto, preprocessed_node_ios, output_path);
       }
+#endif
   }
 
 

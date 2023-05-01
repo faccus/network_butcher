@@ -5,6 +5,8 @@
 #ifndef NETWORK_BUTCHER_IO_MANAGER_H
 #define NETWORK_BUTCHER_IO_MANAGER_H
 
+#include <ranges>
+
 #include "Onnx_importer_helpers.h"
 #include "Onnx_model_reconstructor_helpers.h"
 
