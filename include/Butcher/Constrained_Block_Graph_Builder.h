@@ -11,6 +11,8 @@
 
 namespace network_butcher
 {
+  /// This block graph builder class is used when extra constraints have to be applied during the construction of block
+  /// graph \tparam GraphType The original graph type
   template <typename GraphType>
   class Constrained_Block_Graph_Builder : public Block_Graph_Builder<GraphType>
   {
@@ -22,23 +24,39 @@ namespace network_butcher
     bool                                                                       weights;
     std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> transmission_weights;
 
+    /// The actual construction of the block graph is performed during this step
+    /// \param block_graph_mode The block graph mode (classic, input, output)
+    /// \param starting_device_id The id of the device onto which the input is produced
+    /// \param ending_device_id The id of the device that needs the final output
+    /// \param backward_connections_allowed This is set to false if a connection between a device with id i to a device
+    /// with id j is allowed only if i>=j \return The resulting block graph
     block_graph_type
     build_block_graph(parameters::Block_Graph_Generation_Mode block_graph_mode,
                       std::size_t                             starting_device_id,
                       std::size_t                             ending_device_id,
                       bool                                    backward_connections_allowed);
 
+    /// Apply to the input block graph the weights from the original graph
+    /// \param new_graph The block graph
     void
     apply_operation_weights(block_graph_type &new_graph);
 
+    /// Apply to the input block graph the transmission weights
+    /// \param new_graph The block graph
     void
     apply_transmission_weights(block_graph_type &new_graph);
 
+    /// Apply to the input graph the given collection of constraints
+    /// \param new_graph
     void
     apply_constraints(block_graph_type &new_graph);
 
 
   public:
+    /// Simple constructor for a Constrained Block Graph Builder
+    /// \param original_graph The original graph. This is saved through a const reference
+    /// \param params The program parameters
+    /// \param expression_generator A function that should generate the initial constraints for the builder
     explicit Constrained_Block_Graph_Builder(
       GraphType const                                                                    &original_graph,
       parameters::Parameters const                                                       &params,
@@ -55,23 +73,32 @@ namespace network_butcher
         }
     };
 
-    block_graph_type
-    construct_block_graph() override;
-
+    /// Call this function if the builder should apply the transmission weights during the block graph construction
+    /// \param in_transmission_weights The transmission weights
     void
     construct_transmission_weights(
       std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> const &in_transmission_weights);
 
+    /// Call this function if the builder should apply the weights from the original graph during the block graph
+    /// construction
     void
     construct_operation_weights();
 
+    /// Call this function if the builder should apply the transmission weights and the weights from the original graph
+    /// during the block graph construction \param in_transmission_weights The transmission weights
     void
     construct_weights(
       std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> const &in_transmission_weights);
 
+    /// Add to the collection of constraints the input constraint
+    /// \param constraint A r-value reference to the new constraint
     void
     add_constraint(std::unique_ptr<constraints::Extra_Constraint> &&constraint);
 
+    /// The basic construct method. It will produce the block graph using the specified options.
+    /// \return The resulting block graph
+    block_graph_type
+    construct_block_graph() override;
 
     ~Constrained_Block_Graph_Builder() override = default;
   };
@@ -132,6 +159,7 @@ namespace network_butcher
     std::size_t                             ending_device_id,
     bool                                    backward_connections_allowed)
   {
+    // It will construct the linearized version of the original graph
     auto const linearize_graph = [](GraphType::Dependencies_Type const                             &old_dependencies,
                                     GraphType::Node_Collection_Type const                          &old_nodes,
                                     network_butcher::parameters::Block_Graph_Generation_Mode const &mode) {
@@ -212,8 +240,12 @@ namespace network_butcher
             }
         }
 
-      if (starting_nodes.size() > 1)
+      // If the block graph mode is not setted to classic, then we need to merge either the input or the output nodes of
+      // the "big" nodes
+      if (starting_nodes.size() > 1 && mode != network_butcher::parameters::Block_Graph_Generation_Mode::classic)
         {
+          // Simple lambda to be used to merge the nodes contained in the two specified collections. It will also change
+          // the two original iterators. Returns false if the new iterator is the end
           auto const merge_nodes = [&starting_nodes](auto &it_succ, auto &it_prec) {
             auto &it_nodes_edit = it_succ->content.second;
 
@@ -232,15 +264,18 @@ namespace network_butcher
 
           if (mode == network_butcher::parameters::Block_Graph_Generation_Mode::input)
             {
+              // Loops through the starting nodes looking for a "big" node
               for (auto it_succ = ++starting_nodes.begin(), it_prec = starting_nodes.begin();
                    it_succ != starting_nodes.end();
                    ++it_succ, ++it_prec)
                 {
                   auto const &it_prec_nodes_const = it_prec->content.second;
 
+                  // If we detect that it_prec points to the input of a big node....
                   if (it_prec_nodes_const->size() == 1 &&
                       old_dependencies[*it_prec_nodes_const->cbegin()].second.size() > 1)
                     {
+                      // It will merge them
                       if (merge_nodes(it_succ, it_prec))
                         break;
                     }
@@ -248,14 +283,17 @@ namespace network_butcher
             }
           else if (mode == network_butcher::parameters::Block_Graph_Generation_Mode::output)
             {
+              // Loops through the starting nodes looking for a "big" node
               for (auto it_succ = ++starting_nodes.begin(), it_prec = starting_nodes.begin();
                    it_succ != starting_nodes.end();
                    ++it_succ, ++it_prec)
                 {
                   auto const &it_nodes_const = it_succ->content.second;
 
+                  // If we detect that it_succ points to the output of a big node....
                   if (it_nodes_const->size() == 1 && old_dependencies[*it_nodes_const->cbegin()].first.size() > 1)
                     {
+                      // It will merge them
                       if (merge_nodes(it_succ, it_prec))
                         break;
                     }
@@ -266,19 +304,24 @@ namespace network_butcher
       return starting_nodes;
     };
 
+    // It will add all the nodes required in the block graph
     auto const add_extra_nodes_per_device = [](std::list<block_graph_type::Node_Type> &starting_nodes,
                                                std::size_t                             num_devices) {
-      for (auto it_follower = ++starting_nodes.cbegin(), it = ++(++starting_nodes.cbegin());
-           it != starting_nodes.cend();
-           it_follower = it, ++it)
+      if (starting_nodes.size() > 2)
         {
-          for (std::size_t i = 1; i < num_devices; ++i)
+          for (auto it_follower = ++starting_nodes.cbegin(), it = ++(++starting_nodes.cbegin());
+               it != starting_nodes.cend();
+               it_follower = it, ++it)
             {
-              starting_nodes.emplace(it, block_graph_type::Node_Internal_Type{i, it_follower->content.second});
+              for (std::size_t i = 1; i < num_devices; ++i)
+                {
+                  starting_nodes.emplace(it, block_graph_type::Node_Internal_Type{i, it_follower->content.second});
+                }
             }
         }
     };
 
+    // It will produce the dependencies for the block graph
     auto const process_dependencies =
       [](std::size_t dep_size, std::size_t supp_size, std::size_t num_devices, bool backward_allowed) {
         block_graph_type::Dependencies_Type new_dependencies;
@@ -385,13 +428,15 @@ namespace network_butcher
         return std::move(new_dependencies);
       };
 
+    // Get the linearized graph
     auto starting_nodes =
       linearize_graph(this->original_graph.get_neighbors(), this->original_graph.get_nodes(), block_graph_mode);
 
     auto const supp_size = starting_nodes.size() - 2;
-    if (starting_nodes.size() > 2)
-      add_extra_nodes_per_device(starting_nodes, this->original_graph.get_num_devices());
+    // Add the required nodes to the collection of nodes
+    add_extra_nodes_per_device(starting_nodes, this->original_graph.get_num_devices());
 
+    // Prepare the collection of nodes
     block_graph_type::Node_Collection_Type new_nodes;
     new_nodes.reserve(starting_nodes.size());
 
@@ -399,6 +444,7 @@ namespace network_butcher
                      std::make_move_iterator(starting_nodes.begin()),
                      std::make_move_iterator(starting_nodes.end()));
 
+    // Fix the input/output device ids
     new_nodes.front().content.first = starting_device_id;
     new_nodes.back().content.first  = ending_device_id;
 
@@ -414,21 +460,25 @@ namespace network_butcher
   block_graph_type
   Constrained_Block_Graph_Builder<GraphType>::construct_block_graph()
   {
+    // Construct the "naked" block graph
     auto new_graph = build_block_graph(params.block_graph_mode,
                                        params.starting_device_id,
                                        params.ending_device_id,
                                        params.backward_connections_allowed);
 
+    // Apply weights from the original graph
     if (weights)
       {
         apply_operation_weights(new_graph);
       }
 
+    // Apply transmission weights
     if (transmission_weights != nullptr)
       {
         apply_transmission_weights(new_graph);
       }
 
+    // Apply the constraints
     apply_constraints(new_graph);
 
     return new_graph;
@@ -443,6 +493,7 @@ namespace network_butcher
 
     auto const &nodes = new_graph.get_nodes();
 
+    // Check if we have to generate the weights though aMLLibrary
     if (params.weight_import_mode == Weight_Import_Mode::aMLLibrary_block)
       {
         if constexpr (std::is_same_v<GraphType, graph_type>)
@@ -454,6 +505,7 @@ namespace network_butcher
             throw std::runtime_error("The specified weight import mode is not supported!");
           }
       }
+    // Check if we have to import the block graph weights directly from a .csv file
     else if (params.weight_import_mode == Weight_Import_Mode::block_single_direct_read)
       {
         io::Csv_Weight_Importer<block_graph_type>(new_graph,
@@ -463,6 +515,7 @@ namespace network_butcher
                                                   params.separator)
           .import_weights();
       }
+    // Check if we have to import the block graph weights directly from multiple .csv files
     else if (params.weight_import_mode == Weight_Import_Mode::block_multiple_direct_read)
       {
         std::vector<std::string> paths, entries;
@@ -475,6 +528,7 @@ namespace network_butcher
         io::Csv_Weight_Importer<block_graph_type>(new_graph, paths, entries, params.devices, params.separator)
           .import_weights();
       }
+    // Standard weight import
     else
       {
         auto const add_weight_cost = [&new_graph, &graph = this->original_graph, mode = params.block_graph_mode](

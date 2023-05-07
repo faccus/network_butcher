@@ -265,6 +265,7 @@ namespace network_butcher::io
 
     return to_remove_ios;
   }
+
   Onnx_importer_helpers::prepared_import_onnx
   Onnx_importer_helpers::prepare_import_from_onnx(const onnx::GraphProto &onnx_graph,
                                                   bool                    add_input_padding,
@@ -306,18 +307,7 @@ namespace network_butcher::io
     auto outputs = process_node_ios(node.output(), parameters, value_infos, unused_ios_set);
 
     auto const graph_inputs = get_common_elements(prepared_data.onnx_inputs_ids, inputs);
-    /*// If the inputs of the node are the inputs of the NN, then add the connection with the padding node
-    if (prepared_data.add_input_padding && !graph_inputs.empty())
-      {
-        inputs["__fake__input__"] = prepared_data.pointer_input;
-      }*/
-
     auto const graph_outputs = get_common_elements(prepared_data.onnx_outputs_ids, outputs);
-    // If the output of the node are the outputs of the NN, then add the connection with the padding node
-    /*if (prepared_data.add_output_padding && !graph_outputs.empty())
-      {
-        outputs["__fake__output__"] = prepared_data.pointer_output;
-      }*/
 
     auto content = network_butcher::types::Content<type_info_pointer>::make_content(std::move(inputs),
                                                                                     std::move(outputs),

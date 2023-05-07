@@ -10,6 +10,8 @@
 
 namespace network_butcher
 {
+  /// A block graph Builder. Used by butcher to construct the graph onto which the K-shortest path algorithm is then
+  /// applied \tparam GraphType The type of the input graph
   template <typename GraphType>
   class Block_Graph_Builder
   {
@@ -20,6 +22,8 @@ namespace network_butcher
     explicit Block_Graph_Builder(GraphType const &original_graph)
       : original_graph(original_graph){};
 
+    /// The basic construct method. It will produce the block graph using the specified options.
+    /// \return The resulting block graph
     virtual block_graph_type
     construct_block_graph() = 0;
 

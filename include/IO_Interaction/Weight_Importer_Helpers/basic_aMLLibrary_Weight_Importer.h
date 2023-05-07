@@ -57,11 +57,11 @@ namespace network_butcher::io
                              const std::string &output_path) const;
 
 
-    std::string
+    [[nodiscard]] std::string
     network_info_onnx_tool() const;
 
 
-    std::map<std::string, Weight_importer_helpers::onnx_tool_output>
+    [[nodiscard]] std::map<std::string, Weight_importer_helpers::onnx_tool_output>
     read_network_info_onnx_tool(const std::string &path) const;
 
 
@@ -69,14 +69,14 @@ namespace network_butcher::io
     csv_assembler(const std::vector<std::vector<std::string>> &content, const std::string &path) const;
 
   public:
-    basic_aMLLibrary_Weight_Importer(network_butcher::parameters::Parameters const &params)
+    explicit basic_aMLLibrary_Weight_Importer(network_butcher::parameters::Parameters const &params)
       : Weight_Importer()
       , params{params}
     {
       check_aMLLibrary();
     };
 
-    virtual ~basic_aMLLibrary_Weight_Importer() = default;
+    ~basic_aMLLibrary_Weight_Importer() override = default;
   };
 } // namespace network_butcher::io
 

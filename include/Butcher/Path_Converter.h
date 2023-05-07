@@ -11,6 +11,7 @@
 
 namespace network_butcher::Utilities
 {
+  /// Simple class used to convert the output of the K-shortest path algorithms to a Weighted_Real_Paths
   class Path_Converter
   {
   private:
