@@ -5,33 +5,29 @@
 
 #include <ranges>
 
-namespace network_butcher::io
+namespace network_butcher::io::Onnx_model_reconstructor_helpers
 {
-
-  std::pair<bool, google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator>
-  Onnx_model_reconstructor_helpers::get_type(const onnx::ModelProto &original_model,
-                                             const std::string      &communication_node_name)
+  std::optional<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator>
+  get_type(const onnx::ModelProto &original_model, const std::string &communication_node_name)
   {
     auto const &graph = original_model.graph();
-    auto        res   = get_element_from_container(graph.input(), communication_node_name);
 
-    if (!res.first)
-      {
-        res = get_element_from_container(graph.output(), communication_node_name);
+    auto res = get_element_from_container(graph.input(), communication_node_name);
 
-        if (!res.first)
-          {
-            res = get_element_from_container(graph.value_info(), communication_node_name);
-          }
-      }
+    if (res)
+      return res;
 
-    return res;
+    res = get_element_from_container(graph.output(), communication_node_name);
+
+    if (res)
+      return res;
+
+    return get_element_from_container(graph.value_info(), communication_node_name);
   }
 
 
   void
-  Onnx_model_reconstructor_helpers::prepare_new_model(const onnx::ModelProto &original_model,
-                                                      onnx::ModelProto       &new_model)
+  prepare_new_model(const onnx::ModelProto &original_model, onnx::ModelProto &new_model)
   {
     new_model.set_doc_string(original_model.doc_string());
     new_model.set_domain(original_model.domain());
@@ -41,7 +37,7 @@ namespace network_butcher::io
 
 
   onnx::GraphProto *
-  Onnx_model_reconstructor_helpers::prepare_new_graph(const onnx::ModelProto &original_model)
+  prepare_new_graph(const onnx::ModelProto &original_model)
   {
     auto new_graph_pointer = new onnx::GraphProto;
 
@@ -52,20 +48,12 @@ namespace network_butcher::io
   }
 
 
-  std::pair<bool, google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator>
-  Onnx_model_reconstructor_helpers::get_initializer(const onnx::ModelProto &original_model, const std::string &name)
-  {
-    return get_element_from_container(original_model.graph().initializer(), name);
-  }
-
-
   void
-  Onnx_model_reconstructor_helpers::add_nodes(
-    const std::map<node_id_type, node_id_type>                    &link_id_nodeproto,
-    const onnx::GraphProto                                        &model_graph,
-    const std::set<node_id_type>                                  &nodes,
-    onnx::GraphProto                                              *current_edited_graph,
-    Onnx_model_reconstructor_helpers::preprocessed_ios_type const &preprocessed_ios_nodes)
+  add_nodes(const std::map<node_id_type, node_id_type>                    &link_id_nodeproto,
+            const onnx::GraphProto                                        &model_graph,
+            const std::set<node_id_type>                                  &nodes,
+            onnx::GraphProto                                              *current_edited_graph,
+            Onnx_model_reconstructor_helpers::preprocessed_ios_type const &preprocessed_ios_nodes)
   {
     for (unsigned long node : nodes)
       {
@@ -83,10 +71,9 @@ namespace network_butcher::io
 
 
   void
-  Onnx_model_reconstructor_helpers::add_node_ios_nodes(
-    onnx::GraphProto                                              *graph,
-    const onnx::NodeProto                                         *node,
-    Onnx_model_reconstructor_helpers::preprocessed_ios_type const &preprocessed_ios_nodes)
+  add_node_ios_nodes(onnx::GraphProto            *graph,
+                     const onnx::NodeProto       *node,
+                     preprocessed_ios_type const &preprocessed_ios_nodes)
   {
     for (int i = 0; i < node->input_size(); ++i)
       {
@@ -141,61 +128,58 @@ namespace network_butcher::io
 
 
   void
-  Onnx_model_reconstructor_helpers::add_missing_inputs(const onnx::ModelProto &original_model,
-                                                       onnx::GraphProto       *edit_graph)
+  add_missing_inputs(const onnx::ModelProto &original_model, onnx::GraphProto *current_edited_graph)
   {
-    auto const &container = edit_graph->input();
+    auto const &container = current_edited_graph->input();
 
     auto const get_node_outputs = [](auto const &node) { return node.output(); };
-    auto const get_new_entry    = [edit_graph]() { return edit_graph->add_input(); };
+    auto const get_new_entry    = [current_edited_graph]() { return current_edited_graph->add_input(); };
 
-    return helper_add_missing_io(original_model, edit_graph, container, get_node_outputs, get_new_entry, false);
+    return helper_add_missing_io(
+      original_model, current_edited_graph, container, get_node_outputs, get_new_entry, false);
   }
 
 
   void
-  Onnx_model_reconstructor_helpers::add_missing_outputs(const onnx::ModelProto &original_model,
-                                                        onnx::GraphProto       *edit_graph)
+  add_missing_outputs(const onnx::ModelProto &original_model, onnx::GraphProto *current_edited_graph)
   {
-    auto const &container = edit_graph->output();
+    auto const &container = current_edited_graph->output();
 
     auto const get_node_outputs = [](auto const &node) { return node.input(); };
-    auto const get_new_entry    = [edit_graph]() { return edit_graph->add_output(); };
+    auto const get_new_entry    = [current_edited_graph]() { return current_edited_graph->add_output(); };
 
-    return helper_add_missing_io(original_model, edit_graph, container, get_node_outputs, get_new_entry, true);
+    return helper_add_missing_io(
+      original_model, current_edited_graph, container, get_node_outputs, get_new_entry, true);
   }
 
 
-  Onnx_model_reconstructor_helpers::preprocessed_ios_type
-  Onnx_model_reconstructor_helpers::process_node_ios_nodes(const onnx::GraphProto &model_graph)
+  preprocessed_ios_type
+  process_node_ios_nodes(const onnx::GraphProto &model_graph)
   {
-    Onnx_model_reconstructor_helpers::preprocessed_ios_type res;
+    preprocessed_ios_type res;
 
     for (auto const &node : model_graph.node())
       {
         // Loop through the inputs of the node
         for (auto const &input : node.input())
           {
-            // Has it been already initialized?
-            auto [found_initializer, init] = get_element_from_container(model_graph.initializer(), input);
-
             // Is it in the graph input?
-            auto [found_input, it] = get_element_from_container(model_graph.input(), input);
-            bool found_value_info  = false;
+            auto it = get_element_from_container(model_graph.input(), input);
 
-            if (!found_input)
+            if (it)
               {
-                // Is it in the graph value infos?
-                it = std::find_if(model_graph.value_info().begin(),
-                                  model_graph.value_info().end(),
-                                  [&input](onnx::ValueInfoProto const &ref) { return input == ref.name(); });
-
-                found_value_info = it != model_graph.value_info().end();
+                res.emplace(input,
+                            preprocessed_ios_new_entry(
+                              model_graph, true, get_element_from_container(model_graph.initializer(), input), it));
               }
-
-            res.emplace(
-              input,
-              prepocessed_ios_new_entry(model_graph, found_initializer, found_input, found_value_info, init, it));
+            else
+              {
+                res.emplace(input,
+                            preprocessed_ios_new_entry(model_graph,
+                                                       false,
+                                                       get_element_from_container(model_graph.initializer(), input),
+                                                       get_element_from_container(model_graph.value_info(), input)));
+              }
           }
       }
 
@@ -203,51 +187,33 @@ namespace network_butcher::io
   }
 
 
-  Onnx_model_reconstructor_helpers::preprocessed_ios_type::mapped_type
-  Onnx_model_reconstructor_helpers::prepocessed_ios_new_entry(
-    const onnx::GraphProto                                                   &model_graph,
-    bool                                                                      found_initializer,
-    bool                                                                      found_input,
-    bool                                                                      found_value_info,
-    google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator    &init,
-    google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator &it)
+  preprocessed_ios_type::mapped_type
+  preprocessed_ios_new_entry(
+    const onnx::GraphProto                                                                        &model_graph,
+    bool                                                                                           found_input,
+    std::optional<google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator> const    &init,
+    std::optional<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator> const &it)
   {
-    if (found_initializer)
+    auto init_it = init ? init.value() : model_graph.initializer().cend();
+
+    if (found_input)
       {
-        auto iterator_pair = std::make_pair(it, init);
-        if (found_input)
-          {
-            return std::make_pair(Initializer_Input, iterator_pair);
-          }
-        else if (found_value_info)
-          {
-            return std::make_pair(Initializer_ValueInfo, iterator_pair);
-          }
-        else
-          {
-            return std::make_pair(Initializer, iterator_pair);
-          }
+        return std::make_pair(init ? Initializer_Input : Input, std::make_pair(it.value(), init_it));
+      }
+    else if (it)
+      {
+        return std::make_pair(init ? Initializer_ValueInfo : ValueInfo, std::make_pair(it.value(), init_it));
       }
     else
       {
-        auto iterator_pair = std::make_pair(it, model_graph.initializer().cend());
-        if (found_input)
-          {
-            return std::make_pair(Input, iterator_pair);
-          }
-        else if (found_value_info)
-          {
-            return std::make_pair(ValueInfo, iterator_pair);
-          }
-        else
-          {
-            return std::make_pair(NoConnection, iterator_pair);
-          }
+        return std::make_pair(init ? Initializer : NoConnection,
+                              std::make_pair(model_graph.value_info().cend(), init_it));
       }
   }
 
+
   void
-  Onnx_model_reconstructor_helpers::helper_add_missing_io(
+  helper_add_missing_io(
     onnx::ModelProto const                                         &original_model,
     onnx::GraphProto                                               *edit_graph,
     google::protobuf::RepeatedPtrField<onnx::ValueInfoProto> const &container,
@@ -256,14 +222,14 @@ namespace network_butcher::io
     const std::function<onnx::ValueInfoProto *()> &get_new_entry,
     bool                                           reversed)
   {
-    using fake_iterator_type = Onnx_model_reconstructor_helpers::BidirectionalCustomIterator<
-      google::protobuf::RepeatedPtrField<onnx::NodeProto>>;
+    using fake_iterator_type = BidirectionalCustomIterator<google::protobuf::RepeatedPtrField<onnx::NodeProto>>;
 
     auto const &nodes = edit_graph->mutable_node();
 
     auto const cond_node = [](auto const &node, auto const &name) { return node == name; };
     auto const cond_init = [](auto const &node, auto const &name) { return node.name() == name; };
 
+    // Checks if the specified element of the container has the same name as the input string
     auto const checkout = [](std::string const &name, auto const &container, auto const &cond_func) {
       for (auto it = container.cbegin(); it != container.cend(); ++it)
         {
@@ -287,16 +253,16 @@ namespace network_butcher::io
             for (auto it2 = start; it != it2 && !ok; ++it2)
               ok = checkout(el, get_node_io(*it2), cond_node);
 
-            // If the input didn't appear, then let's add it!
+            // If the input/output didn't appear, then let's add it!
             if (!ok)
               {
-                auto [found, tmp_res] = get_type(original_model, el);
-                auto new_entry        = get_new_entry();
+                auto tmp_res   = get_type(original_model, el);
+                auto new_entry = get_new_entry();
                 new_entry->set_name(el);
 
-                if (found && tmp_res->has_type())
+                if (tmp_res.has_value() && tmp_res.value()->has_type())
                   {
-                    new_entry->set_allocated_type(new onnx::TypeProto(tmp_res->type()));
+                    new_entry->set_allocated_type(new onnx::TypeProto(tmp_res.value()->type()));
                   }
               }
           }

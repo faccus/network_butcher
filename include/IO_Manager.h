@@ -70,8 +70,7 @@ namespace network_butcher::io::IO_Manager
   import_from_onnx(std::string const &path,
                    bool               add_input_padding  = true,
                    bool               add_output_padding = true,
-                   std::size_t        num_devices        = 1,
-                   bool               unused_ios         = false);
+                   std::size_t        num_devices        = 1);
 
 
   /// It will export a given onnx::ModelProto to a file

@@ -21,10 +21,6 @@ namespace network_butcher::io::Onnx_importer_helpers
     std::shared_ptr<network_butcher::types::Dense_tensor> pointer_output;
     std::set<std::string>                                 onnx_inputs_ids;
     std::set<std::string>                                 onnx_outputs_ids;
-
-    std::set<std::string> unused_ios_set;
-    bool                  add_input_padding;
-    bool                  add_output_padding;
   };
 
   namespace Utilities
@@ -83,21 +79,12 @@ namespace network_butcher::io::Onnx_importer_helpers
            std::set<std::string> const                                 &initialized);
 
 
-  /// It will look for unused IOs in the onnx_graph
-  /// \param onnx_nodes Onnx nodes from Model Proto
-  /// \return The name of the unused IOs
-  std::set<std::string>
-  find_unused_ios(onnx::GraphProto const &onnx_graph);
-
-
   /// It will return an io_collection with the different elements of io_names if they are contained into value_infos
   /// and they are not initialized. Any initialized element in value_infos is inserted in parameters_collection
   /// \param io_names The collection of names of IO identifiers
   /// \param parameters_collection The collection of Type_info associated to the parameters elements for the given
   /// node
   /// \param value_infos The collection of IO and parameters elements
-  /// \param unused_ios The collection of IO of the nodes that are not "used" (they either don't appear in the
-  /// inputs/outputs of the graph and are not the input/output of another node)
   /// \return The collection of Type_info associated to the IO elements for the given node
   io_collection_type<type_info_pointer>
   process_node_ios(google::protobuf::RepeatedPtrField<std::basic_string<char>> const &io_names,
@@ -144,15 +131,9 @@ namespace network_butcher::io::Onnx_importer_helpers
 
   /// It will produce a prepared_import_onnx for the specified onnx_graph
   /// \param onnx_graph The onnx_graph
-  /// \param add_input_padding If true, it will add an extra node at the beginning of the graph
-  /// \param add_output_padding If true, it will add an extra node at the end of the graph
-  /// \param unused_ios If true, we should use the unusued_ios
   /// \return The prepared_import_onnx struct
   prepared_import_onnx
-  prepare_import_from_onnx(onnx::GraphProto const &onnx_graph,
-                           bool                    add_input_padding,
-                           bool                    add_output_padding,
-                           bool                    unused_ios);
+  prepare_import_from_onnx(onnx::GraphProto const &onnx_graph);
 
   /// Simple helper method used to process during the graph construction a node
   /// \param node The specified node

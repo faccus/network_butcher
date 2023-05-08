@@ -47,11 +47,7 @@ namespace network_butcher::io::IO_Manager
 
 
   std::tuple<graph_type, onnx::ModelProto, std::map<node_id_type, node_id_type>>
-  import_from_onnx(std::string const &path,
-                   bool               add_input_padding,
-                   bool               add_output_padding,
-                   std::size_t        num_devices,
-                   bool               unused_ios)
+  import_from_onnx(std::string const &path, bool add_input_padding, bool add_output_padding, std::size_t num_devices)
   {
     using namespace network_butcher::io::Onnx_importer_helpers;
 
@@ -63,7 +59,7 @@ namespace network_butcher::io::IO_Manager
     auto const &onnx_nodes = onnx_graph.node();
 
     // Prepare for the import
-    auto const basic_data = prepare_import_from_onnx(onnx_graph, add_input_padding, add_output_padding, unused_ios);
+    auto const basic_data = prepare_import_from_onnx(onnx_graph);
 
     std::size_t total_size = onnx_nodes.size();
 

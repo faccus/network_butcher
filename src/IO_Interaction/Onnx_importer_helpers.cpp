@@ -200,77 +200,8 @@ namespace network_butcher::io
     return res;
   }
 
-
-  std::set<std::string>
-  Onnx_importer_helpers::find_unused_ios(const onnx::GraphProto &onnx_graph)
-  {
-    std::set<std::string>                         ins_name;
-    std::map<std::string, std::set<node_id_type>> ins;
-
-    std::set<std::string>                         outs_name;
-    std::map<std::string, std::set<node_id_type>> outs;
-
-    std::size_t node_id = 0;
-    for (auto const &node : onnx_graph.node())
-      {
-        for (auto const &name : node.input())
-          {
-            if (std::find_if(onnx_graph.input().cbegin(), onnx_graph.input().cend(), [name](auto const &el) {
-                  return el.name() == name;
-                }) == onnx_graph.input().cend())
-              {
-                ins_name.insert(name);
-                ins[name].insert(node_id);
-              }
-          }
-
-        for (auto const &name : node.output())
-          {
-            if (std::find_if(onnx_graph.output().cbegin(), onnx_graph.output().cend(), [name](auto const &el) {
-                  return el.name() == name;
-                }) == onnx_graph.output().cend())
-              {
-                outs_name.insert(name);
-                outs[name].insert(node_id);
-              }
-          }
-
-        ++node_id;
-      }
-
-    std::set<std::string> to_remove_ios;
-
-    {
-      std::vector<std::string> intersection(std::min(ins_name.size(), outs_name.size()));
-      auto const               it = std::set_intersection(
-        ins_name.cbegin(), ins_name.cend(), outs_name.cbegin(), outs_name.cend(), intersection.begin());
-
-      intersection.resize(it - intersection.begin());
-      to_remove_ios.insert(intersection.cbegin(), intersection.cend());
-    }
-
-    {
-      std::set<std::string> union_ios;
-
-      union_ios.insert(ins_name.cbegin(), ins_name.cend());
-      union_ios.insert(outs_name.cbegin(), outs_name.cend());
-
-      std::vector<std::string> result(union_ios.size());
-      auto const               it = std::set_difference(
-        union_ios.cbegin(), union_ios.cend(), to_remove_ios.cbegin(), to_remove_ios.cend(), result.begin());
-
-      to_remove_ios.clear();
-      to_remove_ios.insert(result.begin(), it); // Maybe ++it
-    }
-
-    return to_remove_ios;
-  }
-
   Onnx_importer_helpers::prepared_import_onnx
-  Onnx_importer_helpers::prepare_import_from_onnx(const onnx::GraphProto &onnx_graph,
-                                                  bool                    add_input_padding,
-                                                  bool                    add_output_padding,
-                                                  bool                    unused_ios)
+  Onnx_importer_helpers::prepare_import_from_onnx(const onnx::GraphProto &onnx_graph)
   {
     prepared_import_onnx res;
 
@@ -283,13 +214,6 @@ namespace network_butcher::io
 
     res.pointer_output = std::make_shared<network_butcher::types::Dense_tensor>(0, std::vector<shape_type>{});
     res.pointer_input  = std::make_shared<network_butcher::types::Dense_tensor>(0, std::vector<shape_type>{});
-
-    if (unused_ios)
-      res.unused_ios_set = find_unused_ios(onnx_graph);
-
-    res.add_input_padding  = add_input_padding;
-    res.add_output_padding = add_output_padding;
-
     return res;
   }
 
@@ -297,16 +221,15 @@ namespace network_butcher::io
   Onnx_importer_helpers::process_node(const onnx::NodeProto                             &node,
                                       const Onnx_importer_helpers::prepared_import_onnx &prepared_data)
   {
-    auto const &value_infos    = prepared_data.value_infos;
-    auto const &unused_ios_set = prepared_data.unused_ios_set;
+    auto const &value_infos = prepared_data.value_infos;
 
     auto operation_type = network_butcher::Utilities::to_lowercase_copy(node.op_type());
 
     io_collection_type<type_info_pointer> parameters;
-    auto inputs  = process_node_ios(node.input(), parameters, value_infos, unused_ios_set);
-    auto outputs = process_node_ios(node.output(), parameters, value_infos, unused_ios_set);
+    auto                                  inputs  = process_node_ios(node.input(), parameters, value_infos);
+    auto                                  outputs = process_node_ios(node.output(), parameters, value_infos);
 
-    auto const graph_inputs = get_common_elements(prepared_data.onnx_inputs_ids, inputs);
+    auto const graph_inputs  = get_common_elements(prepared_data.onnx_inputs_ids, inputs);
     auto const graph_outputs = get_common_elements(prepared_data.onnx_outputs_ids, outputs);
 
     auto content = network_butcher::types::Content<type_info_pointer>::make_content(std::move(inputs),
