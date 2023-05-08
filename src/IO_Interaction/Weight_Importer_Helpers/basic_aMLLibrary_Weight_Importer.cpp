@@ -9,35 +9,11 @@ namespace network_butcher::io
   basic_aMLLibrary_Weight_Importer::check_aMLLibrary() const
   {
 #if PYBIND_ACTIVE
-    if (params.devices.size() != 2 || params.backward_connections_allowed)
-      throw std::logic_error(
-        "aMLLibrary only supports 2 devices and no backward connections"); // ("aMLLibrary only supports 2 devices and
-                                                                           // no backward connections");
+    if (params.backward_connections_allowed)
+      throw std::logic_error("aMLLibrary only supports graphs with no backward connections");
 #else
     throw std::logic_error("aMLLibrary not supported. Please compile with PYBIND_ACTIVE"); //
 #endif
-  }
-
-
-  void
-  basic_aMLLibrary_Weight_Importer::csv_assembler(std::vector<std::vector<std::string>> const &content,
-                                                  std::string const                           &path) const
-  {
-    std::fstream file_out;
-    file_out.open(path, std::ios_base::out);
-
-    for (auto const &row : content)
-      {
-        for (std::size_t i = 0; i < row.size(); ++i)
-          {
-            file_out << row[i];
-            if (i != row.size() - 1)
-              file_out << ",";
-          }
-        file_out << std::endl;
-      }
-
-    file_out.close();
   }
 
 
@@ -65,6 +41,28 @@ namespace network_butcher::io
     for (auto const &package_location : params.extra_packages_location)
       inserter(package_location);
 #endif
+  }
+
+
+  void
+  basic_aMLLibrary_Weight_Importer::csv_assembler(std::vector<std::vector<std::string>> const &content,
+                                                  std::string const                           &path) const
+  {
+    std::fstream file_out;
+    file_out.open(path, std::ios_base::out);
+
+    for (auto const &row : content)
+      {
+        for (std::size_t i = 0; i < row.size(); ++i)
+          {
+            file_out << row[i];
+            if (i != row.size() - 1)
+              file_out << ",";
+          }
+        file_out << std::endl;
+      }
+
+    file_out.close();
   }
 
 

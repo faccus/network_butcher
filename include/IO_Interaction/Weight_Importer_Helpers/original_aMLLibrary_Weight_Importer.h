@@ -10,15 +10,25 @@
 
 namespace network_butcher::io
 {
+  /// This class will be used to generate and import weights with aMLLibrary into a graph
   class original_aMLLibrary_Weight_Importer : public basic_aMLLibrary_Weight_Importer
   {
   protected:
     graph_type &graph;
 
-    std::string
+    /// It will generate the relevant entry given its name and the node
+    /// \param entry The entry name
+    /// \param node The node
+    /// \return The resulting entry value
+    [[nodiscard]] std::string
     generate_entry(std::string const &entry, graph_type::Node_Type const &node) const;
 
-    std::string
+    /// It will generate the relevant entry given its name and the node
+    /// \param entry The entry name
+    /// \param basic_info The relevant info from onnx_tool
+    /// \param node The node
+    /// \return The resulting entry value
+    [[nodiscard]] std::string
     generate_entry(std::string const                               &entry,
                    Weight_importer_helpers::onnx_tool_output const &basic_info,
                    graph_type::Node_Type const                     &node) const;
@@ -32,10 +42,10 @@ namespace network_butcher::io
     void
     import_weights(std::function<bool(graph_type::Node_Type const &)> const &extra_condition);
 
-    virtual void
+    void
     import_weights() override;
 
-    virtual ~original_aMLLibrary_Weight_Importer() override = default;
+    ~original_aMLLibrary_Weight_Importer() override = default;
   };
 } // namespace network_butcher::io
 

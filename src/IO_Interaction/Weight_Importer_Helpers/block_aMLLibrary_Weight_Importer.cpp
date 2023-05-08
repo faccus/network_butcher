@@ -11,7 +11,7 @@ namespace network_butcher::io
     std::size_t                                                             id,
     std::map<std::string, Weight_importer_helpers::onnx_tool_output> const &map_onnx_tool) const
   {
-    auto const v_lower_case = Utilities::to_lowercase_copy(entries);
+    auto const lower_case_entries = Utilities::to_lowercase_copy(entries);
 
     std::map<std::string, std::size_t> inserted;
     std::vector<std::string>           res;
@@ -20,7 +20,7 @@ namespace network_butcher::io
     auto const &original_ids    = *new_graph[id].content.second;
     auto const &node_output_ids = new_graph[*new_graph.get_neighbors()[id].second.cbegin()].content.second;
 
-    for (auto const &lower_case : v_lower_case)
+    for (auto const &lower_case : lower_case_entries)
       {
         if (lower_case == "layer")
           {
@@ -217,6 +217,7 @@ namespace network_butcher::io
     if (Utilities::file_exists(csv_path))
       Utilities::file_delete(csv_path);
 
+    // Prepare the .csv file to be fed to aMLLibrary
     std::vector<std::vector<std::string>> aMLLibrary_input;
     aMLLibrary_input.reserve(new_graph.size() + 1);
     aMLLibrary_input.push_back(Utilities::trim_copy(params.aMLLibrary_csv_features));
@@ -224,6 +225,7 @@ namespace network_butcher::io
                                     params.aMLLibrary_inference_variables.cbegin(),
                                     params.aMLLibrary_inference_variables.cend());
 
+    // Generate entries for the .csv file
     for (auto const &node : new_graph.get_nodes())
       {
         if (node.content.first != 0 ||
@@ -234,9 +236,10 @@ namespace network_butcher::io
         aMLLibrary_input.push_back(generate_entry(aMLLibrary_input.front(), node.get_id(), macs));
       }
 
-
+    // Assemble the .csv file
     csv_assembler(aMLLibrary_input, csv_path);
 
+    // Predict and import the weights
     for (std::size_t i = 0; i < params.devices.size(); ++i)
       {
         std::string tmp_dir_path = Utilities::combine_path(params.temporary_directory, "predict_" + std::to_string(i));

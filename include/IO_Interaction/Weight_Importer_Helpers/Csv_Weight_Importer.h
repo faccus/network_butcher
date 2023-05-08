@@ -10,6 +10,8 @@
 
 namespace network_butcher::io
 {
+  /// This class will be used to import weights from a .csv file into a graph
+  /// \tparam T The graph type
   template <typename T>
   class Csv_Weight_Importer : public Weight_Importer
   {

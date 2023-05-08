@@ -9,6 +9,7 @@
 
 namespace network_butcher::io
 {
+  /// This class will be used to generate and import weights with aMLLibrary into the block graph
   class block_aMLLibrary_Weight_Importer : public basic_aMLLibrary_Weight_Importer
   {
   protected:
@@ -17,9 +18,6 @@ namespace network_butcher::io
 
     /// It will produce a row of the aMLLibrary_prediction.csv file
     /// \param entries The entries to insert
-    /// \param params The collection of parameters
-    /// \param new_graph The block graph
-    /// \param graph The graph
     /// \param id The node id in the block graph
     /// \param map_onnx_tool The output of onnx_tool
     /// \return The relevant row
@@ -28,6 +26,10 @@ namespace network_butcher::io
                    std::size_t                                                             id,
                    std::map<std::string, Weight_importer_helpers::onnx_tool_output> const &map_onnx_tool) const;
 
+    /// It will import in the new_graph the weights for the nodes with the given device
+    /// \param device The device
+    /// \param path The path to the weights
+    /// \param extra_condition An extra condition to be satisfied by the different nodes
     void
     import(std::size_t                                                     device,
            std::string const                                              &path,

@@ -21,6 +21,7 @@
 
 namespace network_butcher::io
 {
+  /// This (pure virtual) class will be used to define common utilities required to import weights with aMLLibrary
   class basic_aMLLibrary_Weight_Importer : public Weight_Importer
   {
   protected:
@@ -56,15 +57,18 @@ namespace network_butcher::io
                              const std::string &config_file,
                              const std::string &output_path) const;
 
-
+    /// It will execute onnx_tool in order to obtain the network information
+    /// \return The path of the .csv file containing the network information
     [[nodiscard]] std::string
     network_info_onnx_tool() const;
 
-
+    /// It will read the network information from the .csv file
+    /// \param path The path of the .csv file
+    /// \return A map containing the network information
     [[nodiscard]] std::map<std::string, Weight_importer_helpers::onnx_tool_output>
     read_network_info_onnx_tool(const std::string &path) const;
 
-
+    /// It will prepare the .csv file to be fed to aMLLibrary
     void
     csv_assembler(const std::vector<std::vector<std::string>> &content, const std::string &path) const;
 

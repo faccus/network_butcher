@@ -30,7 +30,6 @@ namespace network_butcher::io
                                                       const Weight_importer_helpers::onnx_tool_output &basic_info,
                                                       const graph_type::Node_Type                     &node) const
   {
-    // std::vector<std::string> header{"Layer", "TensorLength", "OpType", "NrParameters", "Memory", "MACs"};
     auto const lower_case = Utilities::to_lowercase_copy(entry);
 
     if (lower_case == "layer")
@@ -88,6 +87,7 @@ namespace network_butcher::io
     if (Utilities::file_exists(csv_path))
       Utilities::file_delete(csv_path);
 
+    // Prepare the .csv file to be fed to aMLLibrary
     std::vector<std::vector<std::string>> aMLLibrary_input;
     aMLLibrary_input.reserve(graph.size() + 1);
 
@@ -96,6 +96,7 @@ namespace network_butcher::io
                                     params.aMLLibrary_inference_variables.cbegin(),
                                     params.aMLLibrary_inference_variables.cend());
 
+    // For every node generate the relevant entry in the .csv file
     for (auto const &node : graph.get_nodes())
       {
         auto                     info_it = macs.find(node.name);
@@ -120,11 +121,13 @@ namespace network_butcher::io
         aMLLibrary_input.push_back(std::move(row));
       }
 
+    // Assemble the .csv file
     csv_assembler(aMLLibrary_input, csv_path);
 
     std::vector<std::string> paths;
     std::vector<std::string> relevant_entries;
 
+    // Perform the predictions
     for (std::size_t i = 0; i < params.devices.size(); ++i)
       {
         std::string tmp_dir_path = Utilities::combine_path(params.temporary_directory, "predict_" + std::to_string(i));
@@ -142,6 +145,7 @@ namespace network_butcher::io
 
     pybind11::finalize_interpreter();
 
+    // Import the weights
     Csv_Weight_Importer importer(graph, paths, relevant_entries, params.devices, params.separator, true);
     importer.import_weights(extra_condition);
   }

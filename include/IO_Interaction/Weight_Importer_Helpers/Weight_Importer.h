@@ -11,6 +11,7 @@
 
 namespace network_butcher::io
 {
+  /// This (pure virtual) class will be used to import weights into a graph
   class Weight_Importer
   {
   protected:
