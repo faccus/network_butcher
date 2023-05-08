@@ -68,9 +68,11 @@ namespace network_butcher::io
   void
   General_Manager::boot(const network_butcher::parameters::Parameters &params, bool performance)
   {
-    bool weight_performance =
-      performance &&
-      params.weight_import_mode != network_butcher::parameters::Weight_Import_Mode::aMLLibrary_block;
+    using namespace network_butcher::parameters;
+
+    bool weight_performance = performance && params.weight_import_mode != Weight_Import_Mode::aMLLibrary_block &&
+                              params.weight_import_mode != Weight_Import_Mode::block_single_direct_read &&
+                              params.weight_import_mode != Weight_Import_Mode::block_multiple_direct_read;
 
     Chrono crono;
     crono.start();

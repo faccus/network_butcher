@@ -55,7 +55,7 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
             onnx::GraphProto                                              *current_edited_graph,
             Onnx_model_reconstructor_helpers::preprocessed_ios_type const &preprocessed_ios_nodes)
   {
-    for (unsigned long node : nodes)
+    for (network_butcher::node_id_type node : nodes)
       {
         auto const it = link_id_nodeproto.find(node);
 

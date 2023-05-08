@@ -32,9 +32,10 @@ namespace network_butcher
       WGraph &
       operator=(WGraph const &) = default;
 
-      WGraph(WGraph &&) = default;
+      WGraph(WGraph &&) noexcept = default;
+
       WGraph &
-      operator=(WGraph &&) = default;
+      operator=(WGraph &&) noexcept = default;
 
       explicit WGraph(std::vector<Node<T>>                                                     v,
                       std::vector<std::pair<node_id_collection_type, node_id_collection_type>> dep = {})
@@ -72,6 +73,7 @@ namespace network_butcher
       }
     };
 
+
     template <class T>
     class WGraph<Content<T>> : public MWGraph<Content<T>>
     {
@@ -90,9 +92,10 @@ namespace network_butcher
       WGraph &
       operator=(WGraph const &) = default;
 
-      WGraph(WGraph &&) = default;
+      WGraph(WGraph &&) noexcept = default;
+
       WGraph &
-      operator=(WGraph &&) = default;
+      operator=(WGraph &&) noexcept = default;
 
       explicit WGraph(std::vector<Node<Content<T>>>                                            v,
                       std::vector<std::pair<node_id_collection_type, node_id_collection_type>> dep)

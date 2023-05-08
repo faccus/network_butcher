@@ -86,8 +86,14 @@ namespace network_butcher::io::IO_Manager
   void
   import_weights(graph_type &graph, const network_butcher::parameters::Parameters &params);
 
+
+  /// It will generate the Weight_Importer for the given graph
+  /// \param graph The graph
+  /// \param params The parameters
+  /// \return The Weight_Importer
   std::unique_ptr<Weight_Importer>
   generate_weight_importer(graph_type &graph, network_butcher::parameters::Parameters const &params);
+
 
   /// It will export the network partitions to multiple .onnx files
   /// \param params The parameters

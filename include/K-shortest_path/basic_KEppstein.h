@@ -81,12 +81,12 @@ namespace network_butcher::kfinder
     /// \param callback_fun A callback function called during the loop used to find the shortest paths
     /// \return The (implicit) shortest paths
     std::vector<implicit_path_info>
-    general_algo_eppstein(std::size_t                                  K,
-                          dijkstra_result_type const                  &dij_res,
-                          weights_collection_type const               &sidetrack_distances,
-                          H_g_collection                              &h_g,
-                          H_out_collection                            &h_out,
-                          callback_function_helper_ptr_eppstein const &callback_fun = nullptr) const;
+    general_algo_eppstein(std::size_t                              K,
+                          dijkstra_result_type const              &dij_res,
+                          weights_collection_type const           &sidetrack_distances,
+                          H_g_collection                          &h_g,
+                          H_out_collection                        &h_out,
+                          callback_function_helper_eppstein const &callback_fun = nullptr) const;
 
   public:
     /// Applies a K-shortest path algorithm to find the k-shortest paths on the given graph (from the first node to
@@ -130,6 +130,7 @@ namespace network_butcher::kfinder
     return res;
   }
 
+
   template <class Graph_type>
   weights_collection_type
   basic_KEppstein<Graph_type>::sidetrack_distances(const std::vector<weight_type> &distances_from_sink) const
@@ -149,6 +150,7 @@ namespace network_butcher::kfinder
 
     return res;
   }
+
 
   template <class Graph_type>
   h_edge_edges_type
@@ -185,6 +187,7 @@ namespace network_butcher::kfinder
 
     return edge_edges;
   }
+
 
   template <class Graph_type>
   edge_sequence
@@ -243,6 +246,7 @@ namespace network_butcher::kfinder
     return h_g_map[edge];
   }
 
+
   template <class Graph_type>
   std::vector<path_info>
   basic_KEppstein<Graph_type>::helper_eppstein(const dijkstra_result_type            &dij_res,
@@ -284,15 +288,15 @@ namespace network_butcher::kfinder
     return res;
   }
 
+
   template <class Graph_type>
   std::vector<implicit_path_info>
-  basic_KEppstein<Graph_type>::general_algo_eppstein(
-    std::size_t                                                   K,
-    const dijkstra_result_type                                   &dij_res,
-    const weights_collection_type                                &sidetrack_distances,
-    H_g_collection                                               &h_g,
-    H_out_collection                                             &h_out,
-    const basic_KEppstein::callback_function_helper_ptr_eppstein &callback_fun) const
+  basic_KEppstein<Graph_type>::general_algo_eppstein(std::size_t                              K,
+                                                     const dijkstra_result_type              &dij_res,
+                                                     const weights_collection_type           &sidetrack_distances,
+                                                     H_g_collection                          &h_g,
+                                                     H_out_collection                        &h_out,
+                                                     callback_function_helper_eppstein const &callback_fun) const
   {
     auto const &successors = dij_res.first;
 
@@ -346,7 +350,7 @@ namespace network_butcher::kfinder
 
         // "Helper" function that can be called if needed
         if (callback_fun != nullptr)
-          (*callback_fun)(h_g, h_out, sidetrack_distances, successors, e_edge.second);
+          callback_fun(h_g, h_out, sidetrack_distances, successors, e_edge.second);
 
         // Extract the first sidetrack edge, if it exists
         auto const f_res = extract_first_sidetrack_edge(e_edge.second, h_g);

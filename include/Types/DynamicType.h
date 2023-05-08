@@ -9,14 +9,9 @@
 #include <variant>
 #include <vector>
 
-namespace network_butcher
+namespace network_butcher::types
 {
-
-  namespace types
-  {
-    using DynamicType = std::variant<std::vector<long int>, std::vector<float>, std::vector<std::string>>;
-  } // namespace types
-
-} // namespace network_butcher
+  using DynamicType = std::variant<std::vector<long int>, std::vector<float>, std::vector<std::string>>;
+} // namespace network_butcher::types
 
 #endif // NETWORK_BUTCHER_DYNAMICTYPE_H

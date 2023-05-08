@@ -10,75 +10,70 @@
 
 #include "Type_info_traits.h"
 
-namespace network_butcher
+namespace network_butcher::types
 {
-
-  namespace types
+  /// Generic type contained in a onnx model (only type info, no values are actually stored)
+  class Type_info
   {
-    /// Generic type contained in a onnx model (only type info, no values are actually stored)
-    class Type_info
+  protected:
+    /// Name of the type
+    std::string name;
+
+    /// Is the value of this type given by the network?
+    bool t_initialized;
+
+    /// Is it constant?
+    bool constant;
+
+  public:
+    Type_info() = default;
+
+    Type_info(bool initialized, bool constant, std::string const &in_name = "")
+      : t_initialized(initialized)
+      , constant(constant)
+      , name(in_name)
+    {}
+
+
+    /// Get the name of the type
+    /// \return The name
+    [[nodiscard]] std::string
+    get_name() const
     {
-    protected:
-      /// Name of the type
-      std::string name;
-
-      /// Is the value of this type given by the network?
-      bool t_initialized;
-
-      /// Is it constant?
-      bool constant;
-
-    public:
-      Type_info() = default;
-
-      Type_info(bool initialized, bool constant, std::string in_name = "")
-        : t_initialized(initialized)
-        , constant(constant)
-        , name(in_name)
-      {}
+      return name;
+    }
 
 
-      /// Get the name of the type
-      /// \return The name
-      std::string
-      get_name() const
-      {
-        return name;
-      }
+    /// Get if the value of this type is given by the network
+    /// \return True if it has been already initialized
+    [[nodiscard]] bool
+    initialized() const
+    {
+      return t_initialized;
+    }
 
 
-      /// Get if the value of this type is given by the network
-      /// \return True if it has been already initialized
-      bool
-      initialized() const
-      {
-        return t_initialized;
-      }
+    /// Virtual method to compute the total memory of the type
+    /// \return Memory usage of the associated type
+    [[nodiscard]] virtual memory_type
+    compute_memory_usage() const = 0;
 
 
-      /// Virtual method to compute the total memory of the type
-      /// \return Memory usage of the associated type
-      virtual memory_type
-      compute_memory_usage() const = 0;
+    /// Basic getter for shape
+    /// \return The shape
+    [[nodiscard]] virtual std::vector<shape_type> const &
+    get_shape() const = 0;
 
 
-      /// Basic getter for shape
-      /// \return The shape
-      virtual std::vector<shape_type> const &
-      get_shape() const = 0;
+    /// Compute the number of elements in the tensor
+    /// \return The number of elements in the tensor
+    [[nodiscard]] virtual shape_type
+    compute_shape_volume() const = 0;
 
 
-      /// Compute the number of elements in the tensor
-      /// \return The number of elements in the tensor
-      virtual shape_type
-      compute_shape_volume() const = 0;
-
-
-      /// Default deconstructor
-      virtual ~Type_info() = default;
-    };
-  } // namespace types
-
-} // namespace network_butcher
+    /// Default deconstructor
+    virtual ~Type_info() = default;
+  };
+} // namespace network_butcher::types
 
 #endif // NETWORK_BUTCHER_TYPE_INFO_H

@@ -25,38 +25,38 @@ namespace network_butcher::kfinder
     /// \param sidetrack_distances The collection of the sidetrack distances for all the sidetrack edges
     /// \return H_out map
     [[nodiscard]] H_out_collection
-      construct_h_out(std::vector<node_id_type> const &successors,
-                      weights_collection_type const   &sidetrack_distances) const;
+    construct_h_out(std::vector<node_id_type> const &successors,
+                    weights_collection_type const   &sidetrack_distances) const;
 
 
-      /// It will produce the map associating every node to its corresponding H_g map
-      /// \param h_out The collection of h_outs
-      /// \param successors The successors list
-      /// \return The map associating every node to its corresponding H_g map
-      [[nodiscard]] H_g_collection
-      construct_h_g(H_out_collection const &h_out, std::vector<node_id_type> const &successors) const;
+    /// It will produce the map associating every node to its corresponding H_g map
+    /// \param h_out The collection of h_outs
+    /// \param successors The successors list
+    /// \return The map associating every node to its corresponding H_g map
+    [[nodiscard]] H_g_collection
+    construct_h_g(H_out_collection const &h_out, std::vector<node_id_type> const &successors) const;
 
 
-      /// The basic function for the Eppstein algorithm
-      /// \param weights The weights of the edges
-      /// \param K The number of shortest paths
-      /// \param dij_res The result of dijkstra
-      /// \return The (implicit) k shortest paths
-      [[nodiscard]] std::vector<implicit_path_info>
-      basic_eppstein(std::size_t K, dijkstra_result_type const &dij_res) const;
+    /// The basic function for the Eppstein algorithm
+    /// \param weights The weights of the edges
+    /// \param K The number of shortest paths
+    /// \param dij_res The result of dijkstra
+    /// \return The (implicit) k shortest paths
+    [[nodiscard]] std::vector<implicit_path_info>
+    basic_eppstein(std::size_t K, dijkstra_result_type const &dij_res) const;
 
-    public:
-      /// Applies the Eppstein algorithm to find the k-shortest paths on the given
-      /// graph (from the first node to the last one)
-      /// \param K The number of shortest paths to find
-      /// \return The shortest paths
-      [[nodiscard]] std::vector<path_info>
-      compute(std::size_t K) const override;
+  public:
+    /// Applies the Eppstein algorithm to find the k-shortest paths on the given
+    /// graph (from the first node to the last one)
+    /// \param K The number of shortest paths to find
+    /// \return The shortest paths
+    [[nodiscard]] std::vector<path_info>
+    compute(std::size_t K) const override;
 
-      explicit KFinder_Eppstein(Graph_type const &g)
-        : base(g){};
+    explicit KFinder_Eppstein(Graph_type const &g)
+      : base(g){};
 
-      explicit KFinder_Eppstein(Weighted_Graph<Graph_type> const &g)
+    explicit KFinder_Eppstein(Weighted_Graph<Graph_type> const &g)
         : base(g){};
 
       virtual ~KFinder_Eppstein() = default;
@@ -96,6 +96,7 @@ namespace network_butcher::kfinder
 
       return h_out;
     }
+
 
     template <class Graph_type>
     H_g_collection
@@ -179,6 +180,7 @@ namespace network_butcher::kfinder
       return h_g;
     }
 
+
     template <class Graph_type>
     std::vector<implicit_path_info>
     KFinder_Eppstein<Graph_type>::basic_eppstein(std::size_t K, const dijkstra_result_type &dij_res) const
@@ -196,6 +198,7 @@ namespace network_butcher::kfinder
 
       return base::general_algo_eppstein(K, dij_res, sidetrack_distances_res, h_g, h_out);
     }
+
 
     template <class Graph_type>
     std::vector<path_info>
@@ -216,7 +219,6 @@ namespace network_butcher::kfinder
 
       return base::helper_eppstein(dij_res, epp_res);
     }
-
 } // namespace network_butcher::kfinder
 
 

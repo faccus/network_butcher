@@ -61,8 +61,6 @@ namespace network_butcher::io::IO_Manager
     // Prepare for the import
     auto const basic_data = prepare_import_from_onnx(onnx_graph);
 
-    std::size_t total_size = onnx_nodes.size();
-
     std::vector<node_type> nodes;
     nodes.reserve(onnx_nodes.size() + 2);
 
@@ -88,7 +86,6 @@ namespace network_butcher::io::IO_Manager
     if (add_input_padding)
       {
         io_collection_type<type_info_pointer> tt;
-        // tt["__fake__input__"] = basic_data.pointer_input;
 
         for (auto const &in : graph_inputs)
           tt.emplace(in->get_name(), in);
@@ -105,7 +102,6 @@ namespace network_butcher::io::IO_Manager
     if (add_output_padding)
       {
         io_collection_type<type_info_pointer> tt;
-        // tt["__fake__output__"] = basic_data.pointer_output;
 
         for (auto const &out : graph_outputs)
           tt.emplace(out->get_name(), out);

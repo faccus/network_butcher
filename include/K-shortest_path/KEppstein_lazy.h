@@ -23,7 +23,7 @@ namespace network_butcher::kfinder
     /// \param node The node
     /// \return A pair: a boolean that is true if the relevant H_g is found and the relevant iterator to the
     /// relevant H_g
-    std::pair<bool, H_g_collection::iterator>
+    std::optional<H_g_collection::iterator>
     find_h_g_in_map(H_g_collection &h_g, node_id_type node) const;
 
 
@@ -81,20 +81,25 @@ namespace network_butcher::kfinder
 
 
   template <class Graph_type>
-  std::pair<bool, H_g_collection::iterator>
+  std::optional<H_g_collection::iterator>
   KFinder_Lazy_Eppstein<Graph_type>::find_h_g_in_map(H_g_collection &h_g, node_id_type node) const
   {
-      auto it = h_g.find(node);
-      return {it != h_g.end(), it};
+      auto                                    it  = h_g.find(node);
+      std::optional<H_g_collection::iterator> res = std::nullopt;
+
+      if (it != h_g.end())
+        res = it;
+
+      return res;
   }
 
   template <class Graph_type>
-    H_out_collection::iterator
-    KFinder_Lazy_Eppstein<Graph_type>::construct_partial_h_out(H_out_collection                &h_out,
-                                                               const weights_collection_type   &sidetrack_distances,
-                                                               const std::vector<node_id_type> &successors,
-                                                               node_id_type                     node) const
-    {
+  H_out_collection::iterator
+  KFinder_Lazy_Eppstein<Graph_type>::construct_partial_h_out(H_out_collection                &h_out,
+                                                             const weights_collection_type   &sidetrack_distances,
+                                                             const std::vector<node_id_type> &successors,
+                                                             node_id_type                     node) const
+  {
       // If we can find the required H_out, return it
       {
         auto it = h_out.find(node);
@@ -132,66 +137,59 @@ namespace network_butcher::kfinder
           }
 
       return it.first;
-    }
+  }
 
-    template <class Graph_type>
-    H_g_collection::iterator
-    KFinder_Lazy_Eppstein<Graph_type>::construct_partial_h_g(H_g_collection                  &h_g,
-                                                             H_out_collection                &h_out,
-                                                             const weights_collection_type   &sidetrack_distances,
-                                                             const std::vector<node_id_type> &successors,
-                                                             node_id_type                     node) const
-    {
+
+  template <class Graph_type>
+  H_g_collection::iterator
+  KFinder_Lazy_Eppstein<Graph_type>::construct_partial_h_g(H_g_collection                  &h_g,
+                                                           H_out_collection                &h_out,
+                                                           const weights_collection_type   &sidetrack_distances,
+                                                           const std::vector<node_id_type> &successors,
+                                                           node_id_type                     node) const
+  {
       // If H_g has been already computed, return it
-      {
-        auto pair_iterator = find_h_g_in_map(h_g, node);
-        if (pair_iterator.first)
-          return pair_iterator.second;
-      }
+      auto iterator = find_h_g_in_map(h_g, node);
+      if (iterator)
+        return iterator.value();
 
-      auto const &graph = base::graph;
+      auto const              &graph = base::graph;
+      H_g_collection::iterator inserted_h_g;
 
       // If node is the last node in the graph
       if (node == graph.size() - 1)
         {
           // Add a new H_g
-          auto inserted_h_g = h_g.emplace(node, H_g()).first;
-
-          // Since node is the last node in the graph, H_out was never constructed. So we have to construct it and
-          // add it to the H_g
-          auto to_insert_h_out = construct_partial_h_out(h_out, sidetrack_distances, successors, node);
-
-          if (!to_insert_h_out->second->heap.children.empty())
-            inserted_h_g->second.children.insert(to_insert_h_out->second);
-
-          return inserted_h_g;
+          inserted_h_g = h_g.emplace(node, H_g()).first;
         }
-
-      // Construct the H_g of the successor of node in the shortest path
-      auto previous_inserted_h_g = construct_partial_h_g(h_g, h_out, sidetrack_distances, successors, successors[node]);
-
-      // Prepare a new H_g
-      auto inserted_h_g             = h_g.emplace(node, previous_inserted_h_g->second);
-      inserted_h_g.first->second.id = node;
-
-      // Construct the associated H_out
-      auto current_node_h_out = construct_partial_h_out(h_out, sidetrack_distances, successors, node);
-
-
-      if (!current_node_h_out->second->heap.children.empty())
+      else
         {
-          inserted_h_g.first->second.children.insert(current_node_h_out->second);
+          // Construct the H_g of the successor of node in the shortest path
+          auto previous_inserted_h_g =
+            construct_partial_h_g(h_g, h_out, sidetrack_distances, successors, successors[node]);
+
+          // Prepare a new H_g
+          inserted_h_g            = h_g.emplace(node, previous_inserted_h_g->second).first;
+          inserted_h_g->second.id = node;
         }
 
-      return inserted_h_g.first;
-    }
+      // Construct and/or retrieve the associated H_out
+      auto to_insert_h_out = construct_partial_h_out(h_out, sidetrack_distances, successors, node)->second;
 
-    template <class Graph_type>
-    std::vector<implicit_path_info>
-    KFinder_Lazy_Eppstein<Graph_type>::basic_lazy_eppstein(std::size_t K, const dijkstra_result_type &dij_res) const
-    {
+      if (!to_insert_h_out->heap.children.empty())
+        {
+          inserted_h_g->second.children.insert(to_insert_h_out);
+        }
+
+      return inserted_h_g;
+  }
+
+
+  template <class Graph_type>
+  std::vector<implicit_path_info>
+  KFinder_Lazy_Eppstein<Graph_type>::basic_lazy_eppstein(std::size_t K, const dijkstra_result_type &dij_res) const
+  {
       auto const sidetrack_distances_res = base::sidetrack_distances(dij_res.second); // O(E)
-
 
       H_out_collection h_out;
       H_g_collection   h_g;
@@ -202,28 +200,23 @@ namespace network_butcher::kfinder
       construct_partial_h_g(h_g, h_out, sidetrack_distances_res, successors, 0);
 
       // Prepare the callback function to be called in the Eppstein algorithm
-      typename base::callback_function_helper_eppstein fun = [this](H_g_collection                &h_g_,
-                                                                    H_out_collection              &h_out_,
-                                                                    weights_collection_type const &sidetrack_distances_,
-                                                                    std::vector<node_id_type> const &successors_,
-                                                                    node_id_type                     node_) {
+      auto fun = [this](H_g_collection                  &h_g_,
+                        H_out_collection                &h_out_,
+                        weights_collection_type const   &sidetrack_distances_,
+                        std::vector<node_id_type> const &successors_,
+                        node_id_type                     node_) {
         construct_partial_h_g(h_g_, h_out_, sidetrack_distances_, successors_, node_);
       };
 
       // Execute the Eppstein algorithm
-      return base::general_algo_eppstein(K,
-                                         dij_res,
-                                         sidetrack_distances_res,
-                                         h_g,
-                                         h_out,
-                                         typename base::callback_function_helper_ptr_eppstein(
-                                           new typename base::callback_function_helper_eppstein(std::move(fun))));
-    }
+      return base::general_algo_eppstein(K, dij_res, sidetrack_distances_res, h_g, h_out, fun);
+  }
 
-    template <class Graph_type>
-    std::vector<path_info>
-    KFinder_Lazy_Eppstein<Graph_type>::compute(std::size_t K) const
-    {
+
+  template <class Graph_type>
+  std::vector<path_info>
+  KFinder_Lazy_Eppstein<Graph_type>::compute(std::size_t K) const
+  {
       auto const &graph = base::graph;
 
       if (graph.empty() || K == 0)

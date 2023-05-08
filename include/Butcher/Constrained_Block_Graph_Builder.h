@@ -73,16 +73,19 @@ namespace network_butcher
         }
     };
 
+
     /// Call this function if the builder should apply the transmission weights during the block graph construction
     /// \param in_transmission_weights The transmission weights
     void
     construct_transmission_weights(
       std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> const &in_transmission_weights);
 
+
     /// Call this function if the builder should apply the weights from the original graph during the block graph
     /// construction
     void
     construct_operation_weights();
+
 
     /// Call this function if the builder should apply the transmission weights and the weights from the original graph
     /// during the block graph construction \param in_transmission_weights The transmission weights
@@ -90,15 +93,18 @@ namespace network_butcher
     construct_weights(
       std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> const &in_transmission_weights);
 
+
     /// Add to the collection of constraints the input constraint
     /// \param constraint A r-value reference to the new constraint
     void
     add_constraint(std::unique_ptr<constraints::Extra_Constraint> &&constraint);
 
+
     /// The basic construct method. It will produce the block graph using the specified options.
     /// \return The resulting block graph
     block_graph_type
     construct_block_graph() override;
+
 
     ~Constrained_Block_Graph_Builder() override = default;
   };

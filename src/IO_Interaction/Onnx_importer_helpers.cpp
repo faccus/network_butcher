@@ -200,6 +200,7 @@ namespace network_butcher::io
     return res;
   }
 
+
   Onnx_importer_helpers::prepared_import_onnx
   Onnx_importer_helpers::prepare_import_from_onnx(const onnx::GraphProto &onnx_graph)
   {
@@ -216,6 +217,7 @@ namespace network_butcher::io
     res.pointer_input  = std::make_shared<network_butcher::types::Dense_tensor>(0, std::vector<shape_type>{});
     return res;
   }
+
 
   std::tuple<node_type, std::vector<type_info_pointer>, std::vector<type_info_pointer>>
   Onnx_importer_helpers::process_node(const onnx::NodeProto                             &node,

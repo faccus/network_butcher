@@ -30,7 +30,6 @@ namespace network_butcher::io
     std::string const dep_import = Utilities::combine_path(std::string(NN_Source_Path), "dep");
 
     inserter(dep_import);
-    // inserter(Utilities::combine_path(dep_import, "onnx-tool"));
 
 #  if PLATFORM_SPECIFIC_CONFIG
     std::string const local_lib_path = std::string(PYTHON_LOCAL_LIB_PATH);
