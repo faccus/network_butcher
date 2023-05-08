@@ -310,8 +310,8 @@ namespace network_butcher::kfinder
     edge_edges_type h_out_edge_edges;
     edge_edges_type h_g_edge_edges;
 
-    // Collection of "final" implicit paths                 Q;
-    std::priority_queue<implicit_path_info, std::deque<implicit_path_info>, std::greater<>> Q;
+    // Collection of "final" implicit paths
+    std::set<implicit_path_info> Q;
 
     implicit_path_info first_path;
     auto const        &first_side_track = first_side_track_res.value();
@@ -319,25 +319,18 @@ namespace network_butcher::kfinder
     first_path.length                   = first_side_track.delta_weight + dij_res.second.front();
 
     // First deviatory path
-    Q.push(std::move(first_path));
+    Q.insert(std::move(first_path));
 
-    auto const print_missing_sidetrack_distance = [](edge_type const &e) {
+    auto print_missing_sidetrack_distance = [](edge_type const &e) {
       return "Error: cannot find proper sidetrack distance for edge (" + std::to_string(e.first) + ", " +
              std::to_string(e.second) + ")";
-    };
-
-    // https://stackoverflow.com/a/20149745
-    auto const ugly_priority_queue_move_pop = [](auto &Q) {
-      auto moved = std::move(const_cast<implicit_path_info &>(Q.top()));
-      Q.pop();
-
-      return moved;
     };
 
     // Loop through Q until either Q is empty or the number of paths found is K
     for (int k = 2; k <= K && !Q.empty(); ++k)
       {
-        auto SK = ugly_priority_queue_move_pop(Q);
+        auto SK = *Q.begin();
+        Q.erase(Q.begin());
         res.push_back(SK);
 
         auto const  e      = SK.sidetracks.back();
@@ -365,7 +358,7 @@ namespace network_butcher::kfinder
             auto mod_sk = SK;
             mod_sk.sidetracks.push_back(f.edge);
             mod_sk.length += f.delta_weight;
-            Q.push(std::move(mod_sk));
+            Q.insert(std::move(mod_sk));
           }
 
         node_id_type h_g_search;
@@ -398,7 +391,7 @@ namespace network_butcher::kfinder
                 mod_sk.sidetracks.push_back(f);
                 mod_sk.length += (f_sidetrack_weight_it->second - e_sidetrack_edge_it->second);
 
-                Q.push(std::move(mod_sk));
+                Q.insert(std::move(mod_sk));
               }
           }
       }
