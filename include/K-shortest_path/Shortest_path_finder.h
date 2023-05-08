@@ -12,197 +12,193 @@
 #include <vector>
 
 
-namespace network_butcher::kfinder
+namespace network_butcher::kfinder::Shortest_path_finder
 {
-  /// A simple collection of functions that perform the dijkstra algorithm on the given graph
-  namespace Shortest_path_finder
+  namespace utilities
   {
-    namespace utilities
+    /// Given a node_id, it will produce it's children in the current graph
+    /// \param graph The graph
+    /// \param node_id The node id
+    /// \param reversed If true, every edge is considered reversed
+    /// \return The children of the given node
+    template <class Graph_type>
+    [[nodiscard]] std::set<typename Weighted_Graph<Graph_type>::Node_Id_Type> const &
+    extract_children(Weighted_Graph<Graph_type> const                 &graph,
+                     typename Weighted_Graph<Graph_type>::Node_Id_Type node_id,
+                     bool const                                       &reversed)
     {
-      /// Given a node_id, it will produce it's children in the current graph
-      /// \param graph The graph
-      /// \param node_id The node id
-      /// \param reversed If true, every edge is considered reversed
-      /// \return The children of the given node
-      template <class Graph_type>
-      [[nodiscard]] std::set<typename Weighted_Graph<Graph_type>::Node_Id_Type> const &
-      extract_children(Weighted_Graph<Graph_type> const                 &graph,
-                       typename Weighted_Graph<Graph_type>::Node_Id_Type node_id,
-                       bool const                                       &reversed)
+      return reversed ? graph.get_input_nodes(node_id) : graph.get_output_nodes(node_id);
+    }
+
+
+    /// Given the tail and the head of the edge, it will produce the associated weight
+    /// \param graph The graph
+    /// \param tail The tail node id
+    /// \param head The head node id
+    /// \param reversed If true, every edge is considered reversed
+    /// \return The corresponding weight
+    template <class Graph_type>
+    weight_type
+    get_weight(Weighted_Graph<Graph_type> const                 &graph,
+               typename Weighted_Graph<Graph_type>::Node_Id_Type tail,
+               typename Weighted_Graph<Graph_type>::Node_Id_Type head,
+               bool const                                       &reversed)
+    {
+      edge_type edge = reversed ? std::make_pair(head, tail) : std::make_pair(tail, head);
+
+      return graph.get_weight(edge);
+    }
+  } // namespace utilities
+
+
+  /// Executes dijkstra algorithm to compute the shortest paths from the root to every node of the input graph
+  /// \param graph The graph
+  /// \param root The starting vertex
+  /// \param reversed Reverses the edge directions
+  /// \return A pair: the first element is the collection of the successors (along the shortest path) of the different
+  /// nodes while the second element is the shortest path length from the root to every node
+  template <class Graph_type>
+  [[nodiscard]] dijkstra_result_type
+  dijkstra(Weighted_Graph<Graph_type> const                 &graph,
+           typename Weighted_Graph<Graph_type>::Node_Id_Type root     = 0,
+           bool                                              reversed = false) // time: ((N+E)log(N)), space: O(N)
+  {
+    if (graph.empty())
       {
-        return reversed ? graph.get_input_nodes(node_id) : graph.get_output_nodes(node_id);
+        return dijkstra_result_type{};
       }
 
-      /// Given the tail and the head of the edge, it will produce the associated weight
-      /// \param graph The graph
-      /// \param tail The tail node id
-      /// \param head The head node id
-      /// \param reversed If true, every edge is considered reversed
-      /// \return The corresponding weight
-      template <class Graph_type>
-      weight_type
-      get_weight(Weighted_Graph<Graph_type> const                 &graph,
-                 typename Weighted_Graph<Graph_type>::Node_Id_Type tail,
-                 typename Weighted_Graph<Graph_type>::Node_Id_Type head,
-                 bool const                                       &reversed)
+    std::vector<weight_type> total_distance(graph.size(), std::numeric_limits<double>::max());
+    total_distance[root] = 0;
+
+    std::vector<node_id_type>        predecessors(graph.size(), root);
+    std::set<dijkstra_helper_struct> to_visit{{0, root}};
+
+    while (!to_visit.empty())                  // O(N)
       {
-        edge_type edge = reversed ? std::make_pair(head, tail) : std::make_pair(tail, head);
+        auto current_node = *to_visit.begin(); // O(1)
 
-        return graph.get_weight(edge);
+        auto const &start_distance = total_distance[current_node.id];
+        if (start_distance == std::numeric_limits<weight_type>::max())
+          {
+            throw std::logic_error("Dijkstra error: the node current distance is +inf");
+          }
+
+        to_visit.erase(to_visit.begin()); // O(log(N))
+
+        auto const &children = utilities::extract_children(graph, current_node.id, reversed);
+        if (!children.empty())
+          {
+            for (auto const &head_node : children)
+              {
+                auto      &base_distance = total_distance[head_node]; // O(1)
+                auto const weight        = utilities::get_weight(graph, current_node.id, head_node, reversed);
+
+                if (weight < 0)
+                  {
+                    std::stringstream error_msg;
+                    error_msg << "Error: either the weight (";
+
+                    if (!reversed)
+                      error_msg << current_node.id << ", " << head_node;
+                    else
+                      error_msg << head_node << ", " << current_node.id;
+
+                    error_msg << ")"
+                              << "is missing or it's negative" << std::endl;
+
+                    throw std::logic_error(error_msg.str());
+                  }
+
+                auto const candidate_distance = start_distance + weight; // O(1)
+                if (candidate_distance < base_distance)                  // O(1)
+                  {
+                    auto it = to_visit.find({base_distance, head_node});
+
+                    if (it != to_visit.end())
+                      to_visit.erase(it);                             // O(log(N))
+
+                    predecessors[head_node] = current_node.id;        // O(1)
+                    base_distance           = candidate_distance;     // O(1)
+                    to_visit.insert({candidate_distance, head_node}); // O(log(N))
+                  }
+              }
+          }
       }
-    } // namespace utilities
 
-    /// Executes dijkstra algorithm to compute the shortest paths from the root
-    /// to evert node for the given graph
-    /// \param graph The graph
-    /// \param root The starting vertex
-    /// \param reversed Reverses the edge directions
-    /// \return A pair: the first element is the collection of the successors (along the shortest path) of the different
-    /// nodes while the second element is the shortest path length from the root to every node
-    template <class Graph_type>
-    [[nodiscard]] dijkstra_result_type
-    dijkstra(Weighted_Graph<Graph_type> const &graph,
-             typename Weighted_Graph<Graph_type>::Node_Id_Type root     = 0,
-             bool                                              reversed = false) // time: ((N+E)log(N)), space: O(N)
-    {
-      if (graph.empty())
-        {
-          return dijkstra_result_type{};
-        }
-
-      std::vector<weight_type> total_distance(graph.size(), std::numeric_limits<double>::max());
-      total_distance[root] = 0;
-
-      std::vector<node_id_type>        predecessors(graph.size(), root);
-      std::set<dijkstra_helper_struct> to_visit{{0, root}};
-
-      while (!to_visit.empty()) // O(N)
-        {
-          auto current_node = *to_visit.begin(); // O(1)
-
-          auto const &start_distance = total_distance[current_node.id];
-          if (start_distance == std::numeric_limits<weight_type>::max())
-            {
-              throw std::logic_error("Dijkstra error: the node current distance is +inf");
-            }
-
-          to_visit.erase(to_visit.begin()); // O(log(N))
-
-          auto const &children = utilities::extract_children(graph, current_node.id, reversed);
-          if (!children.empty())
-            {
-              for (auto const &head_node : children)
-                {
-                  auto      &base_distance = total_distance[head_node]; // O(1)
-                  auto const weight        = utilities::get_weight(graph, current_node.id, head_node, reversed);
-
-                  if (weight < 0)
-                    {
-                      std::stringstream error_msg;
-                      error_msg << "Error: either the weight (";
-
-                      if (!reversed)
-                        error_msg << current_node.id << ", " << head_node;
-                      else
-                        error_msg << head_node << ", " << current_node.id;
-
-                      error_msg << ")"
-                                << "is missing or it's negative" << std::endl;
-
-                      throw std::logic_error(error_msg.str());
-                    }
-
-                  auto const candidate_distance = start_distance + weight; // O(1)
-                  if (candidate_distance < base_distance)                  // O(1)
-                    {
-                      auto it = to_visit.find({base_distance, head_node});
-
-                      if (it != to_visit.end())
-                        to_visit.erase(it); // O(log(N))
-
-                      predecessors[head_node] = current_node.id;        // O(1)
-                      base_distance           = candidate_distance;     // O(1)
-                      to_visit.insert({candidate_distance, head_node}); // O(log(N))
-                    }
-                }
-            }
-        }
-
-      return {predecessors, total_distance};
-    }
+    return {predecessors, total_distance};
+  }
 
 
-    /// Executes dijkstra algorithm to compute the shortest paths from the root
-    /// to evert node for the given graph
-    /// \param graph The graph
-    /// \param root The starting vertex
-    /// \param reversed Reverses the edge directions
-    /// \return A pair: the first element is the collection of the successors (along the shortest path) of the different
-    /// nodes while the second element is the shortest path length from the root to every node
-    template <class Graph_type>
-    [[nodiscard]] dijkstra_result_type
-    dijkstra(Graph_type const &graph,
-             typename Weighted_Graph<Graph_type>::Node_Id_Type root     = 0,
-             bool                                              reversed = false) // time: ((N+E)log(N)), space: O(N)
-    {
-      return dijkstra(Weighted_Graph(graph), root, reversed);
-    }
+  /// Executes dijkstra algorithm to compute the shortest paths from the root to every node of the input graph
+  /// \param graph The graph
+  /// \param root The starting vertex
+  /// \param reversed Reverses the edge directions
+  /// \return A pair: the first element is the collection of the successors (along the shortest path) of the different
+  /// nodes while the second element is the shortest path length from the root to every node
+  template <class Graph_type>
+  [[nodiscard]] dijkstra_result_type
+  dijkstra(Graph_type const                                 &graph,
+           typename Weighted_Graph<Graph_type>::Node_Id_Type root     = 0,
+           bool                                              reversed = false) // time: ((N+E)log(N)), space: O(N)
+  {
+    return dijkstra(Weighted_Graph(graph), root, reversed);
+  }
 
 
-    /// Computes through dijkstra the shortest path single destination tree for the given graph
-    /// \param graph The graph
-    /// \return A pair: the first element is the collection of the successors (along the shortest path) of the different
-    /// nodes while the second element is the collection of the shortest path lengths from every node to the sink
-    template <class Graph_type>
-    [[nodiscard]] dijkstra_result_type
-    shortest_path_tree(Graph_type const &graph)
-    {
-      return dijkstra(graph, graph.size() - 1, true);
-    } // time: ((N+E)log(N)), space: O(N)
+  /// This function computes the shortest path single destination tree for the given graph using the dijkstra algorithm
+  /// \param graph The graph
+  /// \return A pair: the first element is the collection of the successors (along the shortest path) of the different
+  /// nodes while the second element is the collection of the shortest path lengths from every node to the sink
+  template <class Graph_type>
+  [[nodiscard]] dijkstra_result_type
+  shortest_path_tree(Graph_type const &graph)
+  {
+    return dijkstra(graph, graph.size() - 1, true);
+  } // time: ((N+E)log(N)), space: O(N)
 
 
-    /// Given the result of the dijkstra algorithm, it will return the shortest path from the root to the final node
-    /// \param graph The graph
-    /// \param dij_res The result of the dijkstra algorithm
-    /// \param root The starting node
-    /// \return The shortest path
-    template <class Graph_type>
-    path_info
-    shortest_path_finder(Weighted_Graph<Graph_type> const &graph,
-                         dijkstra_result_type const &dij_res,
-                         typename Weighted_Graph<Graph_type>::Node_Id_Type                     root)
-    {
-      path_info                  info;
-      info.length = dij_res.second[root];
-      info.path.reserve(graph.size());
+  /// Given the result of the dijkstra algorithm, it will return the shortest path from the root to the final node
+  /// \param graph The graph
+  /// \param dij_res The result of the dijkstra algorithm
+  /// \param root The starting node
+  /// \return The shortest path
+  template <class Graph_type>
+  path_info
+  shortest_path_finder(Weighted_Graph<Graph_type> const                 &graph,
+                       dijkstra_result_type const                       &dij_res,
+                       typename Weighted_Graph<Graph_type>::Node_Id_Type root)
+  {
+    path_info info;
+    info.length = dij_res.second[root];
+    info.path.reserve(graph.size());
 
-      auto ind = root;
-      while (ind != (graph.size() - 1))
-        {
-          info.path.push_back(ind);
-          ind = dij_res.first[ind];
-        }
-      info.path.push_back(ind);
+    auto ind = root;
+    while (ind != (graph.size() - 1))
+      {
+        info.path.push_back(ind);
+        ind = dij_res.first[ind];
+      }
+    info.path.push_back(ind);
 
-      return info;
-    }
+    return info;
+  }
 
 
-    /// Given the result of the dijkstra algorithm, it will return the shortest path from the root to the final node
-    /// \param graph The graph
-    /// \param dij_res The result of the dijkstra algorithm
-    /// \param root The starting node
-    /// \return The shortest path
-    template <class Graph_type>
-    path_info
-    shortest_path_finder(Graph_type  const &graph,
-                         dijkstra_result_type const &dij_res,
-                         typename Weighted_Graph<Graph_type>::Node_Id_Type                     root)
-    {
-      return shortest_path_finder(Weighted_Graph(graph), dij_res, root);
-    }
-  }; // namespace Shortest_path_finder
-}
+  /// Given the result of the dijkstra algorithm, it will return the shortest path from the root to the final node
+  /// \param graph The graph
+  /// \param dij_res The result of the dijkstra algorithm
+  /// \param root The starting node
+  /// \return The shortest path
+  template <class Graph_type>
+  path_info
+  shortest_path_finder(Graph_type const                                 &graph,
+                       dijkstra_result_type const                       &dij_res,
+                       typename Weighted_Graph<Graph_type>::Node_Id_Type root)
+  {
+    return shortest_path_finder(Weighted_Graph(graph), dij_res, root);
+  }
+}; // namespace network_butcher::kfinder::Shortest_path_finder
 
 
 #endif // NETWORK_BUTCHER_KEPPSTEIN_H

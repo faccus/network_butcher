@@ -425,7 +425,7 @@ namespace network_butcher
             in.insert(in.end(), new_dependencies.size() - 1 - num_devices + k);
         }
 
-        return std::move(new_dependencies);
+        return new_dependencies;
       };
 
     // Get the linearized graph

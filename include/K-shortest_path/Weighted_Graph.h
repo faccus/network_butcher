@@ -27,20 +27,20 @@ namespace network_butcher
       using Graph_Type   = Base_Weighted_Graph;
 
 
-      weight_type
+      [[nodiscard]] weight_type
       get_weight(Edge_Type const &edge) const;
 
-      std::size_t
+      [[nodiscard]] std::size_t
       size() const;
 
-      bool
+      [[nodiscard]] bool
       empty() const;
 
 
-      std::set<Node_Id_Type> const &
+      [[nodiscard]] std::set<Node_Id_Type> const &
       get_input_nodes(Node_Id_Type const &id) const;
 
-      std::set<Node_Id_Type> const &
+      [[nodiscard]] std::set<Node_Id_Type> const &
       get_output_nodes(Node_Id_Type const &id) const;
 
 

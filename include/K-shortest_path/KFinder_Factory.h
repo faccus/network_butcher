@@ -66,7 +66,7 @@ namespace network_butcher::kfinder
       return Factory::Instance().registered();
     }
 
-    bool
+    [[nodiscard]] bool
     registered(std::string const &name) const
     {
       return Factory::Instance().registered(name);

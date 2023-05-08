@@ -81,14 +81,14 @@ namespace network_butcher::kfinder
 
 
   template <class Graph_type>
-    std::pair<bool, H_g_collection::iterator>
-    KFinder_Lazy_Eppstein<Graph_type>::find_h_g_in_map(H_g_collection &h_g, node_id_type node) const
-    {
+  std::pair<bool, H_g_collection::iterator>
+  KFinder_Lazy_Eppstein<Graph_type>::find_h_g_in_map(H_g_collection &h_g, node_id_type node) const
+  {
       auto it = h_g.find(node);
       return {it != h_g.end(), it};
-    }
+  }
 
-    template <class Graph_type>
+  template <class Graph_type>
     H_out_collection::iterator
     KFinder_Lazy_Eppstein<Graph_type>::construct_partial_h_out(H_out_collection                &h_out,
                                                                const weights_collection_type   &sidetrack_distances,

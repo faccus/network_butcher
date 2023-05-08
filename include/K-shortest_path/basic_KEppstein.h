@@ -14,6 +14,7 @@
 
 namespace network_butcher::kfinder
 {
+  /// A (pure virtual) class that provides the common methods that are used by the different Eppstein algorithms
   template <typename Graph_type>
   class basic_KEppstein : public KFinder<Graph_type>
   {
@@ -44,7 +45,7 @@ namespace network_butcher::kfinder
 
     /// It will return edge_edges with the parent-child relationships in h_out
     /// \param h_out H_out of a given node
-    /// \return The map of childrens for a given edge in h_out
+    /// \return The map of children for a given edge in h_out
     [[nodiscard]] h_edge_edges_type
     get_internal_edges(H_out_pointer const &h_out) const;
 
@@ -71,21 +72,21 @@ namespace network_butcher::kfinder
     helper_eppstein(dijkstra_result_type const &dij_res, std::vector<implicit_path_info> const &epp_res) const;
 
 
-    /// The "general" structure of the Eppstein algorithms. It will construct the  shortest paths
+    /// The "general" structure of the Eppstein algorithms. It will construct the shortest paths
     /// \param K The number of shortest paths
     /// \param dij_res The result of the dijkstra algorithm
-    /// \param sidetrack_distances_res The sidetrack distances of every edge
+    /// \param sidetrack_distances The sidetrack distances of every edge
     /// \param h_g The h_g map
     /// \param h_out The h_out map
-    /// \param callback_fun_ptr A callback function called during the loop used to find the shortest paths
+    /// \param callback_fun A callback function called during the loop used to find the shortest paths
     /// \return The (implicit) shortest paths
     std::vector<implicit_path_info>
     general_algo_eppstein(std::size_t                                  K,
                           dijkstra_result_type const                  &dij_res,
-                          weights_collection_type const               &sidetrack_distances_res,
+                          weights_collection_type const               &sidetrack_distances,
                           H_g_collection                              &h_g,
                           H_out_collection                            &h_out,
-                          callback_function_helper_ptr_eppstein const &callback_fun_ptr = nullptr) const;
+                          callback_function_helper_ptr_eppstein const &callback_fun = nullptr) const;
 
   public:
     /// Applies a K-shortest path algorithm to find the k-shortest paths on the given graph (from the first node to
@@ -165,9 +166,9 @@ namespace network_butcher::kfinder
     //             |
     //             1
     //           /   \
-      //          2     3
+    //          2     3
     //         / \   / \
-      //        4  5  6   7
+    //        4   5 6   7
     for (auto it = h_out->heap.children.cbegin(); it != h_out->heap.children.cend(); ++it, ++j)
       {
         previous_steps.push_back(it);
@@ -192,12 +193,11 @@ namespace network_butcher::kfinder
                                                 edge_edges_type    &h_out_edge_edges,
                                                 const edge_pointer &edge) const
   {
-    {
-      auto const tmp_it = h_g_edge_edges.find(h_g.id);
+    auto const tmp_it = h_g_edge_edges.find(h_g.id);
 
-      if (tmp_it != h_g_edge_edges.cend())
-        return (tmp_it->second)[edge];
-    }
+    if (tmp_it != h_g_edge_edges.cend())
+      return (tmp_it->second)[edge];
+
 
     auto                                            &h_g_map = h_g_edge_edges[h_g.id];
     std::size_t                                      j       = 0;
@@ -289,10 +289,10 @@ namespace network_butcher::kfinder
   basic_KEppstein<Graph_type>::general_algo_eppstein(
     std::size_t                                                   K,
     const dijkstra_result_type                                   &dij_res,
-    const weights_collection_type                                &sidetrack_distances_res,
+    const weights_collection_type                                &sidetrack_distances,
     H_g_collection                                               &h_g,
     H_out_collection                                             &h_out,
-    const basic_KEppstein::callback_function_helper_ptr_eppstein &callback_fun_ptr) const
+    const basic_KEppstein::callback_function_helper_ptr_eppstein &callback_fun) const
   {
     auto const &successors = dij_res.first;
 
@@ -310,8 +310,8 @@ namespace network_butcher::kfinder
     edge_edges_type h_out_edge_edges;
     edge_edges_type h_g_edge_edges;
 
-    // Collection of "final" implicit paths
-    std::set<implicit_path_info> Q;
+    // Collection of "final" implicit paths                 Q;
+    std::priority_queue<implicit_path_info, std::deque<implicit_path_info>, std::greater<>> Q;
 
     implicit_path_info first_path;
     auto const        &first_side_track = first_side_track_res.value();
@@ -319,34 +319,41 @@ namespace network_butcher::kfinder
     first_path.length                   = first_side_track.delta_weight + dij_res.second.front();
 
     // First deviatory path
-    Q.insert(std::move(first_path));
+    Q.push(std::move(first_path));
 
-    auto print_missing_sidetrack_distance = [](edge_type const &e) {
+    auto const print_missing_sidetrack_distance = [](edge_type const &e) {
       return "Error: cannot find proper sidetrack distance for edge (" + std::to_string(e.first) + ", " +
              std::to_string(e.second) + ")";
+    };
+
+    // https://stackoverflow.com/a/20149745
+    auto const ugly_priority_queue_move_pop = [](auto &Q) {
+      auto moved = std::move(const_cast<implicit_path_info &>(Q.top()));
+      Q.pop();
+
+      return moved;
     };
 
     // Loop through Q until either Q is empty or the number of paths found is K
     for (int k = 2; k <= K && !Q.empty(); ++k)
       {
-        auto SK = *Q.begin();
-        Q.erase(Q.begin());
+        auto SK = ugly_priority_queue_move_pop(Q);
         res.push_back(SK);
 
         auto const  e      = SK.sidetracks.back();
         auto const &e_edge = *e;
 
         // Find sidetrack weight
-        auto const e_sidetrack_edge_it = sidetrack_distances_res.find(e_edge);
+        auto const e_sidetrack_edge_it = sidetrack_distances.find(e_edge);
 
-        if (e_sidetrack_edge_it == sidetrack_distances_res.cend())
+        if (e_sidetrack_edge_it == sidetrack_distances.cend())
           {
             throw std::runtime_error(print_missing_sidetrack_distance(e_edge));
           }
 
         // "Helper" function that can be called if needed
-        if (callback_fun_ptr != nullptr)
-          (*callback_fun_ptr)(h_g, h_out, sidetrack_distances_res, successors, e_edge.second);
+        if (callback_fun != nullptr)
+          (*callback_fun)(h_g, h_out, sidetrack_distances, successors, e_edge.second);
 
         // Extract the first sidetrack edge, if it exists
         auto const f_res = extract_first_sidetrack_edge(e_edge.second, h_g);
@@ -358,7 +365,7 @@ namespace network_butcher::kfinder
             auto mod_sk = SK;
             mod_sk.sidetracks.push_back(f.edge);
             mod_sk.length += f.delta_weight;
-            Q.insert(std::move(mod_sk));
+            Q.push(std::move(mod_sk));
           }
 
         node_id_type h_g_search;
@@ -380,9 +387,9 @@ namespace network_butcher::kfinder
               {
                 auto const &f_edge = *f;
 
-                auto f_sidetrack_weight_it = sidetrack_distances_res.find(f_edge);
+                auto f_sidetrack_weight_it = sidetrack_distances.find(f_edge);
 
-                if (f_sidetrack_weight_it == sidetrack_distances_res.cend())
+                if (f_sidetrack_weight_it == sidetrack_distances.cend())
                   {
                     throw std::runtime_error(print_missing_sidetrack_distance(e_edge));
                   }
@@ -391,7 +398,7 @@ namespace network_butcher::kfinder
                 mod_sk.sidetracks.push_back(f);
                 mod_sk.length += (f_sidetrack_weight_it->second - e_sidetrack_edge_it->second);
 
-                Q.insert(std::move(mod_sk));
+                Q.push(std::move(mod_sk));
               }
           }
       }
