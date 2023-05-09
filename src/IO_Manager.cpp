@@ -130,176 +130,217 @@ namespace network_butcher::io::IO_Manager
     std::string const                       basic_infos  = "basic_config";
     std::string const                       weight_infos = "weight_config";
 
-    res.model_name          = file(basic_infos + "/model_name", "model");
-    res.model_path          = file(basic_infos + "/model_path", "");
-    res.export_directory    = file(basic_infos + "/export_directory", "ksp_result");
-    res.temporary_directory = file(basic_infos + "/temporary_directory", "tmp");
 
-    {
-      auto const len = file.vector_variable_size(basic_infos + "/extra_packages_location");
-      res.extra_packages_location.reserve(len);
+    auto const read_vector_string = [](auto &file, std::string const &section, std::string const &entry) {
+      std::string const        location = section + "/" + entry;
+      auto const               len      = file.vector_variable_size(location);
+      std::vector<std::string> res;
+
+      res.reserve(len);
       for (std::size_t i = 0; i < len; ++i)
-        res.extra_packages_location.emplace_back(file(basic_infos + "/extra_packages_location", i, ""));
-    }
+        res.emplace_back(file(location, i, ""));
 
-    res.K                    = file(basic_infos + "/K", 100);
-    std::string const method = network_butcher::Utilities::trim_copy(
-      network_butcher::Utilities::to_lowercase_copy(file(basic_infos + "/method", "")));
+      return res;
+    };
+    auto const read_weight_import_mode_func = [weight_infos](auto &file) {
+      std::string const weight_import_method = network_butcher::Utilities::trim_copy(
+        network_butcher::Utilities::to_lowercase_copy(file(weight_infos + "/import_mode", "")));
 
-    if (method == "eppstein")
-      res.method = network_butcher::parameters::KSP_Method::Eppstein;
-    else
-      res.method = network_butcher::parameters::KSP_Method::Lazy_Eppstein;
+      if (weight_import_method == "amllibrary_original")
+        {
+          return parameters::Weight_Import_Mode::aMLLibrary_original;
+        }
+      else if (weight_import_method == "amllibrary_block")
+        {
+          return parameters::Weight_Import_Mode::aMLLibrary_block;
+        }
+      else if (weight_import_method == "single_direct_read")
+        {
+          return parameters::Weight_Import_Mode::single_direct_read;
+        }
+      else if (weight_import_method == "multiple_direct_read")
+        {
+          return parameters::Weight_Import_Mode::multiple_direct_read;
+        }
+      else if (weight_import_method == "block_single_direct_read")
+        {
+          return parameters::Weight_Import_Mode::block_single_direct_read;
+        }
+      else if (weight_import_method == "block_multiple_direct_read")
+        {
+          return parameters::Weight_Import_Mode::block_multiple_direct_read;
+        }
+      else
+        {
+          throw std::logic_error("Unavailable weight import mode!");
+        }
+    };
+    auto const read_bandwidth = [](auto &file, std::size_t num_devices, bool backward_connections_allowed) {
+      std::map<edge_type, std::pair<bandwidth_type, access_delay_type>> res;
 
-    res.starting_device_id = file(basic_infos + "/starting_device_id", 0);
-    res.ending_device_id   = file(basic_infos + "/ending_device_id", 0);
+      std::string const bndw = "bandwidth";
+      std::string const accc = "access_delay";
+      for (std::size_t i = 0; i < num_devices; ++i)
+        {
+          for (std::size_t j = i + 1; j < num_devices; ++j)
+            {
+              auto const basic = "/from_" + std::to_string(i) + "_to_" + std::to_string(j);
+              res[{i, j}]      = {file(bndw + basic, .0), file(accc + basic, .0)};
+            }
+        }
 
-    res.backward_connections_allowed = file(basic_infos + "/backward_connections_allowed", false);
+      if (backward_connections_allowed)
+        {
+          for (std::size_t i = 1; i < num_devices; ++i)
+            {
+              for (std::size_t j = 0; j < i; ++j)
+                {
+                  auto const basic = "/from_" + std::to_string(i) + "_to_" + std::to_string(j);
+                  res[{i, j}]      = {file(bndw + basic, .0), file(accc + basic, .0)};
+                }
+            }
+        }
 
-    std::string const weight_import_method = network_butcher::Utilities::trim_copy(
-      network_butcher::Utilities::to_lowercase_copy(file(weight_infos + "/import_mode", "")));
+      return res;
+    };
+    auto const read_k_method = [basic_infos](auto &file) {
+      std::string const method = network_butcher::Utilities::trim_copy(
+        network_butcher::Utilities::to_lowercase_copy(file(basic_infos + "/method", "")));
 
-    if (weight_import_method == "amllibrary_original")
-      {
-        res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::aMLLibrary_original;
-      }
-    else if (weight_import_method == "amllibrary_block")
-      {
-        res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::aMLLibrary_block;
-      }
-    else if (weight_import_method == "single_direct_read")
-      {
-        res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::single_direct_read;
-      }
-    else if (weight_import_method == "multiple_direct_read")
-      {
-        res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::multiple_direct_read;
-      }
-    else if (weight_import_method == "block_single_direct_read")
-      {
-        res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::block_single_direct_read;
-      }
-    else if (weight_import_method == "block_multiple_direct_read")
-      {
-        res.weight_import_mode = network_butcher::parameters::Weight_Import_Mode::block_multiple_direct_read;
-      }
-    else
-      {
-        throw std::logic_error("Unavailable weight import mode!");
-      }
+      if (method == "eppstein")
+        {
+          return network_butcher::parameters::KSP_Method::Eppstein;
+        }
+      else if (method == "lazy_eppstein")
+        {
+          return network_butcher::parameters::KSP_Method::Lazy_Eppstein;
+        }
+      else
+        {
+          throw std::runtime_error("Unsupported K-shortest path method");
+        }
+    };
+    auto const read_block_graph_mode = [basic_infos](auto &file) {
+      std::string const block_graph_mode = network_butcher::Utilities::trim_copy(
+        network_butcher::Utilities::to_lowercase_copy(file(basic_infos + "/block_graph_mode", "classic")));
 
-    std::string const block_graph_mode = network_butcher::Utilities::trim_copy(
-      network_butcher::Utilities::to_lowercase_copy(file(basic_infos + "/block_graph_mode", "classic")));
-
-    if (block_graph_mode == "classic")
-      {
-        res.block_graph_mode = network_butcher::parameters::Block_Graph_Generation_Mode::classic;
-      }
-    else if (block_graph_mode == "input")
-      {
-        res.block_graph_mode = network_butcher::parameters::Block_Graph_Generation_Mode::input;
-      }
-    else if (block_graph_mode == "output")
-      {
-        res.block_graph_mode = network_butcher::parameters::Block_Graph_Generation_Mode::output;
-      }
-    else
-      {
-        throw std::logic_error("Unavailable Block Graph generation mode!");
-      }
-
-
-    {
-      auto const len = file.vector_variable_size(weight_infos + "/aMLLibrary_inference_variables");
-      res.aMLLibrary_inference_variables.reserve(len);
-      for (std::size_t i = 0; i < len; ++i)
-        res.aMLLibrary_inference_variables.emplace_back(file(weight_infos + "/aMLLibrary_inference_variables", i, ""));
-    }
-
-    {
-      auto const len = file.vector_variable_size(weight_infos + "/aMLLibrary_features");
-      res.aMLLibrary_csv_features.reserve(len);
-      for (std::size_t i = 0; i < len; ++i)
-        res.aMLLibrary_csv_features.emplace_back(file(weight_infos + "/aMLLibrary_features", i, ""));
-    }
-
-    {
-      auto const len = file.vector_variable_size(weight_infos + "/single_csv_columns_weights");
-      res.single_csv_columns_weights.reserve(len);
-      for (std::size_t i = 0; i < len; ++i)
-        res.single_csv_columns_weights.emplace_back(file(weight_infos + "/single_csv_columns_weights", i, ""));
-
-      network_butcher::Utilities::trim(res.single_csv_columns_weights);
-      network_butcher::Utilities::to_lowercase(res.single_csv_columns_weights);
-    }
-
-    res.single_weight_import_path = file(weight_infos + "/single_weight_import_path", "");
-    res.separator                 = file(weight_infos + "/separator", ',');
-
-    res.memory_constraint = file(basic_infos + "/memory_constraint", false);
-    if (res.memory_constraint)
-      {
-        std::string const memory_constraint_type = network_butcher::Utilities::trim_copy(
-          network_butcher::Utilities::to_lowercase_copy(file(basic_infos + "/memory_constraint_type", "none")));
-
-        if (memory_constraint_type == "max")
-          {
-            res.memory_constraint_type = network_butcher::parameters::Memory_Constraint_Type::Max;
-          }
-        else if (memory_constraint_type == "preload_parameters")
-          {
-            res.memory_constraint_type = network_butcher::parameters::Memory_Constraint_Type::Preload_Parameters;
-          }
-        else
-          {
-            res.memory_constraint_type = network_butcher::parameters::Memory_Constraint_Type::None;
-          }
-      }
+      if (block_graph_mode == "classic")
+        {
+          return parameters::Block_Graph_Generation_Mode::classic;
+        }
+      else if (block_graph_mode == "input")
+        {
+          return parameters::Block_Graph_Generation_Mode::input;
+        }
+      else if (block_graph_mode == "output")
+        {
+          return parameters::Block_Graph_Generation_Mode::output;
+        }
+      else
+        {
+          throw std::logic_error("Unavailable Block Graph generation mode!");
+        }
+    };
 
 
-    std::size_t num_devices = file(basic_infos + "/num_devices", 1);
-    res.devices.reserve(num_devices);
+    auto const aMLLibrary_params_read_func = [basic_infos, weight_infos, &read_vector_string](auto &file,
+                                                                                              auto &params) {
+      auto &aMLLibrary_params = params.aMLLibrary_params;
 
-    for (std::size_t i = 0; i < num_devices; ++i)
-      {
-        std::string const prx = "device_" + std::to_string(i);
+      aMLLibrary_params.temporary_directory     = file(basic_infos + "/temporary_directory", "tmp");
+      aMLLibrary_params.extra_packages_location = read_vector_string(file, basic_infos, "extra_packages_location");
+      aMLLibrary_params.aMLLibrary_inference_variables =
+        read_vector_string(file, weight_infos, "aMLLibrary_inference_variables");
+      aMLLibrary_params.aMLLibrary_csv_features = read_vector_string(file, weight_infos, "aMLLibrary_features");
+    };
 
-        network_butcher::parameters::Device dev;
+    auto const weights_params_func =
+      [weight_infos, &read_weight_import_mode_func, &read_vector_string, &read_bandwidth](auto &file, auto &params) {
+        auto &weights_params = params.weights_params;
 
-        dev.id             = i;
-        dev.name           = file(prx + "/name", "");
-        dev.maximum_memory = file(prx + "/maximum_memory", 0);
-        dev.weights_path   = file(prx + "/path", "");
-        dev.relevant_entry = file(prx + "/relevant_entry", "");
+        weights_params.weight_import_mode        = read_weight_import_mode_func(file);
+        weights_params.single_weight_import_path = file(weight_infos + "/single_weight_import_path", "");
+        weights_params.single_csv_columns_weights =
+          read_vector_string(file, weight_infos, "single_csv_columns_weights");
 
-        network_butcher::Utilities::trim(dev.relevant_entry);
-        network_butcher::Utilities::to_lowercase(dev.relevant_entry);
+        network_butcher::Utilities::trim(weights_params.single_csv_columns_weights);
+        network_butcher::Utilities::to_lowercase(weights_params.single_csv_columns_weights);
 
-        res.devices.push_back(std::move(dev));
-      }
+        weights_params.separator = file(weight_infos + "/separator", ',');
+        weights_params.bandwidth = read_bandwidth(file, params.devices.size(), params.backward_connections_allowed);
+      };
 
-    std::string const bndw = "bandwidth";
-    std::string const accc = "access_delay";
-    for (std::size_t i = 0; i < num_devices; ++i)
-      {
-        for (std::size_t j = i + 1; j < num_devices; ++j)
-          {
-            auto const basic      = "/from_" + std::to_string(i) + "_to_" + std::to_string(j);
-            res.bandwidth[{i, j}] = {file(bndw + basic, .0), file(accc + basic, .0)};
-          }
-      }
+    auto const basic_infos_func = [basic_infos, &read_block_graph_mode](auto &file, auto &params) {
+      params.model_name       = file(basic_infos + "/model_name", "model");
+      params.model_path       = file(basic_infos + "/model_path", "");
+      params.export_directory = file(basic_infos + "/export_directory", "ksp_result");
 
-    if (res.backward_connections_allowed)
-      {
-        for (std::size_t i = num_devices; i >= 0; --i)
-          {
-            for (std::size_t j = i - 1; j >= 0; --j)
-              {
-                auto const basic      = "/from_" + std::to_string(i) + "_to_" + std::to_string(j);
-                res.bandwidth[{i, j}] = {file(bndw + basic, .0), file(accc + basic, .0)};
-              }
-          }
-      }
+      params.starting_device_id = file(basic_infos + "/starting_device_id", 0);
+      params.ending_device_id   = file(basic_infos + "/ending_device_id", 0);
+
+      params.backward_connections_allowed = file(basic_infos + "/backward_connections_allowed", false);
+
+      params.block_graph_mode = read_block_graph_mode(file);
+    };
+
+    auto const k_shortest_path_params_func = [basic_infos, weight_infos, &read_k_method](auto &file, auto &params) {
+      params.K      = file(basic_infos + "/K", 100);
+      params.method = read_k_method(file);
+    };
+
+    auto const constraint_params_func = [basic_infos](auto &file, auto &params) {
+      params.memory_constraint = file(basic_infos + "/memory_constraint", false);
+      if (params.memory_constraint)
+        {
+          std::string const memory_constraint_type = network_butcher::Utilities::trim_copy(
+            network_butcher::Utilities::to_lowercase_copy(file(basic_infos + "/memory_constraint_type", "none")));
+
+          if (memory_constraint_type == "max")
+            {
+              params.memory_constraint_type = network_butcher::parameters::Memory_Constraint_Type::Max;
+            }
+          else if (memory_constraint_type == "preload_parameters")
+            {
+              params.memory_constraint_type = network_butcher::parameters::Memory_Constraint_Type::Preload_Parameters;
+            }
+          else
+            {
+              params.memory_constraint_type = network_butcher::parameters::Memory_Constraint_Type::None;
+            }
+        }
+    };
+
+    auto const devices_params_func = [basic_infos](auto &file, auto &params) {
+      std::size_t num_devices = file(basic_infos + "/num_devices", 1);
+      params.devices.reserve(num_devices);
+
+      for (std::size_t i = 0; i < num_devices; ++i)
+        {
+          std::string const prx = "device_" + std::to_string(i);
+
+          network_butcher::parameters::Device dev;
+
+          dev.id             = i;
+          dev.name           = file(prx + "/name", "");
+          dev.maximum_memory = file(prx + "/maximum_memory", std::size_t{0}) * 1024 * 1024;
+          dev.weights_path   = file(prx + "/path", "");
+          dev.relevant_entry = file(prx + "/relevant_entry", "");
+
+          network_butcher::Utilities::trim(dev.relevant_entry);
+          network_butcher::Utilities::to_lowercase(dev.relevant_entry);
+
+          params.devices.push_back(std::move(dev));
+        }
+    };
+
+    basic_infos_func(file, res);
+    k_shortest_path_params_func(file, res);
+    constraint_params_func(file, res);
+
+    devices_params_func(file, res);
+
+    weights_params_func(file, res);
+    aMLLibrary_params_read_func(file, res);
 
     return res;
   }
@@ -352,7 +393,7 @@ namespace network_butcher::io::IO_Manager
   std::unique_ptr<Weight_Importer>
   generate_weight_importer(graph_type &graph, network_butcher::parameters::Parameters const &params)
   {
-    switch (params.weight_import_mode)
+    switch (params.weights_params.weight_import_mode)
       {
           case network_butcher::parameters::Weight_Import_Mode::aMLLibrary_original: {
             return std::make_unique<original_aMLLibrary_Weight_Importer>(
@@ -361,14 +402,14 @@ namespace network_butcher::io::IO_Manager
           case network_butcher::parameters::Weight_Import_Mode::single_direct_read: {
             return std::make_unique<Csv_Weight_Importer<graph_type>>(
               Csv_Weight_Importer(graph,
-                                  {params.single_weight_import_path},
-                                  params.single_csv_columns_weights,
+                                  {params.weights_params.single_weight_import_path},
+                                  params.weights_params.single_csv_columns_weights,
                                   params.devices,
-                                  params.separator));
+                                  params.weights_params.separator));
           }
           case network_butcher::parameters::Weight_Import_Mode::multiple_direct_read: {
             return std::make_unique<Csv_Weight_Importer<graph_type>>(
-              Csv_Weight_Importer(graph, params.devices, params.separator));
+              Csv_Weight_Importer(graph, params.devices, params.weights_params.separator));
           }
         default:
           throw std::logic_error(
@@ -382,9 +423,9 @@ namespace network_butcher::io::IO_Manager
   {
     using namespace network_butcher::parameters;
 
-    if (params.weight_import_mode == Weight_Import_Mode::aMLLibrary_block ||
-        params.weight_import_mode == Weight_Import_Mode::block_multiple_direct_read ||
-        params.weight_import_mode == Weight_Import_Mode::block_single_direct_read)
+    if (params.weights_params.weight_import_mode == Weight_Import_Mode::aMLLibrary_block ||
+        params.weights_params.weight_import_mode == Weight_Import_Mode::block_multiple_direct_read ||
+        params.weights_params.weight_import_mode == Weight_Import_Mode::block_single_direct_read)
       {
         return;
       }
@@ -497,10 +538,8 @@ namespace network_butcher::io::IO_Manager
                         auto const &first_domain  = devices_map[devices[i].first].domain_name;
                         auto const &second_domain = devices_map[devices[j].first].domain_name;
 
-                        params.bandwidth[{i, j}] = Yaml_importer_helpers::find_bandwidth(network_domains,
-                                                                                         subdomain_to_domain,
-                                                                                         first_domain,
-                                                                                         second_domain);
+                        params.weights_params.bandwidth[{i, j}] = Yaml_importer_helpers::find_bandwidth(
+                          network_domains, subdomain_to_domain, first_domain, second_domain);
                       }
                   }
               }

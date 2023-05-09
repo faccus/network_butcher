@@ -82,8 +82,8 @@ namespace network_butcher::io
                 }
             }
 
-            auto const net_time = params.bandwidth.cbegin()->second.second +
-                                  mem * 8 / (params.bandwidth.cbegin()->second.first * std::pow(10, 6));
+            auto const net_time = params.weights_params.bandwidth.cbegin()->second.second +
+                                  mem * 8 / (params.weights_params.bandwidth.cbegin()->second.first * std::pow(10, 6));
             res.push_back(std::to_string(net_time));
           }
         else if (lower_case == "optype")
@@ -208,11 +208,13 @@ namespace network_butcher::io
 
     add_python_packages();
 
+    auto const &aMLLibrary_params = params.aMLLibrary_params;
+
     auto const macs     = read_network_info_onnx_tool(network_info_onnx_tool());
     auto const csv_path = "aMLLibrary_input.csv";
 
-    if (!Utilities::directory_exists(params.temporary_directory))
-      Utilities::create_directory(params.temporary_directory);
+    if (!Utilities::directory_exists(aMLLibrary_params.temporary_directory))
+      Utilities::create_directory(aMLLibrary_params.temporary_directory);
 
     if (Utilities::file_exists(csv_path))
       Utilities::file_delete(csv_path);
@@ -220,10 +222,10 @@ namespace network_butcher::io
     // Prepare the .csv file to be fed to aMLLibrary
     std::vector<std::vector<std::string>> aMLLibrary_input;
     aMLLibrary_input.reserve(new_graph.size() + 1);
-    aMLLibrary_input.push_back(Utilities::trim_copy(params.aMLLibrary_csv_features));
+    aMLLibrary_input.push_back(Utilities::trim_copy(aMLLibrary_params.aMLLibrary_csv_features));
     aMLLibrary_input.front().insert(aMLLibrary_input.front().cend(),
-                                    params.aMLLibrary_inference_variables.cbegin(),
-                                    params.aMLLibrary_inference_variables.cend());
+                                    aMLLibrary_params.aMLLibrary_inference_variables.cbegin(),
+                                    aMLLibrary_params.aMLLibrary_inference_variables.cend());
 
     // Generate entries for the .csv file
     for (auto const &node : new_graph.get_nodes())
@@ -242,12 +244,13 @@ namespace network_butcher::io
     // Predict and import the weights
     for (std::size_t i = 0; i < params.devices.size(); ++i)
       {
-        std::string tmp_dir_path = Utilities::combine_path(params.temporary_directory, "predict_" + std::to_string(i));
+        std::string tmp_dir_path =
+          Utilities::combine_path(aMLLibrary_params.temporary_directory, "predict_" + std::to_string(i));
 
         if (Utilities::directory_exists(tmp_dir_path))
           Utilities::directory_delete(tmp_dir_path);
 
-        prepare_predict_file(params.aMLLibrary_inference_variables[i], csv_path, tmp_dir_path + ".ini");
+        prepare_predict_file(aMLLibrary_params.aMLLibrary_inference_variables[i], csv_path, tmp_dir_path + ".ini");
 
         execute_weight_generator(params.devices[i].weights_path, tmp_dir_path + ".ini", tmp_dir_path);
 

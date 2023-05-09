@@ -244,15 +244,15 @@ namespace
 
   TEST(BlockGraphBuilderTest, WeightsBlockSingle)
   {
-    auto graph                = basic_graph(2);
-    auto params               = eppstein_parameters(5, 2);
-    params.block_graph_mode   = parameters::Block_Graph_Generation_Mode::output;
-    params.weight_import_mode = parameters::Weight_Import_Mode::block_single_direct_read;
+    auto graph                               = basic_graph(2);
+    auto params                              = eppstein_parameters(5, 2);
+    params.block_graph_mode                  = parameters::Block_Graph_Generation_Mode::output;
+    params.weights_params.weight_import_mode = parameters::Weight_Import_Mode::block_single_direct_read;
 
-    params.separator = ',';
+    params.weights_params.separator = ',';
 
-    params.single_weight_import_path  = "test_data/weights/sample_weights.csv";
-    params.single_csv_columns_weights = {"fake_weight_1", "fake_weight_2"};
+    params.weights_params.single_weight_import_path  = "test_data/weights/sample_weights.csv";
+    params.weights_params.single_csv_columns_weights = {"fake_weight_1", "fake_weight_2"};
 
 
     Constrained_Block_Graph_Builder builder(graph, params);
@@ -278,10 +278,10 @@ namespace
   {
     auto graph                = basic_graph(2);
     auto params               = eppstein_parameters(5, 2);
-    params.block_graph_mode   = parameters::Block_Graph_Generation_Mode::output;
-    params.weight_import_mode = parameters::Weight_Import_Mode::block_multiple_direct_read;
+    params.block_graph_mode                  = parameters::Block_Graph_Generation_Mode::output;
+    params.weights_params.weight_import_mode = parameters::Weight_Import_Mode::block_multiple_direct_read;
 
-    params.separator = ',';
+    params.weights_params.separator = ',';
 
     params.devices[0].relevant_entry = "fake_weight_1";
     params.devices[0].weights_path   = "test_data/weights/sample_weights.csv";

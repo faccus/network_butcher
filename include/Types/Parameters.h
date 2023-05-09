@@ -59,6 +59,45 @@ namespace network_butcher::parameters
   /// The collection of parameters
   struct Parameters
   {
+    struct aMLLibrary
+    {
+      /// The temporary directory
+      std::string temporary_directory;
+
+      /// The (absolute) path to the onnx_tool package (if not default)
+      std::vector<std::string> extra_packages_location;
+
+      /// The variables of the .csv file that aMLLibrary should
+      std::vector<std::string> aMLLibrary_inference_variables;
+
+      /// The features of the .csv file to feed to aMLLibrary
+      std::vector<std::string> aMLLibrary_csv_features;
+    };
+
+    struct Weights
+    {
+      /// Mode for weight import
+      Weight_Import_Mode weight_import_mode;
+
+      /// The path of the .csv file that stores all the weights
+      std::string single_weight_import_path;
+
+      /// The columns of the .csv file that store the weights
+      std::vector<std::string> single_csv_columns_weights;
+
+      /// The separator
+      char separator;
+
+      /// The bandwidth information between the different devices (Mbps - s)
+      std::map<edge_type, std::pair<bandwidth_type, access_delay_type>> bandwidth;
+    };
+
+    /// aMMLibrary parameters
+    aMLLibrary aMLLibrary_params;
+
+    /// Weights parameters
+    Weights weights_params;
+
     /// The model name
     std::string model_name;
 
@@ -67,12 +106,6 @@ namespace network_butcher::parameters
 
     /// The export directory
     std::string export_directory;
-
-    /// The temporary directory
-    std::string temporary_directory;
-
-    /// The (absolute) path to the onnx_tool package (if not default)
-    std::vector<std::string> extra_packages_location;
 
     /// The number of paths to return
     std::size_t K;
@@ -89,26 +122,8 @@ namespace network_butcher::parameters
     /// Are backward collection allowed? (i.e. can device j send data to device k with j>k?)
     bool backward_connections_allowed;
 
-    /// Mode for weight import
-    Weight_Import_Mode weight_import_mode;
-
     /// Block Graph Generation mode for Butcher
     Block_Graph_Generation_Mode block_graph_mode;
-
-    /// The variables of the .csv file that aMLLibrary should
-    std::vector<std::string> aMLLibrary_inference_variables;
-
-    /// The features of the .csv file to feed to aMLLibrary
-    std::vector<std::string> aMLLibrary_csv_features;
-
-    /// The path of the .csv file that stores all the weights
-    std::string single_weight_import_path;
-
-    /// The columns of the .csv file that store the weights
-    std::vector<std::string> single_csv_columns_weights;
-
-    /// The separator
-    char separator;
 
     /// Do we have to check for memory constraints?
     bool memory_constraint;
@@ -118,9 +133,6 @@ namespace network_butcher::parameters
 
     /// The collection of devices
     std::vector<Device> devices;
-
-    /// The bandwidth information between the different devices (Mbps - s)
-    std::map<std::pair<std::size_t, std::size_t>, std::pair<bandwidth_type, bandwidth_type>> bandwidth;
   };
 } // namespace network_butcher::parameters
 

@@ -12,10 +12,10 @@ namespace network_butcher::io
   {
     std::function<weight_type(node_id_type const &, std::size_t, std::size_t)> transmission_weights =
       [&params, &graph](node_id_type const &node_id, std::size_t first_device, std::size_t second_device) {
-        auto const it = params.bandwidth.find({first_device, second_device});
+        auto const it = params.weights_params.bandwidth.find({first_device, second_device});
 
         // If the bandwidth cannot be found, return 0
-        if (it == params.bandwidth.cend())
+        if (it == params.weights_params.bandwidth.cend())
           {
             return .0;
           }
@@ -70,9 +70,11 @@ namespace network_butcher::io
   {
     using namespace network_butcher::parameters;
 
-    bool weight_performance = performance && params.weight_import_mode != Weight_Import_Mode::aMLLibrary_block &&
-                              params.weight_import_mode != Weight_Import_Mode::block_single_direct_read &&
-                              params.weight_import_mode != Weight_Import_Mode::block_multiple_direct_read;
+    auto const &weight_params = params.weights_params;
+
+    bool weight_performance = performance && weight_params.weight_import_mode != Weight_Import_Mode::aMLLibrary_block &&
+                              weight_params.weight_import_mode != Weight_Import_Mode::block_single_direct_read &&
+                              weight_params.weight_import_mode != Weight_Import_Mode::block_multiple_direct_read;
 
     Chrono crono;
     crono.start();

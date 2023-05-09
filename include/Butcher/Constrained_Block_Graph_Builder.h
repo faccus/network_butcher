@@ -497,10 +497,11 @@ namespace network_butcher
   {
     using namespace network_butcher::parameters;
 
-    auto const &nodes = new_graph.get_nodes();
+    auto const &nodes          = new_graph.get_nodes();
+    auto const &weights_params = params.weights_params;
 
     // Check if we have to generate the weights though aMLLibrary
-    if (params.weight_import_mode == Weight_Import_Mode::aMLLibrary_block)
+    if (weights_params.weight_import_mode == Weight_Import_Mode::aMLLibrary_block)
       {
         if constexpr (std::is_same_v<GraphType, graph_type>)
           {
@@ -512,17 +513,17 @@ namespace network_butcher
           }
       }
     // Check if we have to import the block graph weights directly from a .csv file
-    else if (params.weight_import_mode == Weight_Import_Mode::block_single_direct_read)
+    else if (weights_params.weight_import_mode == Weight_Import_Mode::block_single_direct_read)
       {
         io::Csv_Weight_Importer<block_graph_type>(new_graph,
-                                                  {params.single_weight_import_path},
-                                                  params.single_csv_columns_weights,
+                                                  {weights_params.single_weight_import_path},
+                                                  weights_params.single_csv_columns_weights,
                                                   params.devices,
-                                                  params.separator)
+                                                  weights_params.separator)
           .import_weights();
       }
     // Check if we have to import the block graph weights directly from multiple .csv files
-    else if (params.weight_import_mode == Weight_Import_Mode::block_multiple_direct_read)
+    else if (weights_params.weight_import_mode == Weight_Import_Mode::block_multiple_direct_read)
       {
         std::vector<std::string> paths, entries;
         for (auto const &device : params.devices)
@@ -531,7 +532,7 @@ namespace network_butcher
             entries.push_back(device.relevant_entry);
           }
 
-        io::Csv_Weight_Importer<block_graph_type>(new_graph, paths, entries, params.devices, params.separator)
+        io::Csv_Weight_Importer<block_graph_type>(new_graph, paths, entries, params.devices, weights_params.separator)
           .import_weights();
       }
     // Standard weight import

@@ -37,7 +37,7 @@ namespace network_butcher::io
     inserter(local_lib_path);
 #  endif
 
-    for (auto const &package_location : params.extra_packages_location)
+    for (auto const &package_location : params.aMLLibrary_params.extra_packages_location)
       inserter(package_location);
 #endif
   }
@@ -91,10 +91,12 @@ namespace network_butcher::io
     using namespace pybind11::literals;
     namespace py = pybind11;
 
-    if (!Utilities::directory_exists(params.temporary_directory))
-      Utilities::create_directory(params.temporary_directory);
+    auto const &aMLLibrary_params = params.aMLLibrary_params;
 
-    auto weight_path = Utilities::combine_path(params.temporary_directory, "weights.csv");
+    if (!Utilities::directory_exists(aMLLibrary_params.temporary_directory))
+      Utilities::create_directory(aMLLibrary_params.temporary_directory);
+
+    auto weight_path = Utilities::combine_path(aMLLibrary_params.temporary_directory, "weights.csv");
     if (Utilities::file_exists(weight_path))
       Utilities::file_delete(weight_path);
 
@@ -105,7 +107,7 @@ namespace network_butcher::io
 
     return weight_path;
 #else
-    throw; // ("aMLLibrary not supported. Please compile with PYBIND_ACTIVE");
+    throw;                                                                                 // ("aMLLibrary not supported. Please compile with PYBIND_ACTIVE");
 #endif
   }
 

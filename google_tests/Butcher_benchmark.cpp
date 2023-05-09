@@ -291,7 +291,7 @@ namespace
     auto             &graph = std::get<0>(tuple);
 
     Parameters params;
-    params.weight_import_mode = Weight_Import_Mode::multiple_direct_read;
+    params.weights_params.weight_import_mode = Weight_Import_Mode::multiple_direct_read;
 
     params.devices.push_back(Device{0, "", 100, "test_data/weights/aMLLibrary_prediction_pi.csv", "pred"});
     params.devices.push_back(Device{1, "", 100, "test_data/weights/aMLLibrary_prediction_tegra.csv", "pred"});
