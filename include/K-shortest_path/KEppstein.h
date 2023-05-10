@@ -75,20 +75,22 @@ namespace network_butcher::kfinder
         {
           auto const &tail_node = *it;
 
-          auto h_out_entry_it = h_out.insert(h_out.cend(), {tail_node.get_id(), std::make_shared<H_out<edge_info>>()});
-          h_out_entry_it->second->heap.id = tail_node.get_id();
+          auto h_out_it =
+            h_out.insert(h_out.cend(), {tail_node.get_id(), std::make_shared<H_out<edge_info>>()})->second;
+          h_out_it->heap.id = tail_node.get_id();
 
           auto const &tail = tail_node.get_id();
+          // Loop through the output neighbors of the current node
           for (auto const &head : graph.get_output_nodes(tail))
             {
+              // If it's not the successor in the shortest path to the sink
               if (head != successors[tail])
                 {
                   auto sidetrack_it = sidetrack_distances.find({tail, head});
                   if (sidetrack_it != sidetrack_distances.cend())
                     {
-                      auto &children = h_out_entry_it->second->heap.children;
-
-                      children.emplace(sidetrack_it->first, sidetrack_it->second);
+                      // Add the sidetrack edge {tail, head} to the heap
+                      h_out_it->heap.children.emplace(sidetrack_it->first, sidetrack_it->second);
                     }
                 }
             }
@@ -120,7 +122,6 @@ namespace network_butcher::kfinder
 
       // sp_dependencies contains for every node its predecessors (the nodes that along the shortest path to the sink
       // have as a successor the node itself). Notice that the sum of the sizes of all the stored sets is at most N
-      // since two nodes cannot share the same predecessor along the shortest path
       for (auto i = 0; i < num_nodes; ++i) // O(N)
         {
           auto const &tmp = successors[i];
@@ -129,7 +130,7 @@ namespace network_butcher::kfinder
             sp_dependencies[tmp].insert(i); // O(log(N))
         }
 
-      auto const sink = num_nodes - 1;
+      auto const sink = graph.crbegin()->get_id();
 
       auto iterator = h_out.find(sink); // O(1)
 
@@ -188,10 +189,7 @@ namespace network_butcher::kfinder
       auto const &graph = base::graph;
 
       auto const sidetrack_distances_res = base::sidetrack_distances(dij_res.second); // O(E)
-      auto const shortest_path           = Shortest_path_finder::shortest_path_finder(graph, dij_res, 0); // O(N)
-
       auto const &successors          = dij_res.first;
-      auto const &shortest_paths_cost = dij_res.second;
 
       auto h_out = construct_h_out(successors, sidetrack_distances_res); // O(N+E)
       auto h_g   = construct_h_g(h_out, successors);                     // O(N*log(N))

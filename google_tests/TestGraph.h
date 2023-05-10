@@ -86,25 +86,25 @@ public:
   typename Node_Collection_Type::const_iterator
   cbegin() const
   {
-    return graph.get_nodes().cbegin();
+    return graph.nodes.cbegin();
   }
 
   typename Node_Collection_Type::const_iterator
   cend() const
   {
-    return graph.get_nodes().cend();
+    return graph.nodes.cend();
   }
 
   typename Node_Collection_Type::const_reverse_iterator
   crbegin() const
   {
-    return graph.get_nodes().crbegin();
+    return graph.nodes.crbegin();
   }
 
   typename Node_Collection_Type::const_reverse_iterator
   crend() const
   {
-    return graph.get_nodes().crend();
+    return graph.nodes.crend();
   }
 
 

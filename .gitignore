@@ -9,3 +9,5 @@
 /.vscode
 /output*
 /include/Extra/platform_specific_config.h.in
+
+/test.cc

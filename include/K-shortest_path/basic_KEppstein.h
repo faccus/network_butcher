@@ -308,6 +308,7 @@ namespace network_butcher::kfinder
     auto const first_side_track_res = extract_first_sidetrack_edge(0, h_g);
     if (!first_side_track_res.has_value())
       return res;
+
     res.reserve(K);
 
     // Edges in the graph D(G)
@@ -367,7 +368,9 @@ namespace network_butcher::kfinder
 
         node_id_type h_g_search;
         if (SK.sidetracks.size() == 1)
-          h_g_search = 0;
+          {
+            h_g_search = 0;
+          }
         else
           {
             auto const tmp_it = ++SK.sidetracks.crbegin();
