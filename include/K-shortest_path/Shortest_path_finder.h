@@ -15,12 +15,13 @@
 namespace network_butcher::kfinder::Shortest_path_finder
 {
   /// A helper struct for the dijkstra algo
-  struct dijkstra_helper_struct : crtp_greater<dijkstra_helper_struct>
+  template <typename Weight_Type = weight_type>
+  struct dijkstra_helper_struct : crtp_greater<dijkstra_helper_struct<Weight_Type>>
   {
-    weight_type  weight;
+    Weight_Type  weight;
     node_id_type id;
 
-    dijkstra_helper_struct(weight_type w, node_id_type i)
+    dijkstra_helper_struct(Weight_Type w, node_id_type i)
       : weight(w)
       , id(i)
     {}
@@ -33,7 +34,8 @@ namespace network_butcher::kfinder::Shortest_path_finder
   };
 
   /// The output type of the Dijkstra algorithm
-  using dijkstra_result_type = std::pair<std::vector<node_id_type>, std::vector<weight_type>>;
+  template <typename Weight_Type = weight_type>
+  using dijkstra_result_type = std::pair<std::vector<node_id_type>, std::vector<Weight_Type>>;
 
   namespace utilities
   {
@@ -42,18 +44,9 @@ namespace network_butcher::kfinder::Shortest_path_finder
     /// \param tail The tail node id
     /// \param head The head node id
     /// \return The corresponding weight
-    template <typename Graph_type,
-              bool Reversed                 = false,
-              typename Node_Type            = typename Graph_type::Node_Type,
-              typename Node_Collection_Type = typename Graph_type::Node_Collection_Type,
-              typename Dependencies_Type    = typename Graph_type::Dependencies_Type>
-    weight_type
-    get_weight(
-      Weighted_Graph<Graph_type, Node_Type, Node_Collection_Type, Dependencies_Type, Reversed> const &graph,
-      typename Weighted_Graph<Graph_type, Node_Type, Node_Collection_Type, Dependencies_Type, Reversed>::Node_Id_Type
-        tail,
-      typename Weighted_Graph<Graph_type, Node_Type, Node_Collection_Type, Dependencies_Type, Reversed>::Node_Id_Type
-        head)
+    template <Valid_Weighted_Graph v_Weighted_Graph>
+    v_Weighted_Graph::Weight_Type
+    get_weight(v_Weighted_Graph const &graph, node_id_type tail, node_id_type head)
     {
       auto const &weight_container = graph.get_weight(std::make_pair(tail, head));
 
@@ -68,25 +61,21 @@ namespace network_butcher::kfinder::Shortest_path_finder
   /// \param reversed Reverses the edge directions
   /// \return A pair: the first element is the collection of the successors (along the shortest path) of the different
   /// nodes while the second element is the shortest path length from the root to every node
-  template <typename Graph_type,
-            bool Reversed                 = false,
-            typename Node_Type            = typename Graph_type::Node_Type,
-            typename Node_Collection_Type = typename Graph_type::Node_Collection_Type,
-            typename Dependencies_Type    = typename Graph_type::Dependencies_Type>
-  [[nodiscard]] dijkstra_result_type
-  dijkstra(
-    Weighted_Graph<Graph_type, Node_Type, Node_Collection_Type, Dependencies_Type, Reversed> const &graph,
-    typename Weighted_Graph<Graph_type, Node_Type, Node_Collection_Type, Dependencies_Type, Reversed>::Node_Id_Type
-      root = 0) // time: ((N+E)log(N)), space: O(N)
+  template <Valid_Weighted_Graph v_Weighted_Graph>
+  [[nodiscard]] dijkstra_result_type<typename v_Weighted_Graph::Weight_Type>
+  dijkstra(v_Weighted_Graph const &graph,
+           node_id_type            root = 0) // time: ((N+E)log(N)), space: O(N)
   {
-    using node_id_type = typename Weighted_Graph<Graph_type>::Node_Id_Type;
+    using dijkstra_result_type   = dijkstra_result_type<typename v_Weighted_Graph::Weight_Type>;
+    using dijkstra_helper_struct = dijkstra_helper_struct<typename v_Weighted_Graph::Weight_Type>;
 
     if (graph.empty())
       {
         return dijkstra_result_type{};
       }
 
-    std::vector<weight_type> total_distance(graph.size(), std::numeric_limits<network_butcher::weight_type>::max());
+    std::vector<typename v_Weighted_Graph::Weight_Type> total_distance(
+      graph.size(), std::numeric_limits<typename v_Weighted_Graph::Weight_Type>::max());
     total_distance[root] = 0;
 
 
@@ -114,7 +103,7 @@ namespace network_butcher::kfinder::Shortest_path_finder
         auto current_node = to_visit.pop_head(); // O(log(N))
 
         auto const &start_distance = total_distance[current_node.id];
-        if (start_distance == std::numeric_limits<weight_type>::max())
+        if (start_distance == std::numeric_limits<typename v_Weighted_Graph::Weight_Type>::max())
           {
             throw std::logic_error("Dijkstra error: the node current distance is +inf");
           }
@@ -158,21 +147,14 @@ namespace network_butcher::kfinder::Shortest_path_finder
   /// \param root The starting node
   /// \param sink The ending node
   /// \return The shortest path
-  template <typename Graph_type,
-            bool Reversed                 = false,
-            typename Node_Type            = typename Graph_type::Node_Type,
-            typename Node_Collection_Type = typename Graph_type::Node_Collection_Type,
-            typename Dependencies_Type    = typename Graph_type::Dependencies_Type>
-  path_info
-  shortest_path_finder(
-    Weighted_Graph<Graph_type, Node_Type, Node_Collection_Type, Dependencies_Type, Reversed> const &graph,
-    dijkstra_result_type const                                                                     &dij_res,
-    typename Weighted_Graph<Graph_type, Node_Type, Node_Collection_Type, Dependencies_Type, Reversed>::Node_Id_Type
-      root,
-    typename Weighted_Graph<Graph_type, Node_Type, Node_Collection_Type, Dependencies_Type, Reversed>::Node_Id_Type
-      sink)
+  template <Valid_Weighted_Graph v_Weighted_Graph>
+  t_path_info<typename v_Weighted_Graph::Weight_Type>
+  shortest_path_finder(v_Weighted_Graph const                                             &graph,
+                       dijkstra_result_type<typename v_Weighted_Graph::Weight_Type> const &dij_res,
+                       node_id_type                                                        root,
+                       node_id_type                                                        sink)
   {
-    path_info info;
+    t_path_info info;
     info.length = dij_res.second[root];
     info.path.reserve(graph.size());
 

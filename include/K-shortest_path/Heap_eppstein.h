@@ -10,23 +10,26 @@
 #include <utility>
 
 #include "Basic_traits.h"
+#include "KFinder_Base_traits.h"
+
 #include "crtp_grater.h"
 
 namespace network_butcher::kfinder
 {
   /// Simple struct used to store some edge information
-  struct edge_info : crtp_greater<edge_info>
+  template <typename Weight_Type = weight_type>
+  struct t_edge_info : crtp_greater<t_edge_info<Weight_Type>>
   {
     edge_type   edge;
-    weight_type delta_weight;
+    Weight_Type delta_weight;
 
-    edge_info(edge_type const &in_edge, weight_type const &in_delta_weight)
+    t_edge_info(edge_type const &in_edge, Weight_Type const &in_delta_weight)
       : edge(in_edge)
       , delta_weight(in_delta_weight)
     {}
 
     bool
-    operator<(const edge_info &rhs) const
+    operator<(const t_edge_info &rhs) const
     {
       return delta_weight < rhs.delta_weight || (delta_weight == rhs.delta_weight && edge < rhs.edge);
     }
@@ -278,10 +281,10 @@ namespace network_butcher::kfinder
     }
 
 
-    [[nodiscard]] std::set<std::size_t>
+    [[nodiscard]] std::set<node_id_type>
     find_children_indices(std::size_t index) const override
     {
-      std::set<std::size_t> result;
+      std::set<node_id_type> result;
 
       if (index < children.size())
         {
@@ -292,8 +295,8 @@ namespace network_butcher::kfinder
             }
           else
             {
-              std::size_t left  = 2 * (index - 1) + 1 + 1;
-              std::size_t right = 2 * (index - 1) + 2 + 1;
+              node_id_type left  = 2 * (index - 1) + 1 + 1;
+              node_id_type right = 2 * (index - 1) + 2 + 1;
               if (left < children.size())
                 {
                   result.insert(left);

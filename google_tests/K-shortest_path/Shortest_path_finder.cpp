@@ -25,11 +25,8 @@ namespace
   using Graph_type    = types::WGraph<false, Node_type>;
 
   template <bool Reversed>
-  using Weighted_Graph_type = Weighted_Graph<Graph_type,
-                                             Graph_type::Node_Type,
-                                             Graph_type::Node_Collection_Type,
-                                             Graph_type::Dependencies_Type,
-                                             Reversed>;
+  using Weighted_Graph_type =
+    Weighted_Graph<Graph_type, Reversed, Graph_type::Node_Type, Graph_type::Node_Collection_Type, weight_type>;
 
   using weights_collection_type = std::map<std::pair<node_id_type, node_id_type>, type_weight>;
 

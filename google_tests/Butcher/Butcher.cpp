@@ -145,7 +145,7 @@ namespace
     nodes.emplace_back(Content_type({{"X5", 5}}, {{"X6", 6}}));
     nodes.emplace_back(Content_type({{"X6", 6}}, {{"X7", 7}}));
 
-    return GraphType(num_devices, std::move(nodes));
+    return GraphType(3, std::move(nodes));
   }
 
   Butcher<GraphType>

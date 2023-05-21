@@ -13,25 +13,28 @@
 
 namespace network_butcher::kfinder
 {
-  using edge_pointer = edge_info;
+  template <typename Weight_Type = weight_type>
+  using t_H_out_collection = std::unordered_map<node_id_type, H_out<t_edge_info<Weight_Type>, std::greater<>>>;
 
-  using full_H_out_type  = H_out<edge_pointer, std::greater<>>;
-  using H_out_collection = std::unordered_map<node_id_type, full_H_out_type>;
-  using H_out_pointer    = H_out_collection::const_iterator;
+  template <typename Weight_Type = weight_type>
+  using H_out_pointer = t_H_out_collection<Weight_Type>::const_iterator;
 
+  template <typename Weight_Type = weight_type>
   struct pointer_greater
   {
     std::less<> comp{};
 
     bool
-    operator()(H_out_collection::const_iterator const &lhs, H_out_collection::const_iterator const &rhs) const
+    operator()(t_H_out_collection<Weight_Type>::const_iterator const &lhs,
+               t_H_out_collection<Weight_Type>::const_iterator const &rhs) const
     {
       return comp(rhs->second, lhs->second);
     }
   };
 
-  using H_g            = Heap<H_out_pointer, pointer_greater>;
-  using H_g_collection = std::unordered_map<node_id_type, H_g>;
+  template <typename Weight_Type = weight_type>
+  using t_H_g_collection =
+    std::unordered_map<node_id_type, Heap<H_out_pointer<Weight_Type>, pointer_greater<Weight_Type>>>;
 } // namespace network_butcher::kfinder
 
 

@@ -14,9 +14,9 @@
 namespace
 {
   using namespace network_butcher;
+  using namespace network_butcher::types;
   using namespace network_butcher::computer;
   using namespace network_butcher::parameters;
-  using namespace network_butcher::types;
 
   using type_weight             = double;
   using type_collection_weights = std::map<std::pair<node_id_type, node_id_type>, type_weight>;
@@ -24,10 +24,10 @@ namespace
   using basic_type   = int;
   using Input        = TestMemoryUsage<int>;
   using Content_type = Content<Input>;
-  using Node_type    = Node<Content_type>;
+  using Node_type    = CNode<Content_type>;
 
-  using Graph_type      = MWGraph<Content_type>;
-  using Real_Graph_Type = MWGraph<graph_input_type>;
+  using Graph_type      = MWGraph<false, Node_type>;
+  using Real_Graph_Type = MWGraph<false, graph_input_type>;
 
 
   Butcher<Graph_type>
@@ -54,11 +54,10 @@ namespace
   void
   complete_weights(Graph &graph)
   {
-    auto const  num_nodes    = graph.get_nodes().size();
-    auto const &dependencies = graph.get_neighbors();
+    auto const num_nodes = graph.get_nodes().size();
 
     for (node_id_type tail = 0; tail < num_nodes; ++tail)
-      for (auto const &head : dependencies[tail].second)
+      for (auto const &head : graph.get_output_nodes(tail))
         {
           for (std::size_t k = 0; k < graph.get_num_devices(); ++k)
             {
@@ -89,7 +88,7 @@ namespace
     std::uniform_int_distribution node_weights_generator{5000, 10000};
 
     for (std::size_t tail = 0; tail < graph.get_nodes().size(); ++tail)
-      for (auto const &head : graph.get_neighbors()[tail].second)
+      for (auto const &head : graph.get_output_nodes(tail))
         {
           auto const tmp_weight = node_weights_generator(random_engine);
           for (std::size_t k = 0; k < graph.get_num_devices(); ++k)
@@ -155,8 +154,6 @@ namespace
 
   TEST(ButcherBenchmarkTest, compute_k_shortest_paths_eppstein_vs_lazy_deterministic_multiple)
   {
-    std::vector<node_type> nodes;
-
     std::size_t       num_devices = 3;
     std::size_t const num_nodes   = 1000;
 

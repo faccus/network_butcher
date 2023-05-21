@@ -32,28 +32,29 @@ public:
   std::map<std::pair<std::size_t, std::size_t>, double> map_weight;
 };
 
-template <typename T, bool Reversed>
+template <typename T, bool t_Reversed>
 class network_butcher::kfinder::Weighted_Graph<TestGraph<T>,
+                                               t_Reversed,
                                                typename TestGraph<T>::Node_Type,
                                                typename TestGraph<T>::Node_Collection_Type,
-                                               typename TestGraph<T>::Dependencies_Type,
-                                               Reversed>
+                                               double> : base_Weighted_Graph
 {
 public:
+  using Node_Id_Type = std::size_t;
+  using Weight_Type  = weight_type;
+
   using Node_Type            = typename TestGraph<T>::Node_Type;
   using Node_Collection_Type = typename TestGraph<T>::Node_Collection_Type;
-  using Dependencies_Type    = typename TestGraph<T>::Dependencies_Type;
 
-  using Node_Id_Type     = std::size_t;
   using Edge_Type        = std::pair<Node_Id_Type, Node_Id_Type>;
   using Graph_Type       = TestGraph<T>;
-  using Weight_Edge_Type = std::multiset<weight_type>;
+  using Weight_Edge_Type = std::multiset<Weight_Type>;
 
 
   [[nodiscard]] Weight_Edge_Type
   get_weight(Edge_Type const &edge) const
   {
-    if constexpr (Reversed)
+    if constexpr (t_Reversed)
       {
         return {graph.map_weight.find(std::make_pair(edge.second, edge.first))->second};
       }
@@ -78,9 +79,9 @@ public:
   [[nodiscard]] std::set<Node_Id_Type> const &
   get_output_nodes(Node_Id_Type const &id) const
   {
-    if constexpr (Reversed)
+    if constexpr (t_Reversed)
       {
-        return reversed_neighboors.find(id)->second.second;
+        return graph.dependencies.find(id)->second.first;
       }
     else
       {
@@ -89,7 +90,7 @@ public:
   };
 
   Node_Type const &
-  operator[](Node_Id_Type const &id) const
+  operator[](Weight_Type const &id) const
   {
     return *graph.nodes.find(id);
   };
@@ -120,36 +121,25 @@ public:
   }
 
 
-  explicit Weighted_Graph(Graph_Type const &g)
-    : graph(g)
+  Weighted_Graph<Graph_Type, !t_Reversed, Node_Type, Node_Collection_Type, Weight_Type>
+  reverse() const
   {
-    if constexpr (Reversed)
-      {
-        for (auto const &node : g.nodes)
-          {
-            reversed_neighboors[node.get_id()] = {};
-          }
-
-        for (auto const &tail : *this)
-          {
-            auto const it = g.dependencies.find(tail.get_id());
-
-            if (it != g.dependencies.cend())
-              {
-                for (auto const &head : it->second.second)
-                  {
-                    reversed_neighboors[head].second.insert(tail.get_id());
-                  }
-              }
-          }
-      }
+    return Weighted_Graph<Graph_Type, !t_Reversed, Node_Type, Node_Collection_Type, Weight_Type>(graph);
   }
 
-  ~Weighted_Graph() = default;
+
+  explicit Weighted_Graph(Graph_Type const &g)
+    : base_Weighted_Graph()
+    , graph(g)
+  {}
+
+  ~Weighted_Graph() override = default;
 
 private:
-  Graph_Type const                                     &graph;
-  std::conditional_t<Reversed, Dependencies_Type, bool> reversed_neighboors;
+  Graph_Type const &graph;
+
+  void
+  fake_method() override{};
 };
 
 #endif // NETWORK_BUTCHER_TESTGRAPH_H

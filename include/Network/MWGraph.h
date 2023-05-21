@@ -13,7 +13,7 @@ namespace network_butcher::types
   /// A custom graph class. It contains a single graph and multiple weight maps. Technically, it can be viewed
   /// as a collection of graphs with the same structure, but different weight maps.
   /// \tparam T Type of the content of the nodes
-  template <bool Parallel_Edges, typename t_Node_Type = Node>
+  template <bool Parallel_Edges, typename t_Node_Type = Node, typename t_weight_type = weight_type>
   class MWGraph : public Graph<t_Node_Type>
   {
   private:
@@ -24,9 +24,11 @@ namespace network_butcher::types
     using Node_Type            = Parent_type::Node_Type;
     using Node_Collection_Type = Parent_type::Node_Collection_Type;
 
-    using Edge_Weight_Type = std::conditional_t<Parallel_Edges, std::multiset<weight_type>, weight_type>;
+    using Weight_Type = t_weight_type;
+
+    using Edge_Weight_Type = std::conditional_t<Parallel_Edges, std::multiset<Weight_Type>, Weight_Type>;
     using Weight_Collection_Type =
-      std::conditional_t<Parallel_Edges, std::multimap<edge_type, weight_type>, std::map<edge_type, weight_type>>;
+      std::conditional_t<Parallel_Edges, std::multimap<edge_type, Weight_Type>, std::map<edge_type, Weight_Type>>;
 
   protected:
     std::vector<Weight_Collection_Type> weigth_map;
@@ -111,7 +113,7 @@ namespace network_butcher::types
     /// \param edge The edge
     /// \param weight The weight
     void
-    set_weight(std::size_t device, edge_type const &edge, weight_type weight)
+    set_weight(std::size_t device, edge_type const &edge, t_weight_type weight)
     {
       if constexpr (Parallel_Edges)
         {
@@ -138,7 +140,7 @@ namespace network_butcher::types
   /// as a collection of graphs with the same structure, but different weight maps.
   /// \tparam T Type of the content of the nodes
   template <bool Parallel_Edges, typename T>
-  class MWGraph<Parallel_Edges, CNode<Content<T>>> : public Graph<CNode<Content<T>>>
+  class MWGraph<Parallel_Edges, CNode<Content<T>>, weight_type> : public Graph<CNode<Content<T>>>
   {
   private:
     using Parent_type = Graph<CNode<Content<T>>>;
@@ -147,6 +149,8 @@ namespace network_butcher::types
     using Dependencies_Type    = Parent_type::Dependencies_Type;
     using Node_Type            = Parent_type::Node_Type;
     using Node_Collection_Type = Parent_type::Node_Collection_Type;
+
+    using Weight_Type = weight_type;
 
     using Edge_Weight_Type = std::conditional_t<Parallel_Edges, std::multiset<weight_type>, weight_type>;
     using Weight_Collection_Type =

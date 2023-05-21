@@ -15,18 +15,20 @@ namespace network_butcher
   {
     /// Just another weighted graph class...
     /// \tparam T Type of the content of the nodes
-    template <bool Parallel_Edges, typename t_Node_Type = Node>
-    class WGraph : public MWGraph<Parallel_Edges, t_Node_Type>
+    template <bool Parallel_Edges, typename t_Node_Type = Node, typename t_weight_type = weight_type>
+    class WGraph : public MWGraph<Parallel_Edges, t_Node_Type, t_weight_type>
     {
     private:
-      using Parent_type = MWGraph<Parallel_Edges, t_Node_Type>;
+      using Parent_type = MWGraph<Parallel_Edges, t_Node_Type, t_weight_type>;
 
     public:
       using Dependencies_Type    = Parent_type::Dependencies_Type;
       using Node_Type            = Parent_type::Node_Type;
       using Node_Collection_Type = Parent_type::Node_Collection_Type;
 
-      using Edge_Weight_Type = std::conditional_t<Parallel_Edges, std::multiset<weight_type>, weight_type>;
+      using Weight_Type = Parent_type::Weight_Type;
+
+      using Edge_Weight_Type = std::conditional_t<Parallel_Edges, std::multiset<Weight_Type>, Weight_Type>;
 
 
       template <typename A, typename B>
@@ -54,7 +56,7 @@ namespace network_butcher
       /// \param edge The edge
       /// \param weight The weight
       void
-      set_weight(edge_type const &edge, weight_type weight)
+      set_weight(edge_type const &edge, Weight_Type weight)
       {
         Parent_type::set_weight(0, edge, weight);
       }
@@ -94,7 +96,9 @@ namespace network_butcher
       using Node_Type            = Parent_type::Node_Type;
       using Node_Collection_Type = Parent_type::Node_Collection_Type;
 
-      using Edge_Weight_Type = std::conditional_t<Parallel_Edges, std::multiset<weight_type>, weight_type>;
+      using Weight_Type = Parent_type::Weight_Type;
+
+      using Edge_Weight_Type = std::conditional_t<Parallel_Edges, std::multiset<Weight_Type>, Weight_Type>;
 
 
       template <typename A, typename B>
@@ -128,7 +132,7 @@ namespace network_butcher
       /// \param edge The edge
       /// \param weight The weight
       void
-      set_weight(edge_type const &edge, weight_type weight)
+      set_weight(edge_type const &edge, Weight_Type weight)
       {
         Parent_type::set_weight(0, edge, weight);
       }
@@ -161,31 +165,33 @@ namespace network_butcher
 
     /// (Partial) Specialization of Weighted_Graph
     /// \tparam T The internal type of WGraph
-    template <bool Parallel_Edges, typename t_Node_Type, bool Reversed>
+    template <bool Parallel_Edges, typename t_Node_Type, bool t_Reversed>
     class Weighted_Graph<network_butcher::types::WGraph<Parallel_Edges, t_Node_Type>,
+                         t_Reversed,
                          typename network_butcher::types::WGraph<Parallel_Edges, t_Node_Type>::Node_Type,
                          typename network_butcher::types::WGraph<Parallel_Edges, t_Node_Type>::Node_Collection_Type,
-                         typename network_butcher::types::WGraph<Parallel_Edges, t_Node_Type>::Dependencies_Type,
-                         Reversed>
+                         weight_type> : base_Weighted_Graph
     {
     public:
-      using Node_Id_Type         = std::size_t;
-      using Edge_Type            = std::pair<Node_Id_Type, Node_Id_Type>;
-      using Graph_Type           = typename network_butcher::types::WGraph<Parallel_Edges, t_Node_Type>;
-      using Node_Type            = Graph_Type::Node_Type;
-      using Dependencies_Type    = Graph_Type::Dependencies_Type;
+      using Weight_Type = weight_type;
+
+      using Edge_Type = std::pair<node_id_type, node_id_type>;
+
+      using Graph_Type       = network_butcher::types::WGraph<Parallel_Edges, t_Node_Type>;
+      using Weight_Edge_Type = std::multiset<Weight_Type>;
+
+      using Node_Type            = t_Node_Type;
       using Node_Collection_Type = std::vector<Node_Type>;
-      using Weight_Edge_Type     = std::multiset<weight_type>;
 
 
       [[nodiscard]] Weight_Edge_Type
       get_weight(Edge_Type const &edge) const
       {
-        if constexpr (Reversed && Parallel_Edges)
+        if constexpr (t_Reversed && Parallel_Edges)
           {
             return graph.get_weight(std::make_pair(edge.second, edge.first));
           }
-        else if constexpr (Reversed)
+        else if constexpr (t_Reversed)
           {
             return {graph.get_weight(std::make_pair(edge.second, edge.first))};
           }
@@ -199,7 +205,7 @@ namespace network_butcher
           }
       }
 
-      [[nodiscard]] std::size_t
+      [[nodiscard]] node_id_type
       size() const
       {
         return graph.size();
@@ -211,12 +217,12 @@ namespace network_butcher
         return graph.empty();
       };
 
-      [[nodiscard]] std::set<Node_Id_Type> const &
-      get_output_nodes(Node_Id_Type const &id) const
+      [[nodiscard]] std::set<node_id_type> const &
+      get_output_nodes(node_id_type const &id) const
       {
-        if constexpr (Reversed)
+        if constexpr (t_Reversed)
           {
-            return reversed_neighboors[id].second;
+            return graph.get_input_nodes(id);
           }
         else
           {
@@ -226,7 +232,7 @@ namespace network_butcher
 
 
       Node_Type const &
-      operator[](Node_Id_Type const &id) const
+      operator[](node_id_type const &id) const
       {
         return graph[id];
       };
@@ -256,30 +262,25 @@ namespace network_butcher
       }
 
 
-      explicit Weighted_Graph(Graph_Type const &g)
-        : graph(g)
+      Weighted_Graph<Graph_Type, !t_Reversed, Node_Type, Node_Collection_Type, Weight_Type>
+      reverse() const
       {
-        if constexpr (Reversed)
-          {
-            reversed_neighboors.resize(size());
-
-            for (auto const &tail_node : *this)
-              {
-                auto const &tail = tail_node.get_id();
-                for (auto const &head : g.get_output_nodes(tail))
-                  {
-                    reversed_neighboors[head].second.insert(tail);
-                    reversed_neighboors[tail].first.insert(head);
-                  }
-              }
-          }
+        return Weighted_Graph<Graph_Type, !t_Reversed, Node_Type, Node_Collection_Type, Weight_Type>(graph);
       }
 
-      Weighted_Graph(Weighted_Graph const &) = default;
+
+      explicit Weighted_Graph(Graph_Type const &g)
+        : base_Weighted_Graph()
+        , graph(g)
+      {}
+
+      ~Weighted_Graph() override = default;
 
     private:
-      Graph_Type const                                     &graph;
-      std::conditional_t<Reversed, Dependencies_Type, bool> reversed_neighboors;
+      Graph_Type const &graph;
+
+      void
+      fake_method() override{};
     };
   } // namespace kfinder
 

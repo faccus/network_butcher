@@ -11,13 +11,14 @@
 namespace network_butcher::kfinder
 {
   /// Simple struct to represent an explicit path
-  struct path_info : crtp_greater<path_info>
+  template <typename Weight_Type = weight_type>
+  struct t_path_info : crtp_greater<t_path_info<Weight_Type>>
   {
-    weight_type               length;
+    Weight_Type               length;
     std::vector<node_id_type> path;
 
     constexpr bool
-    operator<(const path_info &rhs) const
+    operator<(const t_path_info &rhs) const
     {
       return length < rhs.length || (length == rhs.length && path < rhs.path);
     }
