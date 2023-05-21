@@ -13,8 +13,9 @@
 
 namespace network_butcher
 {
-  using graph_input_type = network_butcher::types::Content<type_info_pointer>;
-  using node_type        = network_butcher::types::Node<graph_input_type>;
+  using graph_input_type = network_butcher::types::CNode<network_butcher::types::Content<type_info_pointer>>;
+  using block_graph_input_type =
+    network_butcher::types::CNode<std::pair<std::size_t, std::shared_ptr<node_id_collection_type>>>;
 } // namespace network_butcher
 
 

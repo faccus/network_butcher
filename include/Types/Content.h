@@ -49,17 +49,17 @@ namespace network_butcher::types
     }
 
     /// Generic make content class (only usable if T has default constructor)
-    template <typename A = io_collection, typename B = attribute_collection, typename C = std::string>
-    explicit Content(A &&in             = io_collection(),
-                     A &&out            = io_collection(),
-                     A &&params         = io_collection(),
-                     B &&in_attributes  = attribute_collection(),
-                     C &&operation_name = "")
+    template <typename A = io_collection,
+              typename B = io_collection,
+              typename C = io_collection,
+              typename D = attribute_collection,
+              typename E = std::string>
+    explicit Content(A &&in = A(), B &&out = B(), C &&params = C(), D &&in_attributes = D(), E &&operation_name = "")
       : input(std::forward<A>(in))
-      , output(std::forward<A>(out))
-      , parameters(std::forward<A>(params))
-      , attributes(std::forward<B>(in_attributes))
-      , operation_id(std::forward<C>(operation_name))
+      , output(std::forward<B>(out))
+      , parameters(std::forward<C>(params))
+      , attributes(std::forward<D>(in_attributes))
+      , operation_id(std::forward<E>(operation_name))
     {}
 
 

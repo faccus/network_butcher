@@ -18,7 +18,7 @@ namespace network_butcher::io
     res.reserve(entries.size());
 
     auto const &original_ids    = *new_graph[id].content.second;
-    auto const &node_output_ids = new_graph[*new_graph.get_neighbors()[id].second.cbegin()].content.second;
+    auto const &node_output_ids = new_graph[*new_graph.get_output_nodes(id).cbegin()].content.second;
 
     for (auto const &lower_case : lower_case_entries)
       {
@@ -170,27 +170,30 @@ namespace network_butcher::io
   {
     auto const map = Weight_importer_helpers::read_csv_numerics(path, ',', {"pred"}, "", true);
 
-    auto it = new_graph.cbegin();
+    auto it = ++new_graph.cbegin();
 
-    for (std::size_t j = 0; it != new_graph.cend() && j < (device + 1); ++j, ++it)
-      ;
+    // Helper function used to skip to the next node of the same device
+    auto const skip_device = [end = new_graph.cend(), device](auto &it) {
+      for (std::size_t j = 0; it != end && j < device; ++j, ++it)
+        ;
+    };
+
+    skip_device(it);
 
     for (auto const &weight : map.cbegin()->second)
       {
         while (extra_condition != nullptr && it != new_graph.cend() && !extra_condition(*it))
           {
-            for (std::size_t j = 0; it != new_graph.cend() && j < params.devices.size(); ++j, ++it)
-              ;
+            skip_device(it);
           }
 
         if (it == new_graph.cend())
           break;
 
-        for (auto const &in : new_graph.get_neighbors()[it->get_id()].first)
+        for (auto const &in : new_graph.get_input_nodes(it->get_id()))
           new_graph.set_weight({in, it->get_id()}, weight);
 
-        for (std::size_t j = 0; it != new_graph.cend() && j < params.devices.size(); ++j, ++it)
-          ;
+        skip_device(it);
       }
   }
 

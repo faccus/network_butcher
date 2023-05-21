@@ -21,8 +21,15 @@ namespace
 
   using Input         = TestMemoryUsage<basic_type>;
   using Content_input = types::Content<Input>;
-  using Node_type     = types::Node<types::Content<Input>>;
-  using Graph_type    = types::WGraph<Content_input>;
+  using Node_type     = types::CNode<types::Content<Input>>;
+  using Graph_type    = types::WGraph<false, Node_type>;
+
+  template <bool Reversed>
+  using Weighted_Graph_type = Weighted_Graph<Graph_type,
+                                             Graph_type::Node_Type,
+                                             Graph_type::Node_Collection_Type,
+                                             Graph_type::Dependencies_Type,
+                                             Reversed>;
 
   using weights_collection_type = std::map<std::pair<node_id_type, node_id_type>, type_weight>;
 
@@ -39,7 +46,8 @@ namespace
   TEST(KspTests, DijkstraSourceSink)
   {
     auto const graph = basic_graph();
-    auto       res   = Shortest_path_finder::dijkstra(graph);
+
+    auto res = Shortest_path_finder::dijkstra(Weighted_Graph_type<false>(graph));
 
     std::vector<node_id_type> theoretical_res = {0, 2, 0, 1, 3, 2, 5};
 
@@ -50,7 +58,7 @@ namespace
   {
     auto const graph = basic_graph();
 
-    auto res = Shortest_path_finder::dijkstra(graph, 6, true);
+    auto res = Shortest_path_finder::dijkstra(Weighted_Graph_type<true>(graph), 6);
 
     std::vector<node_id_type> theoretical_res = {2, 3, 5, 4, 5, 6, 6};
 
@@ -61,7 +69,7 @@ namespace
   TEST(KspTests, EppsteinOriginalNetwork)
   {
     auto const       graph = eppstein_graph();
-    KFinder_Eppstein kfinder(graph);
+    KFinder_Eppstein kfinder(graph, graph.get_nodes().front().get_id(), graph.get_nodes().back().get_id());
 
     int k = 100; // Up to 10
 
@@ -87,8 +95,8 @@ namespace
 
   TEST(KspTests, LazyEppsteinOriginalNetwork)
   {
-    auto const                                     graph = eppstein_graph();
-    KFinder_Lazy_Eppstein kfinder(graph);
+    auto const            graph = eppstein_graph();
+    KFinder_Lazy_Eppstein kfinder(graph, graph.get_nodes().front().get_id(), graph.get_nodes().back().get_id());
 
     int k = 100; // Up to 10
 
@@ -114,8 +122,8 @@ namespace
 
   TEST(KspTests, LazyEppsteinOriginalTestGraph)
   {
-    auto const                                     graph = test_graph();
-    KFinder_Lazy_Eppstein kfinder(graph);
+    auto const            graph = test_graph();
+    KFinder_Lazy_Eppstein kfinder(graph, 0, 11);
 
     int k = 100; // Up to 10
 
@@ -154,7 +162,7 @@ namespace
     nodes.emplace_back(content_in({{"X2", 2}, {"X4", 4}}, {{"X5", 5}}));
     nodes.emplace_back(content_in({{"X5", 5}}, {{"X6", 6}}));
 
-    types::WGraph<Content_input> graph(nodes);
+    Graph_type graph(nodes);
 
     graph.set_weight({0, 1}, 4);
     graph.set_weight({0, 2}, 1);
@@ -198,7 +206,7 @@ namespace
                        {{"X" + std::to_string(i), i}}));
       }
 
-    types::WGraph<Content_input> graph(std::move(nodes));
+    Graph_type graph(std::move(nodes));
 
     graph.set_weight({0, 1}, 2);
     graph.set_weight({1, 2}, 20);
@@ -238,12 +246,28 @@ namespace
         nodes.push_back({node.get_id(), 90});
       }
 
-    for (std::size_t i = 0; i < built_graph.get_neighbors().size(); ++i)
+    for (std::size_t i = 0; i < built_graph.size(); ++i)
       {
-        dependencies[i] = built_graph.get_neighbors()[i];
+        dependencies[i] = std::make_pair(built_graph.get_input_nodes(i), built_graph.get_output_nodes(i));
       }
 
-    weights = built_graph.get_weight_map().front();
+    weights.emplace(std::make_pair(0, 1), 2);
+    weights.emplace(std::make_pair(1, 2), 20);
+    weights.emplace(std::make_pair(2, 3), 14);
+    weights.emplace(std::make_pair(0, 4), 13);
+    weights.emplace(std::make_pair(1, 5), 27);
+    weights.emplace(std::make_pair(2, 6), 14);
+    weights.emplace(std::make_pair(3, 7), 15);
+    weights.emplace(std::make_pair(4, 5), 9);
+    weights.emplace(std::make_pair(5, 6), 10);
+    weights.emplace(std::make_pair(6, 7), 25);
+    weights.emplace(std::make_pair(4, 8), 15);
+    weights.emplace(std::make_pair(5, 9), 20);
+    weights.emplace(std::make_pair(6, 10), 12);
+    weights.emplace(std::make_pair(7, 11), 7);
+    weights.emplace(std::make_pair(8, 9), 18);
+    weights.emplace(std::make_pair(9, 10), 8);
+    weights.emplace(std::make_pair(10, 11), 11);
 
 
     return res;

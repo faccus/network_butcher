@@ -18,15 +18,16 @@ namespace network_butcher::computer
     template <class T>
     using Standard_Graph_Type = network_butcher::types::Graph<T>;
     template <class T>
-    using Node_Type = network_butcher::types::Node<T>;
+    using Node_Type = network_butcher::types::CNode<T>;
 
     template <class T>
     using Content_Type = network_butcher::types::Content<T>;
 
     template <class T>
-    using Contented_Graph_Type = network_butcher::types::Graph<Content_Type<T>>;
+    using Contented_Graph_Type =
+      network_butcher::types::Graph<network_butcher::types::CNode<network_butcher::types::Content<T>>>;
     template <class T>
-    using Content_Node_Type = network_butcher::types::Node<network_butcher::types::Content<T>>;
+    using Content_Node_Type = network_butcher::types::CNode<network_butcher::types::Content<T>>;
 
     template <class T>
     [[nodiscard]] static memory_type

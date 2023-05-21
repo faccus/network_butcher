@@ -14,13 +14,13 @@ namespace
   using basic_type    = int;
   using Input         = TestMemoryUsage<basic_type>;
   using Content_type  = Content<Input>;
-  using Graph_type    = Graph<Content_type>;
+  using Graph_type    = Graph<CNode<Content_type>>;
   using IO_collection = io_collection_type<Input>;
   using Node_type     = Graph_type::Node_Type;
 
   TEST(GraphTests, DefaultConstructors)
   {
-    Graph<Input>            graph_empty;
+    Graph<CNode<Input>>     graph_empty;
     Graph<graph_input_type> graph_empty2;
   }
 
@@ -73,7 +73,7 @@ namespace
 
     nodes.emplace_back(std::move(content));
 
-    Graph<Content<Input>> graph(nodes);
+    Graph_type graph(nodes);
 
     graph.remove_nodes({3, 5, 6, 1, 11});
 

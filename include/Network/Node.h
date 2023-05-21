@@ -13,29 +13,62 @@
 
 namespace network_butcher::types
 {
-  template <class T>
-  class Graph;
-
   /// Just another node class...
   /// \tparam T Type of the content of the node
-  template <class T>
   class Node
   {
-  public:
-    using Content_Type = T;
-
-  private:
-    friend class Graph<Content_Type>;
-
+  protected:
     /// Current node id
     node_id_type id;
-
 
     /// Basic constructor for a node
     /// \param starting_id Initial node id
     /// \param starting_content Initial content
-    Node(node_id_type starting_id, Content_Type starting_content)
+    explicit Node(node_id_type starting_id)
       : id(starting_id)
+    {}
+
+  public:
+    /// Name of the node
+    std::string name;
+
+    /// Basic move constructor for a node
+    Node()
+      : id(std::numeric_limits<node_id_type>::max())
+    {}
+
+
+    /// Getter for the node id
+    [[nodiscard]] inline node_id_type
+    get_id() const
+    {
+      return id;
+    }
+
+    void
+    set_id(node_id_type starting_id)
+    {
+      id = starting_id;
+    }
+
+    virtual ~Node() = default;
+  };
+
+
+  /// Just another node class...
+  /// \tparam T Type of the content of the node
+  template <class T>
+  class CNode : public Node
+  {
+  public:
+    using Content_Type = T;
+
+  protected:
+    /// Basic constructor for a node
+    /// \param starting_id Initial node id
+    /// \param starting_content Initial content
+    CNode(node_id_type starting_id, Content_Type starting_content)
+      : Node(starting_id)
       , content(std::move(starting_content))
     {}
 
@@ -46,27 +79,21 @@ namespace network_butcher::types
     /// Name of the node
     std::string name;
 
-    Node() = default;
+    CNode() = default;
 
     /// Basic move constructor for a node
-    explicit Node(Content_Type &&starting_content)
-      : id(std::numeric_limits<node_id_type>::max())
+    explicit CNode(Content_Type &&starting_content)
+      : Node()
       , content(std::move(starting_content))
     {}
 
     /// Basic move constructor for a node
-    explicit Node(Content_Type const &starting_content)
-      : id(std::numeric_limits<node_id_type>::max())
+    explicit CNode(Content_Type const &starting_content)
+      : Node()
       , content(starting_content)
     {}
 
-
-    /// Getter for the node id
-    [[nodiscard]] inline node_id_type
-    get_id() const
-    {
-      return id;
-    }
+    ~CNode() override = default;
   };
 } // namespace network_butcher::types
 

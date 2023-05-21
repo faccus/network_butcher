@@ -14,20 +14,25 @@
 
 namespace network_butcher::kfinder
 {
-  template <typename T>
+  template <typename T, bool Only_Distance = false>
   class KFinder_Factory
   {
   private:
-    using Builder_type = std::function<std::unique_ptr<KFinder<T>>(T const &)>;
+    using Builder_type =
+      std::function<std::unique_ptr<KFinder<T, Only_Distance>>(T const &, node_id_type, node_id_type)>;
 
-    using Factory = GenericFactory::Factory<KFinder<T>, std::string, Builder_type>;
+    using Factory = GenericFactory::Factory<KFinder<T, Only_Distance>, std::string, Builder_type>;
 
     KFinder_Factory()
     {
       auto &factory = Factory::Instance();
 
-      factory.add("eppstein", [](T const &graph) { return std::make_unique<KFinder_Eppstein<T>>(graph); });
-      factory.add("lazy_eppstein", [](T const &graph) { return std::make_unique<KFinder_Lazy_Eppstein<T>>(graph); });
+      factory.add("eppstein", [](T const &graph, node_id_type root, node_id_type sink) {
+        return std::make_unique<KFinder_Eppstein<T, Only_Distance>>(graph, root, sink);
+      });
+      factory.add("lazy_eppstein", [](T const &graph, node_id_type root, node_id_type sink) {
+        return std::make_unique<KFinder_Lazy_Eppstein<T, Only_Distance>>(graph, root, sink);
+      });
     };
 
   public:
@@ -40,21 +45,21 @@ namespace network_butcher::kfinder
       Factory::Instance().add(entry_name, func);
     }
 
-    std::unique_ptr<KFinder<T>>
-    create(std::string const &name, T const &graph) const
+    std::unique_ptr<KFinder<T, Only_Distance>>
+    create(std::string const &name, T const &graph, node_id_type root, node_id_type sink) const
     {
-      return Factory::Instance().create(name, graph);
+      return Factory::Instance().create(name, graph, root, sink);
     }
 
-    std::unique_ptr<KFinder<T>>
-    create(parameters::KSP_Method method, T const &graph) const
+    std::unique_ptr<KFinder<T, Only_Distance>>
+    create(parameters::KSP_Method method, T const &graph, node_id_type root, node_id_type sink) const
     {
       switch (method)
         {
           case parameters::KSP_Method::Eppstein:
-            return create("eppstein", graph);
+            return create("eppstein", graph, root, sink);
           case parameters::KSP_Method::Lazy_Eppstein:
-            return create("lazy_eppstein", graph);
+            return create("lazy_eppstein", graph, root, sink);
           default:
             throw std::logic_error("The specified KSP_Method is not implemented.");
         }
@@ -80,11 +85,11 @@ namespace network_butcher::kfinder
   };
 
 
-  template <typename T>
-  KFinder_Factory<T> &
-  KFinder_Factory<T>::Instance()
+  template <typename T, bool Only_Distance>
+  KFinder_Factory<T, Only_Distance> &
+  KFinder_Factory<T, Only_Distance>::Instance()
   {
-    static KFinder_Factory<T> factory;
+    static KFinder_Factory<T, Only_Distance> factory;
     return factory;
   }
 

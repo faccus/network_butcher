@@ -13,15 +13,25 @@
 
 namespace network_butcher::kfinder
 {
-  using H_out_pointer = std::shared_ptr<H_out<edge_info>>;
-  using H_g           = Heap<H_out_pointer>;
+  using edge_pointer = edge_info;
 
-  using H_out_collection = std::unordered_map<node_id_type, H_out_pointer>;
-  using H_g_collection   = std::unordered_map<node_id_type, H_g>;
+  using full_H_out_type  = H_out<edge_pointer, std::greater<>>;
+  using H_out_collection = std::unordered_map<node_id_type, full_H_out_type>;
+  using H_out_pointer    = H_out_collection::const_iterator;
 
-  using edge_sequence     = std::vector<edge_pointer>;
-  using h_edge_edges_type = std::map<edge_pointer, edge_sequence>;
-  using edge_edges_type   = std::map<node_id_type, h_edge_edges_type>;
+  struct pointer_greater
+  {
+    std::less<> comp{};
+
+    bool
+    operator()(H_out_collection::const_iterator const &lhs, H_out_collection::const_iterator const &rhs) const
+    {
+      return comp(rhs->second, lhs->second);
+    }
+  };
+
+  using H_g            = Heap<H_out_pointer, pointer_greater>;
+  using H_g_collection = std::unordered_map<node_id_type, H_g>;
 } // namespace network_butcher::kfinder
 
 

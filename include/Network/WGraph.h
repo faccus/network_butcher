@@ -15,37 +15,30 @@ namespace network_butcher
   {
     /// Just another weighted graph class...
     /// \tparam T Type of the content of the nodes
-    template <class T>
-    class WGraph : public MWGraph<T>
+    template <bool Parallel_Edges, typename t_Node_Type = Node>
+    class WGraph : public MWGraph<Parallel_Edges, t_Node_Type>
     {
     private:
-      using Parent_type = MWGraph<T>;
+      using Parent_type = MWGraph<Parallel_Edges, t_Node_Type>;
 
     public:
-      using Dependencies_Type    = network_butcher::types::Dependencies_Type;
-      using Node_Type            = network_butcher::types::Node_Type<T>;
-      using Node_Collection_Type = network_butcher::types::Node_Collection_Type<T>;
-      using Node_Internal_Type   = T;
+      using Dependencies_Type    = Parent_type::Dependencies_Type;
+      using Node_Type            = Parent_type::Node_Type;
+      using Node_Collection_Type = Parent_type::Node_Collection_Type;
 
-      WGraph()               = delete;
-      WGraph(WGraph const &) = default;
-      WGraph &
-      operator=(WGraph const &) = default;
+      using Edge_Weight_Type = std::conditional_t<Parallel_Edges, std::multiset<weight_type>, weight_type>;
 
-      WGraph(WGraph &&) noexcept = default;
 
-      WGraph &
-      operator=(WGraph &&) noexcept = default;
-
-      explicit WGraph(std::vector<Node<T>>                                                     v,
-                      std::vector<std::pair<node_id_collection_type, node_id_collection_type>> dep = {})
-        : Parent_type(1, v, dep)
+      template <typename A, typename B>
+      explicit WGraph(A &&v, B &&dep)
+        : Parent_type(1, std::forward<A>(v), std::forward<B>(dep))
       {}
+
 
       /// Get the weight for the given edge
       /// \param edge The edge
       /// \return The weight
-      [[nodiscard]] weight_type
+      [[nodiscard]] Edge_Weight_Type
       get_weight(edge_type const &edge, bool print_missing = true) const
       {
         if (print_missing && !check_weight(edge))
@@ -66,55 +59,68 @@ namespace network_butcher
         Parent_type::set_weight(0, edge, weight);
       }
 
+      /// Sets the weight for the given edge on the given device
+      /// \param device The device id
+      /// \param edge The edge
+      /// \param weight The weight
+      template <bool cond = Parallel_Edges, std::enable_if_t<cond, bool> = true>
+      void
+      set_weight(edge_type const &edge, Edge_Weight_Type const &weights)
+        requires cond
+      {
+        Parent_type::set_weight(0, edge, weights);
+      }
+
+
       [[nodiscard]] bool
       check_weight(edge_type const &edge) const
       {
         return Parent_type::check_weight(0, edge);
       }
+
+      ~WGraph() override = default;
     };
 
-
-    template <class T>
-    class WGraph<Content<T>> : public MWGraph<Content<T>>
+    /// Just another weighted graph class...
+    /// \tparam T Type of the content of the nodes
+    template <bool Parallel_Edges, typename T>
+    class WGraph<Parallel_Edges, CNode<Content<T>>> : public MWGraph<Parallel_Edges, CNode<Content<T>>>
     {
     private:
-      using Parent_type = MWGraph<Content<T>>;
+      using Parent_type = MWGraph<Parallel_Edges, CNode<Content<T>>>;
 
     public:
-      using Dependencies_Type    = network_butcher::types::Dependencies_Type;
-      using Node_Type            = network_butcher::types::Node_Type<Content<T>>;
-      using Node_Collection_Type = network_butcher::types::Node_Collection_Type<Content<T>>;
-      using Node_Internal_Type   = T;
-      using Node_Content_Type    = Content<T>;
+      using Dependencies_Type    = Parent_type::Dependencies_Type;
+      using Node_Type            = Parent_type::Node_Type;
+      using Node_Collection_Type = Parent_type::Node_Collection_Type;
 
-      WGraph()               = delete;
-      WGraph(WGraph const &) = default;
-      WGraph &
-      operator=(WGraph const &) = default;
+      using Edge_Weight_Type = std::conditional_t<Parallel_Edges, std::multiset<weight_type>, weight_type>;
 
-      WGraph(WGraph &&) noexcept = default;
 
-      WGraph &
-      operator=(WGraph &&) noexcept = default;
-
-      explicit WGraph(std::vector<Node<Content<T>>>                                            v,
-                      std::vector<std::pair<node_id_collection_type, node_id_collection_type>> dep)
-        : Parent_type(1, v, dep){};
-
-      explicit WGraph(std::vector<Node_Type> const &v)
-        : Parent_type(1, v)
+      template <typename A, typename B>
+      explicit WGraph(A &&v, B &&dep)
+        : Parent_type(1, std::forward<A>(v), std::forward<B>(dep))
       {}
 
-      explicit WGraph(std::vector<Node_Type> &&v)
-        : Parent_type(1, std::move(v))
+
+      template <typename A>
+      explicit WGraph(A &&v)
+        : Parent_type(1, std::forward<A>(v))
       {}
+
 
       /// Get the weight for the given edge
       /// \param edge The edge
       /// \return The weight
-      [[nodiscard]] weight_type
-      get_weight(edge_type const &edge) const
+      [[nodiscard]] Edge_Weight_Type
+      get_weight(edge_type const &edge, bool print_missing = true) const
       {
+        if (print_missing && !check_weight(edge))
+          {
+            std::cout << "Requested a non-existing weight for edge (" << edge.first << ", " << edge.second
+                      << "). I will return .0" << std::endl;
+          }
+
         return Parent_type::get_weight(0, edge);
       }
 
@@ -127,13 +133,27 @@ namespace network_butcher
         Parent_type::set_weight(0, edge, weight);
       }
 
+      /// Sets the weight for the given edge on the given device
+      /// \param device The device id
+      /// \param edge The edge
+      /// \param weight The weight
+      template <bool cond = Parallel_Edges, std::enable_if_t<cond, bool> = true>
+      void
+      set_weight(edge_type const &edge, Edge_Weight_Type const &weights)
+        requires cond
+      {
+        Parent_type::set_weight(0, edge, weights);
+      }
+
+
       [[nodiscard]] bool
       check_weight(edge_type const &edge) const
       {
         return Parent_type::check_weight(0, edge);
       }
-    };
 
+      ~WGraph() override = default;
+    };
   } // namespace types
 
   namespace kfinder
@@ -141,21 +161,42 @@ namespace network_butcher
 
     /// (Partial) Specialization of Weighted_Graph
     /// \tparam T The internal type of WGraph
-    template <class T>
-    class Weighted_Graph<network_butcher::types::WGraph<T>>
+    template <bool Parallel_Edges, typename t_Node_Type, bool Reversed>
+    class Weighted_Graph<network_butcher::types::WGraph<Parallel_Edges, t_Node_Type>,
+                         typename network_butcher::types::WGraph<Parallel_Edges, t_Node_Type>::Node_Type,
+                         typename network_butcher::types::WGraph<Parallel_Edges, t_Node_Type>::Node_Collection_Type,
+                         typename network_butcher::types::WGraph<Parallel_Edges, t_Node_Type>::Dependencies_Type,
+                         Reversed>
     {
     public:
       using Node_Id_Type         = std::size_t;
       using Edge_Type            = std::pair<Node_Id_Type, Node_Id_Type>;
-      using Graph_Type           = typename network_butcher::types::WGraph<T>;
-      using Node_Type            = typename Graph_Type::Node_Type;
+      using Graph_Type           = typename network_butcher::types::WGraph<Parallel_Edges, t_Node_Type>;
+      using Node_Type            = Graph_Type::Node_Type;
+      using Dependencies_Type    = Graph_Type::Dependencies_Type;
       using Node_Collection_Type = std::vector<Node_Type>;
+      using Weight_Edge_Type     = std::multiset<weight_type>;
 
 
-      [[nodiscard]] weight_type
+      [[nodiscard]] Weight_Edge_Type
       get_weight(Edge_Type const &edge) const
       {
-        return graph.get_weight(edge);
+        if constexpr (Reversed && Parallel_Edges)
+          {
+            return graph.get_weight(std::make_pair(edge.second, edge.first));
+          }
+        else if constexpr (Reversed)
+          {
+            return {graph.get_weight(std::make_pair(edge.second, edge.first))};
+          }
+        else if constexpr (Parallel_Edges)
+          {
+            return graph.get_weight(edge);
+          }
+        else
+          {
+            return {graph.get_weight(edge)};
+          }
       }
 
       [[nodiscard]] std::size_t
@@ -170,17 +211,17 @@ namespace network_butcher
         return graph.empty();
       };
 
-
-      [[nodiscard]] std::set<Node_Id_Type> const &
-      get_input_nodes(Node_Id_Type const &id) const
-      {
-        return graph.get_neighbors()[id].first;
-      };
-
       [[nodiscard]] std::set<Node_Id_Type> const &
       get_output_nodes(Node_Id_Type const &id) const
       {
-        return graph.get_neighbors()[id].second;
+        if constexpr (Reversed)
+          {
+            return reversed_neighboors[id].second;
+          }
+        else
+          {
+            return graph.get_output_nodes(id);
+          }
       };
 
 
@@ -190,39 +231,55 @@ namespace network_butcher
         return graph[id];
       };
 
-      typename Node_Collection_Type::const_iterator
+      [[nodiscard]] typename Node_Collection_Type::const_iterator
       cbegin() const
       {
-        return graph.get_nodes().cbegin();
+        return graph.cbegin();
       }
 
-      typename Node_Collection_Type::const_iterator
+      [[nodiscard]] typename Node_Collection_Type::const_iterator
       cend() const
       {
-        return graph.get_nodes().cend();
+        return graph.cend();
       }
 
-      typename Node_Collection_Type::const_reverse_iterator
-      crbegin() const
+      [[nodiscard]] typename Node_Collection_Type::const_iterator
+      begin() const
       {
-        return graph.get_nodes().crbegin();
+        return cbegin();
       }
 
-      typename Node_Collection_Type::const_reverse_iterator
-      crend() const
+      [[nodiscard]] typename Node_Collection_Type::const_iterator
+      end() const
       {
-        return graph.get_nodes().crend();
+        return cend();
       }
 
 
       explicit Weighted_Graph(Graph_Type const &g)
         : graph(g)
-      {}
+      {
+        if constexpr (Reversed)
+          {
+            reversed_neighboors.resize(size());
+
+            for (auto const &tail_node : *this)
+              {
+                auto const &tail = tail_node.get_id();
+                for (auto const &head : g.get_output_nodes(tail))
+                  {
+                    reversed_neighboors[head].second.insert(tail);
+                    reversed_neighboors[tail].first.insert(head);
+                  }
+              }
+          }
+      }
 
       Weighted_Graph(Weighted_Graph const &) = default;
 
     private:
-      Graph_Type const &graph;
+      Graph_Type const                                     &graph;
+      std::conditional_t<Reversed, Dependencies_Type, bool> reversed_neighboors;
     };
   } // namespace kfinder
 

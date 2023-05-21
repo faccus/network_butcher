@@ -9,12 +9,13 @@
 #include "MWGraph.h"
 #include "WGraph.h"
 
+#include "Content.h"
+
 namespace network_butcher
 {
   // using layer_type = Graph<node_type>;
-  using graph_type = network_butcher::types::MWGraph<graph_input_type>;
-  using block_graph_type =
-    network_butcher::types::WGraph<std::pair<std::size_t, std::shared_ptr<node_id_collection_type>>>;
+  using graph_type       = network_butcher::types::MWGraph<false, graph_input_type>;
+  using block_graph_type = network_butcher::types::WGraph<false, block_graph_input_type>;
 } // namespace network_butcher
 
 

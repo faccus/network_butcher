@@ -12,11 +12,14 @@ namespace network_butcher::kfinder
 {
   /// This class implements the Eppstein K-shortest path algorithm
   /// \tparam Graph_type The graph type
-  template <class Graph_type>
-  class KFinder_Eppstein final : public basic_KEppstein<Graph_type>
+  template <class Graph_type, bool Only_Distance = false>
+  class KFinder_Eppstein final : public basic_KEppstein<Graph_type, Only_Distance>
   {
   private:
-    using base = basic_KEppstein<Graph_type>;
+    using base                       = basic_KEppstein<Graph_type, Only_Distance>;
+    using internal_weight_collection = basic_KEppstein<Graph_type, Only_Distance>::internal_weight_collection;
+    using dijkstra_result_type       = basic_KEppstein<Graph_type, Only_Distance>::dijkstra_result_type;
+    using implicit_path_info         = basic_KEppstein<Graph_type, Only_Distance>::implicit_path_info;
 
 
     /// Given the successors collection and the sidetrack distances, it will construct the h_out map
@@ -25,16 +28,16 @@ namespace network_butcher::kfinder
     /// \param sidetrack_distances The collection of the sidetrack distances for all the sidetrack edges
     /// \return H_out map
     [[nodiscard]] H_out_collection
-    construct_h_out(std::vector<node_id_type> const &successors,
-                    weights_collection_type const   &sidetrack_distances) const;
+    construct_h_out(std::vector<node_id_type> const  &successors,
+                    internal_weight_collection const &sidetrack_distances) const;
 
 
     /// It will produce the map associating every node to its corresponding H_g map
-    /// \param h_out The collection of h_outs
+    /// \param h_out_collection The collection of h_outs
     /// \param successors The successors list
     /// \return The map associating every node to its corresponding H_g map
     [[nodiscard]] H_g_collection
-    construct_h_g(H_out_collection const &h_out, std::vector<node_id_type> const &successors) const;
+    construct_h_g(H_out_collection const &h_out_collection, std::vector<node_id_type> const &successors) const;
 
 
     /// The basic function for the Eppstein algorithm
@@ -42,181 +45,182 @@ namespace network_butcher::kfinder
     /// \param K The number of shortest paths
     /// \param dij_res The result of dijkstra
     /// \return The (implicit) k shortest paths
-    [[nodiscard]] std::vector<implicit_path_info>
-    basic_eppstein(std::size_t K, dijkstra_result_type const &dij_res) const;
+    [[nodiscard]] std::conditional_t<Only_Distance, std::vector<weight_type>, std::vector<path_info>>
+    start(std::size_t K, dijkstra_result_type const &dij_res) const override;
 
   public:
-    /// Applies the Eppstein algorithm to find the k-shortest paths on the given
-    /// graph (from the first node to the last one)
-    /// \param K The number of shortest paths to find
-    /// \return The shortest paths
-    [[nodiscard]] std::vector<path_info>
-    compute(std::size_t K) const override;
+    explicit KFinder_Eppstein(Graph_type const &g, std::size_t root, std::size_t sink)
+      : base(g, root, sink){};
 
-    explicit KFinder_Eppstein(Graph_type const &g)
-      : base(g){};
+    explicit KFinder_Eppstein(Weighted_Graph<Graph_type> const &g, std::size_t root, std::size_t sink)
+      : base(g, root, sink){};
 
-    explicit KFinder_Eppstein(Weighted_Graph<Graph_type> const &g)
-        : base(g){};
-
-      virtual ~KFinder_Eppstein() = default;
+    ~KFinder_Eppstein() override = default;
   };
 
 
-    template <class Graph_type>
-    H_out_collection
-    KFinder_Eppstein<Graph_type>::construct_h_out(const std::vector<node_id_type> &successors,
-                                                  const weights_collection_type   &sidetrack_distances) const
-    {
-      H_out_collection h_out;
-      auto const      &graph = base::graph;
+  template <class Graph_type, bool Only_Distance>
+  H_out_collection
+  KFinder_Eppstein<Graph_type, Only_Distance>::construct_h_out(
+    const std::vector<node_id_type>  &successors,
+    const internal_weight_collection &sidetrack_distances) const
+  {
+    H_out_collection h_out_collection;
+    auto const      &graph = base::graph;
 
-      for (auto it = graph.cbegin(); it != graph.cend(); ++it)
-        {
-          auto const &tail_node = *it;
+    for (auto const &tail_node : graph)
+      {
+        auto const &tail           = tail_node.get_id();
+        auto const &tail_successor = successors[tail];
+        if (tail_successor == std::numeric_limits<node_id_type>::max())
+          continue;
 
-          auto h_out_it =
-            h_out.insert(h_out.cend(), {tail_node.get_id(), std::make_shared<H_out<edge_info>>()})->second;
-          h_out_it->heap.id = tail_node.get_id();
+        auto &h_out =
+          h_out_collection.insert(h_out_collection.cend(), {tail, H_out_collection::mapped_type(tail)})->second;
 
-          auto const &tail = tail_node.get_id();
-          // Loop through the output neighbors of the current node
-          for (auto const &head : graph.get_output_nodes(tail))
-            {
-              // If it's not the successor in the shortest path to the sink
-              if (head != successors[tail])
-                {
-                  auto sidetrack_it = sidetrack_distances.find({tail, head});
-                  if (sidetrack_it != sidetrack_distances.cend())
-                    {
-                      // Add the sidetrack edge {tail, head} to the heap
-                      h_out_it->heap.children.emplace(sidetrack_it->first, sidetrack_it->second);
-                    }
-                }
-            }
-        }
+        // The output neighbors of the current node
+        auto const &head_nodes = graph.get_output_nodes(tail);
 
-      return h_out;
-    }
+        // Loop through the output neighbors of the current node
+        for (auto const &head : head_nodes)
+          {
+            auto [begin, end] = sidetrack_distances.equal_range(edge_type{tail, head});
 
+            for (; begin != end; ++begin)
+              {
+                h_out.push(edge_info{begin->first, begin->second});
+              }
+          }
+      }
 
-    template <class Graph_type>
-    H_g_collection
-    KFinder_Eppstein<Graph_type>::construct_h_g(const H_out_collection          &h_out,
-                                                const std::vector<node_id_type> &successors) const // O(N*log(N))
-    {
-      H_g_collection h_g;
-
-      auto const &graph     = base::graph;
-      auto const &num_nodes = graph.size();
-
-      std::vector<std::set<node_id_type>> sp_dependencies;
-      sp_dependencies.resize(num_nodes);
-
-      // Prepare the H_g map
-      for (auto i = 0; i < num_nodes; ++i)
-        {
-          auto it       = h_g.insert(h_g.cend(), {i, H_g()});
-          it->second.id = i;
-        }
-
-      // sp_dependencies contains for every node its predecessors (the nodes that along the shortest path to the sink
-      // have as a successor the node itself). Notice that the sum of the sizes of all the stored sets is at most N
-      for (auto i = 0; i < num_nodes; ++i) // O(N)
-        {
-          auto const &tmp = successors[i];
-
-          if (tmp != i)
-            sp_dependencies[tmp].insert(i); // O(log(N))
-        }
-
-      auto const sink = graph.crbegin()->get_id();
-
-      auto iterator = h_out.find(sink); // O(1)
-
-      // Prepare the last H_g
-      if (iterator != h_out.cend() && !iterator->second->heap.children.empty())
-        {
-          h_g[sink].children.emplace(iterator->second); // O(log(N))
-        }
-
-      std::queue<node_id_type> queue;
-
-      for (auto i = 0; i < h_g.size(); ++i) // O(N)
-        if (successors[i] == sink)
-          queue.push(i);
-
-      // We loop though the queue in such a way that the H_g of the successor of every node in the queue itself has been
-      // already computed
-      while (!queue.empty()) // O(N)
-        {
-          auto const &front_element = queue.front();
-
-          auto &deps = sp_dependencies[front_element]; // O(1)
-
-          auto &heap_node = h_g[front_element]; // O(log(N))
-
-          iterator = h_out.find(front_element);
-
-          // Add H_out and...
-          if (iterator != h_out.cend() && !iterator->second->heap.children.empty())
-            heap_node.children.emplace(iterator->second); // O(1)
-
-          auto const &tmo = h_g[successors[front_element]];
-
-          // the H_g of the successor along the shortest path
-          if (!tmo.children.empty())
-            heap_node.children.insert(tmo.children.begin(),
-                                      tmo.children.end()); // O(1)
-
-          // Among the different iterations, this loop is performed at most N times. Moreover, every iteration of the
-          // loop will add a new node to the queue. This means that this loop doesn't change the worst case complexity
-          // of the overall method
-          for (auto &n : deps)
-            queue.push(n);
-
-          queue.pop(); // O(1)
-        }
-
-      return h_g;
-    }
+    return h_out_collection;
+  }
 
 
-    template <class Graph_type>
-    std::vector<implicit_path_info>
-    KFinder_Eppstein<Graph_type>::basic_eppstein(std::size_t K, const dijkstra_result_type &dij_res) const
-    {
-      auto const &graph = base::graph;
+  template <class Graph_type, bool Only_Distance>
+  H_g_collection
+  KFinder_Eppstein<Graph_type, Only_Distance>::construct_h_g(
+    const H_out_collection          &h_out_collection,
+    const std::vector<node_id_type> &successors) const // O(N*log(N))
+  {
+    H_g_collection h_g_collection;
 
-      auto const sidetrack_distances_res = base::sidetrack_distances(dij_res.second); // O(E)
-      auto const &successors          = dij_res.first;
+    auto const &graph     = base::graph;
+    auto const &num_nodes = graph.size();
+    auto const &sink      = base::sink;
 
-      auto h_out = construct_h_out(successors, sidetrack_distances_res); // O(N+E)
-      auto h_g   = construct_h_g(h_out, successors);                     // O(N*log(N))
+    // sp_dependencies contains the predecessors of every node in the shortest path. Notice
+    // that the sum of the sizes of all the stored sets is at most N
+    std::vector<std::set<node_id_type>> sp_dependencies;
+    sp_dependencies.resize(num_nodes);
 
-      return base::general_algo_eppstein(K, dij_res, sidetrack_distances_res, h_g, h_out);
-    }
+    for (auto const &node : graph)
+      {
+        auto const &node_id   = node.get_id();
+        auto const &successor = successors[node_id];
+
+        if (successor == std::numeric_limits<node_id_type>::max())
+          continue;
+
+        // Prepare the H_g map
+        auto it = h_g_collection.emplace_hint(h_g_collection.cend(), node_id, H_g(node_id));
+
+        if (sink != node_id)
+          sp_dependencies[successor].insert(node_id); // O(log(N))
+      }
+
+    // The actual generation of the H_g should now start from the sink node
+    auto h_out_iterator = h_out_collection.find(sink); // O(1)
+
+    // Prepare the last H_g
+    if (h_out_iterator != h_out_collection.cend() && !h_out_iterator->second.empty())
+      {
+        h_g_collection.find(sink)->second.push(h_out_iterator); // O(log(N))
+      }
+
+    // Now, we have to find the nodes whose successor is the sink itself
+    std::queue<node_id_type> queue;
+    for (auto const &node : graph) // O(N)
+      {
+        auto const &id = node.get_id();
+        if (successors[id] == sink && id != sink) // O(log(N))
+          queue.push(id);
+      }
+
+    // Loop through the queue
+    while (!queue.empty()) // O(N)
+      {
+        auto const &front_element = queue.front();
+
+        // Find the "new" nodes that must be added to the queue. At the end this iteration, their H_g can be computed
+        auto       &deps          = sp_dependencies[front_element];                         // O(1)
+        auto       &h_g           = h_g_collection.find(front_element)->second;             // O(1)
+        auto const &successor_h_g = h_g_collection.find(successors[front_element])->second; // O(1)
+
+        // the H_g of the successor along the shortest path
+        if (!successor_h_g.empty())
+          h_g.overwrite_children(successor_h_g); // O(1)
+
+        h_out_iterator = h_out_collection.find(front_element);
+
+        // Add H_out and...
+        if (h_out_iterator != h_out_collection.cend() && !h_out_iterator->second.empty())
+          h_g.push(h_out_iterator); // O(1)
 
 
-    template <class Graph_type>
-    std::vector<path_info>
-    KFinder_Eppstein<Graph_type>::compute(std::size_t K) const
-    {
-      auto const &graph = base::graph;
+        // Among the different iterations, this loop is performed at most N times. Moreover, every iteration of the
+        // loop will add a new node to the queue. This means that this loop doesn't change the worst case complexity
+        // of the overall method
+        for (auto &n : deps)
+          queue.push(n);
 
-      if (graph.empty() || K == 0)
-        return {};
+        queue.pop(); // O(1)
+      }
 
-      auto const dij_res = Shortest_path_finder::shortest_path_tree(graph); // time: ((N+E)log(N)), space: O(N)
-
-      if (K == 1)
-        return {Shortest_path_finder::shortest_path_finder(graph, dij_res, 0)};
+    return h_g_collection;
+  }
 
 
-      auto const epp_res = basic_eppstein(K, dij_res);
+  template <class Graph_type, bool Only_Distance>
+  std::conditional_t<Only_Distance, std::vector<weight_type>, std::vector<path_info>>
+  KFinder_Eppstein<Graph_type, Only_Distance>::start(std::size_t K, const dijkstra_result_type &dij_res) const
+  {
+    auto const  sidetrack_distances_res = base::sidetrack_distances(dij_res); // O(E)
+    auto const &successors              = dij_res.first;
 
-      return base::helper_eppstein(dij_res, epp_res);
-    }
+#ifdef LOCAL
+    Chrono crono;
+    crono.start();
+#endif
+
+    auto h_out = construct_h_out(successors, sidetrack_distances_res); // O(N+E)
+
+#ifdef LOCAL
+    crono.stop();
+    std::cout << "H_out construction: " << crono.wallTime() / 1000. / 1000. << " s" << std::endl;
+    crono.start();
+#endif
+
+
+    auto h_g = construct_h_g(h_out, successors); // O(N*log(N))
+
+#ifdef LOCAL
+    crono.stop();
+    std::cout << "H_g construction: " << crono.wallTime() / 1000. / 1000. << " s" << std::endl;
+#endif
+
+
+    auto epp_res = base::general_algo_eppstein(K, dij_res, sidetrack_distances_res, h_g, h_out);
+
+    if constexpr (Only_Distance)
+      {
+        return epp_res;
+      }
+    else
+      {
+        return base::helper_eppstein(dij_res, epp_res);
+      }
+  }
 } // namespace network_butcher::kfinder
 
 

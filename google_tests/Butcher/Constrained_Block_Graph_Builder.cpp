@@ -21,8 +21,8 @@ namespace
   using basic_type   = int;
   using Input        = TestMemoryUsage<int>;
   using Content_type = Content<Input>;
-  using Node_type    = Node<Content_type>;
-  using GraphType    = MWGraph<Content_type>;
+  using Node_type    = CNode<Content_type>;
+  using GraphType    = MWGraph<false, Node_type>;
 
   GraphType basic_graph(std::size_t);
   GraphType basic_graph2(std::size_t);
@@ -276,8 +276,8 @@ namespace
 
   TEST(BlockGraphBuilderTest, WeightsBlockMultiple)
   {
-    auto graph                = basic_graph(2);
-    auto params               = eppstein_parameters(5, 2);
+    auto graph                               = basic_graph(2);
+    auto params                              = eppstein_parameters(5, 2);
     params.block_graph_mode                  = parameters::Block_Graph_Generation_Mode::output;
     params.weights_params.weight_import_mode = parameters::Weight_Import_Mode::block_multiple_direct_read;
 

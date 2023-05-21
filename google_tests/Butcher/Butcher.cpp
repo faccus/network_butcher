@@ -21,8 +21,8 @@ namespace
   using basic_type   = int;
   using Input        = TestMemoryUsage<int>;
   using Content_type = Content<Input>;
-  using Node_type    = Node<Content_type>;
-  using GraphType    = MWGraph<Content_type>;
+  using Node_type    = CNode<Content_type>;
+  using GraphType    = MWGraph<false, Node_type>;
 
   GraphType basic_graph(std::size_t);
 

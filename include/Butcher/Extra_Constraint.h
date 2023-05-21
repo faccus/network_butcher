@@ -212,23 +212,20 @@ namespace network_butcher::constraints
         fixed_memory = std::reduce(std::next(params_memory.begin(), *ids.cbegin()),
                                    std::next(params_memory.begin(), *ids.crbegin()));
       }
-    auto const &dependencies = graph.get_neighbors();
     std::size_t qty          = 1;
 
-
-    if (dependencies[*ids.begin()].first.size() == 1)
+    if (graph.get_input_nodes(*ids.begin()).size() == 1)
       {
-        auto const &father = *dependencies[*ids.begin()].first.begin();
-        qty                = std::max(qty, dependencies[father].second.size());
+        auto const &father = *graph.get_input_nodes(*ids.begin()).begin();
+        qty                = std::max(qty, graph.get_output_nodes(father).size());
       }
 
     for (auto const &id : ids)
       {
         auto const &node = graph[id];
 
-        auto const &node_dependencies = dependencies[id];
-        auto const &parents           = node_dependencies.first;
-        auto const &children          = node_dependencies.second;
+        auto const &parents  = graph.get_input_nodes(id);
+        auto const &children = graph.get_output_nodes(id);
 
         memory_type        in_memory  = input_memory[id];
         memory_type const &out_memory = output_memory[id];

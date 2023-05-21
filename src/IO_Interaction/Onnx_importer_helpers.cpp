@@ -219,7 +219,7 @@ namespace network_butcher::io
   }
 
 
-  std::tuple<node_type, std::vector<type_info_pointer>, std::vector<type_info_pointer>>
+  std::tuple<graph_type::Node_Type, std::vector<type_info_pointer>, std::vector<type_info_pointer>>
   Onnx_importer_helpers::process_node(const onnx::NodeProto                             &node,
                                       const Onnx_importer_helpers::prepared_import_onnx &prepared_data)
   {
@@ -240,7 +240,7 @@ namespace network_butcher::io
                                                                                     process_node_attributes(node),
                                                                                     std::move(operation_type));
 
-    auto res = node_type(std::move(content));
+    auto res = graph_type::Node_Type(std::move(content));
     res.name = node.name();
 
     return {res, graph_inputs, graph_outputs};

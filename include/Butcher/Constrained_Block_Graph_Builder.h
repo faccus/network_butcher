@@ -166,69 +166,72 @@ namespace network_butcher
     bool                                    backward_connections_allowed)
   {
     // It will construct the linearized version of the original graph
-    auto const linearize_graph = [](GraphType::Dependencies_Type const                             &old_dependencies,
-                                    GraphType::Node_Collection_Type const                          &old_nodes,
+    auto const linearize_graph = [](GraphType const                                                &old_graph,
                                     network_butcher::parameters::Block_Graph_Generation_Mode const &mode) {
+      auto const &old_nodes = old_graph.get_nodes();
+
       // Counter is used to establish if the current node has more output
       // connections than the inputs one.
-      int counter = old_dependencies.front().second.size() - old_dependencies.front().first.size() - 1;
+      int counter = old_graph.get_output_nodes(0).size() - old_graph.get_input_nodes(0).size() - 1;
 
       std::list<block_graph_type::Node_Type> starting_nodes;
 
 
-      starting_nodes.emplace_back(block_graph_type::Node_Internal_Type{0, nullptr});
+      starting_nodes.emplace_back(block_graph_type::Node_Type::Content_Type{0, nullptr});
       starting_nodes.back().content.second = std::make_shared<node_id_collection_type>(node_id_collection_type{0});
 
       // Cycle through all the nodes of the graph
       for (auto it = ++old_nodes.begin(); it != old_nodes.end(); ++it)
         {
           // Node of the old graph
-          auto const &node          = *it;
-          auto const &dep           = old_dependencies[node.get_id()];
-          int const   local_counter = dep.second.size() - dep.first.size();
+          auto const &node        = *it;
+          auto const &input_deps  = old_graph.get_input_nodes(node.get_id());
+          auto const &output_deps = old_graph.get_output_nodes(node.get_id());
+
+          int const local_counter = output_deps.size() - input_deps.size();
 
           // Add new node
           if (local_counter <= 0 && counter == 0)
             {
-              starting_nodes.emplace_back(block_graph_type::Node_Internal_Type{0, nullptr});
+              starting_nodes.emplace_back(block_graph_type::Node_Type::Content_Type{0, nullptr});
               starting_nodes.back().content.second =
                 std::make_shared<node_id_collection_type>(node_id_collection_type{node.get_id()});
             }
           // Add new node and add master node for next steps
           else if (local_counter > 0 && counter == 0)
             {
-              starting_nodes.emplace_back(block_graph_type::Node_Internal_Type{0, nullptr});
+              starting_nodes.emplace_back(block_graph_type::Node_Type::Content_Type{0, nullptr});
               starting_nodes.back().content.second =
                 std::make_shared<node_id_collection_type>(node_id_collection_type{node.get_id()});
 
-              starting_nodes.emplace_back(block_graph_type::Node_Internal_Type{0, nullptr});
+              starting_nodes.emplace_back(block_graph_type::Node_Type::Content_Type{0, nullptr});
               starting_nodes.back().content.second = std::make_shared<node_id_collection_type>();
 
               counter += local_counter;
             }
           // Add node link to the "big" node
-          else if ((local_counter == 0 && dep.second.size() == 1 || local_counter > 0 && dep.first.size() <= 1) &&
+          else if ((local_counter == 0 && output_deps.size() == 1 || local_counter > 0 && input_deps.size() <= 1) &&
                    counter > 0)
             {
               starting_nodes.back().content.second->insert(starting_nodes.back().content.second->end(), node.get_id());
 
               counter += local_counter;
             }
-          else if (counter > 0 && ((local_counter >= 0 && dep.first.size() > 1) || (local_counter < 0)))
+          else if (counter > 0 && ((local_counter >= 0 && input_deps.size() > 1) || (local_counter < 0)))
             {
-              counter -= (dep.first.size() - 1);
+              counter -= (input_deps.size() - 1);
 
               // End of the master node
               if (counter == 0)
                 {
-                  starting_nodes.emplace_back(block_graph_type::Node_Internal_Type{0, nullptr});
+                  starting_nodes.emplace_back(block_graph_type::Node_Type::Content_Type{0, nullptr});
                   starting_nodes.back().content.second =
                     std::make_shared<node_id_collection_type>(node_id_collection_type{node.get_id()});
 
                   // Do we have to add another master node?
                   if (local_counter >= 0)
                     {
-                      starting_nodes.emplace_back(block_graph_type::Node_Internal_Type{0, nullptr});
+                      starting_nodes.emplace_back(block_graph_type::Node_Type::Content_Type{0, nullptr});
                       starting_nodes.back().content.second = std::make_shared<node_id_collection_type>();
                     }
                 }
@@ -238,7 +241,7 @@ namespace network_butcher
                                                                node.get_id());
                 }
 
-              counter += (dep.second.size() - 1);
+              counter += (output_deps.size() - 1);
             }
           else
             {
@@ -279,7 +282,7 @@ namespace network_butcher
 
                   // If we detect that it_prec points to the input of a big node....
                   if (it_prec_nodes_const->size() == 1 &&
-                      old_dependencies[*it_prec_nodes_const->cbegin()].second.size() > 1)
+                      old_graph.get_output_nodes(*it_prec_nodes_const->cbegin()).size() > 1)
                     {
                       // It will merge them
                       if (merge_nodes(it_succ, it_prec))
@@ -297,7 +300,7 @@ namespace network_butcher
                   auto const &it_nodes_const = it_succ->content.second;
 
                   // If we detect that it_succ points to the output of a big node....
-                  if (it_nodes_const->size() == 1 && old_dependencies[*it_nodes_const->cbegin()].first.size() > 1)
+                  if (it_nodes_const->size() == 1 && old_graph.get_input_nodes(*it_nodes_const->cbegin()).size() > 1)
                     {
                       // It will merge them
                       if (merge_nodes(it_succ, it_prec))
@@ -321,7 +324,7 @@ namespace network_butcher
             {
               for (std::size_t i = 1; i < num_devices; ++i)
                 {
-                  starting_nodes.emplace(it, block_graph_type::Node_Internal_Type{i, it_follower->content.second});
+                  starting_nodes.emplace(it, block_graph_type::Node_Type::Content_Type{i, it_follower->content.second});
                 }
             }
         }
@@ -435,8 +438,7 @@ namespace network_butcher
       };
 
     // Get the linearized graph
-    auto starting_nodes =
-      linearize_graph(this->original_graph.get_neighbors(), this->original_graph.get_nodes(), block_graph_mode);
+    auto starting_nodes = linearize_graph(this->original_graph, block_graph_mode);
 
     auto const supp_size = starting_nodes.size() - 2;
     // Add the required nodes to the collection of nodes
@@ -550,7 +552,7 @@ namespace network_butcher
           // The device id of the input node (=0 starting device, >0 other device)
           auto const in_device_id = node.content.first;
 
-          for (auto const &second : new_graph.get_neighbors()[first].second)
+          for (auto const &second : new_graph.get_output_nodes(first))
             {
               auto const &out_node = new_graph[second];
 
@@ -578,7 +580,7 @@ namespace network_butcher
               else if (outputs.size() == 1)
                 {
                   auto const &output           = *outputs.begin();
-                  auto const &inputs_of_output = graph.get_neighbors()[output].first;
+                  auto const &inputs_of_output = graph.get_input_nodes(output);
 
                   weight_cost = graph.get_weight(out_device_id, std::make_pair(*inputs_of_output.cbegin(), output));
                 }
@@ -586,7 +588,7 @@ namespace network_butcher
               else if (inputs.size() == 1)
                 {
                   auto const &input             = *inputs.begin();
-                  auto const &interface_outputs = graph.get_neighbors()[input].second;
+                  auto const &interface_outputs = graph.get_output_nodes(input);
 
                   for (auto const &output : interface_outputs)
                     weight_cost += graph.get_weight(out_device_id, std::make_pair(input, output));
@@ -594,7 +596,7 @@ namespace network_butcher
                   // Compute the total weight associated to the internal edges
                   for (auto const &internal_input : outputs)
                     {
-                      for (auto &internal_output : graph.get_neighbors()[internal_input].second)
+                      for (auto &internal_output : graph.get_output_nodes(internal_input))
                         {
                           if (outputs.find(internal_output) != outputs.cend())
                             {
@@ -624,7 +626,7 @@ namespace network_butcher
                       // Compute the total weight associated to the internal edges
                       for (auto const &internal_input : outputs)
                         {
-                          for (auto &internal_output : graph.get_neighbors()[internal_input].second)
+                          for (auto &internal_output : graph.get_output_nodes(internal_input))
                             {
                               if (outputs.find(internal_output) != outputs.cend())
                                 {
@@ -669,7 +671,7 @@ namespace network_butcher
 
         auto const in_device_id = node.content.first;
 
-        for (auto const &second : new_graph.get_neighbors()[first].second)
+        for (auto const &second : new_graph.get_output_nodes(first))
           {
             auto const &out_node = new_graph[second];
 
@@ -700,7 +702,7 @@ namespace network_butcher
                 auto const &output = *outputs.begin();
                 // The inputs on the original graph of the output node have to
                 // transmit their values to the output node
-                for (auto const &input : this->original_graph.get_neighbors()[output].first)
+                for (auto const &input : this->original_graph.get_input_nodes(output))
                   {
                     final_cost += transmission_weights(input, in_device_id, out_device_id);
                   }
@@ -710,7 +712,7 @@ namespace network_butcher
             else if (inputs.size() == 1)
               {
                 auto const &input        = *inputs.begin();
-                auto const &comm_outputs = this->original_graph.get_neighbors()[input].second;
+                auto const &comm_outputs = this->original_graph.get_output_nodes(input);
 
                 final_cost += transmission_weights(input, in_device_id, out_device_id);
               }
@@ -734,7 +736,7 @@ namespace network_butcher
 
                     for (auto const &node_id : outputs)
                       {
-                        auto const &tmp_nodes = this->original_graph.get_neighbors()[node_id].first;
+                        auto const &tmp_nodes = this->original_graph.get_input_nodes(node_id);
                         output_node_inputs.insert(tmp_nodes.cbegin(), tmp_nodes.cend());
                       }
 

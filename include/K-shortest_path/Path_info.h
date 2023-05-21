@@ -6,13 +6,12 @@
 #define NETWORK_BUTCHER_PATH_INFO_H
 
 #include "Basic_traits.h"
+#include "crtp_grater.h"
 
 namespace network_butcher::kfinder
 {
-  using edge_pointer = std::shared_ptr<edge_type>;
-
   /// Simple struct to represent an explicit path
-  struct path_info
+  struct path_info : crtp_greater<path_info>
   {
     weight_type               length;
     std::vector<node_id_type> path;
@@ -23,35 +22,6 @@ namespace network_butcher::kfinder
       return length < rhs.length || (length == rhs.length && path < rhs.path);
     }
   };
-
-  /// Simple struct to represent an implicit path
-  struct implicit_path_info
-  {
-    std::vector<edge_pointer> sidetracks;
-    weight_type               length;
-
-    constexpr bool
-    operator<(const implicit_path_info &rhs) const
-    {
-      return length < rhs.length || (length == rhs.length && sidetracks < rhs.sidetracks);
-    }
-  };
-
-  /// A helper struct for the dijkstra algo
-  struct dijkstra_helper_struct
-  {
-    weight_type  weight;
-    node_id_type id;
-
-    constexpr bool
-    operator<(const dijkstra_helper_struct &rhs) const
-    {
-      return weight < rhs.weight || (weight == rhs.weight && id < rhs.id);
-    }
-  };
-
-  /// The output type of the Dijkstra algorithm
-  using dijkstra_result_type = std::pair<std::vector<node_id_type>, std::vector<weight_type>>;
 } // namespace network_butcher::kfinder
 
 #endif // NETWORK_BUTCHER_PATH_INFO_H

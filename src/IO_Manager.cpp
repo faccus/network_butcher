@@ -61,7 +61,7 @@ namespace network_butcher::io::IO_Manager
     // Prepare for the import
     auto const basic_data = prepare_import_from_onnx(onnx_graph);
 
-    std::vector<node_type> nodes;
+    std::vector<graph_type::Node_Type> nodes;
     nodes.reserve(onnx_nodes.size() + 2);
 
     std::set<type_info_pointer> graph_inputs, graph_outputs;
@@ -110,7 +110,7 @@ namespace network_butcher::io::IO_Manager
         nodes.back().name = "__fake__output__";
       }
 
-    return {network_butcher::types::MWGraph(num_devices, nodes), onnx_model, link_id_nodeproto};
+    return {graph_type(num_devices, nodes), onnx_model, link_id_nodeproto};
   }
 
 

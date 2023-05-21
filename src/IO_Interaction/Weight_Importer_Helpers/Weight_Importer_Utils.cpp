@@ -121,7 +121,7 @@ namespace network_butcher::io::Weight_importer_helpers
               {
                 if (indices[j] == i)
                   {
-                    res[index_map[indices[j]]].push_back(tmp_line.c_str());
+                    res[index_map[indices[j]]].emplace_back(tmp_line.c_str());
                     ++j;
                   }
 

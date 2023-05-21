@@ -15,48 +15,39 @@
 #include "Content.h"
 #include "Node.h"
 
-#include "Graph_dev_traits.h"
 #include "Node_traits.h"
 
 namespace network_butcher::types
 {
   /// Just another graph class...
   /// \tparam T Type of the content of the nodes
-  template <typename T>
+  template <typename t_Node_Type = Node>
+    requires std::is_base_of_v<Node, t_Node_Type> || std::is_same_v<Node, t_Node_Type>
   class Graph
   {
   public:
-    using Dependencies_Type    = network_butcher::types::Dependencies_Type;
-    using Node_Type            = network_butcher::types::Node_Type<T>;
-    using Node_Collection_Type = network_butcher::types::Node_Collection_Type<T>;
-    using Node_Internal_Type   = T;
-
+    using Dependencies_Type    = std::vector<std::pair<node_id_collection_type, node_id_collection_type>>;
+    using Node_Type            = t_Node_Type;
+    using Node_Collection_Type = std::vector<Node_Type>;
 
     Graph() = default;
-
-
-    Graph(Graph const &) = default;
-    Graph &
-    operator=(Graph const &) = default;
-
-
-    Graph(Graph &&) noexcept = default;
-
-    Graph &
-    operator=(Graph &&) noexcept = default;
-
 
     /// Construct a new Graph object
     /// \param v The collection of nodes ordered in an ascending order based on the id. To work with butcher, the
     /// nodes must be sorted in topological order, according to the Onnx IR specifications.
     /// \param dep Node dependencies (input and outputs of every node)
     template <typename A, typename B>
-    explicit Graph(A &&v, B &&dep = {})
+    explicit Graph(A &&v, B &&dep)
+      requires std::is_convertible_v<typename std::decay<A>::type, Node_Collection_Type> &&
+                 std::is_convertible_v<typename std::decay<B>::type, Dependencies_Type>
       : nodes(std::forward<A>(v))
       , dependencies(std::forward<B>(dep))
     {
       for (node_id_type i = 0; i < nodes.size(); ++i)
-        nodes[i].id = i;
+        {
+          Node &node = nodes[i];
+          node.set_id(i);
+        }
     }
 
 
@@ -78,21 +69,26 @@ namespace network_butcher::types
     }
 
 
-    /// Get the dependencies
-    /// \return The dependencies
-    [[nodiscard]] inline const Dependencies_Type &
-    get_neighbors() const
-    {
-      return dependencies;
-    }
-
-
     /// Get the dependencies (reference)
     /// \return The dependencies (reference)
     [[nodiscard]] inline Dependencies_Type &
     get_neighbors_ref()
     {
       return dependencies;
+    }
+
+    /// Get input nodes
+    [[nodiscard]] inline Dependencies_Type::value_type::first_type const &
+    get_input_nodes(node_id_type id) const
+    {
+      return dependencies[id].first;
+    }
+
+    /// Get input nodes
+    [[nodiscard]] inline Dependencies_Type::value_type::second_type const &
+    get_output_nodes(node_id_type id) const
+    {
+      return dependencies[id].second;
     }
 
 
@@ -126,7 +122,43 @@ namespace network_butcher::types
 
     /// Get the begin iterator of the nodes collection
     /// \return The iterator
-    Node_Collection_Type::const_iterator
+    [[nodiscard]] Node_Collection_Type::iterator
+    begin()
+    {
+      return nodes.begin();
+    }
+
+
+    /// Get the end iterator of the nodes collection
+    /// \return The iterator
+    [[nodiscard]] Node_Collection_Type::iterator
+    end()
+    {
+      return nodes.end();
+    }
+
+
+    /// Get the begin iterator of the nodes collection
+    /// \return The iterator
+    [[nodiscard]] Node_Collection_Type::iterator
+    begin() const
+    {
+      return nodes.begin();
+    }
+
+
+    /// Get the end iterator of the nodes collection
+    /// \return The iterator
+    [[nodiscard]] Node_Collection_Type::iterator
+    end() const
+    {
+      return nodes.end();
+    }
+
+
+    /// Get the begin iterator of the nodes collection
+    /// \return The iterator
+    [[nodiscard]] Node_Collection_Type::const_iterator
     cbegin() const
     {
       return nodes.cbegin();
@@ -135,7 +167,7 @@ namespace network_butcher::types
 
     /// Get the end iterator of the nodes collection
     /// \return The iterator
-    Node_Collection_Type::const_iterator
+    [[nodiscard]] Node_Collection_Type::const_iterator
     cend() const
     {
       return nodes.cend();
@@ -163,7 +195,8 @@ namespace network_butcher::types
               keys.insert(i);
               old_to_new[i] = j;
               new_node_collection.emplace_back(std::move(nodes[i]));
-              new_node_collection.back().id = j++;
+
+              new_node_collection.back().set_id(j++);
             }
         }
 
@@ -210,27 +243,19 @@ namespace network_butcher::types
     Dependencies_Type dependencies;
   };
 
+
+  /// Just another graph class...
+  /// \tparam T Type of the content of the nodes
   template <typename T>
-  class Graph<Content<T>>
+  class Graph<CNode<Content<T>>>
   {
   public:
-    using Dependencies_Type    = network_butcher::types::Dependencies_Type;
-    using Node_Type            = network_butcher::types::Node_Type<Content<T>>;
-    using Node_Collection_Type = network_butcher::types::Node_Collection_Type<Content<T>>;
-    using Node_Internal_Type   = T;
-    using Node_Content_Type    = Content<T>;
+    using Dependencies_Type    = std::vector<std::pair<node_id_collection_type, node_id_collection_type>>;
+    using Node_Type            = CNode<Content<T>>;
+    using Node_Collection_Type = std::vector<Node_Type>;
 
 
     Graph() = default;
-
-    Graph(Graph const &) = default;
-    Graph &
-    operator=(Graph const &) = default;
-
-    Graph &
-    operator=(Graph &&) noexcept = default;
-    Graph(Graph &&) noexcept     = default;
-
 
     /// Construct a new Graph object
     /// \param v The collection of nodes ordered in an ascending order based on the id. To work with butcher, the
@@ -238,23 +263,28 @@ namespace network_butcher::types
     /// \param dep Node dependencies (input and outputs of every node)
     template <typename A, typename B>
     explicit Graph(A &&v, B &&dep)
+      requires std::is_convertible_v<typename std::decay<A>::type, Node_Collection_Type> &&
+                 std::is_convertible_v<typename std::decay<B>::type, Dependencies_Type>
       : nodes(std::forward<A>(v))
       , dependencies(std::forward<B>(dep))
     {
       for (node_id_type i = 0; i < nodes.size(); ++i)
-        nodes[i].id = i;
+        {
+          Node &node = nodes[i];
+          node.set_id(i);
+        }
     }
 
-
-    /// Construct a new Graph object
-    /// \param v The collection of nodes ordered in an ascending order based on the id. To work with butcher, the
-    /// nodes must be sorted in topological order, according to the Onnx IR specifications.
     template <typename A>
     explicit Graph(A &&v)
+      requires std::is_convertible_v<typename std::decay<A>::type, Node_Collection_Type>
       : nodes(std::forward<A>(v))
     {
       for (node_id_type i = 0; i < nodes.size(); ++i)
-        nodes[i].id = i;
+        {
+          Node &node = nodes[i];
+          node.set_id(i);
+        }
 
       compute_dependencies();
     }
@@ -277,13 +307,18 @@ namespace network_butcher::types
       return nodes;
     }
 
-
-    /// Get the dependencies
-    /// \return The dependencies
-    [[nodiscard]] inline const Dependencies_Type &
-    get_neighbors() const
+    /// Get input nodes
+    [[nodiscard]] inline Dependencies_Type::value_type::first_type const &
+    get_input_nodes(node_id_type id) const
     {
-      return dependencies;
+      return dependencies[id].first;
+    }
+
+    /// Get input nodes
+    [[nodiscard]] inline Dependencies_Type::value_type::second_type const &
+    get_output_nodes(node_id_type id) const
+    {
+      return dependencies[id].second;
     }
 
 
@@ -326,7 +361,43 @@ namespace network_butcher::types
 
     /// Get the begin iterator of the nodes collection
     /// \return The iterator
-    Node_Collection_Type::const_iterator
+    [[nodiscard]] Node_Collection_Type::iterator
+    begin()
+    {
+      return nodes.begin();
+    }
+
+
+    /// Get the end iterator of the nodes collection
+    /// \return The iterator
+    [[nodiscard]] Node_Collection_Type::iterator
+    end()
+    {
+      return nodes.end();
+    }
+
+
+    /// Get the begin iterator of the nodes collection
+    /// \return The iterator
+    [[nodiscard]] Node_Collection_Type::iterator
+    begin() const
+    {
+      return nodes.begin();
+    }
+
+
+    /// Get the end iterator of the nodes collection
+    /// \return The iterator
+    [[nodiscard]] Node_Collection_Type::iterator
+    end() const
+    {
+      return nodes.end();
+    }
+
+
+    /// Get the begin iterator of the nodes collection
+    /// \return The iterator
+    [[nodiscard]] Node_Collection_Type::const_iterator
     cbegin() const
     {
       return nodes.cbegin();
@@ -335,14 +406,14 @@ namespace network_butcher::types
 
     /// Get the end iterator of the nodes collection
     /// \return The iterator
-    Node_Collection_Type::const_iterator
+    [[nodiscard]] Node_Collection_Type::const_iterator
     cend() const
     {
       return nodes.cend();
     }
 
 
-    /// It removes the node with the given id
+    /// It remoces the node with the given id
     /// \param nodes_to_remove The ids of the nodes to remove
     void
     remove_nodes(std::set<node_id_type> const &nodes_to_remove)
@@ -363,7 +434,8 @@ namespace network_butcher::types
               keys.insert(i);
               old_to_new[i] = j;
               new_node_collection.emplace_back(std::move(nodes[i]));
-              new_node_collection.back().id = j++;
+
+              new_node_collection.back().set_id(j++);
             }
         }
 
@@ -403,23 +475,19 @@ namespace network_butcher::types
     virtual ~Graph() = default;
 
   protected:
+    void
+    compute_dependencies();
+
     /// Vector of all the nodes
     Node_Collection_Type nodes;
 
-
     /// Vector that contains all the neighbours of every node (first input, then output)
     Dependencies_Type dependencies;
-
-
-    /// Compute node dependencies
-    void
-    compute_dependencies();
   };
 
-
-  template <class T>
+  template <typename T>
   void
-  Graph<Content<T>>::compute_dependencies()
+  Graph<CNode<Content<T>>>::compute_dependencies()
   {
     // Reset the dependency vector.
     dependencies = Dependencies_Type();

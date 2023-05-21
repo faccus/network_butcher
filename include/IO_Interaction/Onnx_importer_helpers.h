@@ -139,7 +139,7 @@ namespace network_butcher::io::Onnx_importer_helpers
   /// \param node The specified node
   /// \param prepared_data The prepared_import_onnx struct
   /// \return The node with its inputs and outputs
-  std::tuple<node_type, std::vector<type_info_pointer>, std::vector<type_info_pointer>>
+  std::tuple<graph_type::Node_Type, std::vector<type_info_pointer>, std::vector<type_info_pointer>>
   process_node(const onnx::NodeProto &node, prepared_import_onnx const &prepared_data);
 } // namespace network_butcher::io::Onnx_importer_helpers
 
