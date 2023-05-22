@@ -12,6 +12,7 @@ set(
         google_tests/K-shortest_path/KFinder.cpp
         google_tests/Butcher/Butcher.cpp
         google_tests/Butcher/Constrained_Block_Graph_Builder.cpp
+        google_tests/Butcher/Extra_Constraint.cpp
         google_tests/IO_interaction/Weight_importer_helpers.cpp
         google_tests/General_Manager.cpp
 )

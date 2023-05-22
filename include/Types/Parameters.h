@@ -76,6 +76,9 @@ namespace network_butcher::parameters
 
     struct Weights
     {
+      using connection_type     = std::pair<bandwidth_type, access_delay_type>;
+      using connection_map_type = std::map<edge_type, connection_type>;
+
       /// Mode for weight import
       Weight_Import_Mode weight_import_mode;
 
@@ -89,7 +92,7 @@ namespace network_butcher::parameters
       char separator;
 
       /// The bandwidth information between the different devices (Mbps - s)
-      std::map<edge_type, std::pair<bandwidth_type, access_delay_type>> bandwidth;
+      connection_map_type bandwidth;
     };
 
     /// aMMLibrary parameters

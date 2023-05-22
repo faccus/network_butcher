@@ -24,14 +24,16 @@ namespace
   using Node_type    = CNode<Content_type>;
   using GraphType    = MWGraph<false, Node_type>;
 
-  GraphType basic_graph(std::size_t);
-  GraphType basic_graph2(std::size_t);
+  GraphType
+  basic_graph();
+  GraphType
+  basic_graph2();
 
   parameters::Parameters
-  eppstein_parameters(std::size_t k, std::size_t num_devices);
+  eppstein_parameters();
 
   parameters::Parameters
-  lazy_eppstein_parameters(std::size_t k, std::size_t num_devices);
+  lazy_eppstein_parameters();
 
   template <class Graph>
   void
@@ -54,8 +56,8 @@ namespace
 
   TEST(BlockGraphBuilderTest, Devices)
   {
-    auto graph  = basic_graph(2);
-    auto params = eppstein_parameters(5, 2);
+    auto graph  = basic_graph();
+    auto params = eppstein_parameters();
 
     Constrained_Block_Graph_Builder builder(graph, params);
 
@@ -72,8 +74,8 @@ namespace
 
   TEST(BlockGraphBuilderTest, ConstructionClassic)
   {
-    auto graph  = basic_graph(2);
-    auto params = eppstein_parameters(5, 2);
+    auto graph  = basic_graph();
+    auto params = eppstein_parameters();
 
     Constrained_Block_Graph_Builder builder(graph, params);
 
@@ -97,8 +99,8 @@ namespace
 
   TEST(BlockGraphBuilderTest, ConstructionClassic2)
   {
-    auto graph  = basic_graph2(2);
-    auto params = eppstein_parameters(5, 2);
+    auto graph  = basic_graph2();
+    auto params = eppstein_parameters();
 
     Constrained_Block_Graph_Builder builder(graph, params);
 
@@ -114,8 +116,8 @@ namespace
 
   TEST(BlockGraphBuilderTest, ConstructionInput)
   {
-    auto graph              = basic_graph(2);
-    auto params             = eppstein_parameters(5, 2);
+    auto graph              = basic_graph();
+    auto params             = eppstein_parameters();
     params.block_graph_mode = parameters::Block_Graph_Generation_Mode::input;
 
     Constrained_Block_Graph_Builder builder(graph, params);
@@ -139,8 +141,8 @@ namespace
 
   TEST(BlockGraphBuilderTest, ConstructionInput2)
   {
-    auto graph              = basic_graph2(2);
-    auto params             = eppstein_parameters(5, 2);
+    auto graph              = basic_graph2();
+    auto params             = eppstein_parameters();
     params.block_graph_mode = parameters::Block_Graph_Generation_Mode::input;
 
     Constrained_Block_Graph_Builder builder(graph, params);
@@ -162,8 +164,8 @@ namespace
 
   TEST(BlockGraphBuilderTest, ConstructionOutput)
   {
-    auto graph              = basic_graph(2);
-    auto params             = eppstein_parameters(5, 2);
+    auto graph              = basic_graph();
+    auto params             = eppstein_parameters();
     params.block_graph_mode = parameters::Block_Graph_Generation_Mode::output;
 
     Constrained_Block_Graph_Builder builder(graph, params);
@@ -187,8 +189,8 @@ namespace
 
   TEST(BlockGraphBuilderTest, ConstructionOutput2)
   {
-    auto graph              = basic_graph2(2);
-    auto params             = eppstein_parameters(5, 2);
+    auto graph              = basic_graph2();
+    auto params             = eppstein_parameters();
     params.block_graph_mode = parameters::Block_Graph_Generation_Mode::output;
 
     Constrained_Block_Graph_Builder builder(graph, params);
@@ -211,8 +213,8 @@ namespace
 
   TEST(BlockGraphBuilderTest, TransmissionWeights)
   {
-    auto graph              = basic_graph(2);
-    auto params             = eppstein_parameters(5, 2);
+    auto graph              = basic_graph();
+    auto params             = eppstein_parameters();
     params.block_graph_mode = parameters::Block_Graph_Generation_Mode::output;
 
     Constrained_Block_Graph_Builder builder(graph, params);
@@ -244,8 +246,8 @@ namespace
 
   TEST(BlockGraphBuilderTest, WeightsBlockSingle)
   {
-    auto graph                               = basic_graph(2);
-    auto params                              = eppstein_parameters(5, 2);
+    auto graph                               = basic_graph();
+    auto params                              = eppstein_parameters();
     params.block_graph_mode                  = parameters::Block_Graph_Generation_Mode::output;
     params.weights_params.weight_import_mode = parameters::Weight_Import_Mode::block_single_direct_read;
 
@@ -276,8 +278,8 @@ namespace
 
   TEST(BlockGraphBuilderTest, WeightsBlockMultiple)
   {
-    auto graph                               = basic_graph(2);
-    auto params                              = eppstein_parameters(5, 2);
+    auto graph                               = basic_graph();
+    auto params                              = eppstein_parameters();
     params.block_graph_mode                  = parameters::Block_Graph_Generation_Mode::output;
     params.weights_params.weight_import_mode = parameters::Weight_Import_Mode::block_multiple_direct_read;
 
@@ -311,7 +313,7 @@ namespace
 
 
   GraphType
-  basic_graph(std::size_t num_devices)
+  basic_graph()
   {
     std::vector<Node_type> nodes;
 
@@ -328,7 +330,7 @@ namespace
   }
 
   GraphType
-  basic_graph2(std::size_t num_devices)
+  basic_graph2()
   {
     std::vector<Node_type> nodes;
 
@@ -373,18 +375,30 @@ namespace
     };
   }
 
+
   parameters::Parameters
-  eppstein_parameters(std::size_t k, std::size_t num_devices)
+  eppstein_parameters()
   {
     parameters::Parameters res;
 
     res.K                            = 5;
     res.backward_connections_allowed = true;
     res.method                       = parameters::KSP_Method::Eppstein;
-    res.devices                      = std::vector<parameters::Device>(num_devices);
+    res.devices                      = std::vector<parameters::Device>(2);
 
     for (std::size_t i = 0; i < res.devices.size(); ++i)
       res.devices[i].id = i;
+
+    for (std::size_t i = 0; i < 2; ++i)
+      {
+        for (std::size_t j = 0; j < 2; ++j)
+          {
+            if (i != j)
+              {
+                res.weights_params.bandwidth[std::make_pair(i, j)] = std::make_pair(1., 0.);
+              }
+          }
+      }
 
     res.memory_constraint_type = parameters::Memory_Constraint_Type::None;
     res.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
@@ -396,14 +410,14 @@ namespace
   }
 
   parameters::Parameters
-  lazy_eppstein_parameters(std::size_t k, std::size_t num_devices)
+  lazy_eppstein_parameters()
   {
     parameters::Parameters res;
 
-    res.K                            = k;
+    res.K                            = 5;
     res.backward_connections_allowed = true;
     res.method                       = parameters::KSP_Method::Lazy_Eppstein;
-    res.devices                      = std::vector<parameters::Device>(num_devices);
+    res.devices                      = std::vector<parameters::Device>(2);
 
     for (std::size_t i = 0; i < res.devices.size(); ++i)
       res.devices[i].id = i;

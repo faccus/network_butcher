@@ -58,7 +58,8 @@ namespace network_butcher::constraints
 
   public:
     explicit Memory_Constraint(parameters::Parameters const &params, GraphType const &graph)
-      : params{params}
+      : Extra_Constraint()
+      , params{params}
       , graph{graph} {};
 
     /// Removes the "unfeasible" paths due to memory constraints
@@ -77,6 +78,32 @@ namespace network_butcher::constraints
     ~Memory_Constraint() override = default;
   };
 
+  class Bandwidth_Constraint : public Extra_Constraint
+  {
+  public:
+    explicit Bandwidth_Constraint(network_butcher::parameters::Parameters const &params)
+      : Extra_Constraint()
+      , params(params)
+    {}
+
+    /// Apply the specified constraint to the graph
+    /// \param graph
+    void
+    apply_constraint(block_graph_type &graph) const override;
+
+    /// Create a copy of the current constraint
+    /// \return A unique pointer to the constructed copy
+    [[nodiscard]] std::unique_ptr<Extra_Constraint>
+    copy() const override;
+
+
+    ~Bandwidth_Constraint() override = default;
+
+  private:
+    network_butcher::parameters::Parameters const &params;
+  };
+
+
   template <typename GraphType>
   std::unique_ptr<Extra_Constraint>
   Memory_Constraint<GraphType>::copy() const
@@ -93,8 +120,7 @@ namespace network_butcher::constraints
     if (constraint_type == network_butcher::parameters::Memory_Constraint_Type::None)
       return;
 
-    auto const            &devices = params.devices;
-    std::set<node_id_type> to_remove;
+    auto const &devices = params.devices;
 
     auto const input_memory  = network_butcher::computer::Computer_memory::compute_nodes_memory_usage_input(graph);
     auto const output_memory = network_butcher::computer::Computer_memory::compute_nodes_memory_usage_output(graph);
@@ -133,7 +159,6 @@ namespace network_butcher::constraints
                   // If not, delete the node
                   available[k] = false;
                   dependencies_clear(basic_node_id + k);
-                  to_remove.insert(basic_node_id + k);
                 }
             }
         }
@@ -152,7 +177,6 @@ namespace network_butcher::constraints
                 // If not, delete the node
                 available[k] = false;
                 dependencies_clear(basic_node_id + k);
-                to_remove.insert(basic_node_id + k);
               }
           }
       };
@@ -191,8 +215,6 @@ namespace network_butcher::constraints
               }
           }
       }
-
-    new_graph.remove_nodes(to_remove);
   }
 
   template <typename GraphType>
@@ -212,7 +234,7 @@ namespace network_butcher::constraints
         fixed_memory = std::reduce(std::next(params_memory.begin(), *ids.cbegin()),
                                    std::next(params_memory.begin(), *ids.crbegin()));
       }
-    std::size_t qty          = 1;
+    std::size_t qty = 1;
 
     if (graph.get_input_nodes(*ids.begin()).size() == 1)
       {
@@ -262,6 +284,8 @@ namespace network_butcher::constraints
         {
           res.push_back(std::make_unique<Memory_Constraint<GraphType>>(params, graph));
         }
+
+      res.push_back(std::make_unique<Bandwidth_Constraint>(params));
 
       return res;
     };
