@@ -54,7 +54,7 @@ cd build
 ```bash
 cmake -DCMAKE_BUILD_TYPE=Release -S .. -B . 
 ```
-4. Build the .exe:
+4. Build the executable:
 ```bash
 cmake --build . --target network_butcher
 ```
