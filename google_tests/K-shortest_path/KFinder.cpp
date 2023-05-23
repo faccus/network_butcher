@@ -159,14 +159,12 @@ namespace
   std::vector<std::string>
   get_test_names()
   {
-    return {"almost_path_02",
-            "example_00",
+    return {"example_00",
             "max_random_00",
             "max_random_01",
             "max_random_02",
             "max_random_03",
             "max_random_04",
-            "path_00",
             "random_00",
             "random_01",
             "random_02",

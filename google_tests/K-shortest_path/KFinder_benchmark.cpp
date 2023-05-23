@@ -157,9 +157,11 @@ namespace
   {
     return {"almost_path_00",
             "almost_path_01",
+            "almost_path_02",
             "dense_00",
             "dense_01",
             "example_00",
+            "path_00",
             "small_random_00",
             "small_random_02",
             "smallest_random_00",

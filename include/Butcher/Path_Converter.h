@@ -80,7 +80,7 @@ namespace network_butcher::Utilities
     };
 
     // Process the different paths into partitioning
-    std::transform(PAR_UNSEQ, paths.cbegin(), paths.cend(), final_res.begin(), func);
+    Utilities::potentially_par_unseq_transform(paths.cbegin(), paths.cend(), final_res.begin(), func);
 
     return final_res;
   }

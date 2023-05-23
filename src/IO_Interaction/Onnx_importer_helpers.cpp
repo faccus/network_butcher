@@ -80,12 +80,12 @@ namespace network_butcher::io
     std::vector<std::string> int_res(std::max(tmp_onnx_inputs_ids.size(), initialized.size()));
 
     // Add to int_res the non-initialized inputs
-    auto it = std::set_difference(PAR,
-                                  tmp_onnx_inputs_ids.cbegin(),
-                                  tmp_onnx_inputs_ids.cend(),
-                                  initialized.cbegin(),
-                                  initialized.cend(),
-                                  int_res.begin());
+    auto it = std::set_difference( // PAR,
+      tmp_onnx_inputs_ids.cbegin(),
+      tmp_onnx_inputs_ids.cend(),
+      initialized.cbegin(),
+      initialized.cend(),
+      int_res.begin());
 
     int_res.resize(it - int_res.begin());
     onnx_inputs_ids.insert(int_res.cbegin(), int_res.cend());

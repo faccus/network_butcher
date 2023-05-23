@@ -21,7 +21,7 @@ option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
 message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
 
 
-option(USE_YAML_CPP "Use yaml-cpp" ON)
+option(USE_YAML_CPP "Use yaml-cpp" OFF)
 message(STATUS "It will use the yaml-cpp library to read yaml files: " ${USE_YAML_CPP})
 
 option(BUILD_YAML_CPP_SOURCE "Download and compile yaml-cpp from git" ON)
@@ -41,6 +41,7 @@ message(STATUS "Build documentation graphs: ${BUILD_DOC_GRAPH}")
 # #######################################################################################################################
 # #######################################################################################################################
 # #######################################################################################################################
+
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.24.0")
     cmake_policy(SET CMP0135 NEW)
 endif ()

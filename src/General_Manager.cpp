@@ -30,7 +30,6 @@ namespace network_butcher::io
             // Access delay
             auto const acc = it->second.second;
 
-
             if (mem > 0)
               {
                 // Conversion from MBit to Bytes

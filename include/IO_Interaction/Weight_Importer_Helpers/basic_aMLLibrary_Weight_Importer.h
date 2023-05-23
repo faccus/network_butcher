@@ -44,20 +44,20 @@ namespace network_butcher::io
     /// \param inference_variable The inference variable
     /// \param input_path The .csv input file
     /// \param output_path The output path of the file
-    void
+    static void
     prepare_predict_file(std::string const &inference_variable,
                          std::string const &input_path,
-                         std::string        output_path = "") const;
+                         std::string        output_path = "");
 
 
     /// It will execute the weight generator
     /// \param regressor_file The regressor file
     /// \param config_file The configuration file
     /// \param output_path The output path
-    void
+    static void
     execute_weight_generator(const std::string &regressor_file,
                              const std::string &config_file,
-                             const std::string &output_path) const;
+                             const std::string &output_path);
 
     /// It will execute onnx_tool in order to obtain the network information
     /// \return The path of the .csv file containing the network information
@@ -67,22 +67,12 @@ namespace network_butcher::io
     /// It will read the network information from the .csv file
     /// \param path The path of the .csv file
     /// \return A map containing the network information
-    [[nodiscard]] std::map<std::string, Weight_importer_helpers::onnx_tool_output>
-    read_network_info_onnx_tool(const std::string &path) const;
+    [[nodiscard]] static std::map<std::string, Weight_importer_helpers::onnx_tool_output>
+    read_network_info_onnx_tool(const std::string &path);
 
     /// It will prepare the .csv file to be fed to aMLLibrary
-    void
-    csv_assembler(const std::vector<std::vector<std::string>> &content, const std::string &path) const;
-
-    /// It will check if the specified directory exists. If it does, it will delete it
-    /// \param directory_path The directory path
-    void
-    check_directory(std::string const &directory_path) const;
-
-    /// It will check if the specified file exists. If it does, it will delete it
-    /// \param directory_path The file path
-    void
-    check_file(std::string const &file_path) const;
+    static void
+    csv_assembler(const std::vector<std::vector<std::string>> &content, const std::string &path);
 
   public:
     explicit basic_aMLLibrary_Weight_Importer(network_butcher::parameters::Parameters const &params)

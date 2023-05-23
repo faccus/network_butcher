@@ -182,5 +182,37 @@ namespace network_butcher::Utilities
   /// \return Concatenated path
   std::string
   combine_path(std::string const &first, std::string const &second);
+
+  /// Based on the compiler pre-processor PARALLEL (associated to the same setting in the CMakeList file), it will
+  /// apply the std::transform function to the given arguments with either a parallel unsequenced policy or with
+  /// sequential policy
+  template <typename... Args>
+  void
+  potentially_par_unseq_transform(Args &&...args)
+  {
+#if PARALLEL
+
+    std::transform(std::execution::par_unseq, std::forward<Args>(args)...);
+
+#else
+    std::transform(args...);
+#endif
+  };
+
+  /// Based on the compiler pre-processor PARALLEL (associated to the same setting in the CMakeList file), it will
+  /// apply the std::reduce function to the given arguments with either a parallel unsequenced policy or with
+  /// sequential policy
+  template <typename... Args>
+  auto
+  potentially_par_unseq_reduce(Args &&...args)
+  {
+#if PARALLEL
+    return std::reduce(std::execution::par_unseq, std::forward<Args>(args)...);
+#else
+    return std::reduce(args...);
+#endif
+  };
+
+
 } // namespace network_butcher::Utilities
 #endif // NETWORK_BUTCHER_UTILITIES_H

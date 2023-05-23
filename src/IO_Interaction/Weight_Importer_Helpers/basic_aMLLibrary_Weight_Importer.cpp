@@ -45,7 +45,7 @@ namespace network_butcher::io
 
   void
   basic_aMLLibrary_Weight_Importer::csv_assembler(std::vector<std::vector<std::string>> const &content,
-                                                  std::string const                           &path) const
+                                                  std::string const                           &path)
   {
     std::fstream file_out;
     file_out.open(path, std::ios_base::out);
@@ -68,7 +68,7 @@ namespace network_butcher::io
   void
   basic_aMLLibrary_Weight_Importer::execute_weight_generator(const std::string &regressor_file,
                                                              const std::string &config_file,
-                                                             const std::string &output_path) const
+                                                             const std::string &output_path)
   {
 #if PYBIND_ACTIVE
     using namespace pybind11::literals;
@@ -113,7 +113,7 @@ namespace network_butcher::io
 
 
   std::map<std::string, Weight_importer_helpers::onnx_tool_output>
-  basic_aMLLibrary_Weight_Importer::read_network_info_onnx_tool(const std::string &path) const
+  basic_aMLLibrary_Weight_Importer::read_network_info_onnx_tool(const std::string &path)
   {
     using namespace Weight_importer_helpers;
     std::map<std::string, onnx_tool_output> res;
@@ -145,7 +145,7 @@ namespace network_butcher::io
   void
   basic_aMLLibrary_Weight_Importer::prepare_predict_file(std::string const &inference_variable,
                                                          std::string const &input_path,
-                                                         std::string        output_path) const
+                                                         std::string        output_path)
   {
     if (output_path.back() == '/' || output_path.back() == '\\')
       {
@@ -164,22 +164,6 @@ namespace network_butcher::io
 
         out_file.close();
       }
-  }
-
-  void
-  basic_aMLLibrary_Weight_Importer::check_directory(std::string const &directory_path) const
-  {
-    auto const &aMLLibrary_params = params.aMLLibrary_params;
-
-    if (!Utilities::directory_exists(directory_path))
-      Utilities::create_directory(directory_path);
-  }
-
-  void
-  basic_aMLLibrary_Weight_Importer::check_file(const std::string &file_path) const
-  {
-    if (Utilities::file_exists(file_path))
-      Utilities::file_delete(file_path);
   }
 
 } // namespace network_butcher::io

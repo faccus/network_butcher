@@ -44,8 +44,8 @@ namespace network_butcher::types
         type_tensor_memory   = Utilities::compute_memory_usage_from_enum(info.data_type());
         const auto &in_shape = info.dims();
 
-        for (int i = 0; i < in_shape.size(); ++i)
-          shape.push_back(in_shape[i]);
+        for (long i : in_shape)
+          shape.push_back(i);
       }
   }
 
@@ -54,7 +54,7 @@ namespace network_butcher::types
   Dense_tensor::compute_memory_usage() const
   {
     memory_type num_entries = 1;
-    for (auto &e : shape)
+    for (auto const &e : shape)
       num_entries *= e;
 
     return num_entries * type_tensor_memory;
@@ -64,11 +64,11 @@ namespace network_butcher::types
   shape_type
   Dense_tensor::compute_shape_volume() const
   {
-    if (shape.size() == 0)
+    if (shape.empty())
       return 0;
 
     memory_type num_entries = 1;
-    for (auto &e : shape)
+    for (auto const &e : shape)
       num_entries *= e;
 
     return num_entries;
