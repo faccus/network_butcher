@@ -216,11 +216,8 @@ namespace network_butcher::io
     auto const macs     = read_network_info_onnx_tool(network_info_onnx_tool());
     auto const csv_path = "aMLLibrary_input.csv";
 
-    if (!Utilities::directory_exists(aMLLibrary_params.temporary_directory))
-      Utilities::create_directory(aMLLibrary_params.temporary_directory);
-
-    if (Utilities::file_exists(csv_path))
-      Utilities::file_delete(csv_path);
+    Utilities::create_directory(aMLLibrary_params.temporary_directory);
+    Utilities::file_delete(csv_path);
 
     // Prepare the .csv file to be fed to aMLLibrary
     std::vector<std::vector<std::string>> aMLLibrary_input;
@@ -244,22 +241,29 @@ namespace network_butcher::io
     // Assemble the .csv file
     csv_assembler(aMLLibrary_input, csv_path);
 
+    std::vector<std::string> paths;
+    std::vector<std::string> relevant_entries;
+
     // Predict and import the weights
     for (std::size_t i = 0; i < params.devices.size(); ++i)
       {
         std::string tmp_dir_path =
           Utilities::combine_path(aMLLibrary_params.temporary_directory, "predict_" + std::to_string(i));
 
-        if (Utilities::directory_exists(tmp_dir_path))
-          Utilities::directory_delete(tmp_dir_path);
+        Utilities::directory_delete(tmp_dir_path);
 
         prepare_predict_file(aMLLibrary_params.aMLLibrary_inference_variables[i], csv_path, tmp_dir_path + ".ini");
 
         execute_weight_generator(params.devices[i].weights_path, tmp_dir_path + ".ini", tmp_dir_path);
 
-        import(params.devices[i].id, Utilities::combine_path(tmp_dir_path, "prediction.csv"), extra_condition);
+        paths.emplace_back(Utilities::combine_path(tmp_dir_path, "prediction.csv"));
+        relevant_entries.emplace_back("pred");
       }
 
     pybind11::finalize_interpreter();
+
+    Csv_Weight_Importer importer(
+      new_graph, paths, relevant_entries, params.devices, params.weights_params.separator, true);
+    importer.import_weights(extra_condition);
   }
 } // namespace network_butcher::io

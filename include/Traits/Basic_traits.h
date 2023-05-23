@@ -19,9 +19,6 @@
 #if PARALLEL
 #  define PAR std::execution::par
 #  define PAR_UNSEQ std::execution::par_unseq
-#else
-#  define PAR std::execution::seq
-#  define PAR_UNSEQ std::execution::seq
 #endif
 
 namespace network_butcher
@@ -39,8 +36,6 @@ namespace network_butcher
   using operation_id_type       = std::string;
   using weight_type             = double;
   using weights_collection_type = std::map<edge_type, weight_type>;
-
-
 } // namespace network_butcher
 
 

@@ -19,6 +19,8 @@
 #include "Weight_Importer.h"
 #include "Weight_Importer_Utils.h"
 
+#include "Csv_Weight_Importer.h"
+
 namespace network_butcher::io
 {
   /// This (pure virtual) class will be used to define common utilities required to import weights with aMLLibrary
@@ -71,6 +73,16 @@ namespace network_butcher::io
     /// It will prepare the .csv file to be fed to aMLLibrary
     void
     csv_assembler(const std::vector<std::vector<std::string>> &content, const std::string &path) const;
+
+    /// It will check if the specified directory exists. If it does, it will delete it
+    /// \param directory_path The directory path
+    void
+    check_directory(std::string const &directory_path) const;
+
+    /// It will check if the specified file exists. If it does, it will delete it
+    /// \param directory_path The file path
+    void
+    check_file(std::string const &file_path) const;
 
   public:
     explicit basic_aMLLibrary_Weight_Importer(network_butcher::parameters::Parameters const &params)

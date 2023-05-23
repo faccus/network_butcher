@@ -166,4 +166,20 @@ namespace network_butcher::io
       }
   }
 
+  void
+  basic_aMLLibrary_Weight_Importer::check_directory(std::string const &directory_path) const
+  {
+    auto const &aMLLibrary_params = params.aMLLibrary_params;
+
+    if (!Utilities::directory_exists(directory_path))
+      Utilities::create_directory(directory_path);
+  }
+
+  void
+  basic_aMLLibrary_Weight_Importer::check_file(const std::string &file_path) const
+  {
+    if (Utilities::file_exists(file_path))
+      Utilities::file_delete(file_path);
+  }
+
 } // namespace network_butcher::io

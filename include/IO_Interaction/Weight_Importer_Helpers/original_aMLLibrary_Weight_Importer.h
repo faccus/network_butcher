@@ -5,7 +5,6 @@
 #ifndef NETWORK_BUTCHER_ORIGINAL_AMLLIBRARY_WEIGHT_IMPORTER_H
 #define NETWORK_BUTCHER_ORIGINAL_AMLLIBRARY_WEIGHT_IMPORTER_H
 
-#include "Csv_Weight_Importer.h"
 #include "basic_aMLLibrary_Weight_Importer.h"
 
 namespace network_butcher::io

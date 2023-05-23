@@ -12,7 +12,8 @@
 namespace network_butcher
 {
   /// This block graph builder class is used when extra constraints have to be applied during the construction of block
-  /// graph \tparam GraphType The original graph type
+  /// graph
+  /// \tparam GraphType The original graph type
   template <typename GraphType>
   class Constrained_Block_Graph_Builder : public Block_Graph_Builder<GraphType>
   {
@@ -24,7 +25,7 @@ namespace network_butcher
     bool                                                                       weights;
     std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> transmission_weights;
 
-    /// The actual construction of the block graph is performed during this step
+    /// The actual construction of the block graph is performed when this function is called
     /// \param block_graph_mode The block graph mode (classic, input, output)
     /// \param starting_device_id The id of the device onto which the input is produced
     /// \param ending_device_id The id of the device that needs the final output

@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include <memory>
 
-#include "IO_Manager.h"
 #include "TestClass.h"
 
 #include "Computer_memory.h"

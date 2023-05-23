@@ -78,6 +78,16 @@ namespace network_butcher::constraints
     ~Memory_Constraint() override = default;
   };
 
+  template <typename GraphType>
+  std::unique_ptr<Extra_Constraint>
+  Memory_Constraint<GraphType>::copy() const
+  {
+    return std::make_unique<Memory_Constraint<GraphType>>(*this);
+  }
+
+
+  /// Simple class used to represent a bandwidth constraint. In particular, it will check if some connections are not
+  /// allowed or if the bandwidth of some connection is set to 0, eliminating the relevant neighbors
   class Bandwidth_Constraint : public Extra_Constraint
   {
   public:
@@ -102,14 +112,6 @@ namespace network_butcher::constraints
   private:
     network_butcher::parameters::Parameters const &params;
   };
-
-
-  template <typename GraphType>
-  std::unique_ptr<Extra_Constraint>
-  Memory_Constraint<GraphType>::copy() const
-  {
-    return std::make_unique<Memory_Constraint<GraphType>>(*this);
-  }
 
   template <typename GraphType>
   void

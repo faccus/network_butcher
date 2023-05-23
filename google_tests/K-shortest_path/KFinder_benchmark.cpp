@@ -1,7 +1,3 @@
-//
-// Created by faccus on 21/05/23.
-//
-
 #include "Graph_traits.h"
 #include "KFinder_Factory.h"
 #include "KFinder_Test_Graph_Specialization.h"
@@ -159,22 +155,15 @@ namespace
   std::vector<std::string>
   get_test_names()
   {
-    return {"almost_path_02",
+    return {"almost_path_00",
+            "almost_path_01",
+            "dense_00",
+            "dense_01",
             "example_00",
-            "max_random_00",
-            "max_random_01",
-            "max_random_02",
-            "max_random_03",
-            "max_random_04",
-            "path_00",
-            "random_00",
-            "random_01",
-            "random_02",
-            "random_04",
-            "small_random_01",
-            "smallest_random_02",
-            "sparse_00",
-            "sparse_01"};
+            "small_random_00",
+            "small_random_02",
+            "smallest_random_00",
+            "smallest_random_01"};
   }
 
 } // namespace

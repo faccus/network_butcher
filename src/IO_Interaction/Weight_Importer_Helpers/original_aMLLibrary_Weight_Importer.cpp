@@ -83,11 +83,8 @@ namespace network_butcher::io
     auto const macs     = read_network_info_onnx_tool(network_info_onnx_tool());
     auto const csv_path = "aMLLibrary_input.csv";
 
-    if (!Utilities::directory_exists(aMLLibrary_params.temporary_directory))
-      Utilities::create_directory(aMLLibrary_params.temporary_directory);
-
-    if (Utilities::file_exists(csv_path))
-      Utilities::file_delete(csv_path);
+    Utilities::create_directory(aMLLibrary_params.temporary_directory);
+    Utilities::file_delete(csv_path);
 
     // Prepare the .csv file to be fed to aMLLibrary
     std::vector<std::vector<std::string>> aMLLibrary_input;
@@ -135,8 +132,7 @@ namespace network_butcher::io
         std::string tmp_dir_path =
           Utilities::combine_path(aMLLibrary_params.temporary_directory, "predict_" + std::to_string(i));
 
-        if (Utilities::directory_exists(tmp_dir_path))
-          Utilities::directory_delete(tmp_dir_path);
+        Utilities::directory_delete(tmp_dir_path);
 
         prepare_predict_file(aMLLibrary_params.aMLLibrary_inference_variables[i], csv_path, tmp_dir_path + ".ini");
 

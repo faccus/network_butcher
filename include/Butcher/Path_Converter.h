@@ -19,12 +19,20 @@ namespace network_butcher::Utilities
     block_graph_type const &graph;
 
   public:
+    /// It will prepare a Path_Converter
+    /// \param graph A const reference to a block graph
     explicit Path_Converter(block_graph_type const &graph)
       : graph{graph} {};
 
+    /// It will convert a collection of paths of the block graph to a partitioning
+    /// \param paths The collection of paths
+    /// \return The different partitioning
     [[nodiscard]] network_butcher::types::Weighted_Real_Paths
     convert_to_weighted_real_path(std::vector<network_butcher::kfinder::t_path_info<Weight_Type>> const &paths) const;
 
+    /// It will convert a path of the block graph to a partitioning
+    /// \param paths The path
+    /// \return The related partitioning
     [[nodiscard]] network_butcher::types::Weighted_Real_Path
     convert_to_weighted_real_path(network_butcher::kfinder::t_path_info<Weight_Type> const &path) const;
   };
@@ -43,7 +51,7 @@ namespace network_butcher::Utilities
   {
     network_butcher::types::Weighted_Real_Paths final_res(paths.size());
 
-    std::transform(PAR_UNSEQ, paths.cbegin(), paths.cend(), final_res.begin(), [&graph = graph](auto const &path) {
+    auto func = [&graph = graph](auto const &path) {
       network_butcher::types::Real_Path res;
       std::size_t                       current_model_device = 0;
 
@@ -51,21 +59,28 @@ namespace network_butcher::Utilities
 
       auto const &path_nodes = path.path;
 
+      // Loop through the nodes of the path
       for (auto const &node_id_new_graph : path_nodes)
         {
           auto const &node = graph[node_id_new_graph];
 
+          // Check if a new device is requested
           if (node.content.first != current_model_device)
             {
+              // Add a new partition
               current_model_device = node.content.first;
               res.emplace_back(current_model_device, std::set<node_id_type>());
             }
 
+          // Add the current node to the last partition
           res.back().second.insert(node.content.second->begin(), node.content.second->end());
         }
 
       return network_butcher::types::Weighted_Real_Path{path.length, res};
-    });
+    };
+
+    // Process the different paths into partitioning
+    std::transform(PAR_UNSEQ, paths.cbegin(), paths.cend(), final_res.begin(), func);
 
     return final_res;
   }
