@@ -53,17 +53,8 @@ namespace network_butcher::types
 
     /// Get the nodes collection
     /// \return The vector of nodes
-    inline const Node_Collection_Type &
+    Node_Collection_Type const &
     get_nodes() const
-    {
-      return nodes;
-    }
-
-
-    /// Get the nodes collection (reference)
-    /// \return The vector of nodes (reference)
-    inline Node_Collection_Type &
-    get_nodes_ref() const
     {
       return nodes;
     }
@@ -71,21 +62,21 @@ namespace network_butcher::types
 
     /// Get the dependencies (reference)
     /// \return The dependencies (reference)
-    [[nodiscard]] inline Dependencies_Type &
+    [[nodiscard]] Dependencies_Type &
     get_neighbors_ref()
     {
       return dependencies;
     }
 
     /// Get input nodes
-    [[nodiscard]] inline Dependencies_Type::value_type::first_type const &
+    [[nodiscard]] Dependencies_Type::value_type::first_type const &
     get_input_nodes(node_id_type id) const
     {
       return dependencies[id].first;
     }
 
     /// Get input nodes
-    [[nodiscard]] inline Dependencies_Type::value_type::second_type const &
+    [[nodiscard]] Dependencies_Type::value_type::second_type const &
     get_output_nodes(node_id_type id) const
     {
       return dependencies[id].second;
@@ -94,7 +85,7 @@ namespace network_butcher::types
 
     /// Get the number of nodes
     /// \return The number of nodes
-    [[nodiscard]] inline std::size_t
+    [[nodiscard]] std::size_t
     size() const
     {
       return nodes.size();
@@ -103,7 +94,7 @@ namespace network_butcher::types
 
     /// Checks if the graph is empty
     /// \return True if there are no stored nodes
-    [[nodiscard]] inline std::size_t
+    [[nodiscard]] std::size_t
     empty() const
     {
       return nodes.empty();
@@ -122,7 +113,7 @@ namespace network_butcher::types
 
     /// Get the begin iterator of the nodes collection
     /// \return The iterator
-    [[nodiscard]] Node_Collection_Type::iterator
+    [[nodiscard]] auto
     begin()
     {
       return nodes.begin();
@@ -131,7 +122,7 @@ namespace network_butcher::types
 
     /// Get the end iterator of the nodes collection
     /// \return The iterator
-    [[nodiscard]] Node_Collection_Type::iterator
+    [[nodiscard]] auto
     end()
     {
       return nodes.end();
@@ -140,7 +131,7 @@ namespace network_butcher::types
 
     /// Get the begin iterator of the nodes collection
     /// \return The iterator
-    [[nodiscard]] Node_Collection_Type::iterator
+    [[nodiscard]] auto
     begin() const
     {
       return nodes.begin();
@@ -149,7 +140,7 @@ namespace network_butcher::types
 
     /// Get the end iterator of the nodes collection
     /// \return The iterator
-    [[nodiscard]] Node_Collection_Type::iterator
+    [[nodiscard]] auto
     end() const
     {
       return nodes.end();
@@ -158,7 +149,7 @@ namespace network_butcher::types
 
     /// Get the begin iterator of the nodes collection
     /// \return The iterator
-    [[nodiscard]] Node_Collection_Type::const_iterator
+    [[nodiscard]] auto
     cbegin() const
     {
       return nodes.cbegin();
@@ -167,60 +158,10 @@ namespace network_butcher::types
 
     /// Get the end iterator of the nodes collection
     /// \return The iterator
-    [[nodiscard]] Node_Collection_Type::const_iterator
+    [[nodiscard]] auto
     cend() const
     {
       return nodes.cend();
-    }
-
-
-    /// It remoces the node with the given id
-    /// \param nodes_to_remove The ids of the nodes to remove
-    void
-    remove_nodes(std::set<node_id_type> const &nodes_to_remove)
-    {
-      std::unordered_map<node_id_type, node_id_type> old_to_new;
-      std::set<node_id_type>                         keys;
-
-      Dependencies_Type new_dependencies;
-      new_dependencies.reserve(nodes.size() - nodes_to_remove.size());
-
-      Node_Collection_Type new_node_collection;
-      new_node_collection.reserve(nodes.size() - nodes_to_remove.size());
-
-      for (std::size_t i = 0, j = 0; i < nodes.size(); ++i)
-        {
-          if (!nodes_to_remove.contains(i))
-            {
-              keys.insert(i);
-              old_to_new[i] = j;
-              new_node_collection.emplace_back(std::move(nodes[i]));
-
-              new_node_collection.back().set_id(j++);
-            }
-        }
-
-      for (auto const &key : keys)
-        {
-          new_dependencies.emplace_back();
-
-          for (auto const &in : dependencies[key].first)
-            {
-              auto const it = old_to_new.find(in);
-              if (it != old_to_new.cend())
-                new_dependencies.back().first.emplace(it->second);
-            }
-
-          for (auto const &out : dependencies[key].second)
-            {
-              auto const it = old_to_new.find(out);
-              if (it != old_to_new.cend())
-                new_dependencies.back().second.emplace(it->second);
-            }
-        }
-
-      std::swap(new_node_collection, nodes);
-      std::swap(dependencies, new_dependencies);
     }
 
 
@@ -253,7 +194,6 @@ namespace network_butcher::types
     using Dependencies_Type    = std::vector<std::pair<node_id_collection_type, node_id_collection_type>>;
     using Node_Type            = CNode<Content<T>>;
     using Node_Collection_Type = std::vector<Node_Type>;
-
 
     Graph() = default;
 
@@ -292,48 +232,39 @@ namespace network_butcher::types
 
     /// Get the nodes collection
     /// \return The vector of nodes
-    inline const Node_Collection_Type &
+    Node_Collection_Type const &
     get_nodes() const
     {
       return nodes;
     }
 
 
-    /// Get the nodes collection (reference)
-    /// \return The vector of nodes (reference)
-    inline Node_Collection_Type &
-    get_nodes_ref() const
+    /// Get the dependencies (reference)
+    /// \return The dependencies (reference)
+    [[nodiscard]] Dependencies_Type &
+    get_neighbors_ref()
     {
-      return nodes;
+      return dependencies;
     }
 
     /// Get input nodes
-    [[nodiscard]] inline Dependencies_Type::value_type::first_type const &
+    [[nodiscard]] Dependencies_Type::value_type::first_type const &
     get_input_nodes(node_id_type id) const
     {
       return dependencies[id].first;
     }
 
     /// Get input nodes
-    [[nodiscard]] inline Dependencies_Type::value_type::second_type const &
+    [[nodiscard]] Dependencies_Type::value_type::second_type const &
     get_output_nodes(node_id_type id) const
     {
       return dependencies[id].second;
     }
 
 
-    /// Get the dependencies (reference)
-    /// \return The dependencies (reference)
-    [[nodiscard]] inline Dependencies_Type &
-    get_neighbors_ref()
-    {
-      return dependencies;
-    }
-
-
     /// Get the number of nodes
     /// \return The number of nodes
-    [[nodiscard]] inline std::size_t
+    [[nodiscard]] std::size_t
     size() const
     {
       return nodes.size();
@@ -342,7 +273,7 @@ namespace network_butcher::types
 
     /// Checks if the graph is empty
     /// \return True if there are no stored nodes
-    [[nodiscard]] inline std::size_t
+    [[nodiscard]] std::size_t
     empty() const
     {
       return nodes.empty();
@@ -361,7 +292,7 @@ namespace network_butcher::types
 
     /// Get the begin iterator of the nodes collection
     /// \return The iterator
-    [[nodiscard]] Node_Collection_Type::iterator
+    [[nodiscard]] auto
     begin()
     {
       return nodes.begin();
@@ -370,7 +301,7 @@ namespace network_butcher::types
 
     /// Get the end iterator of the nodes collection
     /// \return The iterator
-    [[nodiscard]] Node_Collection_Type::iterator
+    [[nodiscard]] auto
     end()
     {
       return nodes.end();
@@ -379,7 +310,7 @@ namespace network_butcher::types
 
     /// Get the begin iterator of the nodes collection
     /// \return The iterator
-    [[nodiscard]] Node_Collection_Type::iterator
+    [[nodiscard]] auto
     begin() const
     {
       return nodes.begin();
@@ -388,7 +319,7 @@ namespace network_butcher::types
 
     /// Get the end iterator of the nodes collection
     /// \return The iterator
-    [[nodiscard]] Node_Collection_Type::iterator
+    [[nodiscard]] auto
     end() const
     {
       return nodes.end();
@@ -397,7 +328,7 @@ namespace network_butcher::types
 
     /// Get the begin iterator of the nodes collection
     /// \return The iterator
-    [[nodiscard]] Node_Collection_Type::const_iterator
+    [[nodiscard]] auto
     cbegin() const
     {
       return nodes.cbegin();
@@ -406,60 +337,10 @@ namespace network_butcher::types
 
     /// Get the end iterator of the nodes collection
     /// \return The iterator
-    [[nodiscard]] Node_Collection_Type::const_iterator
+    [[nodiscard]] auto
     cend() const
     {
       return nodes.cend();
-    }
-
-
-    /// It remoces the node with the given id
-    /// \param nodes_to_remove The ids of the nodes to remove
-    void
-    remove_nodes(std::set<node_id_type> const &nodes_to_remove)
-    {
-      std::unordered_map<node_id_type, node_id_type> old_to_new;
-      std::set<node_id_type>                         keys;
-
-      Dependencies_Type new_dependencies;
-      new_dependencies.reserve(nodes.size() - nodes_to_remove.size());
-
-      Node_Collection_Type new_node_collection;
-      new_node_collection.reserve(nodes.size() - nodes_to_remove.size());
-
-      for (std::size_t i = 0, j = 0; i < nodes.size(); ++i)
-        {
-          if (!nodes_to_remove.contains(i))
-            {
-              keys.insert(i);
-              old_to_new[i] = j;
-              new_node_collection.emplace_back(std::move(nodes[i]));
-
-              new_node_collection.back().set_id(j++);
-            }
-        }
-
-      for (auto const &key : keys)
-        {
-          new_dependencies.emplace_back();
-
-          for (auto const &in : dependencies[key].first)
-            {
-              auto const it = old_to_new.find(in);
-              if (it != old_to_new.cend())
-                new_dependencies.back().first.emplace(it->second);
-            }
-
-          for (auto const &out : dependencies[key].second)
-            {
-              auto const it = old_to_new.find(out);
-              if (it != old_to_new.cend())
-                new_dependencies.back().second.emplace(it->second);
-            }
-        }
-
-      std::swap(new_node_collection, nodes);
-      std::swap(dependencies, new_dependencies);
     }
 
 

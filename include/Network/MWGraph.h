@@ -58,7 +58,7 @@ namespace network_butcher::types
     /// \param device The device id
     /// \param edge The edge
     /// \return The weight
-    [[nodiscard]] Edge_Weight_Type
+    [[nodiscard]] auto
     get_weight(std::size_t device, edge_type const &edge) const
     {
       auto const &map   = weigth_map[device];
@@ -84,10 +84,9 @@ namespace network_butcher::types
     /// \param device The device id
     /// \param edge The edge
     /// \param weight The weight
-    template <bool cond = Parallel_Edges, std::enable_if_t<cond, bool> = true>
     void
     set_weight(std::size_t device, edge_type const &edge, Edge_Weight_Type weights)
-      requires cond
+      requires Parallel_Edges
     {
       for (auto const &weight : weights)
         weigth_map[device].emplace(edge, weight);
@@ -218,10 +217,9 @@ namespace network_butcher::types
     /// \param device The device id
     /// \param edge The edge
     /// \param weight The weight
-    template <bool cond = Parallel_Edges, std::enable_if_t<cond, bool> = true>
     void
     set_weight(std::size_t device, edge_type const &edge, Edge_Weight_Type weights)
-      requires cond
+      requires Parallel_Edges
     {
       for (auto const &weight : weights)
         weigth_map[device].emplace(edge, weight);

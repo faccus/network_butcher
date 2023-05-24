@@ -11,9 +11,12 @@
 
 namespace network_butcher::types
 {
+  template <typename T>
+  class Content_Builder;
+
   /// A simple class to store the content of an onnx layer
   /// \tparam T The tensor type
-  template <class T>
+  template <typename T>
   class Content
   {
   public:
@@ -21,6 +24,8 @@ namespace network_butcher::types
     using attribute_collection = std::unordered_map<std::string, DynamicType>;
 
   private:
+    friend class Content_Builder<T>;
+
     /// Collection of the ids of inputs of the node
     io_collection input;
 
@@ -107,6 +112,68 @@ namespace network_butcher::types
       return operation_id;
     }
   };
+
+
+  template <typename T>
+  class Content_Builder
+  {
+  public:
+    using io_collection        = io_collection_type<T>;
+    using attribute_collection = std::unordered_map<std::string, DynamicType>;
+
+    template <typename A>
+    void
+    set_input(A &&in)
+      requires std::is_assignable_v<A, decltype(Content<T>::input)>
+    {
+      res.input = std::forward<A>(in);
+    }
+
+    template <typename A>
+    void
+    set_output(A &&out)
+      requires std::is_assignable_v<A, decltype(Content<T>::output)>
+    {
+      res.output = std::forward<A>(out);
+    }
+
+    template <typename A>
+    void
+    set_parameters(A &&params)
+      requires std::is_assignable_v<A, decltype(Content<T>::parameters)>
+    {
+      res.parameters = std::forward<A>(params);
+    }
+
+    template <typename A>
+    void
+    set_attributes(A &&attributes)
+      requires std::is_assignable_v<A, decltype(Content<T>::attributes)>
+    {
+      res.attributes = std::forward<A>(attributes);
+    }
+
+    template <typename A>
+    void
+    set_operation_id(A &&operation_id)
+      requires std::is_assignable_v<A, decltype(Content<T>::operation_id)>
+    {
+      res.parameters = std::forward<A>(operation_id);
+    }
+
+    Content<T>
+    build_content()
+    {
+      return res;
+    }
+
+    Content_Builder() = default;
+
+  private:
+    Content<T> res;
+  };
+
+
 } // namespace network_butcher::types
 
 #endif // NETWORK_BUTCHER_CONTENT_H

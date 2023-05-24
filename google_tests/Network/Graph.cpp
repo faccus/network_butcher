@@ -47,38 +47,4 @@ namespace
 
     Graph_type graph(nodes);
   }
-
-  TEST(GraphTests, RemoveNodes)
-  {
-
-    int number_of_nodes = 10;
-
-    std::vector<Node_type> nodes;
-    Content_type           content(IO_collection(), IO_collection{{"X0", 3}}, IO_collection());
-
-    nodes.emplace_back(std::move(content));
-
-    for (int i = 1; i < number_of_nodes - 1; ++i)
-      {
-        content = Content_type(IO_collection{{"X" + std::to_string((i - 1) * 10), 0}},
-                               IO_collection{{"X" + std::to_string(i * 10), 1}},
-                               IO_collection{});
-
-        nodes.emplace_back(std::move(content));
-      }
-
-    content = Content_type(IO_collection{{"X" + std::to_string((number_of_nodes - 2) * 10), 2}},
-                           IO_collection{},
-                           IO_collection{});
-
-    nodes.emplace_back(std::move(content));
-
-    Graph_type graph(nodes);
-
-    graph.remove_nodes({3, 5, 6, 1, 11});
-
-    EXPECT_EQ(graph.size(), 6);
-    EXPECT_EQ(graph[5].content.get_input().begin()->first, "X80");
-  }
-
 } // namespace
