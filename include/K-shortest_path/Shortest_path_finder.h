@@ -58,9 +58,7 @@ namespace network_butcher::kfinder::Shortest_path_finder
   /// Executes dijkstra algorithm to compute the shortest paths from the root to every node of the input graph
   /// \param graph The graph
   /// \param root The starting vertex
-  /// \param reversed Reverses the edge directions
-  /// \return A pair: the first element is the collection of the successors (along the shortest path) of the different
-  /// nodes while the second element is the shortest path length from the root to every node
+  /// \return The struct dijkstra_result_type<v_Weighted_Graph::Weight_Type>
   template <Valid_Weighted_Graph v_Weighted_Graph>
   [[nodiscard]] dijkstra_result_type<typename v_Weighted_Graph::Weight_Type>
   dijkstra(v_Weighted_Graph const &graph,

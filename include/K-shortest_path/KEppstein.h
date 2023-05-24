@@ -54,7 +54,6 @@ namespace network_butcher::kfinder
 
 
     /// The basic function for the Eppstein algorithm
-    /// \param weights The weights of the edges
     /// \param K The number of shortest paths
     /// \param dij_res The result of dijkstra
     /// \return The (implicit) k shortest paths

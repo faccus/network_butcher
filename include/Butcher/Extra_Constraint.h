@@ -63,9 +63,7 @@ namespace network_butcher::constraints
       , graph{graph} {};
 
     /// Removes the "unfeasible" paths due to memory constraints
-    /// \param devices The set of devices
-    /// \param new_graph The linearized graph
-    /// \param constraint_type The memory constraint
+    /// \param graph The block graph
     void
     apply_constraint(block_graph_type &graph) const override;
 

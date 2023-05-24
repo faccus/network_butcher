@@ -136,12 +136,12 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
 
 
   /// Helper function used to add the missing inputs/outputs of the graph
-  /// \param original_model The original model
-  /// \param edit_graph The onnx graph of the new model
-  /// \param container Either the input or the output of the graph
-  /// \param get_node_io A function that given a node, it returns the inputs/outputs of the node
-  /// \param get_new_entry A function that adds either a new input or a new output to the graph
-  /// \param reversed Should the nodes be cycled in the forward or reverse order?
+  /// \tparam reversed Should the nodes be cycled in the forward or reverse order?
+  /// \param  original_model The original model
+  /// \param  edit_graph The onnx graph of the new model
+  /// \param  container Either the input or the output of the graph
+  /// \param  get_node_io A function that given a node, it returns the inputs/outputs of the node
+  /// \param  get_new_entry A function that adds either a new input or a new output to the graph
   template <bool reversed>
   void
   helper_add_missing_io(

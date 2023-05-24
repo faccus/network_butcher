@@ -179,8 +179,7 @@ namespace network_butcher::io
   io_collection_type<type_info_pointer>
   Onnx_importer_helpers::process_node_ios(const google::protobuf::RepeatedPtrField<std::basic_string<char>> &io_names,
                                           io_collection_type<type_info_pointer> &parameters_collection,
-                                          Map_IO const                          &value_infos,
-                                          std::set<std::string> const           &unused_ios)
+                                          Map_IO const                          &value_infos)
   {
     io_collection_type<type_info_pointer> res;
     for (auto const &io_name : io_names)

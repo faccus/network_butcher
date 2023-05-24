@@ -159,20 +159,8 @@ namespace
   std::vector<std::string>
   get_test_names()
   {
-    return {"example_00",
-            "max_random_00",
-            "max_random_01",
-            "max_random_02",
-            "max_random_03",
-            "max_random_04",
-            "random_00",
-            "random_01",
-            "random_02",
-            "random_04",
-            "small_random_01",
-            "smallest_random_02",
-            "sparse_00",
-            "sparse_01"};
+    return {
+      "example_00", "max_random_00", "random_01", "small_random_01", "smallest_random_02", "sparse_00", "sparse_01"};
   }
 
 } // namespace

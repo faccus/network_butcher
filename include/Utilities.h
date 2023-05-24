@@ -91,13 +91,13 @@ namespace network_butcher::Utilities
 
 
   /// Left trim for the input string vector
-  /// \param s The input string vector
+  /// \param vect The input string vector
   void
   ltrim(std::vector<std::string> &vect);
 
 
   /// Right trim for the input string vector
-  /// \param s The input string vector
+  /// \param vect The input string vector
   void
   rtrim(std::vector<std::string> &vect);
 

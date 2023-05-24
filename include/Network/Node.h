@@ -23,7 +23,6 @@ namespace network_butcher::types
 
     /// Basic constructor for a node
     /// \param starting_id Initial node id
-    /// \param starting_content Initial content
     explicit Node(node_id_type starting_id)
       : id(starting_id)
     {}

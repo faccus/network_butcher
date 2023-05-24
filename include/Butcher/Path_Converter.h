@@ -31,7 +31,7 @@ namespace network_butcher::Utilities
     convert_to_weighted_real_path(std::vector<network_butcher::kfinder::t_path_info<Weight_Type>> const &paths) const;
 
     /// It will convert a path of the block graph to a partitioning
-    /// \param paths The path
+    /// \param path The path
     /// \return The related partitioning
     [[nodiscard]] network_butcher::types::Weighted_Real_Path
     convert_to_weighted_real_path(network_butcher::kfinder::t_path_info<Weight_Type> const &path) const;

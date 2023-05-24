@@ -7,40 +7,37 @@ set(CMAKE_CXX_STANDARD 20)
 # #######################################################################################################################
 
 option(BUILD_TESTS "Build tests" ON)
-message(STATUS "Build tests: ${BUILD_TESTS}")
-
-option(BUILD_BENCHMARK "Build benchmark tests" OFF)
-message(STATUS "Build benchmark tests: ${BUILD_BENCHMARK}")
-
+option(BUILD_BENCHMARK "Build benchmark tests" ON)
 option(ENABLE_PARALLEL "Enable parallel execution" ON)
-message(STATUS "Enable parallel execution: ${ENABLE_PARALLEL}")
-
 
 
 option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
-message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
-
 
 option(USE_YAML_CPP "Use yaml-cpp" OFF)
-message(STATUS "It will use the yaml-cpp library to read yaml files: " ${USE_YAML_CPP})
-
 option(BUILD_YAML_CPP_SOURCE "Download and compile yaml-cpp from git" ON)
-message(STATUS "Download and compile yaml-cpp from git: " ${BUILD_YAML_CPP_SOURCE})
-
 
 option(USE_PYBIND "Download and compile pybind11 from git:" ON)
+
+
+option(BUILD_DOC "Build documentation" ON)
+
+# #######################################################################################################################
+# #######################################################################################################################
+# #######################################################################################################################
+
+message(STATUS "Build tests: ${BUILD_TESTS}")
+message(STATUS "Build benchmark tests: ${BUILD_BENCHMARK}")
+message(STATUS "Enable parallel execution: ${ENABLE_PARALLEL}")
+
+message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
+
+message(STATUS "It will use the yaml-cpp library to read yaml files: " ${USE_YAML_CPP})
+message(STATUS "Download and compile yaml-cpp from git: " ${BUILD_YAML_CPP_SOURCE})
+
 message(STATUS "Download and compile pybind11 from git: " ${USE_PYBIND})
 
-
-option(BUILD_DOC "Build documentation" OFF)
 message(STATUS "Build documentation: ${BUILD_DOC}")
 
-option(BUILD_DOC_GRAPH "Build documentation graphs" OFF)
-message(STATUS "Build documentation graphs: ${BUILD_DOC_GRAPH}")
-
-# #######################################################################################################################
-# #######################################################################################################################
-# #######################################################################################################################
 
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.24.0")
     cmake_policy(SET CMP0135 NEW)

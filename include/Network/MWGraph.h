@@ -83,7 +83,7 @@ namespace network_butcher::types
     /// Sets the weight for the given edge on the given device
     /// \param device The device id
     /// \param edge The edge
-    /// \param weight The weight
+    /// \param weights The weight
     void
     set_weight(std::size_t device, edge_type const &edge, Edge_Weight_Type weights)
       requires Parallel_Edges
@@ -216,7 +216,7 @@ namespace network_butcher::types
     /// Sets the weight for the given edge on the given device
     /// \param device The device id
     /// \param edge The edge
-    /// \param weight The weight
+    /// \param weights The weights
     void
     set_weight(std::size_t device, edge_type const &edge, Edge_Weight_Type weights)
       requires Parallel_Edges

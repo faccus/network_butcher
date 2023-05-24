@@ -98,8 +98,7 @@ namespace network_butcher::kfinder
 
 
     /// It extracts the first sidetrack associated to the given node
-    /// \param j The index of the node
-    /// \param h_g_collection The h_g map
+    /// \param h_g_it The h_g map iterator
     /// \return The corresponding sidetrack edge
     [[nodiscard]] sidetrack
     extract_first_sidetrack_edge(typename H_g_collection::const_iterator const &h_g_it) const
@@ -109,11 +108,10 @@ namespace network_butcher::kfinder
     }
 
     /// Computes the sidetrack distances for all the different sidetrack edges
-    /// \param distances_from_sink The shortest distance from the given node to the sink (the last node of the graph)
+    /// \param dij_res The result of the Dijkstra algorithm
     /// \return The collection of sidetrack distances for the different edges
     [[nodiscard]] internal_weight_collection
     sidetrack_distances(dijkstra_result_type const &dij_res) const
-
     {
       internal_weight_collection res;
       auto const &[successors, distances_from_sink] = dij_res;
@@ -168,8 +166,8 @@ namespace network_butcher::kfinder
 
 
     /// It contains the children of the given edge in the D(G) graph
-    /// \param h_g H_g
-    /// \param edge_info The edge info pointer
+    /// \param h_g_it H_g iterator
+    /// \param position The location of the sidetrack edge in the H_g
     /// \return The children of the given edge in D(G)
     [[nodiscard]] std::vector<sidetrack>
     get_alternatives(typename H_g_collection::const_iterator const &h_g_it, location_dg_type const &position) const

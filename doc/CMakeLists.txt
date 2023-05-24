@@ -1,14 +1,8 @@
-if (BUILD_DOC_GRAPH)
-    find_package(Doxygen
-            REQUIRED dot
-            OPTIONAL_COMPONENTS mscgen dia) # doxygen
-else ()
-    find_package(Doxygen
-            OPTIONAL_COMPONENTS dot mscgen dia) # doxygen, graphviz
-endif ()
+find_package(Doxygen
+        OPTIONAL_COMPONENTS dot mscgen dia) # doxygen, graphviz
 
 if (DOXYGEN_FOUND)
-    set(DOXYGEN_EXCLUDE_PATTERNS */Onnx_model/* */_deps/* */google_tests/* */extern/*)
+    set(DOXYGEN_EXCLUDE_PATTERNS */onnx_proto/* */test_data/* */_deps/* */google_tests/* */dep/*)
     set(DOXYGEN_INHERIT_DOCS NO)
     set(DOXYGEN_EXTRACT_ALL YES)
     set(DOXYGEN_EXTRACT_PRIVATE YES)
@@ -16,17 +10,14 @@ if (DOXYGEN_FOUND)
     set(DOXYGEN_EXTRACT_STATIC YES)
     set(DOXYGEN_EXTRACT_LOCAL_METHODS YES)
 
-    if (BUILD_DOC_GRAPH)
-        # Collaboration graphs
-        set(DOXYGEN_TEMPLATE_RELATIONS YES)
-        set(DOXYGEN_UML_LOOK YES)
-        set(DOXYGEN_HTML_FILE_EXTENSION .xhtml)
-        set(DOXYGEN_DOT_IMAGE_FORMAT svg)
-        set(DOXYGEN_INTERACTIVE_SVG YES)
-        set(DOXYGEN_UML_LIMIT_NUM_FIELDS 100)
-    elseif ()
-        message(STATUS "Missing dot: I will not be able to draw graphs in the documentation!")
-    endif ()
+    # Collaboration graphs
+    set(DOXYGEN_OUTPUT_DIRECTORY doc)
+    set(DOXYGEN_TEMPLATE_RELATIONS YES)
+    set(DOXYGEN_UML_LOOK YES)
+    set(DOXYGEN_HTML_FILE_EXTENSION .xhtml)
+    set(DOXYGEN_DOT_IMAGE_FORMAT svg)
+    set(DOXYGEN_INTERACTIVE_SVG YES)
+    set(DOXYGEN_UML_LIMIT_NUM_FIELDS 100)
 
     doxygen_add_docs(
             doxygen

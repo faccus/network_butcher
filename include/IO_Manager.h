@@ -63,7 +63,6 @@ namespace network_butcher::io::IO_Manager
   /// \param add_output_padding If true, a "fake" nodes will be added at the at the end of the network, so that
   /// the resulting graph has a single output
   /// \param num_devices The number of devices
-  /// \param unused_ios It will include in the searchable tensors the unused input and output tensors of the network
   /// \return A tuple made by the graph, the onnx::ModelProto for the .onnx file and a map associating every node
   /// in the graph to every node in the model (through their ids)
   std::tuple<graph_type, onnx::ModelProto, std::map<node_id_type, node_id_type>>

@@ -89,8 +89,7 @@ namespace network_butcher::io::Onnx_importer_helpers
   io_collection_type<type_info_pointer>
   process_node_ios(google::protobuf::RepeatedPtrField<std::basic_string<char>> const &io_names,
                    io_collection_type<type_info_pointer>                             &parameters_collection,
-                   Map_IO const                                                      &value_infos,
-                   std::set<std::string> const                                       &unused_ios = {});
+                   Map_IO const                                                      &value_infos);
 
   /// It will insert into onnx_io_ids the names of the elements of onnx_io
   /// \param onnx_io A collection of onnx::ValueInfoProto

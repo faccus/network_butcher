@@ -39,6 +39,7 @@ namespace network_butcher
 
       /// Get the weight for the given edge
       /// \param edge The edge
+      /// \param print_missing Print an error message if the weights is missing
       /// \return The weight
       [[nodiscard]] Edge_Weight_Type
       get_weight(edge_type const &edge, bool print_missing = true) const
@@ -62,9 +63,8 @@ namespace network_butcher
       }
 
       /// Sets the weight for the given edge on the given device
-      /// \param device The device id
       /// \param edge The edge
-      /// \param weight The weight
+      /// \param weights The weight
       template <bool cond = Parallel_Edges, std::enable_if_t<cond, bool> = true>
       void
       set_weight(edge_type const &edge, Edge_Weight_Type const &weights)
@@ -115,6 +115,7 @@ namespace network_butcher
 
       /// Get the weight for the given edge
       /// \param edge The edge
+      /// \param print_missing Print an error message if the weights is missing
       /// \return The weight
       [[nodiscard]] Edge_Weight_Type
       get_weight(edge_type const &edge, bool print_missing = true) const
@@ -137,10 +138,9 @@ namespace network_butcher
         Parent_type::set_weight(0, edge, weight);
       }
 
-      /// Sets the weight for the given edge on the given device
-      /// \param device The device id
+      /// Sets the weight for the given edge
       /// \param edge The edge
-      /// \param weight The weight
+      /// \param weights The weights
       template <bool cond = Parallel_Edges, std::enable_if_t<cond, bool> = true>
       void
       set_weight(edge_type const &edge, Edge_Weight_Type const &weights)
@@ -149,7 +149,9 @@ namespace network_butcher
         Parent_type::set_weight(0, edge, weights);
       }
 
-
+      /// It checks if the given edge exists
+      /// \param edge The edge
+      /// \return True if it exists, false otherwise
       [[nodiscard]] bool
       check_weight(edge_type const &edge) const
       {

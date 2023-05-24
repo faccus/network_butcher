@@ -33,6 +33,8 @@ namespace network_butcher::io::Weight_importer_helpers
   /// \param path The file path
   /// \param separator The column separator character
   /// \param columns_to_read The (numeric) columns to read
+  /// \param column_suffix A suffix to place after the column name in the result object
+  /// \param only_non_negative It will convert negative weights to zeros
   /// \return The numeric columns in a map
   csv_result_type<double>
   read_csv_numerics(std::string const              &path,
@@ -45,6 +47,7 @@ namespace network_butcher::io::Weight_importer_helpers
   /// \param path The file path
   /// \param separator The column separator character
   /// \param columns_to_read The columns to read
+  /// \param column_suffix A suffix to place after the column name in the result object
   /// \return The columns in a map
   csv_result_type<std::string>
   read_csv(std::string const       &path,
