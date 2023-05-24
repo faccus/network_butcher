@@ -135,8 +135,8 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
     auto const get_node_outputs = [](auto const &node) { return node.output(); };
     auto const get_new_entry    = [current_edited_graph]() { return current_edited_graph->add_input(); };
 
-    return helper_add_missing_io(
-      original_model, current_edited_graph, container, get_node_outputs, get_new_entry, false);
+    return helper_add_missing_io<false>(
+      original_model, current_edited_graph, container, get_node_outputs, get_new_entry);
   }
 
 
@@ -148,8 +148,8 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
     auto const get_node_outputs = [](auto const &node) { return node.input(); };
     auto const get_new_entry    = [current_edited_graph]() { return current_edited_graph->add_output(); };
 
-    return helper_add_missing_io(
-      original_model, current_edited_graph, container, get_node_outputs, get_new_entry, true);
+    return helper_add_missing_io<true>(
+      original_model, current_edited_graph, container, get_node_outputs, get_new_entry);
   }
 
 
@@ -210,62 +210,4 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
                               std::make_pair(model_graph.value_info().cend(), init_it));
       }
   }
-
-
-  void
-  helper_add_missing_io(
-    onnx::ModelProto const                                         &original_model,
-    onnx::GraphProto                                               *edit_graph,
-    google::protobuf::RepeatedPtrField<onnx::ValueInfoProto> const &container,
-    const std::function<google::protobuf::RepeatedPtrField<std::basic_string<char>>(onnx::NodeProto const &)>
-                                                  &get_node_io,
-    const std::function<onnx::ValueInfoProto *()> &get_new_entry,
-    bool                                           reversed)
-  {
-    using fake_iterator_type = BidirectionalCustomIterator<google::protobuf::RepeatedPtrField<onnx::NodeProto>>;
-
-    auto const &nodes = edit_graph->mutable_node();
-
-    auto const cond_node = [](auto const &node, auto const &name) { return node == name; };
-    auto const cond_init = [](auto const &node, auto const &name) { return node.name() == name; };
-
-    // Checks if the specified element of the container has the same name as the input string
-    auto const checkout = [](std::string const &name, auto const &container, auto const &cond_func) {
-      for (auto it = container.cbegin(); it != container.cend(); ++it)
-        {
-          if (cond_func(*it, name))
-            return true;
-        }
-
-      return false;
-    };
-
-    auto const start = reversed ? fake_iterator_type(nodes->rbegin()) : fake_iterator_type(nodes->begin());
-    auto const end   = reversed ? fake_iterator_type(nodes->rend()) : fake_iterator_type(nodes->end());
-
-    for (auto it = start; it != end; ++it)
-      {
-        auto const &inner_container = (*it).input();
-        for (auto const &el : inner_container)
-          {
-            bool ok = checkout(el, container, cond_init);
-
-            for (auto it2 = start; it != it2 && !ok; ++it2)
-              ok = checkout(el, get_node_io(*it2), cond_node);
-
-            // If the input/output didn't appear, then let's add it!
-            if (!ok)
-              {
-                auto tmp_res   = get_type(original_model, el);
-                auto new_entry = get_new_entry();
-                new_entry->set_name(el);
-
-                if (tmp_res.has_value() && tmp_res.value()->has_type())
-                  {
-                    new_entry->set_allocated_type(new onnx::TypeProto(tmp_res.value()->type()));
-                  }
-              }
-          }
-      }
-  }
-} // namespace network_butcher::io
+} // namespace network_butcher::io::Onnx_model_reconstructor_helpers

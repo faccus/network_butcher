@@ -23,65 +23,6 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
     NoConnection
   };
 
-  template <typename T>
-  class BidirectionalCustomIterator
-  {
-  private:
-    T::const_iterator         forward;
-    T::const_reverse_iterator backward;
-
-    bool reversed;
-
-  public:
-    explicit BidirectionalCustomIterator(T::const_iterator it)
-      : forward{it}
-      , reversed{false}
-    {}
-    explicit BidirectionalCustomIterator(T::const_reverse_iterator it)
-      : backward{it}
-      , reversed{true} {};
-
-    BidirectionalCustomIterator &
-    operator++()
-    {
-      if (reversed)
-        ++backward;
-      else
-        ++forward;
-
-      return *this;
-    }
-
-    bool
-    operator==(BidirectionalCustomIterator const &rhs)
-    {
-      if (reversed == rhs.reversed)
-        {
-          if (reversed)
-            return backward == rhs.backward;
-          else
-            return forward == rhs.forward;
-        }
-
-      return false;
-    }
-
-    bool
-    operator!=(BidirectionalCustomIterator const &rhs)
-    {
-      return !(*this == rhs);
-    }
-
-    decltype(*forward) const &
-    operator*()
-    {
-      if (reversed)
-        return *backward;
-      else
-        return *forward;
-    }
-  };
-
   /// Map that associates to the name of the tensor a pair describing if it's a input/output/initializer and its
   /// iterator
   using preprocessed_ios_type =
@@ -201,6 +142,7 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
   /// \param get_node_io A function that given a node, it returns the inputs/outputs of the node
   /// \param get_new_entry A function that adds either a new input or a new output to the graph
   /// \param reversed Should the nodes be cycled in the forward or reverse order?
+  template <bool reversed>
   void
   helper_add_missing_io(
     onnx::ModelProto const                                         &original_model,
@@ -208,8 +150,73 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
     google::protobuf::RepeatedPtrField<onnx::ValueInfoProto> const &container,
     const std::function<google::protobuf::RepeatedPtrField<std::basic_string<char>>(onnx::NodeProto const &)>
                                                   &get_node_io,
-    const std::function<onnx::ValueInfoProto *()> &get_new_entry,
-    bool                                           reversed);
+    const std::function<onnx::ValueInfoProto *()> &get_new_entry)
+  {
+    auto const &nodes = edit_graph->mutable_node();
+
+    auto const cond_node = [](auto const &node, auto const &name) { return node == name; };
+    auto const cond_init = [](auto const &node, auto const &name) { return node.name() == name; };
+
+    // Checks if the specified element of the container has the same name as the input string
+    auto const checkout = [](std::string const &name, auto const &container, auto const &cond_func) {
+      for (auto it = container.cbegin(); it != container.cend(); ++it)
+        {
+          if (cond_func(*it, name))
+            return true;
+        }
+
+      return false;
+    };
+
+    auto const begin = [&nodes]() {
+      if constexpr (reversed)
+        {
+          return nodes->rbegin();
+        }
+      else
+        {
+          return nodes->begin();
+        }
+    };
+    auto const end = [&nodes]() {
+      if constexpr (reversed)
+        {
+          return nodes->rend();
+        }
+      else
+        {
+          return nodes->end();
+        }
+    };
+
+
+    auto const start = begin();
+
+    for (auto it = start; it != end(); ++it)
+      {
+        auto const &inner_container = (*it).input();
+        for (auto const &el : inner_container)
+          {
+            bool ok = checkout(el, container, cond_init);
+
+            for (auto it2 = start; it != it2 && !ok; ++it2)
+              ok = checkout(el, get_node_io(*it2), cond_node);
+
+            // If the input/output didn't appear, then let's add it!
+            if (!ok)
+              {
+                auto tmp_res   = get_type(original_model, el);
+                auto new_entry = get_new_entry();
+                new_entry->set_name(el);
+
+                if (tmp_res.has_value() && tmp_res.value()->has_type())
+                  {
+                    new_entry->set_allocated_type(new onnx::TypeProto(tmp_res.value()->type()));
+                  }
+              }
+          }
+      }
+  }
 } // namespace network_butcher::io::Onnx_model_reconstructor_helpers
 
 #endif // NETWORK_BUTCHER_ONNX_MODEL_RECONSTRUCTOR_HELPERS_H
