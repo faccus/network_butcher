@@ -214,10 +214,14 @@ namespace
   {
     std::vector<Node_type> nodes;
 
-    nodes.emplace_back(Content_type({}, {{"X0", 0}}));
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_output({{"X0", 0}})).build());
     for (int n = 1; n < num_nodes - 1; ++n)
-      nodes.emplace_back(Content_type({{"X" + std::to_string(n - 1), n - 1}}, {{"X" + std::to_string(n), n}}));
-    nodes.emplace_back(Content_type({{"X" + std::to_string(num_nodes - 2), num_nodes - 2}}, {}));
+      nodes.emplace_back(std::move(Content_Builder<Input>()
+                                     .set_input({{"X" + std::to_string(n - 1), n - 1}})
+                                     .set_output({{"X" + std::to_string(n), n}}))
+                           .build());
+    nodes.emplace_back(
+      std::move(Content_Builder<Input>().set_input({{"X" + std::to_string(num_nodes - 2), num_nodes - 2}})).build());
 
     Graph_type graph_cons(3, std::move(nodes));
 

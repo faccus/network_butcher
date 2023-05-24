@@ -188,8 +188,7 @@ namespace network_butcher::io
 
         if (iterator != value_infos.cend())
           {
-            if (iterator->second->initialized() ||
-                (!unused_ios.empty() && unused_ios.find(io_name) != unused_ios.cend()))
+            if (iterator->second->initialized())
               parameters_collection.insert({io_name, iterator->second});
             else
               res.insert({io_name, iterator->second});
