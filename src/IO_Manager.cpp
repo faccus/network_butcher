@@ -90,7 +90,10 @@ namespace network_butcher::io::IO_Manager
         for (auto const &in : graph_inputs)
           tt.emplace(in->get_name(), in);
 
-        nodes.emplace(nodes.begin(), network_butcher::types::Content<type_info_pointer>({}, std::move(tt)));
+
+        nodes.emplace(
+          nodes.begin(),
+          std::move(network_butcher::types::Content_Builder<type_info_pointer>().set_output(std::move(tt))).build());
         nodes.front().name = "__fake__input__";
       }
 
@@ -106,7 +109,8 @@ namespace network_butcher::io::IO_Manager
         for (auto const &out : graph_outputs)
           tt.emplace(out->get_name(), out);
 
-        nodes.emplace_back(network_butcher::types::Content<type_info_pointer>(std::move(tt)));
+        nodes.emplace_back(
+          std::move(network_butcher::types::Content_Builder<type_info_pointer>().set_input(std::move(tt))).build());
         nodes.back().name = "__fake__output__";
       }
 

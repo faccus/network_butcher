@@ -151,13 +151,19 @@ namespace
 
     std::vector<Node_type> nodes;
 
-    nodes.emplace_back(content_in(io_collection_type<Input>{}, io_collection_type<Input>{{"X0", 0}}));
-    nodes.emplace_back(content_in({{"X0", 0}, {"X2", 2}, {"X4", 4}}, {{"X1", 1}}));
-    nodes.emplace_back(content_in({{"X0", 0}, {"X3", 3}}, {{"X2", {2}}}));
-    nodes.emplace_back(content_in({{"X1", 1}, {"X5", 5}}, {{"X3", 3}}));
-    nodes.emplace_back(content_in({{"X2", 2}, {"X3", 3}, {"X6", 6}}, {{"X4", 4}}));
-    nodes.emplace_back(content_in({{"X2", 2}, {"X4", 4}}, {{"X5", 5}}));
-    nodes.emplace_back(content_in({{"X5", 5}}, {{"X6", 6}}));
+
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_output(io_collection_type<Input>{{"X0", 0}})).build());
+    nodes.emplace_back(
+      std::move(Content_Builder<Input>().set_input({{"X0", 0}, {"X2", 2}, {"X4", 4}}).set_output({{"X1", 1}})).build());
+    nodes.emplace_back(
+      std::move(Content_Builder<Input>().set_input({{"X0", 0}, {"X3", 3}}).set_output({{"X2", {2}}})).build());
+    nodes.emplace_back(
+      std::move(Content_Builder<Input>().set_input({{"X1", 1}, {"X5", 5}}).set_output({{"X3", 3}})).build());
+    nodes.emplace_back(
+      std::move(Content_Builder<Input>().set_input({{"X2", 2}, {"X3", 3}, {"X6", 6}}).set_output({{"X4", 4}})).build());
+    nodes.emplace_back(
+      std::move(Content_Builder<Input>().set_input({{"X2", 2}, {"X4", 4}}).set_output({{"X5", 5}})).build());
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_input({{"X5", 5}}).set_output({{"X6", 6}})).build());
 
     Graph_type graph(nodes);
 
@@ -184,23 +190,43 @@ namespace
     using content_in = types::Content<Input>;
     std::vector<Node_type> nodes;
 
-    nodes.emplace_back(content_in({}, {{"X0", 0}}));
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_output({{"X0", 0}})).build());
 
     for (int i = 1; i < 12; ++i)
       {
         if (i < 4)
-          nodes.emplace_back(content_in({{"X" + std::to_string(i - 1), i - 1}}, {{"X" + std::to_string(i), i}}));
+          {
+            nodes.emplace_back(std::move(Content_Builder<Input>()
+                                           .set_input({{"X" + std::to_string(i - 1), i - 1}})
+                                           .set_output({{"X" + std::to_string(i), i}}))
+                                 .build());
+          }
         else if (i == 4)
-          nodes.emplace_back(content_in({{"X0", 0}}, {{"X4", 4}}));
+          {
+            nodes.emplace_back(
+              std::move(Content_Builder<Input>().set_input({{"X0", 0}}).set_output({{"X4", 4}})).build());
+          }
         else if (4 < i && i < 8)
-          nodes.emplace_back(content_in({{"X" + std::to_string(i % 4), i % 4}, {"X" + std::to_string(i - 1), i - 1}},
-                                        {{"X" + std::to_string(i), i}}));
+          {
+            nodes.emplace_back(
+              std::move(Content_Builder<Input>()
+                          .set_input({{"X" + std::to_string(i % 4), i % 4}, {"X" + std::to_string(i - 1), i - 1}})
+                          .set_output({{"X" + std::to_string(i), i}}))
+                .build());
+          }
         else if (i == 8)
-          nodes.emplace_back(content_in({{"X4", 4}}, {{"X8", 8}}));
+          {
+            nodes.emplace_back(
+              std::move(Content_Builder<Input>().set_input({{"X4", 4}}).set_output({{"X8", 8}})).build());
+          }
         else if (i > 8)
-          nodes.emplace_back(
-            content_in({{"X" + std::to_string(i % 4 + 4), i % 4 + 4}, {"X" + std::to_string(i - 1), i - 1}},
-                       {{"X" + std::to_string(i), i}}));
+          {
+            nodes.emplace_back(std::move(Content_Builder<Input>()
+                                           .set_input({{"X" + std::to_string(i % 4 + 4), i % 4 + 4},
+                                                       {"X" + std::to_string(i - 1), i - 1}})
+                                           .set_output({{"X" + std::to_string(i), i}}))
+                                 .build());
+          }
       }
 
     Graph_type graph(std::move(nodes));

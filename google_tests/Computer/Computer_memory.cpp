@@ -71,23 +71,19 @@ namespace
   basic_graph()
   {
     std::vector<Node_type> nodes;
-    Content_type           content(IO_collection(), IO_collection{{"X0", 0}}, IO_collection());
 
-    nodes.emplace_back(std::move(content));
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_output({{"X0", 0}})).build());
 
     for (int i = 1; i < 10 - 1; ++i)
       {
-        content = Content_type(IO_collection{{"X" + std::to_string(i - 1), (i - 1) * 10}},
-                               IO_collection{{"X" + std::to_string(i), i * 10}},
-                               IO_collection{});
-
-        nodes.emplace_back(std::move(content));
+        nodes.emplace_back(std::move(Content_Builder<Input>()
+                                       .set_input({{"X" + std::to_string(i - 1), (i - 1) * 10}})
+                                       .set_output({{"X" + std::to_string(i), i * 10}}))
+                             .build());
       }
 
-    content =
-      Content_type(IO_collection{{"X" + std::to_string(10 - 1), (10 - 2) * 10}}, IO_collection{}, IO_collection{});
-
-    nodes.emplace_back(std::move(content));
+    nodes.emplace_back(
+      std::move(Content_Builder<Input>().set_input({{"X" + std::to_string(10 - 1), (10 - 2) * 10}})).build());
 
     return Graph_type(nodes);
   }

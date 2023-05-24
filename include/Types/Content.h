@@ -41,33 +41,9 @@ namespace network_butcher::types
     /// The operation id (name)
     std::string operation_id;
 
+    Content() = default;
+
   public:
-    /// Generic make content class (only usable if T has default constructor)
-    /// \tparam Arg The parameters
-    /// \param arg The input parameters (if some of the fields are not provided, they are default initialized)
-    /// \return The Content<T>
-    template <typename... Arg>
-    static Content<T>
-    make_content(Arg &&...arg)
-    {
-      return Content<T>(std::forward<Arg>(arg)...);
-    }
-
-    /// Generic make content class (only usable if T has default constructor)
-    template <typename A = io_collection,
-              typename B = io_collection,
-              typename C = io_collection,
-              typename D = attribute_collection,
-              typename E = std::string>
-    explicit Content(A &&in = A(), B &&out = B(), C &&params = C(), D &&in_attributes = D(), E &&operation_name = "")
-      : input(std::forward<A>(in))
-      , output(std::forward<B>(out))
-      , parameters(std::forward<C>(params))
-      , attributes(std::forward<D>(in_attributes))
-      , operation_id(std::forward<E>(operation_name))
-    {}
-
-
     /// Read-only getter for input
     /// \return Const reference to input
     inline const io_collection &
@@ -121,50 +97,55 @@ namespace network_butcher::types
     using io_collection        = io_collection_type<T>;
     using attribute_collection = std::unordered_map<std::string, DynamicType>;
 
-    template <typename A>
-    void
+    template <typename A = decltype(Content<T>::input)>
+    Content_Builder &
     set_input(A &&in)
       requires std::is_assignable_v<A, decltype(Content<T>::input)>
     {
       res.input = std::forward<A>(in);
+      return *this;
     }
 
-    template <typename A>
-    void
+    template <typename A = decltype(Content<T>::output)>
+    Content_Builder &
     set_output(A &&out)
       requires std::is_assignable_v<A, decltype(Content<T>::output)>
     {
       res.output = std::forward<A>(out);
+      return *this;
     }
 
-    template <typename A>
-    void
+    template <typename A = decltype(Content<T>::parameters)>
+    Content_Builder &
     set_parameters(A &&params)
       requires std::is_assignable_v<A, decltype(Content<T>::parameters)>
     {
       res.parameters = std::forward<A>(params);
+      return *this;
     }
 
-    template <typename A>
-    void
+    template <typename A = decltype(Content<T>::attributes)>
+    Content_Builder &
     set_attributes(A &&attributes)
       requires std::is_assignable_v<A, decltype(Content<T>::attributes)>
     {
       res.attributes = std::forward<A>(attributes);
+      return *this;
     }
 
-    template <typename A>
-    void
+    template <typename A = decltype(Content<T>::operation_id)>
+    Content_Builder &
     set_operation_id(A &&operation_id)
       requires std::is_assignable_v<A, decltype(Content<T>::operation_id)>
     {
-      res.parameters = std::forward<A>(operation_id);
+      res.operation_id = std::forward<A>(operation_id);
+      return *this;
     }
 
-    Content<T>
-    build_content()
+    auto
+    build() &&
     {
-      return res;
+      return std::move(res);
     }
 
     Content_Builder() = default;

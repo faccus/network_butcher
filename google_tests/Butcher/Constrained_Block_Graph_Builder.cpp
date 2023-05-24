@@ -317,14 +317,15 @@ namespace
   {
     std::vector<Node_type> nodes;
 
-    nodes.emplace_back(Content_type({}, {{"X0", 0}}));
-    nodes.emplace_back(Content_type({{"X0", 0}}, {{"X1", 1}}));
-    nodes.emplace_back(Content_type({{"X1", 1}}, {{"X2", 2}}));
-    nodes.emplace_back(Content_type({{"X1", 1}}, {{"X3", 3}}));
-    nodes.emplace_back(Content_type({{"X3", 3}}, {{"X4", 4}}));
-    nodes.emplace_back(Content_type({{"X2", 2}, {"X4", 4}}, {{"X5", 5}}));
-    nodes.emplace_back(Content_type({{"X5", 5}}, {{"X6", 6}}));
-    nodes.emplace_back(Content_type({{"X6", 6}}, {{"X7", 7}}));
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_output({{"X0", 0}})).build());
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_input({{"X0", 0}}).set_output({{"X1", 1}})).build());
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_input({{"X1", 1}}).set_output({{"X2", 2}})).build());
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_input({{"X1", 1}}).set_output({{"X3", 3}})).build());
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_input({{"X3", 3}}).set_output({{"X4", 4}})).build());
+    nodes.emplace_back(
+      std::move(Content_Builder<Input>().set_input({{"X2", 2}, {"X4", 4}}).set_output({{"X5", 5}})).build());
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_input({{"X5", 5}}).set_output({{"X6", 6}})).build());
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_input({{"X6", 6}}).set_output({{"X7", 7}})).build());
 
     return GraphType(2, std::move(nodes));
   }
@@ -334,11 +335,12 @@ namespace
   {
     std::vector<Node_type> nodes;
 
-    nodes.emplace_back(Content_type({}, {{"X0", 0}}));
-    nodes.emplace_back(Content_type({{"X0", 0}}, {{"X1", 1}}));
-    nodes.emplace_back(Content_type({{"X1", 1}}, {{"X2", 2}}));
-    nodes.emplace_back(Content_type({{"X1", 1}, {"X2", 2}}, {{"X3", 3}}));
-    nodes.emplace_back(Content_type({{"X3", 3}}, {{"X4", 4}}));
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_output({{"X0", 0}})).build());
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_input({{"X0", 0}}).set_output({{"X1", 1}})).build());
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_input({{"X1", 1}}).set_output({{"X2", 2}})).build());
+    nodes.emplace_back(
+      std::move(Content_Builder<Input>().set_input({{"X1", 1}, {"X2", 2}}).set_output({{"X3", 3}})).build());
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_input({{"X3", 3}}).set_output({{"X4", 4}})).build());
 
     return GraphType(2, std::move(nodes));
   }

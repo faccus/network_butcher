@@ -30,21 +30,16 @@ namespace
 
     std::vector<Node_type> nodes;
 
-    auto content = Content_type::make_content(IO_collection{}, IO_collection{{"X", 0}});
-
-    nodes.emplace_back(std::move(content));
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_output({{"X", 0}})).build());
 
     for (int i = 1; i < number_of_nodes - 1; ++i)
       {
-        content = Content_type(IO_collection{{"X", (i - 1) * 10}}, IO_collection{{"X", i * 10}}, IO_collection{});
-
-        nodes.emplace_back(std::move(content));
+        nodes.emplace_back(
+          std::move(Content_Builder<Input>().set_input({{"X", (i - 1) * 10}}).set_output({{"X", i * 10}})).build());
       }
-
-    content = Content_type(IO_collection{{"X", (number_of_nodes - 2) * 10}}, IO_collection{}, IO_collection{});
-
-    nodes.emplace_back(std::move(content));
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_input({{"X", (number_of_nodes - 2) * 10}})).build());
 
     Graph_type graph(nodes);
   }
+
 } // namespace

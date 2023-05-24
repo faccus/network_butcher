@@ -234,13 +234,13 @@ namespace network_butcher::io
     auto const graph_inputs  = get_common_elements(prepared_data.onnx_inputs_ids, inputs);
     auto const graph_outputs = get_common_elements(prepared_data.onnx_outputs_ids, outputs);
 
-    auto content = network_butcher::types::Content<type_info_pointer>::make_content(std::move(inputs),
-                                                                                    std::move(outputs),
-                                                                                    std::move(parameters),
-                                                                                    process_node_attributes(node),
-                                                                                    std::move(operation_type));
-
-    auto res = graph_type::Node_Type(std::move(content));
+    auto res = graph_type::Node_Type(std::move(network_butcher::types::Content_Builder<type_info_pointer>()
+                                                 .set_input(std::move(inputs))
+                                                 .set_output(std::move(outputs))
+                                                 .set_parameters(std::move(parameters))
+                                                 .set_attributes(process_node_attributes(node))
+                                                 .set_operation_id(std::move(operation_type)))
+                                       .build());
     res.name = node.name();
 
     return {res, graph_inputs, graph_outputs};
