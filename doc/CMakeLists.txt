@@ -12,7 +12,6 @@ if (DOXYGEN_FOUND)
     set(DOXYGEN_EXTRACT_STATIC YES)
     set(DOXYGEN_EXTRACT_LOCAL_METHODS YES)
 
-    # Collaboration graphs
     set(DOXYGEN_OUTPUT_DIRECTORY doc)
     set(DOXYGEN_TEMPLATE_RELATIONS YES)
     set(DOXYGEN_UML_LOOK YES)
@@ -26,18 +25,12 @@ if (DOXYGEN_FOUND)
             ${PROJECT_SOURCE_DIR}
             COMMENT "Generate doc pages"
     )
-    
-    
-    set(DOXYFILE ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
 
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
-                   ${DOXYFILE} @ONLY)
-    
     add_custom_target(
-      doc
-      COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE}
-      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-      COMMENT "Generating API documentation")
+            doc
+            COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.doxygen
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMENT "Generating API documentation")
 elseif ()
     message(STATUS "Missing doxygen: I will not be able to produce documentation files!")
 endif ()
