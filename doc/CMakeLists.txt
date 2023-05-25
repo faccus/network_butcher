@@ -2,6 +2,8 @@ find_package(Doxygen
         OPTIONAL_COMPONENTS dot mscgen dia) # doxygen, graphviz
 
 if (DOXYGEN_FOUND)
+    set(Doxygen_FIND_QUIETLY TRUE)
+
     set(DOXYGEN_EXCLUDE_PATTERNS */onnx_proto/* */test_data/* */_deps/* */google_tests/* */dep/*)
     set(DOXYGEN_INHERIT_DOCS NO)
     set(DOXYGEN_EXTRACT_ALL YES)
@@ -24,6 +26,18 @@ if (DOXYGEN_FOUND)
             ${PROJECT_SOURCE_DIR}
             COMMENT "Generate doc pages"
     )
+    
+    
+    set(DOXYFILE ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
+                   ${DOXYFILE} @ONLY)
+    
+    add_custom_target(
+      doc
+      COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE}
+      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+      COMMENT "Generating API documentation")
 elseif ()
     message(STATUS "Missing doxygen: I will not be able to produce documentation files!")
 endif ()
