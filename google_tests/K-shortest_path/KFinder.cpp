@@ -1,16 +1,13 @@
 //
-// Created by faccus on 21/05/23.
+// Created by faccus on 26/10/21.
 //
 
 #include "Graph_traits.h"
-#include "KFinder_Factory.h"
-#include "KFinder_Test_Graph_Specialization.h"
+#include "KEppstein.h"
+#include "KEppstein_lazy.h"
 
 #include "TestClass.h"
 #include "TestGraph.h"
-#include "chrono.h"
-
-#include <fstream>
 #include <gtest/gtest.h>
 
 namespace
@@ -22,145 +19,211 @@ namespace
   using basic_type  = int;
   using type_weight = double;
 
-  using Input               = TestMemoryUsage<basic_type>;
-  using Content_input       = types::Content<Input>;
-  using Node_type           = types::Node;
-  using Test_Weight_Type    = unsigned long long int;
-  using Graph_type_Parallel = types::WGraph<true, Node_type, Test_Weight_Type>;
+  using Input         = TestMemoryUsage<basic_type>;
+  using Content_input = types::Content<Input>;
+  using Node_type     = types::CNode<types::Content<Input>>;
+  using Graph_type    = types::WGraph<false, Node_type>;
 
   template <bool Reversed>
-  using Weighted_Graph_Parallel_type = Weighted_Graph<Graph_type_Parallel,
-                                                      Reversed,
-                                                      Graph_type_Parallel::Node_Type,
-                                                      Graph_type_Parallel::Node_Collection_Type,
-                                                      Test_Weight_Type>;
+  using Weighted_Graph_type =
+    Weighted_Graph<Graph_type, Reversed, Graph_type::Node_Type, Graph_type::Node_Collection_Type, weight_type>;
 
-  std::tuple<Graph_type_Parallel, node_id_type, node_id_type, node_id_type>
-  import_graph(std::string file_path);
+  Graph_type
+  eppstein_graph();
 
-  std::vector<std::string>
-  get_test_names();
+  TestGraph<basic_type>
+  test_graph();
 
 
-  TEST(KFinderSuite, ParallelEdgesEppsteinTest)
+  TEST(KFinderTest, EppsteinOriginalNetwork)
   {
-    auto &factory = KFinder_Factory<Graph_type_Parallel, true, Weighted_Graph_Parallel_type<false>>::Instance();
-    for (auto const &file_name : get_test_names())
+    auto const       graph = eppstein_graph();
+    KFinder_Eppstein kfinder(graph, graph.get_nodes().front().get_id(), graph.get_nodes().back().get_id());
+
+    int k = 100; // Up to 10
+
+    std::vector<type_weight> real_sol = {55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
+    auto                     res      = kfinder.compute(real_sol.size());
+
+    std::vector<type_weight> real_path_lengths;
+    std::vector<type_weight> path_lengths;
+
+    path_lengths.reserve(k);
+    real_path_lengths.reserve(k);
+
+    EXPECT_EQ(real_sol.size(), res.size());
+
+    for (auto i = 0; i < real_sol.size(); ++i)
       {
-        std::string input = "test_data/kfinder/in/" + file_name + ".in";
-
-        std::cout << "Testing file: " << input;
-
-        auto [graph, root, sink, k] = import_graph(input);
-
-        Chrono crono;
-        crono.start();
-        auto const res = factory.create("eppstein", graph, root, sink)->compute(k);
-        crono.stop();
-
-        std::string output = "test_data/kfinder/out/" + file_name + ".out";
-
-        std::ifstream    result_file(output);
-        std::size_t      current_size = 0;
-        Test_Weight_Type val;
-
-        for (; current_size < res.size(); ++current_size)
-          {
-            result_file >> val;
-            ASSERT_EQ(val, res[current_size]);
-          }
-
-        if (res.size() < k)
-          {
-            double last = .0;
-            result_file >> last;
-
-            ASSERT_EQ(last, -1.);
-          }
-
-        std::cout << " SUCCESS, " << crono.wallTime() / 1000. << " ms" << std::endl;
-      }
-  }
-
-
-  TEST(KFinderSuite, ParallelEdgesLazyEppsteinTest)
-  {
-    auto &factory = KFinder_Factory<Graph_type_Parallel, true, Weighted_Graph_Parallel_type<false>>::Instance();
-    for (auto const &file_name : get_test_names())
-      {
-        std::string input = "test_data/kfinder/in/" + file_name + ".in";
-
-        std::cout << "Testing file: " << input;
-
-        auto [graph, root, sink, k] = import_graph(input);
-
-        Chrono crono;
-        crono.start();
-        auto const res = factory.create("lazy_eppstein", graph, root, sink)->compute(k);
-        crono.stop();
-
-        std::string output = "test_data/kfinder/out/" + file_name + ".out";
-
-        std::ifstream    result_file(output);
-        std::size_t      current_size = 0;
-        Test_Weight_Type val;
-
-        for (; current_size < res.size(); ++current_size)
-          {
-            result_file >> val;
-            ASSERT_EQ(val, res[current_size]);
-          }
-
-        if (res.size() < k)
-          {
-            double last = .0;
-            result_file >> last;
-
-            ASSERT_EQ(last, -1.);
-          }
-
-        std::cout << " SUCCESS, " << crono.wallTime() / 1000. << " ms" << std::endl;
-      }
-  }
-
-
-  std::tuple<Graph_type_Parallel, node_id_type, node_id_type, node_id_type>
-  import_graph(std::string file_path)
-  {
-    std::size_t                  N, M, s, t, k, u, v;
-    network_butcher::weight_type tmp_weight;
-
-    std::ifstream in_file(file_path);
-    in_file >> N >> M >> s >> t >> k;
-
-    std::vector<network_butcher::types::Node> nodes(N);
-    graph_type::Dependencies_Type             deps(N);
-    std::vector<
-      std::pair<std::pair<network_butcher::node_id_type, network_butcher::node_id_type>, network_butcher::weight_type>>
-      edges;
-    edges.reserve(M);
-
-    for (std::size_t i = 0; i < M; ++i)
-      {
-        in_file >> u >> v >> tmp_weight;
-        edges.push_back({{u, v}, tmp_weight});
-
-        deps[v].first.insert(u);
-        deps[u].second.insert(v);
+        path_lengths.push_back(res[i].length);
+        real_path_lengths.push_back(real_sol[i]);
       }
 
-    Graph_type_Parallel graph(nodes, deps);
-    for (auto const &[edge, weight] : edges)
-      graph.set_weight(edge, weight);
-
-    return std::tie(graph, s, t, k);
+    ASSERT_EQ(path_lengths, real_path_lengths);
   }
 
-  std::vector<std::string>
-  get_test_names()
+  TEST(KFinderTest, LazyEppsteinOriginalNetwork)
   {
-    return {
-      "example_00", "max_random_00", "random_01", "small_random_01", "smallest_random_02", "sparse_00", "sparse_01"};
+    auto const            graph = eppstein_graph();
+    KFinder_Lazy_Eppstein kfinder(graph, graph.get_nodes().front().get_id(), graph.get_nodes().back().get_id());
+
+    int k = 100; // Up to 10
+
+    std::vector<type_weight> real_sol = {55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
+    auto                     res      = kfinder.compute(real_sol.size());
+
+    std::vector<type_weight> real_path_lengths;
+    std::vector<type_weight> path_lengths;
+
+    path_lengths.reserve(k);
+    real_path_lengths.reserve(k);
+
+    EXPECT_EQ(real_sol.size(), res.size());
+
+    for (auto i = 0; i < k && i < res.size(); ++i)
+      {
+        path_lengths.push_back(res[i].length);
+        real_path_lengths.push_back(real_sol[i]);
+      }
+
+    ASSERT_EQ(path_lengths, real_path_lengths);
   }
 
+  TEST(KFinderTest, LazyEppsteinOriginalTestGraph)
+  {
+    auto const            graph = test_graph();
+    KFinder_Lazy_Eppstein kfinder(graph, 0, 11);
+
+    int k = 100; // Up to 10
+
+    std::vector<type_weight> real_sol = {55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
+    auto                     res      = kfinder.compute(real_sol.size());
+
+    std::vector<type_weight> real_path_lengths;
+    std::vector<type_weight> path_lengths;
+
+    path_lengths.reserve(k);
+    real_path_lengths.reserve(k);
+
+    EXPECT_EQ(real_sol.size(), res.size());
+
+    for (auto i = 0; i < k && i < res.size(); ++i)
+      {
+        path_lengths.push_back(res[i].length);
+        real_path_lengths.push_back(real_sol[i]);
+      }
+
+    ASSERT_EQ(path_lengths, real_path_lengths);
+  }
+
+  Graph_type
+  eppstein_graph()
+  {
+    std::vector<Node_type> nodes;
+
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_output({{"X0", 0}})).build());
+
+    for (int i = 1; i < 12; ++i)
+      {
+        if (i < 4)
+          {
+            nodes.emplace_back(std::move(Content_Builder<Input>()
+                                           .set_input({{"X" + std::to_string(i - 1), i - 1}})
+                                           .set_output({{"X" + std::to_string(i), i}}))
+                                 .build());
+          }
+        else if (i == 4)
+          {
+            nodes.emplace_back(
+              std::move(Content_Builder<Input>().set_input({{"X0", 0}}).set_output({{"X4", 4}})).build());
+          }
+        else if (4 < i && i < 8)
+          {
+            nodes.emplace_back(
+              std::move(Content_Builder<Input>()
+                          .set_input({{"X" + std::to_string(i % 4), i % 4}, {"X" + std::to_string(i - 1), i - 1}})
+                          .set_output({{"X" + std::to_string(i), i}}))
+                .build());
+          }
+        else if (i == 8)
+          {
+            nodes.emplace_back(
+              std::move(Content_Builder<Input>().set_input({{"X4", 4}}).set_output({{"X8", 8}})).build());
+          }
+        else if (i > 8)
+          {
+            nodes.emplace_back(std::move(Content_Builder<Input>()
+                                           .set_input({{"X" + std::to_string(i % 4 + 4), i % 4 + 4},
+                                                       {"X" + std::to_string(i - 1), i - 1}})
+                                           .set_output({{"X" + std::to_string(i), i}}))
+                                 .build());
+          }
+      }
+
+    Graph_type graph(std::move(nodes));
+
+    graph.set_weight({0, 1}, 2);
+    graph.set_weight({1, 2}, 20);
+    graph.set_weight({2, 3}, 14);
+    graph.set_weight({0, 4}, 13);
+    graph.set_weight({1, 5}, 27);
+    graph.set_weight({2, 6}, 14);
+    graph.set_weight({3, 7}, 15);
+    graph.set_weight({4, 5}, 9);
+    graph.set_weight({5, 6}, 10);
+    graph.set_weight({6, 7}, 25);
+    graph.set_weight({4, 8}, 15);
+    graph.set_weight({5, 9}, 20);
+    graph.set_weight({6, 10}, 12);
+    graph.set_weight({7, 11}, 7);
+    graph.set_weight({8, 9}, 18);
+    graph.set_weight({9, 10}, 8);
+    graph.set_weight({10, 11}, 11);
+
+    return graph;
+  }
+
+  TestGraph<basic_type>
+  test_graph()
+  {
+    using content_in = types::Content<Input>;
+
+    auto const built_graph = eppstein_graph();
+
+    TestGraph<basic_type> res;
+    auto                 &nodes        = res.nodes;
+    auto                 &dependencies = res.dependencies;
+    auto                 &weights      = res.map_weight;
+
+    for (auto const &node : built_graph.get_nodes())
+      {
+        nodes.push_back({node.get_id(), 90});
+      }
+
+    for (std::size_t i = 0; i < built_graph.size(); ++i)
+      {
+        dependencies[i] = std::make_pair(built_graph.get_input_nodes(i), built_graph.get_output_nodes(i));
+      }
+
+    weights.emplace(std::make_pair(0, 1), 2);
+    weights.emplace(std::make_pair(1, 2), 20);
+    weights.emplace(std::make_pair(2, 3), 14);
+    weights.emplace(std::make_pair(0, 4), 13);
+    weights.emplace(std::make_pair(1, 5), 27);
+    weights.emplace(std::make_pair(2, 6), 14);
+    weights.emplace(std::make_pair(3, 7), 15);
+    weights.emplace(std::make_pair(4, 5), 9);
+    weights.emplace(std::make_pair(5, 6), 10);
+    weights.emplace(std::make_pair(6, 7), 25);
+    weights.emplace(std::make_pair(4, 8), 15);
+    weights.emplace(std::make_pair(5, 9), 20);
+    weights.emplace(std::make_pair(6, 10), 12);
+    weights.emplace(std::make_pair(7, 11), 7);
+    weights.emplace(std::make_pair(8, 9), 18);
+    weights.emplace(std::make_pair(9, 10), 8);
+    weights.emplace(std::make_pair(10, 11), 11);
+
+
+    return res;
+  }
 } // namespace

@@ -63,7 +63,7 @@ namespace
   }
 
 
-  TEST(KspTests, EppsteinOriginalNetwork)
+  TEST(KFinderTest, EppsteinOriginalNetwork)
   {
     auto const       graph = eppstein_graph();
     KFinder_Eppstein kfinder(graph, graph.get_nodes().front().get_id(), graph.get_nodes().back().get_id());
@@ -90,7 +90,7 @@ namespace
     ASSERT_EQ(path_lengths, real_path_lengths);
   }
 
-  TEST(KspTests, LazyEppsteinOriginalNetwork)
+  TEST(KFinderTest, LazyEppsteinOriginalNetwork)
   {
     auto const            graph = eppstein_graph();
     KFinder_Lazy_Eppstein kfinder(graph, graph.get_nodes().front().get_id(), graph.get_nodes().back().get_id());
@@ -117,7 +117,7 @@ namespace
     ASSERT_EQ(path_lengths, real_path_lengths);
   }
 
-  TEST(KspTests, LazyEppsteinOriginalTestGraph)
+  TEST(KFinderTest, LazyEppsteinOriginalTestGraph)
   {
     auto const            graph = test_graph();
     KFinder_Lazy_Eppstein kfinder(graph, 0, 11);

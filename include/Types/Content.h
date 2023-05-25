@@ -22,6 +22,7 @@ namespace network_butcher::types
   public:
     using io_collection        = io_collection_type<T>;
     using attribute_collection = std::unordered_map<std::string, DynamicType>;
+    using Element_Type         = T;
 
   private:
     friend class Content_Builder<T>;
@@ -94,8 +95,7 @@ namespace network_butcher::types
   class Content_Builder
   {
   public:
-    using io_collection        = io_collection_type<T>;
-    using attribute_collection = std::unordered_map<std::string, DynamicType>;
+    using Content_Type = Content<T>;
 
     template <typename A = decltype(Content<T>::input)>
     Content_Builder &
@@ -151,7 +151,7 @@ namespace network_butcher::types
     Content_Builder() = default;
 
   private:
-    Content<T> res;
+    Content_Type res;
   };
 
 

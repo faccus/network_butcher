@@ -110,7 +110,7 @@ namespace
   real_transmission(Real_Graph_Type const &);
 
 
-  TEST(ButcherBenchmarkTest, compute_k_shortest_paths_test_network_basic_weights)
+  TEST(ButcherTest, compute_k_shortest_paths_test_network_basic_weights)
   {
     std::string path      = "test_data/models/resnet18-v2-7-inferred";
     std::string extension = ".onnx";
@@ -152,7 +152,7 @@ namespace
   }
 
 
-  TEST(ButcherBenchmarkTest, compute_k_shortest_paths_eppstein_vs_lazy_deterministic_multiple)
+  TEST(ButcherTest, compute_k_shortest_paths_eppstein_vs_lazy_deterministic_multiple)
   {
     std::size_t       num_devices = 3;
     std::size_t const num_nodes   = 1000;

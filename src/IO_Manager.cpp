@@ -351,10 +351,10 @@ namespace network_butcher::io::IO_Manager
 
 
   void
-  export_network_partitions(const network_butcher::parameters::Parameters     &params,
-                            onnx::ModelProto const                            &model,
-                            std::map<node_id_type, node_id_type> const        &link_id_nodeproto,
-                            const network_butcher::types::Weighted_Real_Paths &paths)
+  export_network_partitions(const network_butcher::parameters::Parameters                 &params,
+                            onnx::ModelProto const                                        &model,
+                            std::map<node_id_type, node_id_type> const                    &link_id_nodeproto,
+                            const std::vector<network_butcher::types::Weighted_Real_Path> &paths)
   {
     if (network_butcher::Utilities::directory_exists(params.export_directory))
       network_butcher::Utilities::directory_delete(params.export_directory);

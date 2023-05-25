@@ -82,7 +82,7 @@ namespace network_butcher
     /// construction
     /// \return The optimal partitions
     /// that the K-shortest path algorithm managed to find given the specified constraints
-    network_butcher::types::Weighted_Real_Paths
+    std::vector<network_butcher::types::Weighted_Real_Path>
     compute_k_shortest_path(
       std::function<weight_type(node_id_type const &, std::size_t, std::size_t)> const &transmission_weights,
       network_butcher::parameters::Parameters const                                    &params,
@@ -91,7 +91,7 @@ namespace network_butcher
 
 
   template <class GraphType>
-  network_butcher::types::Weighted_Real_Paths
+  std::vector<network_butcher::types::Weighted_Real_Path>
   Butcher<GraphType>::compute_k_shortest_path(
     const std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> &transmission_weights,
     const network_butcher::parameters::Parameters                                    &params,

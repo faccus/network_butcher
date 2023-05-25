@@ -15,7 +15,7 @@ namespace
   import_simple_model();
 
 
-  TEST(OnnxImporterHelpersTests, ReadIOsValueInfoProtoTest)
+  TEST(OnnxImporterHelpersTests, ReadIOsValueInfoProto)
   {
     auto const  model = import_simple_model();
     auto const &graph = model.graph();
@@ -36,7 +36,7 @@ namespace
     EXPECT_TRUE(in_map.find(name)->second->initialized());
   }
 
-  TEST(OnnxImporterHelpersTests, ReadIOsTensorProtoTest)
+  TEST(OnnxImporterHelpersTests, ReadIOsTensorProto)
   {
     auto const  model = import_simple_model();
     auto const &graph = model.graph();
@@ -58,7 +58,7 @@ namespace
     EXPECT_TRUE(in_map.find(name)->second->initialized());
   }
 
-  TEST(OnnxImporterHelpersTests, ProcessNodeIOsTest)
+  TEST(OnnxImporterHelpersTests, ProcessNodeIOs)
   {
     auto const  model = import_simple_model();
     auto const &graph = model.graph();

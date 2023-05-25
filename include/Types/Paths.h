@@ -16,7 +16,6 @@ namespace network_butcher::types
   using Real_Path      = std::vector<Real_Partition>;
 
   using Weighted_Real_Path  = std::pair<weight_type, Real_Path>;
-  using Weighted_Real_Paths = std::vector<Weighted_Real_Path>;
 
   bool
   path_comparison(Weighted_Real_Path const &rhs, Weighted_Real_Path const &lhs);

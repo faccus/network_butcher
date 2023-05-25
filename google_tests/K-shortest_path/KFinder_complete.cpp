@@ -38,7 +38,7 @@ namespace
   get_test_names();
 
 
-  TEST(KFinderSuite, ParallelEdgesEppsteinTest)
+  TEST(KFinderTest, CompleteParallelEdgesEppstein)
   {
     auto &factory = KFinder_Factory<Graph_type_Parallel, true, Weighted_Graph_Parallel_type<false>>::Instance();
     for (auto const &file_name : get_test_names())
@@ -79,7 +79,7 @@ namespace
   }
 
 
-  TEST(KFinderSuite, ParallelEdgesLazyEppsteinTest)
+  TEST(KFinderTest, CompleteParallelEdgesLazyEppstein)
   {
     auto &factory = KFinder_Factory<Graph_type_Parallel, true, Weighted_Graph_Parallel_type<false>>::Instance();
     for (auto const &file_name : get_test_names())
@@ -155,23 +155,11 @@ namespace
   std::vector<std::string>
   get_test_names()
   {
-    return {"almost_path_00",
-            "almost_path_01",
-            "almost_path_02",
-            "max_random_01",
-            "max_random_02",
-            "max_random_03",
-            "max_random_04",
-            "dense_00",
-            "dense_01",
-            "path_00",
-            "random_00",
-            "random_02",
-            "random_04",
-            "small_random_00",
-            "small_random_02",
-            "smallest_random_00",
-            "smallest_random_01"};
+    return {"almost_path_00",     "almost_path_01",     "almost_path_02", "max_random_01",   "max_random_02",
+            "max_random_03",      "max_random_04",      "dense_00",       "dense_01",        "path_00",
+            "random_00",          "random_02",          "random_04",      "small_random_00", "small_random_02",
+            "smallest_random_00", "smallest_random_01", "example_00",     "max_random_00",   "random_01",
+            "small_random_01",    "smallest_random_02", "sparse_00",      "sparse_01"};
   }
 
 } // namespace

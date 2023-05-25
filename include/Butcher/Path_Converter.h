@@ -27,7 +27,7 @@ namespace network_butcher::Utilities
     /// It will convert a collection of paths of the block graph to a partitioning
     /// \param paths The collection of paths
     /// \return The different partitioning
-    [[nodiscard]] network_butcher::types::Weighted_Real_Paths
+    [[nodiscard]] std::vector<network_butcher::types::Weighted_Real_Path>
     convert_to_weighted_real_path(std::vector<network_butcher::kfinder::t_path_info<Weight_Type>> const &paths) const;
 
     /// It will convert a path of the block graph to a partitioning
@@ -45,11 +45,11 @@ namespace network_butcher::Utilities
   }
 
   template <typename Weight_Type>
-  network_butcher::types::Weighted_Real_Paths
+  std::vector<network_butcher::types::Weighted_Real_Path>
   Path_Converter<Weight_Type>::convert_to_weighted_real_path(
     const std::vector<network_butcher::kfinder::t_path_info<Weight_Type>> &paths) const
   {
-    network_butcher::types::Weighted_Real_Paths final_res(paths.size());
+    std::vector<network_butcher::types::Weighted_Real_Path> final_res(paths.size());
 
     auto func = [&graph = graph](auto const &path) {
       network_butcher::types::Real_Path res;

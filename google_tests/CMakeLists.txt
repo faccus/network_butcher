@@ -18,9 +18,9 @@ set(
 )
 
 set(
-        BENCHMARK_TESTS_SOURCE
-        google_tests/Butcher/Butcher_benchmark.cpp
-        google_tests/K-shortest_path/KFinder_benchmark.cpp
+        COMPLETE_TESTS_SOURCE
+        google_tests/Butcher/Butcher_complete.cpp
+        google_tests/K-shortest_path/KFinder_complete.cpp
 )
 
 file(GLOB TMP_KFINDER

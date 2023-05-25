@@ -16,7 +16,7 @@ namespace
   simple_graph_generator();
 
 
-  TEST(WeightImporterTestSuit, DirectImportWeightsFromCsvTest)
+  TEST(WeightImporterTest, DirectImportWeightsFromCsv)
   {
     std::string weight_path = Utilities::combine_path(base_path, "weights/aMLLibrary_prediction_tegra.csv");
     auto        graph       = std::get<0>(io::IO_Manager::import_from_onnx(graph_path));
@@ -30,7 +30,7 @@ namespace
     ASSERT_DOUBLE_EQ(graph.get_weight(0, {72, 73}), 0.018818040739131837);
   }
 
-  TEST(WeightImporterTestSuit, MultipleImportWeightsFromCsvTest)
+  TEST(WeightImporterTest, MultipleImportWeightsFromCsv)
   {
     std::string weight_path = Utilities::combine_path(base_path, "weights/official_operation_time.csv");
     auto        graph       = std::get<0>(io::IO_Manager::import_from_onnx(graph2_path, true, true, 2));
@@ -51,7 +51,7 @@ namespace
     ASSERT_DOUBLE_EQ(graph.get_weight(1, {1, 2}), 0.000249);
   }
 
-  TEST(WeightImporterTestSuit, SingleBlockImportWeightsFromCsvTest)
+  TEST(WeightImporterTest, SingleBlockImportWeightsFromCsv)
   {
     std::string weight_path = Utilities::combine_path(base_path, "weights/sample_weights.csv");
 
@@ -75,7 +75,7 @@ namespace
     EXPECT_DOUBLE_EQ(graph.get_weight({0, 2}), 1234.2);
   }
 
-  TEST(WeightImporterTestSuit, MultipleBlockImportWeightsFromCsvTest)
+  TEST(WeightImporterTest, MultipleBlockImportWeightsFromCsv)
   {
     std::string weight_path = Utilities::combine_path(base_path, "weights/sample_weights.csv");
 

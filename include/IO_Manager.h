@@ -103,7 +103,7 @@ namespace network_butcher::io::IO_Manager
   export_network_partitions(const network_butcher::parameters::Parameters     &params,
                             const onnx::ModelProto                            &model,
                             std::map<node_id_type, node_id_type> const        &link_id_nodeproto,
-                            const network_butcher::types::Weighted_Real_Paths &paths);
+                            const std::vector<network_butcher::types::Weighted_Real_Path> &paths);
 
 
   /// It will try to construct a onnx::ModelProto from the given partition.

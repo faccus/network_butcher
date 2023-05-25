@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 20)
 # #######################################################################################################################
 
 option(BUILD_TESTS "Build tests" ON)
-option(BUILD_BENCHMARK "Build benchmark tests" ON)
+option(BUILD_COMPLETE_TESTS "Build complete tests" OFF)
 option(ENABLE_PARALLEL "Enable parallel execution" ON)
 
 
@@ -26,7 +26,7 @@ option(BUILD_DOC "Build documentation" ON)
 # #######################################################################################################################
 
 message(STATUS "Build tests: ${BUILD_TESTS}")
-message(STATUS "Build benchmark tests: ${BUILD_BENCHMARK}")
+message(STATUS "Build complete tests: ${BUILD_COMPLETE_TESTS}")
 message(STATUS "Enable parallel execution: ${ENABLE_PARALLEL}")
 
 message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
@@ -100,7 +100,7 @@ if (BUILD_TESTS)
             )
     target_link_libraries(test_run ${TEST_LIBRARIES_LOCATION})
 
-    add_executable(test_run_complete ${BENCHMARK_TESTS_SOURCE} ${BASE_SOURCE})
+    add_executable(test_run_complete ${COMPLETE_TESTS_SOURCE} ${TESTS_SOURCE} ${BASE_SOURCE})
     target_include_directories(test_run_complete PUBLIC
             include
             include/APSC
@@ -118,10 +118,11 @@ if (BUILD_TESTS)
     target_link_libraries(test_run_complete ${TEST_LIBRARIES_LOCATION})
 
     include(GoogleTest)
-    gtest_discover_tests(test_run)
 
-    if (BUILD_BENCHMARK)
+    if (BUILD_COMPLETE_TESTS)
         gtest_discover_tests(test_run_complete)
+    else()
+        gtest_discover_tests(test_run)
     endif ()
 endif ()
 

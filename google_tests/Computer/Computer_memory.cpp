@@ -22,7 +22,7 @@ namespace
   Graph_type
   basic_graph();
 
-  TEST(ComputerTests, MemoryConctructorTest)
+  TEST(ComputerTests, MemoryConctructor)
   {
     Computer_memory computer{};
   }

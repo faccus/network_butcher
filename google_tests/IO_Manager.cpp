@@ -12,7 +12,7 @@ namespace
   std::string graph_path = Utilities::combine_path(base_path, "models/version-RFB-640-inferred.onnx");
 
 
-  TEST(IOManagerTestSuit, ParametersTest)
+  TEST(IOManagerTest, Parameters)
   {
     auto const params = io::IO_Manager::read_parameters("test_data/configs/test5_parameters.conf");
 
@@ -58,7 +58,7 @@ namespace
     ASSERT_EQ(it->second.second, 0.005);
   }
 
-  TEST(IOManagerTestSuit, ImportOnnxTest)
+  TEST(IOManagerTest, ImportOnnx)
   {
     using Input = graph_input_type;
 
@@ -75,7 +75,7 @@ namespace
       }
   }
 
-  TEST(IOManagerTestSuit, ImportOnnxTestNoPadding)
+  TEST(IOManagerTest, ImportOnnxTestNoPadding)
   {
     using Input = graph_input_type;
 
@@ -93,7 +93,7 @@ namespace
       }
   }
 
-  TEST(IOManagerTestSuit, ImportOnnxTestInputPadding)
+  TEST(IOManagerTest, ImportOnnxTestInputPadding)
   {
     using Input = graph_input_type;
 
@@ -113,7 +113,7 @@ namespace
       }
   }
 
-  TEST(IOManagerTestSuit, ImportOnnxTestOutputPadding)
+  TEST(IOManagerTest, ImportOnnxTestOutputPadding)
   {
     using Input = graph_input_type;
 
@@ -133,7 +133,7 @@ namespace
       }
   }
 
-  TEST(IOManagerTestSuit, ImportExportOnnxTest)
+  TEST(IOManagerTest, ImportExportOnnx)
   {
     auto const model          = io::IO_Manager::import_from_onnx(graph_path);
     auto const exported_model = Utilities::combine_path(base_path, "exported.onnx");
