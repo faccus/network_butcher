@@ -95,7 +95,7 @@ namespace network_butcher::kfinder
     }
 
     [[nodiscard]] T const &
-    get_child(std::size_t index) const
+    get_elem(std::size_t index) const
     {
       return children[index];
     }

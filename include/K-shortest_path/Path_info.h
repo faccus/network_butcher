@@ -17,7 +17,7 @@ namespace network_butcher::kfinder
     Weight_Type               length;
     std::vector<node_id_type> path;
 
-    constexpr bool
+    bool
     operator<(const t_path_info &rhs) const
     {
       return length < rhs.length || (length == rhs.length && path < rhs.path);

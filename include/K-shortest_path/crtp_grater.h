@@ -11,7 +11,7 @@ namespace network_butcher::kfinder
   class crtp_greater
   {
   public:
-    constexpr bool
+    bool
     operator>(crtp_greater const &b) const
     {
       return static_cast<T const &>(b) < static_cast<T const &>(*this);

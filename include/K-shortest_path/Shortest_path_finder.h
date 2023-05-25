@@ -26,7 +26,7 @@ namespace network_butcher::kfinder::Shortest_path_finder
       , id(i)
     {}
 
-    constexpr bool
+    bool
     operator<(const dijkstra_helper_struct &rhs) const
     {
       return weight < rhs.weight || (weight == rhs.weight && id < rhs.id);

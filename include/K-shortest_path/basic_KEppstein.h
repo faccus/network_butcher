@@ -58,7 +58,7 @@ namespace network_butcher::kfinder
         , delta_weight(std::forward<C>(delta_weight))
       {}
 
-      constexpr bool
+      bool
       operator<(sidetrack const &rhs) const
       {
         return current_h_g->first < rhs.current_h_g->first ||
@@ -79,7 +79,7 @@ namespace network_butcher::kfinder
         , length(std::forward<B>(length))
       {}
 
-      constexpr bool
+      bool
       operator<(const implicit_path_info &rhs) const
       {
         return length < rhs.length || (length == rhs.length && sidetracks < rhs.sidetracks);
@@ -103,7 +103,7 @@ namespace network_butcher::kfinder
     [[nodiscard]] sidetrack
     extract_first_sidetrack_edge(typename H_g_collection::const_iterator const &h_g_it) const
     {
-      auto const &edge = h_g_it->second.get_child(0)->second.get_child(0);
+      auto const &edge = h_g_it->second.get_elem(0)->second.get_elem(0);
       return {h_g_it, std::make_pair(0, std::numeric_limits<node_id_type>::max()), edge.delta_weight};
     }
 
@@ -185,7 +185,7 @@ namespace network_butcher::kfinder
           for (auto const &el : h_g.find_children_indices(h_out_index))
             {
               auto const  location_dg_type = std::make_pair(el, inf);
-              auto const &h_g_child        = h_g.get_child(el);
+              auto const &h_g_child        = h_g.get_elem(el);
 
               if (!h_g_child->second.empty())
                 res.emplace_back(h_g_it, location_dg_type, h_g_child->second.get_head().delta_weight);
@@ -194,11 +194,11 @@ namespace network_butcher::kfinder
           index = 0;
         }
 
-      auto const &h_out = h_g.get_child(h_out_index);
+      auto const &h_out = h_g.get_elem(h_out_index);
       for (auto const &el : h_out->second.find_children_indices(index))
         {
           auto const location_dg_type = std::make_pair(h_out_index, el);
-          res.emplace_back(h_g_it, location_dg_type, h_out->second.get_child(el).delta_weight);
+          res.emplace_back(h_g_it, location_dg_type, h_out->second.get_elem(el).delta_weight);
         }
 
       return res;
@@ -236,7 +236,7 @@ namespace network_butcher::kfinder
       auto const extrack_edge = [](H_out_collection::const_iterator h_out, location_dg_type const &loc) {
         if (loc.second != std::numeric_limits<node_id_type>::max())
           {
-            return h_out->second.get_child(loc.second).edge;
+            return h_out->second.get_elem(loc.second).edge;
           }
         else
           {
@@ -262,7 +262,7 @@ namespace network_butcher::kfinder
               auto        it             = sidetracks.cbegin();
               std::size_t node_to_insert = root;
 
-              auto h_out_pos       = it->current_h_g->second.get_child(it->location.first);
+              auto h_out_pos       = it->current_h_g->second.get_elem(it->location.first);
               auto [first, second] = extrack_edge(h_out_pos, it->location);
 
               while (node_to_insert != sink)
@@ -283,7 +283,7 @@ namespace network_butcher::kfinder
                           break;
                         }
 
-                      h_out_pos = it->current_h_g->second.get_child(it->location.first);
+                      h_out_pos = it->current_h_g->second.get_elem(it->location.first);
 
                       auto tmp = extrack_edge(h_out_pos, it->location);
                       first    = tmp.first;
@@ -392,10 +392,10 @@ namespace network_butcher::kfinder
 
           auto const &[current_h_g, current_location, _e_weight] = SK.sidetracks.back();
 
-          auto const &e_h_out            = current_h_g->second.get_child(current_location.first);
+          auto const &e_h_out            = current_h_g->second.get_elem(current_location.first);
           auto const &[e_edge, e_weight] = current_location.second == std::numeric_limits<node_id_type>::max() ?
-                                             e_h_out->second.get_child(0) :
-                                             e_h_out->second.get_child(current_location.second);
+                                             e_h_out->second.get_elem(0) :
+                                             e_h_out->second.get_elem(current_location.second);
 
 #ifdef LOCAL
           crono.stop();
