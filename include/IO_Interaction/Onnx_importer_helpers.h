@@ -114,6 +114,7 @@ namespace network_butcher::io::Onnx_importer_helpers
   /// \param onnx_output The outputs of a onnx::GraphProto
   /// \param onnx_value_info The value_infos of a onnx::GraphProto
   /// \param onnx_initializer The collection of already "known" parameters
+  /// \return The map of value infos, the set of input names and the set of output names
   std::tuple<Map_IO, std::set<std::string>, std::set<std::string>>
   compute_value_infos(const google::protobuf::RepeatedPtrField<::onnx::ValueInfoProto> &onnx_input,
                       const google::protobuf::RepeatedPtrField<::onnx::ValueInfoProto> &onnx_output,
