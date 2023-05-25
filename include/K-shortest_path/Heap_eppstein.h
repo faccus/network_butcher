@@ -17,6 +17,7 @@
 namespace network_butcher::kfinder
 {
   /// Simple struct used to store some edge information
+  /// \tparam Weight_Type The weight type
   template <typename Weight_Type = weight_type>
   struct t_edge_info : crtp_greater<t_edge_info<Weight_Type>>
   {
@@ -35,7 +36,10 @@ namespace network_butcher::kfinder
     }
   };
 
-
+  /// Pure virtual generic class used to represent an Heap
+  /// \tparam T The stored type
+  /// \tparam heap_comparison The comparison function used to construct the max heap (std::less -> Max Heap,
+  /// std::greater -> Min Heap)
   template <typename T, typename heap_comparison = std::less<T>>
   class basic_Heap
   {

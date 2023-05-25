@@ -27,16 +27,12 @@ namespace network_butcher::kfinder
     using Weight_Type = base::Weight_Type;
 
     using edge_info = base::edge_info;
-    using path_info = base::path_info;
 
     using internal_weight_collection = base::internal_weight_collection;
     using dijkstra_result_type       = base::dijkstra_result_type;
-    using implicit_path_info         = base::implicit_path_info;
 
     using H_g_collection   = base::H_g_collection;
     using H_out_collection = base::H_out_collection;
-
-    using algo_output = base::algo_output;
 
     /// Simple function that will look for the H_g corresponding to the given node
     /// \param h_g The H_g collections
@@ -79,69 +75,8 @@ namespace network_butcher::kfinder
     /// \param dij_res The result of dijkstra
     /// \return The (implicit) k shortest paths
     [[nodiscard]] Output_Type
-    start(std::size_t K, dijkstra_result_type const &dij_res) const override
-    {
-      auto const sidetrack_distances_res = base::sidetrack_distances(dij_res); // O(E)
-
-      H_out_collection h_out;
-      H_g_collection   h_g;
-
-      auto const &[successors, distances] = dij_res;
-
-      if (distances[base::root] == std::numeric_limits<Weight_Type>::max())
-        return {};
-
-#if LOCAL
-      Chrono crono;
-      crono.start();
-#endif
-
-      for (auto const &node : this->graph)
-        {
-          if (successors[node.get_id()] != std::numeric_limits<node_id_type>::max())
-            {
-              h_g.emplace_hint(h_g.end(), node.get_id(), typename H_g_collection::mapped_type());
-            }
-        }
-
-      std::list<node_id_type> to_compute;
-      to_compute.push_back(base::root);
-
-      while (to_compute.back() != base::sink)
-        to_compute.push_back(successors[to_compute.back()]);
-
-      while (!to_compute.empty())
-        {
-          construct_partial_h_g(h_g, h_out, sidetrack_distances_res, successors, to_compute.back());
-          to_compute.pop_back();
-        }
-
-#if LOCAL
-      crono.stop();
-      std::cout << "Initial H_g construction time: " << crono.wallTime() / 1000. / 1000. << " s" << std::endl;
-#endif
-
-      // Prepare the callback function to be called in the Eppstein algorithm
-      auto fun = [this](H_g_collection                                  &h_g_,
-                        H_out_collection                                &h_out_,
-                        internal_weight_collection const                &sidetrack_distances_,
-                        typename dijkstra_result_type::first_type const &successors_,
-                        node_id_type                                     node_) {
-        return construct_partial_h_g(h_g_, h_out_, sidetrack_distances_, successors_, node_);
-      };
-
-      // Execute the Eppstein algorithm
-      auto epp_res = base::general_algo_eppstein(K, dij_res, sidetrack_distances_res, h_g, h_out, fun);
-
-      if constexpr (Only_Distance)
-        {
-          return epp_res;
-        }
-      else
-        {
-          return base::helper_eppstein(dij_res, epp_res);
-        }
-    };
+    start(std::size_t K, dijkstra_result_type const &dij_res) const override;
+    ;
 
   public:
     explicit KFinder_Lazy_Eppstein(Graph_type const &g, std::size_t root, std::size_t sink)
@@ -152,6 +87,65 @@ namespace network_butcher::kfinder
 
     ~KFinder_Lazy_Eppstein() override = default;
   };
+
+
+  template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
+  KFinder_Lazy_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::Output_Type
+  KFinder_Lazy_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::start(
+    std::size_t                                        K,
+    const KFinder_Lazy_Eppstein::dijkstra_result_type &dij_res) const
+  {
+    auto const sidetrack_distances_res = base::sidetrack_distances(dij_res); // O(E)
+
+    H_out_collection h_out;
+    H_g_collection   h_g;
+
+    auto const &[successors, distances] = dij_res;
+
+    if (distances[base::root] == std::numeric_limits<Weight_Type>::max())
+      return {};
+
+    for (auto const &node : this->graph)
+      {
+        if (successors[node.get_id()] != std::numeric_limits<node_id_type>::max())
+          {
+            h_g.emplace_hint(h_g.end(), node.get_id(), typename H_g_collection::mapped_type());
+          }
+      }
+
+    std::list<node_id_type> to_compute;
+    to_compute.push_back(base::root);
+
+    while (to_compute.back() != base::sink)
+      to_compute.push_back(successors[to_compute.back()]);
+
+    while (!to_compute.empty())
+      {
+        construct_partial_h_g(h_g, h_out, sidetrack_distances_res, successors, to_compute.back());
+        to_compute.pop_back();
+      }
+
+    // Prepare the callback function to be called in the Eppstein algorithm
+    auto fun = [this](H_g_collection                                  &h_g_,
+                      H_out_collection                                &h_out_,
+                      internal_weight_collection const                &sidetrack_distances_,
+                      typename dijkstra_result_type::first_type const &successors_,
+                      node_id_type                                     node_) {
+      return construct_partial_h_g(h_g_, h_out_, sidetrack_distances_, successors_, node_);
+    };
+
+    // Execute the Eppstein algorithm
+    auto epp_res = base::general_algo_eppstein(K, dij_res, sidetrack_distances_res, h_g, h_out, fun);
+
+    if constexpr (Only_Distance)
+      {
+        return epp_res;
+      }
+    else
+      {
+        return base::helper_eppstein(dij_res, epp_res);
+      }
+  }
 
 
   template <class Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>

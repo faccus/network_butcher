@@ -7,6 +7,8 @@
 
 namespace network_butcher::kfinder
 {
+  /// A simple class that employs the CRTP pattern to implement the > operator
+  /// \tparam T The class that inherits from this one
   template <typename T>
   class crtp_greater
   {
