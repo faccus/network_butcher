@@ -42,7 +42,8 @@ namespace network_butcher::kfinder
     using internal_weight_collection = std::multimap<edge_type, Weight_Type>;
     using dijkstra_result_type = network_butcher::kfinder::Shortest_path_finder::dijkstra_result_type<Weight_Type>;
 
-
+    /// Sidetrack edge can be represented as two elements: the relevant H_g and the position of the edge in H_g as two
+    /// integers, one for the position in H_g and one for the position in H_out
     struct sidetrack
     {
       H_g_collection::const_iterator current_h_g;
@@ -107,7 +108,7 @@ namespace network_butcher::kfinder
     extract_first_sidetrack_edge(typename H_g_collection::const_iterator const &h_g_it) const
     {
       auto const &edge = h_g_it->second.get_elem(0)->second.get_elem(0);
-      return {h_g_it, std::make_pair(0, std::numeric_limits<node_id_type>::max()), edge.delta_weight};
+      return {h_g_it, std::make_pair(0, 0), edge.delta_weight};
     }
 
     /// Computes the sidetrack distances for all the different sidetrack edges
@@ -183,11 +184,11 @@ namespace network_butcher::kfinder
 
       // In this case, edge is a head element of an H_out in H_g. Thus, I have to find its children in H_g and its child
       // in H_out (since it's the head of an H_out, index can be set to 0).
-      if (index == inf)
+      if (index == 0)
         {
           for (auto const &el : h_g.find_children_indices(h_out_index))
             {
-              auto const  location_dg_type = std::make_pair(el, inf);
+              auto const  location_dg_type = std::make_pair(el, 0);
               auto const &h_g_child        = h_g.get_elem(el);
 
               if (!h_g_child->second.empty())
