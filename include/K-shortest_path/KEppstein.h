@@ -20,6 +20,10 @@ namespace network_butcher::kfinder
   private:
     using base = basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>;
 
+  public:
+    using Output_Type = typename base::Output_Type;
+
+  private:
     using Weight_Type = base::Weight_Type;
 
     using edge_info = base::edge_info;
@@ -57,7 +61,7 @@ namespace network_butcher::kfinder
     /// \param K The number of shortest paths
     /// \param dij_res The result of dijkstra
     /// \return The (implicit) k shortest paths
-    [[nodiscard]] std::conditional_t<Only_Distance, std::vector<Weight_Type>, std::vector<path_info>>
+    [[nodiscard]] Output_Type
     start(std::size_t K, dijkstra_result_type const &dij_res) const override
     {
       auto const  sidetrack_distances_res = base::sidetrack_distances(dij_res); // O(E)

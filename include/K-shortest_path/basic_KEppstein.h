@@ -86,7 +86,10 @@ namespace network_butcher::kfinder
       }
     };
 
+  public:
+    using Output_Type = std::conditional_t<Only_Distance, std::vector<Weight_Type>, std::vector<path_info>>;
 
+  protected:
     using algo_output = std::conditional_t<Only_Distance, std::vector<Weight_Type>, std::vector<implicit_path_info>>;
 
     using callback_function =
@@ -301,7 +304,7 @@ namespace network_butcher::kfinder
     };
 
 
-    [[nodiscard]] virtual std::conditional_t<Only_Distance, std::vector<Weight_Type>, std::vector<path_info>>
+    [[nodiscard]] virtual Output_Type
     start(std::size_t K, dijkstra_result_type const &dij_res) const = 0;
 
     /// The "general" structure of the Eppstein algorithms. It will construct the shortest paths
@@ -472,8 +475,6 @@ namespace network_butcher::kfinder
     }
 
   public:
-    using Output_Type = std::conditional_t<Only_Distance, std::vector<Weight_Type>, std::vector<path_info>>;
-
     /// Applies a K-shortest path algorithm to find the k-shortest paths on the given graph (from the first node to
     /// the last one)
     /// \param K The number of shortest paths to find
