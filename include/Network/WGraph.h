@@ -280,9 +280,6 @@ namespace network_butcher
 
     private:
       Graph_Type const &graph;
-
-      void
-      fake_method() override{};
     };
   } // namespace kfinder
 

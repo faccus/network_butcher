@@ -125,9 +125,6 @@ namespace network_butcher::kfinder
 
   private:
     Graph_Type const &graph;
-
-    void
-    fake_method() override{};
   };
 } // namespace network_butcher::kfinder
 

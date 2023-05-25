@@ -137,9 +137,7 @@ public:
 
 private:
   Graph_Type const &graph;
-
-  void
-  fake_method() override{};
 };
+
 
 #endif // NETWORK_BUTCHER_TESTGRAPH_H

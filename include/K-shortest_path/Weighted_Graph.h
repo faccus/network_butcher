@@ -31,9 +31,6 @@ namespace network_butcher::kfinder
               typename t_Weight_Type>
     friend class Weighted_Graph;
 
-    [[maybe_unused]] virtual void
-    fake_method() = 0;
-
   public:
     virtual ~base_Weighted_Graph() = default;
   };
@@ -112,9 +109,6 @@ namespace network_butcher::kfinder
 
   private:
     Graph_Type const &graph;
-
-    void
-    fake_method() override{};
   };
 } // namespace network_butcher::kfinder
 
