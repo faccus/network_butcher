@@ -63,8 +63,7 @@ namespace
   };
 
 
-  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)> basic_transmission(std::size_t,
-                                                                                                std::size_t);
+  std::function<type_weight(edge_type const &, std::size_t, std::size_t)> basic_transmission(std::size_t, std::size_t);
 
   TEST(ButcherTest, compute_k_shortest_paths_eppstein_linear)
   {
@@ -172,10 +171,11 @@ namespace
     return Butcher(std::move(graph));
   }
 
-  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+  std::function<type_weight(edge_type const &, std::size_t, std::size_t)>
   basic_transmission(std::size_t devices, std::size_t size)
   {
-    return [devices, size](node_id_type const &input, std::size_t first, std::size_t second) {
+    return [devices, size](edge_type const &t_input, std::size_t first, std::size_t second) {
+      auto const &[input, _tmp] = t_input;
       if (0 <= input && input < size && first < devices && second < devices)
         {
           auto in_device_id  = first;
@@ -207,16 +207,28 @@ namespace
   parameters::Parameters
   basic_parameters(std::size_t k, std::size_t num_devices)
   {
+    using g_type = parameters::Parameters::Weights::connection_type::element_type;
     parameters::Parameters res;
 
-    res.ksp_params.K                                               = k;
-    res.block_graph_generation_params.backward_connections_allowed = true;
-    res.devices                                                    = std::vector<parameters::Device>(num_devices);
+    res.ksp_params.K = k;
+    res.devices      = std::vector<parameters::Device>(num_devices);
 
     res.weights_params.weight_import_mode = parameters::Weight_Import_Mode::single_direct_read;
 
     for (std::size_t i = 0; i < res.devices.size(); ++i)
       res.devices[i].id = i;
+
+    g_type::Dependencies_Type deps(num_devices);
+    for (std::size_t i = 0; i < num_devices; ++i)
+      {
+        for (std::size_t j = 0; j < num_devices; ++j)
+          {
+            deps[i].second.insert(j);
+            deps[j].first.insert(i);
+          }
+      }
+
+    res.weights_params.bandwidth = std::make_unique<g_type>(3, g_type::Node_Collection_Type(num_devices), deps);
 
     for (std::size_t i = 0; i < num_devices; ++i)
       {
@@ -224,7 +236,7 @@ namespace
           {
             if (i != j)
               {
-                res.weights_params.bandwidth[std::make_pair(i, j)] = std::make_pair(1., 0.);
+                res.weights_params.bandwidth->set_weight(0, std::make_pair(i, j), std::make_pair(1., 0.));
               }
           }
       }

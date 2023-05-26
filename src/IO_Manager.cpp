@@ -176,36 +176,98 @@ namespace network_butcher::io::IO_Manager
         }
       else
         {
-          throw std::logic_error("Unavailable weight import mode!");
+          throw std::invalid_argument("Parameters: unavailable weight import mode!");
         }
     };
-    auto const read_bandwidth = [](auto &file, std::size_t num_devices, bool backward_connections_allowed) {
-      std::map<edge_type, std::pair<bandwidth_type, access_delay_type>> res;
+    auto const read_bandwidth = [](auto &file, std::size_t num_devices, parameters::Parameters::Weights &res) {
+      using g_type = parameters::Parameters::Weights::connection_type::element_type;
 
-      std::string const bndw = "bandwidth";
-      std::string const accc = "access_delay";
-      for (std::size_t i = 0; i < num_devices; ++i)
-        {
-          for (std::size_t j = i + 1; j < num_devices; ++j)
+      g_type::Dependencies_Type connections(num_devices);
+
+      std::vector<g_type::Weight_Collection_Type> weights(3);
+
+      auto const error_msg = [](const std::string &name, node_id_type i, node_id_type j) {
+        return "Parameters: the provided " + name + " for " + std::to_string(i) + " to " + std::to_string(j) +
+               " was invalid. Please, check the configuration file!";
+      };
+
+      auto const process_id_pair =
+        [&error_msg](std::size_t i, std::size_t j, std::string const &path, auto &file, auto &weight_map) {
+          auto len = file.vector_variable_size(path);
+          if (len > 2)
             {
-              auto const basic = "/from_" + std::to_string(i) + "_to_" + std::to_string(j);
-              res[{i, j}]      = {file(bndw + basic, .0), file(accc + basic, .0)};
+              throw std::invalid_argument(error_msg("bandwidth", i, j));
             }
-        }
 
-      if (backward_connections_allowed)
-        {
-          for (std::size_t i = 1; i < num_devices; ++i)
+          bandwidth_type    band;
+          access_delay_type acc;
+
+          if (len != 0)
             {
-              for (std::size_t j = 0; j < i; ++j)
+              band = file(path, 0, std::numeric_limits<bandwidth_type>::min());
+              if (len == 2)
                 {
-                  auto const basic = "/from_" + std::to_string(i) + "_to_" + std::to_string(j);
-                  res[{i, j}]      = {file(bndw + basic, .0), file(accc + basic, .0)};
+                  acc = file(path, 1, std::numeric_limits<access_delay_type>::min());
+                }
+              else
+                {
+                  acc = 0.;
+                }
+
+              if (band < 0 && band != std::numeric_limits<bandwidth_type>::min())
+                {
+                  throw std::invalid_argument(error_msg("bandwidth", i, j));
+                }
+
+              if (acc < 0 && acc != std::numeric_limits<access_delay_type>::min())
+                {
+                  throw std::invalid_argument(error_msg("access delay", i, j));
+                }
+
+              if (band > 0)
+                {
+                  weight_map[std::make_pair(i, j)] = std::pair(band, acc);
+
+                  return true;
                 }
             }
+
+          return false;
+        };
+
+
+      for (std::size_t i = 0; i < num_devices; ++i)
+        {
+          for (std::size_t j = 0; j < num_devices; ++j)
+            {
+              if (i == j)
+                {
+                  connections[i].second.insert(j);
+                  connections[j].first.insert(i);
+                  continue;
+                }
+
+              auto const path_name = "/" + std::to_string(i) + "/" + std::to_string(j);
+              if (process_id_pair(i, j, "bandwidth" + path_name, file, weights[0]))
+                {
+                  connections[i].second.insert(j);
+                  connections[j].first.insert(i);
+                }
+
+              process_id_pair(i, j, "in_bandwidth" + path_name, file, weights[1]);
+              process_id_pair(i, j, "out_bandwidth" + path_name, file, weights[2]);
+            }
         }
 
-      return res;
+      res.bandwidth = std::make_unique<g_type>(3, g_type::Node_Collection_Type(num_devices), connections);
+
+      for (std::size_t i = 0; i < 3; ++i)
+        {
+          for (auto const &[key, w] : weights[i])
+            {
+              res.bandwidth->set_weight(i, key, w);
+            }
+        }
     };
     auto const read_k_method = [basic_infos](auto &file) {
       std::string const method = network_butcher::Utilities::trim_copy(
@@ -221,7 +283,7 @@ namespace network_butcher::io::IO_Manager
         }
       else
         {
-          throw std::runtime_error("Unsupported K-shortest path method");
+          throw std::invalid_argument("Parameters: unsupported K-shortest path method");
         }
     };
     auto const read_block_graph_mode = [basic_infos](auto &file) {
@@ -242,7 +304,7 @@ namespace network_butcher::io::IO_Manager
         }
       else
         {
-          throw std::logic_error("Unavailable Block Graph generation mode!");
+          throw std::invalid_argument("Parameters: unavailable Block Graph generation mode!");
         }
     };
 
@@ -258,23 +320,21 @@ namespace network_butcher::io::IO_Manager
       aMLLibrary_params.aMLLibrary_csv_features = read_vector_string(file, weight_infos, "aMLLibrary_features");
     };
 
-    auto const weights_params_func = [weight_infos,
-                                      &read_weight_import_mode_func,
-                                      &read_vector_string,
-                                      &read_bandwidth](auto &file, auto &params) {
-      auto &weights_params = params.weights_params;
+    auto const weights_params_func =
+      [weight_infos, &read_weight_import_mode_func, &read_vector_string, &read_bandwidth](auto &file, auto &params) {
+        auto &weights_params = params.weights_params;
 
-      weights_params.weight_import_mode         = read_weight_import_mode_func(file);
-      weights_params.single_weight_import_path  = file(weight_infos + "/single_weight_import_path", "");
-      weights_params.single_csv_columns_weights = read_vector_string(file, weight_infos, "single_csv_columns_weights");
+        weights_params.weight_import_mode        = read_weight_import_mode_func(file);
+        weights_params.single_weight_import_path = file(weight_infos + "/single_weight_import_path", "");
+        weights_params.single_csv_columns_weights =
+          read_vector_string(file, weight_infos, "single_csv_columns_weights");
 
-      network_butcher::Utilities::trim(weights_params.single_csv_columns_weights);
-      network_butcher::Utilities::to_lowercase(weights_params.single_csv_columns_weights);
+        network_butcher::Utilities::trim(weights_params.single_csv_columns_weights);
+        network_butcher::Utilities::to_lowercase(weights_params.single_csv_columns_weights);
 
-      weights_params.separator = file(weight_infos + "/separator", ',');
-      weights_params.bandwidth =
-        read_bandwidth(file, params.devices.size(), params.block_graph_generation_params.backward_connections_allowed);
-    };
+        weights_params.separator = file(weight_infos + "/separator", ',');
+        read_bandwidth(file, params.devices.size(), weights_params);
+      };
 
     auto const basic_infos_func = [basic_infos, &read_block_graph_mode](auto &file, auto &params) {
       params.model_params.model_name       = file(basic_infos + "/model_name", "model");
@@ -283,9 +343,6 @@ namespace network_butcher::io::IO_Manager
 
       params.block_graph_generation_params.starting_device_id = file(basic_infos + "/starting_device_id", 0);
       params.block_graph_generation_params.ending_device_id   = file(basic_infos + "/ending_device_id", 0);
-
-      params.block_graph_generation_params.backward_connections_allowed =
-        file(basic_infos + "/backward_connections_allowed", false);
 
       params.block_graph_generation_params.block_graph_mode = read_block_graph_mode(file);
     };
@@ -343,6 +400,13 @@ namespace network_butcher::io::IO_Manager
         }
     };
 
+    auto const check_parameters = [](parameters::Parameters const &params) {
+      if (params.model_params.model_path.empty())
+        {
+          throw std::runtime_error("Parameters: model_path is empty");
+        }
+    };
+
     basic_infos_func(file, res);
     k_shortest_path_params_func(file, res);
     constraint_params_func(file, res);
@@ -351,6 +415,8 @@ namespace network_butcher::io::IO_Manager
 
     weights_params_func(file, res);
     aMLLibrary_params_read_func(file, res);
+
+    check_parameters(res);
 
     return res;
   }

@@ -12,10 +12,10 @@
 namespace network_butcher::constraints
 {
   /// A simple class representing a constraint to be applied during the block graph construction
-  class Extra_Constraint
+  class Graph_Constraint
   {
   public:
-    Extra_Constraint() = default;
+    Graph_Constraint() = default;
 
     /// Apply the specified constraint to the graph
     /// \param graph
@@ -24,17 +24,17 @@ namespace network_butcher::constraints
 
     /// Create a copy of the current constraint
     /// \return A unique pointer to the constructed copy
-    [[nodiscard]] virtual std::unique_ptr<Extra_Constraint>
+    [[nodiscard]] virtual std::unique_ptr<Graph_Constraint>
     copy() const;
 
-    virtual ~Extra_Constraint() = default;
+    virtual ~Graph_Constraint() = default;
   };
 
 
   /// Simple class used to represent a memory constraint
   /// \tparam GraphType
   template <typename GraphType>
-  class Memory_Constraint : public Extra_Constraint
+  class Memory_Constraint : public Graph_Constraint
   {
   private:
     parameters::Parameters const &params;
@@ -58,7 +58,7 @@ namespace network_butcher::constraints
 
   public:
     explicit Memory_Constraint(parameters::Parameters const &params, GraphType const &graph)
-      : Extra_Constraint()
+      : Graph_Constraint()
       , params{params}
       , graph{graph} {};
 
@@ -69,7 +69,7 @@ namespace network_butcher::constraints
 
     /// Create a copy of the current constraint
     /// \return A unique pointer to the constructed copy
-    [[nodiscard]] std::unique_ptr<Extra_Constraint>
+    [[nodiscard]] std::unique_ptr<Graph_Constraint>
     copy() const override;
 
 
@@ -77,39 +77,11 @@ namespace network_butcher::constraints
   };
 
   template <typename GraphType>
-  std::unique_ptr<Extra_Constraint>
+  std::unique_ptr<Graph_Constraint>
   Memory_Constraint<GraphType>::copy() const
   {
     return std::make_unique<Memory_Constraint<GraphType>>(*this);
   }
-
-
-  /// Simple class used to represent a bandwidth constraint. In particular, it will check if some connections are not
-  /// allowed or if the bandwidth of some connection is set to 0, eliminating the relevant neighbors
-  class Bandwidth_Constraint : public Extra_Constraint
-  {
-  public:
-    explicit Bandwidth_Constraint(network_butcher::parameters::Parameters const &params)
-      : Extra_Constraint()
-      , params(params)
-    {}
-
-    /// Apply the specified constraint to the graph
-    /// \param graph
-    void
-    apply_constraint(block_graph_type &graph) const override;
-
-    /// Create a copy of the current constraint
-    /// \return A unique pointer to the constructed copy
-    [[nodiscard]] std::unique_ptr<Extra_Constraint>
-    copy() const override;
-
-
-    ~Bandwidth_Constraint() override = default;
-
-  private:
-    network_butcher::parameters::Parameters const &params;
-  };
 
   template <typename GraphType>
   void
@@ -274,18 +246,16 @@ namespace network_butcher::constraints
   /// \param graph The original graph
   /// \return The generator function
   template <typename GraphType>
-  std::function<std::vector<std::unique_ptr<constraints::Extra_Constraint>>()>
+  std::function<std::vector<std::unique_ptr<constraints::Graph_Constraint>>()>
   generate_constraint_function(parameters::Parameters const &params, GraphType const &graph)
   {
     return [&params, &graph]() {
-      std::vector<std::unique_ptr<Extra_Constraint>> res;
+      std::vector<std::unique_ptr<Graph_Constraint>> res;
 
       if (params.block_graph_generation_params.memory_constraint)
         {
           res.push_back(std::make_unique<Memory_Constraint<GraphType>>(params, graph));
         }
-
-      res.push_back(std::make_unique<Bandwidth_Constraint>(params));
 
       return res;
     };

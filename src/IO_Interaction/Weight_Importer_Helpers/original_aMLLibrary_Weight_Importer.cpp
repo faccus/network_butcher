@@ -43,9 +43,10 @@ namespace network_butcher::io
       }
     else if (lower_case == "networkingtime")
       {
-        auto const net_time = weights_params.bandwidth.cbegin()->second.second +
-                              network_butcher::computer::Computer_memory::compute_memory_usage_output(node) * 8 /
-                                (weights_params.bandwidth.cbegin()->second.first * std::pow(10, 6));
+        auto const &[bandwidth, access_time] = weights_params.bandwidth->get_weight(0, std::pair(0, 1));
+        auto const net_time =
+          access_time + network_butcher::computer::Computer_memory::compute_memory_usage_output(node) * 8 /
+                          (bandwidth * std::pow(10, 6));
         return std::to_string(net_time);
       }
     else if (lower_case == "optype")

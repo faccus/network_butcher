@@ -82,8 +82,8 @@ namespace network_butcher::io
                 }
             }
 
-            auto const net_time = weights_params.bandwidth.cbegin()->second.second +
-                                  mem * 8 / (weights_params.bandwidth.cbegin()->second.first * std::pow(10, 6));
+            auto const &[band, access] = weights_params.bandwidth->get_weight(0, std::make_pair(0, 1));
+            auto const net_time        = access + mem * 8 / (band * std::pow(10, 6));
             res.push_back(std::to_string(net_time));
           }
         else if (lower_case == "optype")
@@ -155,46 +155,12 @@ namespace network_butcher::io
             res.push_back(std::to_string(original_ids.size()));
           }
         else
-          res.push_back("");
+          {
+            res.emplace_back("");
+          }
       }
 
     return res;
-  }
-
-
-  void
-  block_aMLLibrary_Weight_Importer::import(
-    std::size_t                                                     device,
-    std::string const                                              &path,
-    std::function<bool(block_graph_type::Node_Type const &)> const &extra_condition = nullptr)
-  {
-    auto const map = Weight_importer_helpers::read_csv_numerics(path, ',', {"pred"}, "", true);
-
-    auto it = ++new_graph.cbegin();
-
-    // Helper function used to skip to the next node of the same device
-    auto const skip_device = [end = new_graph.cend(), device](auto &it) {
-      for (std::size_t j = 0; it != end && j < device; ++j, ++it)
-        ;
-    };
-
-    skip_device(it);
-
-    for (auto const &weight : map.cbegin()->second)
-      {
-        while (extra_condition != nullptr && it != new_graph.cend() && !extra_condition(*it))
-          {
-            skip_device(it);
-          }
-
-        if (it == new_graph.cend())
-          break;
-
-        for (auto const &in : new_graph.get_input_nodes(it->get_id()))
-          new_graph.set_weight({in, it->get_id()}, weight);
-
-        skip_device(it);
-      }
   }
 
   void
@@ -260,8 +226,7 @@ namespace network_butcher::io
 
     pybind11::finalize_interpreter();
 
-    Csv_Weight_Importer importer(
-      new_graph, paths, relevant_entries, devices, weights_params.separator, true);
+    Csv_Weight_Importer importer(new_graph, paths, relevant_entries, devices, weights_params.separator, true);
     importer.import_weights(extra_condition);
   }
 } // namespace network_butcher::io

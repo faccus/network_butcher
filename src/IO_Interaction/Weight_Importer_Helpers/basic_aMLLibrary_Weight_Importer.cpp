@@ -9,8 +9,11 @@ namespace network_butcher::io
   basic_aMLLibrary_Weight_Importer::check_aMLLibrary() const
   {
 #if PYBIND_ACTIVE
-    if (block_graph_generation_params.backward_connections_allowed)
-      throw std::logic_error("aMLLibrary only supports graphs with no backward connections");
+    if(weights_params.bandwidth->size() != 2)
+      throw std::logic_error("aMLLibrary only supports graphs with two devices");
+
+    if(weights_params.bandwidth->check_weight(0, std::make_pair(1, 0)))
+      throw std::logic_error("aMLLibrary doesn't support backward connections");
 #else
     throw std::logic_error("aMLLibrary not supported. Please compile with PYBIND_ACTIVE"); //
 #endif

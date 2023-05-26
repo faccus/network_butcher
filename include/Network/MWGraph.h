@@ -92,6 +92,9 @@ namespace network_butcher::types
         weigth_map[device].emplace(edge, weight);
     }
 
+    /// Deletes the weight for the given edge on the given device
+    /// \param device The device id
+    /// \param edge The edge
     void
     delete_weight(std::size_t device, edge_type const &edge)
     {
@@ -99,6 +102,8 @@ namespace network_butcher::types
       weigth_map[device].erase(begin, end);
     }
 
+    /// Deletes the weight for the given edge on all devices
+    /// \param edge The edge
     void
     delete_weight(edge_type const &edge)
     {
@@ -112,7 +117,7 @@ namespace network_butcher::types
     /// \param edge The edge
     /// \param weight The weight
     void
-    set_weight(std::size_t device, edge_type const &edge, t_weight_type weight)
+    set_weight(std::size_t device, edge_type const &edge, t_weight_type const &weight)
     {
       if constexpr (Parallel_Edges)
         {
@@ -218,7 +223,7 @@ namespace network_butcher::types
     /// \param edge The edge
     /// \param weights The weights
     void
-    set_weight(std::size_t device, edge_type const &edge, Edge_Weight_Type weights)
+    set_weight(std::size_t device, edge_type const &edge, Edge_Weight_Type const &weights)
       requires Parallel_Edges
     {
       for (auto const &weight : weights)
@@ -231,7 +236,7 @@ namespace network_butcher::types
     /// \param edge The edge
     /// \param weight The weight
     void
-    set_weight(std::size_t device, edge_type const &edge, weight_type weight)
+    set_weight(std::size_t device, edge_type const &edge, weight_type const &weight)
     {
       if constexpr (Parallel_Edges)
         {

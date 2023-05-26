@@ -57,7 +57,7 @@ namespace network_butcher
       /// \param edge The edge
       /// \param weight The weight
       void
-      set_weight(edge_type const &edge, Weight_Type weight)
+      set_weight(edge_type const &edge, Weight_Type const &weight)
       {
         Parent_type::set_weight(0, edge, weight);
       }
@@ -133,7 +133,7 @@ namespace network_butcher
       /// \param edge The edge
       /// \param weight The weight
       void
-      set_weight(edge_type const &edge, Weight_Type weight)
+      set_weight(edge_type const &edge, Weight_Type const &weight)
       {
         Parent_type::set_weight(0, edge, weight);
       }

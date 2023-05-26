@@ -5,41 +5,64 @@
 
 namespace network_butcher::io
 {
-  std::function<weight_type(const node_id_type &, size_t, size_t)>
+  std::function<weight_type(const edge_type &, size_t, size_t)>
   General_Manager::Helper_Functions::generate_bandwidth_transmission_function(
     const network_butcher::parameters::Parameters::Weights &weights_params,
     const graph_type                                       &graph)
   {
-    std::function<weight_type(node_id_type const &, std::size_t, std::size_t)> transmission_weights =
-      [&weights_params, &graph](node_id_type const &node_id, std::size_t first_device, std::size_t second_device) {
-        auto const it = weights_params.bandwidth.find({first_device, second_device});
+    std::function<weight_type(edge_type const &, std::size_t, std::size_t)> transmission_weights =
+      [&weights_params, &graph](edge_type const &edge, std::size_t first_device, std::size_t second_device) {
+        // If the first device is the same as the second, we have no transmission
+        if (first_device == second_device)
+          return 0.;
 
-        // If the bandwidth cannot be found, return 0
-        if (it == weights_params.bandwidth.cend())
+        auto const &bandwidth = weights_params.bandwidth;
+
+        bandwidth_type    bdw;
+        access_delay_type acc;
+
+        auto const &[tail, head] = edge;
+
+        // Is the node the front facing node?
+        if (tail == graph.get_nodes().front().get_id() &&
+            bandwidth->check_weight(1, std::pair(first_device, second_device)))
           {
-            return .0;
+            auto [tmp_bdw, tmp_acc] = bandwidth->get_weight(1, std::pair(first_device, second_device));
+            bdw                     = tmp_bdw;
+            acc                     = tmp_acc;
+          }
+        else if (head == graph.get_nodes().back().get_id() &&
+                 bandwidth->check_weight(2, std::pair(first_device, second_device)))
+          {
+            auto [tmp_bdw, tmp_acc] = bandwidth->get_weight(2, std::pair(first_device, second_device));
+            bdw                     = tmp_bdw;
+            acc                     = tmp_acc;
+          }
+        else if (bandwidth->check_weight(0, std::pair(first_device, second_device)))
+          {
+            auto [tmp_bdw, tmp_acc] = bandwidth->get_weight(0, std::pair(first_device, second_device));
+            bdw                     = tmp_bdw;
+            acc                     = tmp_acc;
           }
         else
           {
-            // The memory dimension of the output tensor for the given node in bytes
-            auto const mem = network_butcher::computer::Computer_memory::compute_memory_usage_output(graph[node_id]);
-
-            // Bandwidth
-            auto const bdw = it->second.first;
-
-            // Access delay
-            auto const acc = it->second.second;
-
-            if (mem > 0)
-              {
-                // Conversion from MBit to Bytes
-                constexpr double MBit_to_Bytes = 1000000. / 8;
-
-                return (mem / MBit_to_Bytes) / bdw + acc;
-              }
-            else
-              return acc;
+            throw std::runtime_error("Transmission weights: requested a non-set bandwidth from device " +
+                                     std::to_string(first_device) + " to device " + std::to_string(second_device) +
+                                     ". Please check the configuration file!");
           }
+
+        // The memory dimension of the output tensor for the given node in bytes
+        auto const mem = network_butcher::computer::Computer_memory::compute_memory_usage_output(graph[tail]);
+
+        if (mem > 0)
+          {
+            // Conversion from MBit to Bytes
+            constexpr auto MBit_to_Bytes = 1000000. / 8;
+
+            return (mem / MBit_to_Bytes) / bdw + acc;
+          }
+        else
+          return acc;
       };
     return transmission_weights;
   }

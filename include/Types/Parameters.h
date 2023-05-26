@@ -78,8 +78,9 @@ namespace network_butcher::parameters
 
     struct Weights
     {
-      using connection_type     = std::pair<bandwidth_type, access_delay_type>;
-      using connection_map_type = std::map<edge_type, connection_type>;
+      using connection_information_type = std::pair<bandwidth_type, access_delay_type>;
+      using connection_type             = std::unique_ptr<
+        network_butcher::types::MWGraph<false, network_butcher::types::Node, connection_information_type>>;
 
       /// Mode for weight import
       Weight_Import_Mode weight_import_mode;
@@ -93,8 +94,10 @@ namespace network_butcher::parameters
       /// The separator
       char separator;
 
-      /// The bandwidth information between the different devices (Mbps - s)
-      connection_map_type bandwidth;
+      /// The bandwidth information between the different devices (Mbps - s). The first map will be associated
+      /// to standard connections between layers, the second one to the input padding node while the third one
+      /// to the output padding node.
+      connection_type bandwidth;
     };
 
     struct Model
@@ -125,9 +128,6 @@ namespace network_butcher::parameters
 
       /// End device
       std::size_t ending_device_id;
-
-      /// Are backward collection allowed? (i.e. can device j send data to device k with j>k?)
-      bool backward_connections_allowed;
 
       /// Block Graph Generation mode for Butcher
       Block_Graph_Generation_Mode block_graph_mode;

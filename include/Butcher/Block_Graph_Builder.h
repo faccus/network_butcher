@@ -5,7 +5,7 @@
 #ifndef NETWORK_BUTCHER_BLOCK_GRAPH_BUILDER_H
 #define NETWORK_BUTCHER_BLOCK_GRAPH_BUILDER_H
 
-#include "Extra_Constraint.h"
+#include "Graph_Constraint.h"
 #include "Graph_traits.h"
 
 namespace network_butcher

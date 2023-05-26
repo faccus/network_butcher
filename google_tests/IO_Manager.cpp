@@ -14,7 +14,7 @@ namespace
 
   TEST(IOManagerTest, Parameters)
   {
-    auto const params = io::IO_Manager::read_parameters("test_data/configs/test5_parameters.conf");
+    auto const params = io::IO_Manager::read_parameters("test_data/configs/test6_parameters.conf");
 
     ASSERT_EQ(params.model_params.model_name, "ResNet");
     ASSERT_EQ(params.model_params.model_path, "test_data/models/resnet18-v2-7-inferred.onnx");
@@ -24,8 +24,6 @@ namespace
     ASSERT_EQ(params.ksp_params.method, parameters::KSP_Method::Lazy_Eppstein);
     ASSERT_EQ(params.block_graph_generation_params.starting_device_id, 0);
     ASSERT_EQ(params.block_graph_generation_params.ending_device_id, 0);
-
-    ASSERT_EQ(params.block_graph_generation_params.backward_connections_allowed, false);
 
     ASSERT_EQ(params.block_graph_generation_params.memory_constraint, true);
     ASSERT_EQ(params.block_graph_generation_params.memory_constraint_type,
@@ -52,11 +50,12 @@ namespace
     ASSERT_EQ(params.devices[1].maximum_memory, 32 * gb);
     ASSERT_EQ(params.devices[1].weights_path, "test_data/aMLLibrary_data/models/test1_2.pickle");
 
-    auto const it = params.weights_params.bandwidth.find(std::pair{0, 1});
+    ASSERT_TRUE(params.weights_params.bandwidth->check_weight(0, std::make_pair(0, 1)));
 
-    ASSERT_NE(it, params.weights_params.bandwidth.cend());
-    ASSERT_EQ(it->second.first, 18.88);
-    ASSERT_EQ(it->second.second, 0.005);
+    auto const &[bandwidth, access] = params.weights_params.bandwidth->get_weight(0, std::make_pair(0, 1));
+
+    ASSERT_EQ(bandwidth, 18.88);
+    ASSERT_EQ(access, 0.005);
   }
 
   TEST(IOManagerTest, ImportOnnx)

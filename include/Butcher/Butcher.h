@@ -84,18 +84,18 @@ namespace network_butcher
     /// that the K-shortest path algorithm managed to find given the specified constraints
     std::vector<network_butcher::types::Weighted_Real_Path>
     compute_k_shortest_path(
-      std::function<weight_type(node_id_type const &, std::size_t, std::size_t)> const &transmission_weights,
+      std::function<weight_type(edge_type const &, std::size_t, std::size_t)> const &transmission_weights,
       network_butcher::parameters::Parameters const                                    &params,
-      std::vector<std::unique_ptr<constraints::Extra_Constraint>> const                &extra_constraints = {}) const;
+      std::vector<std::unique_ptr<constraints::Graph_Constraint>> const                &extra_constraints = {}) const;
   };
 
 
   template <class GraphType>
   std::vector<network_butcher::types::Weighted_Real_Path>
   Butcher<GraphType>::compute_k_shortest_path(
-    const std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> &transmission_weights,
+    const std::function<weight_type(const edge_type &, std::size_t, std::size_t)> &transmission_weights,
     const network_butcher::parameters::Parameters                                    &params,
-    std::vector<std::unique_ptr<constraints::Extra_Constraint>> const                &extra_constraints) const
+    std::vector<std::unique_ptr<constraints::Graph_Constraint>> const                &extra_constraints) const
   {
     using namespace network_butcher::kfinder;
 

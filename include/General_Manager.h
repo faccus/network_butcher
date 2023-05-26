@@ -23,7 +23,7 @@ namespace network_butcher::io
       /// \param params The collection of parameters
       /// \param graph The graph
       /// \return  The transmission function
-      std::function<weight_type(const node_id_type &, size_t, size_t)>
+      std::function<weight_type(const edge_type &, size_t, size_t)>
       generate_bandwidth_transmission_function(const network_butcher::parameters::Parameters::Weights &weights_params,
                                                const graph_type                                       &graph);
 

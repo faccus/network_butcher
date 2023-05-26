@@ -18,9 +18,10 @@ namespace network_butcher
   class Constrained_Block_Graph_Builder : public Block_Graph_Builder<GraphType>
   {
   protected:
-    using Parent = Block_Graph_Builder<GraphType>;
+    using Parent                 = Block_Graph_Builder<GraphType>;
+    using transmission_func_type = std::function<weight_type(const edge_type &, std::size_t, std::size_t)>;
 
-    std::vector<std::unique_ptr<constraints::Extra_Constraint>> constraints;
+    std::vector<std::unique_ptr<constraints::Graph_Constraint>> constraints;
 
     parameters::Parameters::Block_Graph_Generation const &block_graph_generation_params;
     parameters::Parameters::aMLLibrary const             &aMLLibrary_params;
@@ -28,20 +29,13 @@ namespace network_butcher
     parameters::Parameters::Model const                  &model_params;
     parameters::Parameters::Devices const                &devices;
 
-    bool                                                                       weights;
-    std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> transmission_weights;
+    bool                   weights;
+    transmission_func_type transmission_weights;
 
     /// The actual construction of the block graph is performed when this function is called
-    /// \param block_graph_mode The block graph mode (classic, input, output)
-    /// \param starting_device_id The id of the device onto which the input is produced
-    /// \param ending_device_id The id of the device that needs the final output
-    /// \param backward_connections_allowed This is set to false if a connection between a device with id i to a device
-    /// with id j is allowed only if i>=j \return The resulting block graph
+    /// \return The block graph
     block_graph_type
-    build_block_graph(parameters::Block_Graph_Generation_Mode block_graph_mode,
-                      std::size_t                             starting_device_id,
-                      std::size_t                             ending_device_id,
-                      bool                                    backward_connections_allowed) const;
+    build_block_graph() const;
 
     /// Apply to the input block graph the weights from the original graph
     /// \param new_graph The block graph
@@ -79,7 +73,7 @@ namespace network_butcher
       parameters::Parameters::Weights const                                              &weights_params,
       parameters::Parameters::Model const                                                &model_params,
       parameters::Parameters::Devices const                                              &devices,
-      std::function<std::vector<std::unique_ptr<constraints::Extra_Constraint>>()> const &expression_generator =
+      std::function<std::vector<std::unique_ptr<constraints::Graph_Constraint>>()> const &expression_generator =
         nullptr)
       : Block_Graph_Builder<GraphType>(original_graph)
       , block_graph_generation_params{block_graph_generation_params}
@@ -103,7 +97,7 @@ namespace network_butcher
     explicit Constrained_Block_Graph_Builder(
       GraphType const                                                                    &original_graph,
       parameters::Parameters const                                                       &params,
-      std::function<std::vector<std::unique_ptr<constraints::Extra_Constraint>>()> const &expression_generator =
+      std::function<std::vector<std::unique_ptr<constraints::Graph_Constraint>>()> const &expression_generator =
         nullptr)
       : Block_Graph_Builder<GraphType>(original_graph)
       , block_graph_generation_params{params.block_graph_generation_params}
@@ -124,8 +118,7 @@ namespace network_butcher
     /// Call this function if the builder should apply the transmission weights during the block graph construction
     /// \param in_transmission_weights The transmission weights
     void
-    construct_transmission_weights(
-      std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> const &in_transmission_weights);
+    construct_transmission_weights(transmission_func_type const &in_transmission_weights);
 
 
     /// Call this function if the builder should apply the weights from the original graph during the block graph
@@ -137,14 +130,13 @@ namespace network_butcher
     /// Call this function if the builder should apply the transmission weights and the weights from the original graph
     /// during the block graph construction \param in_transmission_weights The transmission weights
     void
-    construct_weights(
-      std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> const &in_transmission_weights);
+    construct_weights(transmission_func_type const &in_transmission_weights);
 
 
     /// Add to the collection of constraints the input constraint
     /// \param constraint A r-value reference to the new constraint
     void
-    add_constraint(std::unique_ptr<constraints::Extra_Constraint> &&constraint);
+    add_constraint(std::unique_ptr<constraints::Graph_Constraint> &&constraint);
 
 
     /// The basic construct method. It will produce the block graph using the specified options.
@@ -214,8 +206,7 @@ namespace network_butcher
 
   template <typename GraphType>
   void
-  Constrained_Block_Graph_Builder<GraphType>::construct_weights(
-    const std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> &in_transmission_weights)
+  Constrained_Block_Graph_Builder<GraphType>::construct_weights(const transmission_func_type &in_transmission_weights)
   {
     construct_operation_weights();
     construct_transmission_weights(in_transmission_weights);
@@ -233,7 +224,7 @@ namespace network_butcher
   template <typename GraphType>
   void
   Constrained_Block_Graph_Builder<GraphType>::construct_transmission_weights(
-    const std::function<weight_type(const node_id_type &, std::size_t, std::size_t)> &in_transmission_weights)
+    const transmission_func_type &in_transmission_weights)
   {
     this->transmission_weights = in_transmission_weights;
   }
@@ -242,7 +233,7 @@ namespace network_butcher
   template <typename GraphType>
   void
   Constrained_Block_Graph_Builder<GraphType>::add_constraint(
-    std::unique_ptr<constraints::Extra_Constraint> &&constraint)
+    std::unique_ptr<constraints::Graph_Constraint> &&constraint)
   {
     constraints.emplace_back(std::move(constraint));
   };
@@ -261,11 +252,7 @@ namespace network_butcher
 
   template <typename GraphType>
   block_graph_type
-  Constrained_Block_Graph_Builder<GraphType>::build_block_graph(
-    parameters::Block_Graph_Generation_Mode block_graph_mode,
-    std::size_t                             starting_device_id,
-    std::size_t                             ending_device_id,
-    bool                                    backward_connections_allowed) const
+  Constrained_Block_Graph_Builder<GraphType>::build_block_graph() const
   {
     // It will construct the linearized version of the original graph
     auto const linearize_graph = [](GraphType const                                                &old_graph,
@@ -433,114 +420,213 @@ namespace network_butcher
     };
 
     // It will produce the dependencies for the block graph
-    auto const process_dependencies =
-      [](std::size_t dep_size, std::size_t supp_size, std::size_t num_devices, bool backward_allowed) {
+    auto const process_full_dependencies = [](std::size_t dep_size, std::size_t supp_size, std::size_t num_devices) {
+      block_graph_type::Dependencies_Type new_dependencies;
+      new_dependencies.reserve(dep_size);
+
+      // The first node is fully connected with the first layer
+      {
+        new_dependencies.emplace_back();
+        auto &out = new_dependencies.back().second;
+
+        for (std::size_t k = 0; k < num_devices; ++k)
+          out.insert(out.end(), k + 1);
+      }
+
+      // Inputs: first node, Outputs: following layer nodes
+      {
+        new_dependencies.emplace_back(std::make_pair<node_id_collection_type, node_id_collection_type>({0}, {}));
+        auto &out = new_dependencies.back().second;
+        for (std::size_t k = 0; k < num_devices; ++k)
+          out.insert(out.end(), 1 + num_devices + k);
+
+        for (std::size_t k = 1; k < num_devices; ++k)
+          {
+            auto dep_cpy = new_dependencies.back();
+
+            new_dependencies.push_back(std::move(dep_cpy));
+          }
+      }
+
+      // Inputs: previous layer nodes, Outputs: following layer nodes
+      {
+        for (std::size_t i = 2; i < supp_size; ++i)
+          {
+            auto const id = new_dependencies.size();
+            new_dependencies.emplace_back(std::make_pair<node_id_collection_type, node_id_collection_type>({}, {}));
+
+            auto &in  = new_dependencies.back().first;
+            auto &out = new_dependencies.back().second;
+
+            for (std::size_t k = 0; k < num_devices; ++k)
+              {
+                out.insert(out.end(), id + num_devices + k);
+              }
+
+            for (std::size_t k = 1; k < num_devices; ++k)
+              {
+                auto tmp_dep = new_dependencies.back();
+                new_dependencies.emplace_back(std::move(tmp_dep));
+              }
+          }
+      }
+
+      // Inputs: previous layer nodes, Outputs: last node
+      {
+        auto const id = new_dependencies.size();
+
+        new_dependencies.emplace_back(
+          std::make_pair<node_id_collection_type, node_id_collection_type>({}, {id + num_devices}));
+
+        auto &in = new_dependencies.back().first;
+        in.insert(in.end(), id - num_devices);
+
+        for (std::size_t k = 1; k < num_devices; ++k)
+          {
+            auto dep_cpy = new_dependencies.back();
+
+            new_dependencies.emplace_back(std::move(dep_cpy));
+          }
+      }
+
+      // The last layer is fully connected with the last node
+      {
+        new_dependencies.emplace_back(std::make_pair<node_id_collection_type, node_id_collection_type>({}, {}));
+
+        auto &in = new_dependencies.back().first;
+        for (std::size_t k = 0; k < num_devices; ++k)
+          in.insert(in.end(), new_dependencies.size() - 1 - num_devices + k);
+      }
+
+      return new_dependencies;
+    };
+
+    // It will produce the dependencies for the block graph
+    auto const process_partial_dependencies =
+      [&weights_params = weights_params,
+       &block_graph_generation_params =
+         block_graph_generation_params](std::size_t dep_size, std::size_t supp_size, std::size_t num_devices) {
         block_graph_type::Dependencies_Type new_dependencies;
         new_dependencies.reserve(dep_size);
 
-        // The first node is fully connected with the first layer
+        auto const &bandwidth = weights_params.bandwidth;
+
+        // The first node is connected with the first layer
         {
           new_dependencies.emplace_back();
-
           auto &out = new_dependencies.back().second;
-          for (std::size_t k = 0; k < num_devices; ++k)
-            out.insert(out.end(), k + 1);
+
+          for (auto const &neighbour : bandwidth->get_output_nodes(block_graph_generation_params.starting_device_id))
+            {
+              out.insert(out.end(), 1 + neighbour);
+            }
+
+          if (out.size() != num_devices)
+            {
+              for (node_id_type i = 0; i < num_devices; ++i)
+                {
+                  if (!out.contains(i + 1) && bandwidth->check_weight(1, std::pair(0, i)))
+                    {
+                      out.insert(out.end(), 1 + i);
+                    }
+                }
+            }
         }
 
         // Inputs: first node, Outputs: following layer nodes
         {
-          new_dependencies.emplace_back(std::make_pair<node_id_collection_type, node_id_collection_type>({0}, {}));
-          auto &out = new_dependencies.back().second;
-          for (std::size_t k = 0; k < num_devices; ++k)
-            out.insert(out.end(), 1 + num_devices + k);
-
-          for (std::size_t k = 1; k < num_devices; ++k)
+          auto const &root_node_outs = new_dependencies.back().second;
+          for (node_id_type k = 0; k < num_devices; ++k)
             {
-              auto dep_cpy = new_dependencies.back();
+              new_dependencies.emplace_back();
 
-              if (!backward_allowed)
-                dep_cpy.second.erase(num_devices + k);
+              if (root_node_outs.contains(k + 1))
+                {
+                  new_dependencies.back().first.insert(new_dependencies.back().first.end(), 0);
+                }
 
-              new_dependencies.push_back(std::move(dep_cpy));
+              for (auto const &neighbour : bandwidth->get_output_nodes(k))
+                {
+                  new_dependencies.back().second.insert(new_dependencies.back().second.end(),
+                                                        1 + num_devices + neighbour);
+                }
             }
         }
 
         // Inputs: previous layer nodes, Outputs: following layer nodes
         {
-          for (std::size_t i = 2; i < supp_size; ++i)
+          for (node_id_type i = 2; i < supp_size; ++i)
             {
-              auto const id = new_dependencies.size();
-              new_dependencies.emplace_back(std::make_pair<node_id_collection_type, node_id_collection_type>({}, {}));
-
-              auto &in  = new_dependencies.back().first;
-              auto &out = new_dependencies.back().second;
-
-              if (!backward_allowed)
-                in.insert(in.end(), id - num_devices);
-
-
-              for (std::size_t k = 0; k < num_devices; ++k)
+              auto const base_id = new_dependencies.size();
+              for (node_id_type k = 0; k < num_devices; ++k)
                 {
-                  if (backward_allowed)
-                    in.insert(in.end(), id - num_devices + k);
+                  auto const id = base_id + k;
+                  new_dependencies.emplace_back();
 
-                  out.insert(out.end(), id + num_devices + k);
-                }
+                  auto &in  = new_dependencies.back().first;
+                  auto &out = new_dependencies.back().second;
 
-              for (std::size_t k = 1; k < num_devices; ++k)
-                {
-                  auto tmp_dep = new_dependencies.back();
-
-                  if (!backward_allowed)
+                  for (auto const &neighbour : bandwidth->get_input_nodes(k))
                     {
-                      tmp_dep.first.insert(id - num_devices + k);
-                      tmp_dep.second.erase(id + num_devices + k - 1);
+                      in.insert(in.end(), id - num_devices + neighbour);
                     }
 
-                  new_dependencies.emplace_back(std::move(tmp_dep));
+                  for (auto const &neighbour : bandwidth->get_output_nodes(k))
+                    {
+                      out.insert(out.end(), id + num_devices + neighbour);
+                    }
                 }
             }
         }
 
         // Inputs: previous layer nodes, Outputs: last node
         {
-          auto const id = new_dependencies.size();
+          auto const  base_id            = new_dependencies.size();
+          auto const &device_inputs_sink = bandwidth->get_input_nodes(block_graph_generation_params.ending_device_id);
 
-          new_dependencies.emplace_back(
-            std::make_pair<node_id_collection_type, node_id_collection_type>({}, {id + num_devices}));
-
-          auto &in = new_dependencies.back().first;
-          in.insert(in.end(), id - num_devices);
-
-          if (backward_allowed)
-            for (std::size_t k = 1; k < num_devices; ++k)
-              in.insert(in.end(), id - num_devices + k);
-
-          for (std::size_t k = 1; k < num_devices; ++k)
+          for (node_id_type k = 0; k < num_devices; ++k)
             {
-              auto dep_cpy = new_dependencies.back();
+              auto const id = base_id + k;
+              new_dependencies.emplace_back();
 
-              if (!backward_allowed)
-                dep_cpy.first.insert(id - num_devices + k);
+              auto &in  = new_dependencies.back().first;
+              auto &out = new_dependencies.back().second;
 
-              new_dependencies.emplace_back(std::move(dep_cpy));
+              for (auto const &neighbour : bandwidth->get_input_nodes(k))
+                {
+                  in.insert(in.end(), id - num_devices + neighbour);
+                }
+
+              if (device_inputs_sink.contains(k) ||
+                  bandwidth->check_weight(2, std::pair(k, block_graph_generation_params.ending_device_id)))
+                {
+                  out.insert(out.end(), id + num_devices);
+                }
             }
         }
 
         // The last layer is fully connected with the last node
         {
-          new_dependencies.emplace_back(std::make_pair<node_id_collection_type, node_id_collection_type>({}, {}));
+          auto const  base_id            = new_dependencies.size();
+          auto const &device_inputs_sink = bandwidth->get_input_nodes(block_graph_generation_params.ending_device_id);
+          new_dependencies.emplace_back();
 
           auto &in = new_dependencies.back().first;
-          for (std::size_t k = 0; k < num_devices; ++k)
-            in.insert(in.end(), new_dependencies.size() - 1 - num_devices + k);
+          for (node_id_type k = 0; k < num_devices; ++k)
+            {
+              if (device_inputs_sink.contains(k) ||
+                  bandwidth->check_weight(2, std::pair(k, block_graph_generation_params.ending_device_id)))
+                {
+                  in.insert(in.end(), base_id - num_devices + k);
+                }
+            }
         }
 
         return new_dependencies;
       };
 
     // Get the linearized graph
-    auto starting_nodes = linearize_graph(this->original_graph, block_graph_mode);
+    auto starting_nodes = linearize_graph(this->original_graph, block_graph_generation_params.block_graph_mode);
 
     auto const supp_size = starting_nodes.size() - 2;
     // Add the required nodes to the collection of nodes
@@ -555,14 +641,19 @@ namespace network_butcher
                      std::make_move_iterator(starting_nodes.end()));
 
     // Fix the input/output device ids
-    new_nodes.front().content.first = starting_device_id;
-    new_nodes.back().content.first  = ending_device_id;
+    new_nodes.front().content.first = block_graph_generation_params.starting_device_id;
+    new_nodes.back().content.first  = block_graph_generation_params.ending_device_id;
 
-    return block_graph_type(new_nodes,
-                            process_dependencies(new_nodes.size(),
-                                                 supp_size,
-                                                 this->original_graph.get_num_devices(),
-                                                 block_graph_generation_params.backward_connections_allowed));
+    if (transmission_weights == nullptr)
+      {
+        return block_graph_type(
+          new_nodes, process_full_dependencies(new_nodes.size(), supp_size, this->original_graph.get_num_devices()));
+      }
+    else
+      {
+        return block_graph_type(
+          new_nodes, process_partial_dependencies(new_nodes.size(), supp_size, this->original_graph.get_num_devices()));
+      }
   }
 
 
@@ -571,10 +662,7 @@ namespace network_butcher
   Constrained_Block_Graph_Builder<GraphType>::construct_block_graph() const
   {
     // Construct the "naked" block graph
-    auto new_graph = build_block_graph(block_graph_generation_params.block_graph_mode,
-                                       block_graph_generation_params.starting_device_id,
-                                       block_graph_generation_params.ending_device_id,
-                                       block_graph_generation_params.backward_connections_allowed);
+    auto new_graph = build_block_graph();
 
     // Apply weights from the original graph
     if (weights)
@@ -760,7 +848,7 @@ namespace network_butcher
 
                 auto const tmp_edge = std::make_pair(input, output);
 
-                final_cost = transmission_weights(input, in_device_id, out_device_id);
+                final_cost = transmission_weights(tmp_edge, in_device_id, out_device_id);
               }
             // (2+)-1 correspondence. The idea is that the input nodes must transmit to the output node the
             // different values. Thus, the transmission cost is paid several times.
@@ -771,7 +859,7 @@ namespace network_butcher
                 // transmit their values to the output node
                 for (auto const &input : this->original_graph.get_input_nodes(output))
                   {
-                    final_cost += transmission_weights(input, in_device_id, out_device_id);
+                    final_cost += transmission_weights(std::make_pair(input, output), in_device_id, out_device_id);
                   }
               }
             // 1-(2+). In this case, the input is sent to the device of the output nodes a single time.
@@ -781,7 +869,8 @@ namespace network_butcher
                 auto const &input        = *inputs.begin();
                 auto const &comm_outputs = this->original_graph.get_output_nodes(input);
 
-                final_cost += transmission_weights(input, in_device_id, out_device_id);
+                final_cost +=
+                  transmission_weights(std::make_pair(input, *comm_outputs.crbegin()), in_device_id, out_device_id);
               }
             // (2+)-(2+). In this case, there are two possibilities: either the block graph mode is classic
             // (and the program should trow) or the block graph mode is input/output. In the latter case, we
@@ -818,7 +907,10 @@ namespace network_butcher
                     // We have to consider the transmission cost for every node in the frontier_input
                     for (auto input_it = frontier_input.cbegin(); input_it != close_frontier; ++input_it)
                       {
-                        final_cost += transmission_weights(*input_it, in_device_id, out_device_id);
+                        final_cost += transmission_weights(
+                          std::make_pair(*input_it, *this->original_graph.get_output_nodes(*input_it).crbegin()),
+                          in_device_id,
+                          out_device_id);
                       }
                   }
               }

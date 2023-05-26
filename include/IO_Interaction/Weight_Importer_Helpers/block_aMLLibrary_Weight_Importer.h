@@ -28,15 +28,6 @@ namespace network_butcher::io
                    std::size_t                                                             id,
                    std::map<std::string, Weight_importer_helpers::onnx_tool_output> const &map_onnx_tool) const;
 
-    /// It will import in the new_graph the weights for the nodes with the given device
-    /// \param device The device
-    /// \param path The path to the weights
-    /// \param extra_condition An extra condition to be satisfied by the different nodes
-    void
-    import(std::size_t                                                     device,
-           std::string const                                              &path,
-           std::function<bool(block_graph_type::Node_Type const &)> const &extra_condition);
-
   public:
     block_aMLLibrary_Weight_Importer(graph_type const                              &graph,
                                      block_graph_type                              &new_graph,
