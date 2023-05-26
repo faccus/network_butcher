@@ -100,7 +100,7 @@ if (BUILD_TESTS)
             )
     target_link_libraries(test_run ${TEST_LIBRARIES_LOCATION})
 
-    add_executable(test_run_complete ${COMPLETE_TESTS_SOURCE} ${TESTS_SOURCE} ${BASE_SOURCE})
+    add_executable(test_run_complete ${TESTS_SOURCE} ${COMPLETE_TESTS_SOURCE} ${BASE_SOURCE})
     target_include_directories(test_run_complete PUBLIC
             include
             include/APSC

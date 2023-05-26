@@ -20,7 +20,7 @@ namespace network_butcher::types
     using Parent_type = Graph<t_Node_Type>;
 
   public:
-    using Dependencies_Type    = Parent_type::Dependencies_Type;
+    using Dependencies_Type    = Parent_type::Neighbours_Type;
     using Node_Type            = Parent_type::Node_Type;
     using Node_Collection_Type = Parent_type::Node_Collection_Type;
 
@@ -145,7 +145,7 @@ namespace network_butcher::types
     using Parent_type = Graph<CNode<Content<T>>>;
 
   public:
-    using Dependencies_Type    = Parent_type::Dependencies_Type;
+    using Dependencies_Type    = Parent_type::Neighbours_Type;
     using Node_Type            = Parent_type::Node_Type;
     using Node_Collection_Type = Parent_type::Node_Collection_Type;
 

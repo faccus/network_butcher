@@ -26,7 +26,7 @@ namespace network_butcher::types
   class Graph
   {
   public:
-    using Dependencies_Type    = std::vector<std::pair<node_id_collection_type, node_id_collection_type>>;
+    using Neighbours_Type      = std::vector<std::pair<node_id_collection_type, node_id_collection_type>>;
     using Node_Type            = t_Node_Type;
     using Node_Collection_Type = std::vector<Node_Type>;
 
@@ -35,13 +35,11 @@ namespace network_butcher::types
     /// Construct a new Graph object
     /// \param v The collection of nodes ordered in an ascending order based on the id. To work with butcher, the
     /// nodes must be sorted in topological order, according to the Onnx IR specifications.
-    /// \param dep Node dependencies (input and outputs of every node)
+    /// \param dep Node neighbours (input and outputs of every node)
     template <typename A, typename B>
     explicit Graph(A &&v, B &&dep)
-      requires std::is_convertible_v<typename std::decay<A>::type, Node_Collection_Type> &&
-                 std::is_convertible_v<typename std::decay<B>::type, Dependencies_Type>
       : nodes(std::forward<A>(v))
-      , dependencies(std::forward<B>(dep))
+      , neighbours(std::forward<B>(dep))
     {
       for (node_id_type i = 0; i < nodes.size(); ++i)
         {
@@ -62,24 +60,24 @@ namespace network_butcher::types
 
     /// Get the dependencies (reference)
     /// \return The dependencies (reference)
-    [[nodiscard]] Dependencies_Type &
+    [[nodiscard]] Neighbours_Type &
     get_neighbors_ref()
     {
-      return dependencies;
+      return neighbours;
     }
 
     /// Get input nodes
-    [[nodiscard]] Dependencies_Type::value_type::first_type const &
+    [[nodiscard]] Neighbours_Type::value_type::first_type const &
     get_input_nodes(node_id_type id) const
     {
-      return dependencies[id].first;
+      return neighbours[id].first;
     }
 
     /// Get input nodes
-    [[nodiscard]] Dependencies_Type::value_type::second_type const &
+    [[nodiscard]] Neighbours_Type::value_type::second_type const &
     get_output_nodes(node_id_type id) const
     {
-      return dependencies[id].second;
+      return neighbours[id].second;
     }
 
 
@@ -170,7 +168,7 @@ namespace network_butcher::types
     clear()
     {
       nodes.clear();
-      dependencies.clear();
+      neighbours.clear();
     }
 
 
@@ -181,7 +179,7 @@ namespace network_butcher::types
     Node_Collection_Type nodes;
 
     /// Vector that contains all the neighbours of every node (first input, then output)
-    Dependencies_Type dependencies;
+    Neighbours_Type neighbours;
   };
 
 
@@ -191,7 +189,7 @@ namespace network_butcher::types
   class Graph<CNode<Content<T>>>
   {
   public:
-    using Dependencies_Type    = std::vector<std::pair<node_id_collection_type, node_id_collection_type>>;
+    using Neighbours_Type      = std::vector<std::pair<node_id_collection_type, node_id_collection_type>>;
     using Node_Type            = CNode<Content<T>>;
     using Node_Collection_Type = std::vector<Node_Type>;
 
@@ -200,13 +198,11 @@ namespace network_butcher::types
     /// Construct a new Graph object
     /// \param v The collection of nodes ordered in an ascending order based on the id. To work with butcher, the
     /// nodes must be sorted in topological order, according to the Onnx IR specifications.
-    /// \param dep Node dependencies (input and outputs of every node)
+    /// \param dep Node neighbours (input and outputs of every node)
     template <typename A, typename B>
     explicit Graph(A &&v, B &&dep)
-      requires std::is_convertible_v<typename std::decay<A>::type, Node_Collection_Type> &&
-                 std::is_convertible_v<typename std::decay<B>::type, Dependencies_Type>
       : nodes(std::forward<A>(v))
-      , dependencies(std::forward<B>(dep))
+      , neighbours(std::forward<B>(dep))
     {
       for (node_id_type i = 0; i < nodes.size(); ++i)
         {
@@ -241,24 +237,24 @@ namespace network_butcher::types
 
     /// Get the dependencies (reference)
     /// \return The dependencies (reference)
-    [[nodiscard]] Dependencies_Type &
+    [[nodiscard]] Neighbours_Type &
     get_neighbors_ref()
     {
-      return dependencies;
+      return neighbours;
     }
 
     /// Get input nodes
-    [[nodiscard]] Dependencies_Type::value_type::first_type const &
+    [[nodiscard]] Neighbours_Type::value_type::first_type const &
     get_input_nodes(node_id_type id) const
     {
-      return dependencies[id].first;
+      return neighbours[id].first;
     }
 
     /// Get input nodes
-    [[nodiscard]] Dependencies_Type::value_type::second_type const &
+    [[nodiscard]] Neighbours_Type::value_type::second_type const &
     get_output_nodes(node_id_type id) const
     {
-      return dependencies[id].second;
+      return neighbours[id].second;
     }
 
 
@@ -349,7 +345,7 @@ namespace network_butcher::types
     clear()
     {
       nodes.clear();
-      dependencies.clear();
+      neighbours.clear();
     }
 
 
@@ -363,7 +359,7 @@ namespace network_butcher::types
     Node_Collection_Type nodes;
 
     /// Vector that contains all the neighbours of every node (first input, then output)
-    Dependencies_Type dependencies;
+    Neighbours_Type neighbours;
   };
 
   template <typename T>
@@ -371,8 +367,8 @@ namespace network_butcher::types
   Graph<CNode<Content<T>>>::compute_dependencies()
   {
     // Reset the dependency vector.
-    dependencies = Dependencies_Type();
-    dependencies.resize(nodes.size());
+    neighbours = Neighbours_Type();
+    neighbours.resize(nodes.size());
 
     // Compute appearances of inputs/outputs for a node
     std::unordered_map<std::string, node_id_collection_type> input_appearances;
@@ -393,9 +389,9 @@ namespace network_butcher::types
       {
         auto const &neib = output_appearances[appearance.first];
         for (auto node_id : appearance.second)
-          dependencies[node_id].first.insert(neib.cbegin(), neib.cend());
+          neighbours[node_id].first.insert(neib.cbegin(), neib.cend());
         for (auto node_id : neib)
-          dependencies[node_id].second.insert(appearance.second.cbegin(), appearance.second.cend());
+          neighbours[node_id].second.insert(appearance.second.cbegin(), appearance.second.cend());
       }
   }
 } // namespace network_butcher::types
