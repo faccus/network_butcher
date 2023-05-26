@@ -27,8 +27,11 @@ namespace network_butcher::io
   class basic_aMLLibrary_Weight_Importer : public Weight_Importer
   {
   protected:
-    network_butcher::parameters::Parameters const params;
-
+    network_butcher::parameters::Parameters::Block_Graph_Generation const &block_graph_generation_params;
+    network_butcher::parameters::Parameters::aMLLibrary const             &aMLLibrary_params;
+    parameters::Parameters::Weights const                                 &weights_params;
+    network_butcher::parameters::Parameters::Model const                  &model_params;
+    parameters::Parameters::Devices const                                 &devices;
 
     /// It will check if the aMLLibrary is available
     void
@@ -77,7 +80,27 @@ namespace network_butcher::io
   public:
     explicit basic_aMLLibrary_Weight_Importer(network_butcher::parameters::Parameters const &params)
       : Weight_Importer()
-      , params{params}
+      , block_graph_generation_params{params.block_graph_generation_params}
+      , aMLLibrary_params{params.aMLLibrary_params}
+      , weights_params{params.weights_params}
+      , model_params{params.model_params}
+      , devices{params.devices}
+    {
+      check_aMLLibrary();
+    };
+
+    explicit basic_aMLLibrary_Weight_Importer(
+      parameters::Parameters::Block_Graph_Generation const &block_graph_generation_params,
+      parameters::Parameters::aMLLibrary const             &aMLLibrary_params,
+      parameters::Parameters::Weights const                &weights_params,
+      parameters::Parameters::Model const                  &model_params,
+      parameters::Parameters::Devices const                &devices)
+      : Weight_Importer()
+      , block_graph_generation_params{block_graph_generation_params}
+      , aMLLibrary_params{aMLLibrary_params}
+      , weights_params{weights_params}
+      , model_params{model_params}
+      , devices{devices}
     {
       check_aMLLibrary();
     };

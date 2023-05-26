@@ -82,8 +82,8 @@ namespace network_butcher::io
                 }
             }
 
-            auto const net_time = params.weights_params.bandwidth.cbegin()->second.second +
-                                  mem * 8 / (params.weights_params.bandwidth.cbegin()->second.first * std::pow(10, 6));
+            auto const net_time = weights_params.bandwidth.cbegin()->second.second +
+                                  mem * 8 / (weights_params.bandwidth.cbegin()->second.first * std::pow(10, 6));
             res.push_back(std::to_string(net_time));
           }
         else if (lower_case == "optype")
@@ -211,8 +211,6 @@ namespace network_butcher::io
 
     add_python_packages();
 
-    auto const &aMLLibrary_params = params.aMLLibrary_params;
-
     auto const macs     = read_network_info_onnx_tool(network_info_onnx_tool());
     auto const csv_path = "aMLLibrary_input.csv";
 
@@ -245,7 +243,7 @@ namespace network_butcher::io
     std::vector<std::string> relevant_entries;
 
     // Predict and import the weights
-    for (std::size_t i = 0; i < params.devices.size(); ++i)
+    for (std::size_t i = 0; i < devices.size(); ++i)
       {
         std::string tmp_dir_path =
           Utilities::combine_path(aMLLibrary_params.temporary_directory, "predict_" + std::to_string(i));
@@ -254,7 +252,7 @@ namespace network_butcher::io
 
         prepare_predict_file(aMLLibrary_params.aMLLibrary_inference_variables[i], csv_path, tmp_dir_path + ".ini");
 
-        execute_weight_generator(params.devices[i].weights_path, tmp_dir_path + ".ini", tmp_dir_path);
+        execute_weight_generator(devices[i].weights_path, tmp_dir_path + ".ini", tmp_dir_path);
 
         paths.emplace_back(Utilities::combine_path(tmp_dir_path, "prediction.csv"));
         relevant_entries.emplace_back("pred");
@@ -263,7 +261,7 @@ namespace network_butcher::io
     pybind11::finalize_interpreter();
 
     Csv_Weight_Importer importer(
-      new_graph, paths, relevant_entries, params.devices, params.weights_params.separator, true);
+      new_graph, paths, relevant_entries, devices, weights_params.separator, true);
     importer.import_weights(extra_condition);
   }
 } // namespace network_butcher::io

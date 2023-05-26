@@ -59,6 +59,8 @@ namespace network_butcher::parameters
   /// The collection of parameters
   struct Parameters
   {
+    using Devices = std::vector<Device>;
+
     struct aMLLibrary
     {
       /// The temporary directory
@@ -95,47 +97,65 @@ namespace network_butcher::parameters
       connection_map_type bandwidth;
     };
 
+    struct Model
+    {
+      /// The model name
+      std::string model_name;
+
+      /// The model path
+      std::string model_path;
+
+      /// The export directory
+      std::string export_directory;
+    };
+
+    struct KSP
+    {
+      /// The number of paths to return
+      std::size_t K;
+
+      /// The KSP method
+      KSP_Method method;
+    };
+
+    struct Block_Graph_Generation
+    {
+      /// Starting device
+      std::size_t starting_device_id;
+
+      /// End device
+      std::size_t ending_device_id;
+
+      /// Are backward collection allowed? (i.e. can device j send data to device k with j>k?)
+      bool backward_connections_allowed;
+
+      /// Block Graph Generation mode for Butcher
+      Block_Graph_Generation_Mode block_graph_mode;
+
+      /// Do we have to check for memory constraints?
+      bool memory_constraint;
+
+      /// The type of memory constraint
+      Memory_Constraint_Type memory_constraint_type;
+    };
+
     /// aMMLibrary parameters
     aMLLibrary aMLLibrary_params;
 
     /// Weights parameters
     Weights weights_params;
 
-    /// The model name
-    std::string model_name;
+    /// Model parameters
+    Model model_params;
 
-    /// The model path
-    std::string model_path;
+    /// KSP parameters
+    KSP ksp_params;
 
-    /// The export directory
-    std::string export_directory;
-
-    /// The number of paths to return
-    std::size_t K;
-
-    /// The KSP method
-    KSP_Method method;
-
-    /// Starting device
-    std::size_t starting_device_id;
-
-    /// End device
-    std::size_t ending_device_id;
-
-    /// Are backward collection allowed? (i.e. can device j send data to device k with j>k?)
-    bool backward_connections_allowed;
-
-    /// Block Graph Generation mode for Butcher
-    Block_Graph_Generation_Mode block_graph_mode;
-
-    /// Do we have to check for memory constraints?
-    bool memory_constraint;
-
-    /// The type of memory constraint
-    Memory_Constraint_Type memory_constraint_type;
+    /// Block Graph Generation parameters
+    Block_Graph_Generation block_graph_generation_params;
 
     /// The collection of devices
-    std::vector<Device> devices;
+    Devices devices;
   };
 } // namespace network_butcher::parameters
 

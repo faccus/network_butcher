@@ -7,15 +7,15 @@ namespace network_butcher::io
 {
   std::function<weight_type(const node_id_type &, size_t, size_t)>
   General_Manager::Helper_Functions::generate_bandwidth_transmission_function(
-    const network_butcher::parameters::Parameters &params,
-    const graph_type                              &graph)
+    const network_butcher::parameters::Parameters::Weights &weights_params,
+    const graph_type                                       &graph)
   {
     std::function<weight_type(node_id_type const &, std::size_t, std::size_t)> transmission_weights =
-      [&params, &graph](node_id_type const &node_id, std::size_t first_device, std::size_t second_device) {
-        auto const it = params.weights_params.bandwidth.find({first_device, second_device});
+      [&weights_params, &graph](node_id_type const &node_id, std::size_t first_device, std::size_t second_device) {
+        auto const it = weights_params.bandwidth.find({first_device, second_device});
 
         // If the bandwidth cannot be found, return 0
-        if (it == params.weights_params.bandwidth.cend())
+        if (it == weights_params.bandwidth.cend())
           {
             return .0;
           }
@@ -80,7 +80,7 @@ namespace network_butcher::io
 
     // Import the onnx model and populate the graph
     auto [graph, model, link_graph_model] =
-      IO_Manager::import_from_onnx(params.model_path, true, true, params.devices.size());
+      IO_Manager::import_from_onnx(params.model_params.model_path, true, true, params.devices.size());
     crono.stop();
 
     double const import_time = crono.wallTime();
@@ -107,7 +107,7 @@ namespace network_butcher::io
 
     // Start the butchering... (compute the k shortest paths)
     auto const paths = butcher.compute_k_shortest_path(
-      Helper_Functions::generate_bandwidth_transmission_function(params, butcher.get_graph()), params);
+      Helper_Functions::generate_bandwidth_transmission_function(params.weights_params, butcher.get_graph()), params);
     crono.stop();
 
     double const butcher_time = crono.wallTime();
@@ -131,7 +131,7 @@ namespace network_butcher::io
         std::cout << "Export: " << export_time / 1000. << " ms" << std::endl;
 
         std::ofstream out_file;
-        out_file.open(params.export_directory + "/report.txt");
+        out_file.open(params.model_params.export_directory + "/report.txt");
 
         out_file << "Network import: " << import_time / 1000. << " ms" << std::endl;
         out_file << "Weight import: " << import_weights_time / 1000. << " ms" << std::endl;

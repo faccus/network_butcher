@@ -13,6 +13,8 @@ namespace network_butcher::io
   class original_aMLLibrary_Weight_Importer : public basic_aMLLibrary_Weight_Importer
   {
   protected:
+    using base = basic_aMLLibrary_Weight_Importer;
+
     graph_type &graph;
 
     /// It will generate the relevant entry given its name and the node
@@ -35,6 +37,20 @@ namespace network_butcher::io
   public:
     original_aMLLibrary_Weight_Importer(graph_type &graph, network_butcher::parameters::Parameters const &params)
       : basic_aMLLibrary_Weight_Importer{params}
+      , graph{graph} {};
+
+    explicit original_aMLLibrary_Weight_Importer(
+      graph_type                                                            &graph,
+      network_butcher::parameters::Parameters::Block_Graph_Generation const &block_graph_generation_params,
+      network_butcher::parameters::Parameters::aMLLibrary const             &aMLLibrary_params,
+      parameters::Parameters::Weights const                                 &weights_params,
+      network_butcher::parameters::Parameters::Model const                  &model_params,
+      parameters::Parameters::Devices const                                 &devices)
+      : basic_aMLLibrary_Weight_Importer(block_graph_generation_params,
+                                         aMLLibrary_params,
+                                         weights_params,
+                                         model_params,
+                                         devices)
       , graph{graph} {};
 
 

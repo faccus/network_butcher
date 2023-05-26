@@ -115,7 +115,7 @@ namespace network_butcher::constraints
   void
   Memory_Constraint<GraphType>::apply_constraint(block_graph_type &new_graph) const
   {
-    auto const &constraint_type = params.memory_constraint_type;
+    auto const &constraint_type = params.block_graph_generation_params.memory_constraint_type;
 
     if (constraint_type == network_butcher::parameters::Memory_Constraint_Type::None)
       return;
@@ -280,7 +280,7 @@ namespace network_butcher::constraints
     return [&params, &graph]() {
       std::vector<std::unique_ptr<Extra_Constraint>> res;
 
-      if (params.memory_constraint)
+      if (params.block_graph_generation_params.memory_constraint)
         {
           res.push_back(std::make_unique<Memory_Constraint<GraphType>>(params, graph));
         }

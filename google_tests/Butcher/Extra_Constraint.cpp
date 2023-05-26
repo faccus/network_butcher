@@ -123,19 +123,19 @@ namespace
   {
     parameters::Parameters res;
 
-    res.K                            = 5;
-    res.backward_connections_allowed = true;
-    res.method                       = parameters::KSP_Method::Eppstein;
+    res.ksp_params.K                            = 5;
+    res.block_graph_generation_params.backward_connections_allowed = true;
+    res.ksp_params.method                       = parameters::KSP_Method::Eppstein;
     res.devices                      = std::vector<parameters::Device>(2);
 
     for (std::size_t i = 0; i < res.devices.size(); ++i)
       res.devices[i].id = i;
 
-    res.memory_constraint_type = parameters::Memory_Constraint_Type::None;
-    res.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
+    res.block_graph_generation_params.memory_constraint_type = parameters::Memory_Constraint_Type::None;
+    res.block_graph_generation_params.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
 
-    res.starting_device_id = 0;
-    res.ending_device_id   = 0;
+    res.block_graph_generation_params.starting_device_id = 0;
+    res.block_graph_generation_params.ending_device_id   = 0;
 
     return res;
   }
@@ -145,9 +145,9 @@ namespace
   {
     parameters::Parameters res;
 
-    res.K                            = 5;
-    res.backward_connections_allowed = true;
-    res.method                       = parameters::KSP_Method::Lazy_Eppstein;
+    res.ksp_params.K                            = 5;
+    res.block_graph_generation_params.backward_connections_allowed = true;
+    res.ksp_params.method                       = parameters::KSP_Method::Lazy_Eppstein;
     res.devices                      = std::vector<parameters::Device>(4);
 
     for (std::size_t i = 0; i < res.devices.size(); ++i)
@@ -163,11 +163,11 @@ namespace
     band[{2, 3}] = std::make_pair(5., 0.);
 
 
-    res.memory_constraint_type = parameters::Memory_Constraint_Type::None;
-    res.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
+    res.block_graph_generation_params.memory_constraint_type = parameters::Memory_Constraint_Type::None;
+    res.block_graph_generation_params.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
 
-    res.starting_device_id = 0;
-    res.ending_device_id   = 3;
+    res.block_graph_generation_params.starting_device_id = 0;
+    res.block_graph_generation_params.ending_device_id   = 3;
 
     return res;
   }

@@ -115,13 +115,13 @@ namespace network_butcher
     auto const new_graph = builder.construct_block_graph();
 
     // Prepare the K-shortest path algorithm
-    auto kFinder = KFinder_Factory<new_network>::Instance().create(params.method,
+    auto kFinder = KFinder_Factory<new_network>::Instance().create(params.ksp_params.method,
                                                                    new_graph,
                                                                    new_graph.get_nodes().front().get_id(),
                                                                    new_graph.get_nodes().back().get_id());
 
     // Find the shortest paths
-    auto const res = kFinder->compute(params.K);
+    auto const res = kFinder->compute(params.ksp_params.K);
 
     // Convert the result from the block graph to the original graph
     network_butcher::Utilities::Path_Converter converter(new_graph);

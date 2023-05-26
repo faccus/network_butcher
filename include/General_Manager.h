@@ -24,8 +24,8 @@ namespace network_butcher::io
       /// \param graph The graph
       /// \return  The transmission function
       std::function<weight_type(const node_id_type &, size_t, size_t)>
-      generate_bandwidth_transmission_function(const network_butcher::parameters::Parameters &params,
-                                               const graph_type                              &graph);
+      generate_bandwidth_transmission_function(const network_butcher::parameters::Parameters::Weights &weights_params,
+                                               const graph_type                                       &graph);
 
 
       /// It prints the help/usage message in the console

@@ -26,7 +26,7 @@ namespace network_butcher
     /// The basic construct method. It will produce the block graph using the specified options.
     /// \return The resulting block graph
     virtual block_graph_type
-    construct_block_graph() = 0;
+    construct_block_graph() const = 0;
 
     virtual ~Block_Graph_Builder() = default;
   };

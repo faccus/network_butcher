@@ -36,8 +36,8 @@ namespace network_butcher::constraints
         for (auto const &j_dev : params.devices)
           {
             // Check if the couple of devices can be connected
-            if (params.backward_connections_allowed && i_dev.id != j_dev.id ||
-                !params.backward_connections_allowed && i_dev.id < j_dev.id)
+            if (params.block_graph_generation_params.backward_connections_allowed && i_dev.id != j_dev.id ||
+                !params.block_graph_generation_params.backward_connections_allowed && i_dev.id < j_dev.id)
               {
                 // Find their bandwidth
                 auto band_it = bandwidth.find(std::make_pair(i_dev.id, j_dev.id));

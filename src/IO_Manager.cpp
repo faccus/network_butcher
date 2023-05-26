@@ -258,58 +258,64 @@ namespace network_butcher::io::IO_Manager
       aMLLibrary_params.aMLLibrary_csv_features = read_vector_string(file, weight_infos, "aMLLibrary_features");
     };
 
-    auto const weights_params_func =
-      [weight_infos, &read_weight_import_mode_func, &read_vector_string, &read_bandwidth](auto &file, auto &params) {
-        auto &weights_params = params.weights_params;
+    auto const weights_params_func = [weight_infos,
+                                      &read_weight_import_mode_func,
+                                      &read_vector_string,
+                                      &read_bandwidth](auto &file, auto &params) {
+      auto &weights_params = params.weights_params;
 
-        weights_params.weight_import_mode        = read_weight_import_mode_func(file);
-        weights_params.single_weight_import_path = file(weight_infos + "/single_weight_import_path", "");
-        weights_params.single_csv_columns_weights =
-          read_vector_string(file, weight_infos, "single_csv_columns_weights");
+      weights_params.weight_import_mode         = read_weight_import_mode_func(file);
+      weights_params.single_weight_import_path  = file(weight_infos + "/single_weight_import_path", "");
+      weights_params.single_csv_columns_weights = read_vector_string(file, weight_infos, "single_csv_columns_weights");
 
-        network_butcher::Utilities::trim(weights_params.single_csv_columns_weights);
-        network_butcher::Utilities::to_lowercase(weights_params.single_csv_columns_weights);
+      network_butcher::Utilities::trim(weights_params.single_csv_columns_weights);
+      network_butcher::Utilities::to_lowercase(weights_params.single_csv_columns_weights);
 
-        weights_params.separator = file(weight_infos + "/separator", ',');
-        weights_params.bandwidth = read_bandwidth(file, params.devices.size(), params.backward_connections_allowed);
-      };
+      weights_params.separator = file(weight_infos + "/separator", ',');
+      weights_params.bandwidth =
+        read_bandwidth(file, params.devices.size(), params.block_graph_generation_params.backward_connections_allowed);
+    };
 
     auto const basic_infos_func = [basic_infos, &read_block_graph_mode](auto &file, auto &params) {
-      params.model_name       = file(basic_infos + "/model_name", "model");
-      params.model_path       = file(basic_infos + "/model_path", "");
-      params.export_directory = file(basic_infos + "/export_directory", "ksp_result");
+      params.model_params.model_name       = file(basic_infos + "/model_name", "model");
+      params.model_params.model_path       = file(basic_infos + "/model_path", "");
+      params.model_params.export_directory = file(basic_infos + "/export_directory", "ksp_result");
 
-      params.starting_device_id = file(basic_infos + "/starting_device_id", 0);
-      params.ending_device_id   = file(basic_infos + "/ending_device_id", 0);
+      params.block_graph_generation_params.starting_device_id = file(basic_infos + "/starting_device_id", 0);
+      params.block_graph_generation_params.ending_device_id   = file(basic_infos + "/ending_device_id", 0);
 
-      params.backward_connections_allowed = file(basic_infos + "/backward_connections_allowed", false);
+      params.block_graph_generation_params.backward_connections_allowed =
+        file(basic_infos + "/backward_connections_allowed", false);
 
-      params.block_graph_mode = read_block_graph_mode(file);
+      params.block_graph_generation_params.block_graph_mode = read_block_graph_mode(file);
     };
 
     auto const k_shortest_path_params_func = [basic_infos, weight_infos, &read_k_method](auto &file, auto &params) {
-      params.K      = file(basic_infos + "/K", 100);
-      params.method = read_k_method(file);
+      params.ksp_params.K      = file(basic_infos + "/K", 100);
+      params.ksp_params.method = read_k_method(file);
     };
 
     auto const constraint_params_func = [basic_infos](auto &file, auto &params) {
-      params.memory_constraint = file(basic_infos + "/memory_constraint", false);
-      if (params.memory_constraint)
+      params.block_graph_generation_params.memory_constraint = file(basic_infos + "/memory_constraint", false);
+      if (params.block_graph_generation_params.memory_constraint)
         {
           std::string const memory_constraint_type = network_butcher::Utilities::trim_copy(
             network_butcher::Utilities::to_lowercase_copy(file(basic_infos + "/memory_constraint_type", "none")));
 
           if (memory_constraint_type == "max")
             {
-              params.memory_constraint_type = network_butcher::parameters::Memory_Constraint_Type::Max;
+              params.block_graph_generation_params.memory_constraint_type =
+                network_butcher::parameters::Memory_Constraint_Type::Max;
             }
           else if (memory_constraint_type == "preload_parameters")
             {
-              params.memory_constraint_type = network_butcher::parameters::Memory_Constraint_Type::Preload_Parameters;
+              params.block_graph_generation_params.memory_constraint_type =
+                network_butcher::parameters::Memory_Constraint_Type::Preload_Parameters;
             }
           else
             {
-              params.memory_constraint_type = network_butcher::parameters::Memory_Constraint_Type::None;
+              params.block_graph_generation_params.memory_constraint_type =
+                network_butcher::parameters::Memory_Constraint_Type::None;
             }
         }
     };
@@ -356,11 +362,13 @@ namespace network_butcher::io::IO_Manager
                             std::map<node_id_type, node_id_type> const                    &link_id_nodeproto,
                             const std::vector<network_butcher::types::Weighted_Real_Path> &paths)
   {
-    if (network_butcher::Utilities::directory_exists(params.export_directory))
-      network_butcher::Utilities::directory_delete(params.export_directory);
-    network_butcher::Utilities::create_directory(params.export_directory);
+    if (network_butcher::Utilities::directory_exists(params.model_params.export_directory))
+      network_butcher::Utilities::directory_delete(params.model_params.export_directory);
+    network_butcher::Utilities::create_directory(params.model_params.export_directory);
 
-    Utilities::output_onnx_file(model, Utilities::combine_path(params.export_directory, params.model_name + ".onnx"));
+    Utilities::output_onnx_file(model,
+                                Utilities::combine_path(params.model_params.export_directory,
+                                                        params.model_params.model_name + ".onnx"));
 
     auto const preprocessed_node_ios = Onnx_model_reconstructor_helpers::process_node_ios_nodes(model.graph());
 
@@ -370,17 +378,17 @@ namespace network_butcher::io::IO_Manager
     std::vector<std::size_t> v(paths.size());
     std::generate(v.begin(), v.end(), [n = 0]() mutable { return n++; });
 
-    std::for_each(PAR_UNSEQ,
-                  v.cbegin(),
-                  v.cend(),
-                  [&params, &paths, &model, &link_id_nodeproto, &preprocessed_node_ios](std::size_t j) {
-                    auto const dir_path = Utilities::combine_path(params.export_directory, std::to_string(j));
-                    network_butcher::Utilities::create_directory(dir_path);
+    std::for_each(
+      PAR_UNSEQ,
+      v.cbegin(),
+      v.cend(),
+      [&params, &paths, &model, &link_id_nodeproto, &preprocessed_node_ios](std::size_t j) {
+        auto const dir_path = Utilities::combine_path(params.model_params.export_directory, std::to_string(j));
+        network_butcher::Utilities::create_directory(dir_path);
 
-                    auto const output_path = Utilities::combine_path(dir_path, params.model_name);
-                    utilities::reconstruct_model_and_export(
-                      paths[j], model, link_id_nodeproto, preprocessed_node_ios, output_path);
-                  });
+        auto const output_path = Utilities::combine_path(dir_path, params.model_params.model_name);
+        utilities::reconstruct_model_and_export(paths[j], model, link_id_nodeproto, preprocessed_node_ios, output_path);
+      });
 #else
     for (std::size_t j = 0; j < paths.size(); ++j)
       {
@@ -519,9 +527,9 @@ namespace network_butcher::io::IO_Manager
                 params.starting_device_id = 0;
                 params.ending_device_id   = 0;
 
-                params.method                       = network_butcher::parameters::KSP_Method::Lazy_Eppstein;
-                params.K                            = 100;
-                params.backward_connections_allowed = false;
+                params.method                                  = network_butcher::parameters::KSP_Method::Lazy_Eppstein;
+                params.K                                       = 100;
+                params.ksp_params.backward_connections_allowed = false;
 
                 std::size_t k = 0;
                 for (auto const &device : devices)

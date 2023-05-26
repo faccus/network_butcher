@@ -9,7 +9,7 @@ namespace network_butcher::io
   basic_aMLLibrary_Weight_Importer::check_aMLLibrary() const
   {
 #if PYBIND_ACTIVE
-    if (params.backward_connections_allowed)
+    if (block_graph_generation_params.backward_connections_allowed)
       throw std::logic_error("aMLLibrary only supports graphs with no backward connections");
 #else
     throw std::logic_error("aMLLibrary not supported. Please compile with PYBIND_ACTIVE"); //
@@ -37,7 +37,7 @@ namespace network_butcher::io
     inserter(local_lib_path);
 #  endif
 
-    for (auto const &package_location : params.aMLLibrary_params.extra_packages_location)
+    for (auto const &package_location : aMLLibrary_params.extra_packages_location)
       inserter(package_location);
 #endif
   }
@@ -91,8 +91,6 @@ namespace network_butcher::io
     using namespace pybind11::literals;
     namespace py = pybind11;
 
-    auto const &aMLLibrary_params = params.aMLLibrary_params;
-
     if (!Utilities::directory_exists(aMLLibrary_params.temporary_directory))
       Utilities::create_directory(aMLLibrary_params.temporary_directory);
 
@@ -103,7 +101,7 @@ namespace network_butcher::io
     py::object onnx_tool = py::module_::import("onnx_tool");
 
     py::object model_profile = onnx_tool.attr("model_profile");
-    model_profile(params.model_path, "savenode"_a = weight_path);
+    model_profile(model_params.model_path, "savenode"_a = weight_path);
 
     return weight_path;
 #else

@@ -13,6 +13,8 @@ namespace network_butcher::io
   class block_aMLLibrary_Weight_Importer : public basic_aMLLibrary_Weight_Importer
   {
   protected:
+    using base = basic_aMLLibrary_Weight_Importer;
+
     graph_type const &graph;
     block_graph_type &new_graph;
 
@@ -40,6 +42,22 @@ namespace network_butcher::io
                                      block_graph_type                              &new_graph,
                                      network_butcher::parameters::Parameters const &params)
       : basic_aMLLibrary_Weight_Importer{params}
+      , graph{graph}
+      , new_graph{new_graph} {};
+
+    block_aMLLibrary_Weight_Importer(
+      graph_type const                                                      &graph,
+      block_graph_type                                                      &new_graph,
+      network_butcher::parameters::Parameters::Block_Graph_Generation const &block_graph_generation_params,
+      network_butcher::parameters::Parameters::aMLLibrary const             &aMLLibrary_params,
+      parameters::Parameters::Weights const                                 &weights_params,
+      network_butcher::parameters::Parameters::Model const                  &model_params,
+      parameters::Parameters::Devices const                                 &devices)
+      : basic_aMLLibrary_Weight_Importer{block_graph_generation_params,
+                                         aMLLibrary_params,
+                                         weights_params,
+                                         model_params,
+                                         devices}
       , graph{graph}
       , new_graph{new_graph} {};
 

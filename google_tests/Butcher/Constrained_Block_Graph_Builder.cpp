@@ -118,7 +118,7 @@ namespace
   {
     auto graph              = basic_graph();
     auto params             = eppstein_parameters();
-    params.block_graph_mode = parameters::Block_Graph_Generation_Mode::input;
+    params.block_graph_generation_params.block_graph_mode = parameters::Block_Graph_Generation_Mode::input;
 
     Constrained_Block_Graph_Builder builder(graph, params);
 
@@ -143,7 +143,7 @@ namespace
   {
     auto graph              = basic_graph2();
     auto params             = eppstein_parameters();
-    params.block_graph_mode = parameters::Block_Graph_Generation_Mode::input;
+    params.block_graph_generation_params.block_graph_mode = parameters::Block_Graph_Generation_Mode::input;
 
     Constrained_Block_Graph_Builder builder(graph, params);
 
@@ -166,7 +166,7 @@ namespace
   {
     auto graph              = basic_graph();
     auto params             = eppstein_parameters();
-    params.block_graph_mode = parameters::Block_Graph_Generation_Mode::output;
+    params.block_graph_generation_params.block_graph_mode = parameters::Block_Graph_Generation_Mode::output;
 
     Constrained_Block_Graph_Builder builder(graph, params);
 
@@ -191,7 +191,7 @@ namespace
   {
     auto graph              = basic_graph2();
     auto params             = eppstein_parameters();
-    params.block_graph_mode = parameters::Block_Graph_Generation_Mode::output;
+    params.block_graph_generation_params.block_graph_mode = parameters::Block_Graph_Generation_Mode::output;
 
     Constrained_Block_Graph_Builder builder(graph, params);
 
@@ -215,7 +215,7 @@ namespace
   {
     auto graph              = basic_graph();
     auto params             = eppstein_parameters();
-    params.block_graph_mode = parameters::Block_Graph_Generation_Mode::output;
+    params.block_graph_generation_params.block_graph_mode = parameters::Block_Graph_Generation_Mode::output;
 
     Constrained_Block_Graph_Builder builder(graph, params);
     builder.construct_transmission_weights([](node_id_type const &node_id, std::size_t in_dev, std::size_t out_dev) {
@@ -248,7 +248,7 @@ namespace
   {
     auto graph                               = basic_graph();
     auto params                              = eppstein_parameters();
-    params.block_graph_mode                  = parameters::Block_Graph_Generation_Mode::output;
+    params.block_graph_generation_params.block_graph_mode                  = parameters::Block_Graph_Generation_Mode::output;
     params.weights_params.weight_import_mode = parameters::Weight_Import_Mode::block_single_direct_read;
 
     params.weights_params.separator = ',';
@@ -280,7 +280,7 @@ namespace
   {
     auto graph                               = basic_graph();
     auto params                              = eppstein_parameters();
-    params.block_graph_mode                  = parameters::Block_Graph_Generation_Mode::output;
+    params.block_graph_generation_params.block_graph_mode                  = parameters::Block_Graph_Generation_Mode::output;
     params.weights_params.weight_import_mode = parameters::Weight_Import_Mode::block_multiple_direct_read;
 
     params.weights_params.separator = ',';
@@ -383,9 +383,9 @@ namespace
   {
     parameters::Parameters res;
 
-    res.K                            = 5;
-    res.backward_connections_allowed = true;
-    res.method                       = parameters::KSP_Method::Eppstein;
+    res.ksp_params.K                            = 5;
+    res.block_graph_generation_params.backward_connections_allowed = true;
+    res.ksp_params.method                       = parameters::KSP_Method::Eppstein;
     res.devices                      = std::vector<parameters::Device>(2);
 
     for (std::size_t i = 0; i < res.devices.size(); ++i)
@@ -402,11 +402,11 @@ namespace
           }
       }
 
-    res.memory_constraint_type = parameters::Memory_Constraint_Type::None;
-    res.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
+    res.block_graph_generation_params.memory_constraint_type = parameters::Memory_Constraint_Type::None;
+    res.block_graph_generation_params.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
 
-    res.starting_device_id = 0;
-    res.ending_device_id   = 0;
+    res.block_graph_generation_params.starting_device_id = 0;
+    res.block_graph_generation_params.ending_device_id   = 0;
 
     return res;
   }
@@ -416,19 +416,19 @@ namespace
   {
     parameters::Parameters res;
 
-    res.K                            = 5;
-    res.backward_connections_allowed = true;
-    res.method                       = parameters::KSP_Method::Lazy_Eppstein;
+    res.ksp_params.K                            = 5;
+    res.block_graph_generation_params.backward_connections_allowed = true;
+    res.ksp_params.method                       = parameters::KSP_Method::Lazy_Eppstein;
     res.devices                      = std::vector<parameters::Device>(2);
 
     for (std::size_t i = 0; i < res.devices.size(); ++i)
       res.devices[i].id = i;
 
-    res.memory_constraint_type = parameters::Memory_Constraint_Type::None;
-    res.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
+    res.block_graph_generation_params.memory_constraint_type = parameters::Memory_Constraint_Type::None;
+    res.block_graph_generation_params.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
 
-    res.starting_device_id = 0;
-    res.ending_device_id   = 0;
+    res.block_graph_generation_params.starting_device_id = 0;
+    res.block_graph_generation_params.ending_device_id   = 0;
 
     return res;
   }

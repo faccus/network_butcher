@@ -30,6 +30,9 @@ namespace
   basic_butcher();
 
   parameters::Parameters
+  basic_parameters(std::size_t k, std::size_t num_devices);
+
+  parameters::Parameters
   eppstein_parameters(std::size_t k, std::size_t num_devices);
 
   parameters::Parameters
@@ -202,14 +205,15 @@ namespace
   }
 
   parameters::Parameters
-  eppstein_parameters(std::size_t k, std::size_t num_devices)
+  basic_parameters(std::size_t k, std::size_t num_devices)
   {
     parameters::Parameters res;
 
-    res.K                            = k;
-    res.backward_connections_allowed = true;
-    res.method                       = parameters::KSP_Method::Eppstein;
-    res.devices                      = std::vector<parameters::Device>(num_devices);
+    res.ksp_params.K                                               = k;
+    res.block_graph_generation_params.backward_connections_allowed = true;
+    res.devices                                                    = std::vector<parameters::Device>(num_devices);
+
+    res.weights_params.weight_import_mode = parameters::Weight_Import_Mode::single_direct_read;
 
     for (std::size_t i = 0; i < res.devices.size(); ++i)
       res.devices[i].id = i;
@@ -226,11 +230,20 @@ namespace
       }
 
 
-    res.memory_constraint_type = parameters::Memory_Constraint_Type::None;
-    res.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
+    res.block_graph_generation_params.memory_constraint_type = parameters::Memory_Constraint_Type::None;
+    res.block_graph_generation_params.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
 
-    res.starting_device_id = 0;
-    res.ending_device_id   = 0;
+    res.block_graph_generation_params.starting_device_id = 0;
+    res.block_graph_generation_params.ending_device_id   = 0;
+
+    return res;
+  }
+
+  parameters::Parameters
+  eppstein_parameters(std::size_t k, std::size_t num_devices)
+  {
+    auto res              = basic_parameters(k, num_devices);
+    res.ksp_params.method = parameters::KSP_Method::Eppstein;
 
     return res;
   }
@@ -238,32 +251,8 @@ namespace
   parameters::Parameters
   lazy_eppstein_parameters(std::size_t k, std::size_t num_devices)
   {
-    parameters::Parameters res;
-
-    res.K                            = k;
-    res.backward_connections_allowed = true;
-    res.method                       = parameters::KSP_Method::Lazy_Eppstein;
-    res.devices                      = std::vector<parameters::Device>(num_devices);
-
-    for (std::size_t i = 0; i < res.devices.size(); ++i)
-      res.devices[i].id = i;
-
-    for (std::size_t i = 0; i < num_devices; ++i)
-      {
-        for (std::size_t j = 0; j < num_devices; ++j)
-          {
-            if (i != j)
-              {
-                res.weights_params.bandwidth[std::make_pair(i, j)] = std::make_pair(1., 0.);
-              }
-          }
-      }
-
-    res.memory_constraint_type = parameters::Memory_Constraint_Type::None;
-    res.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
-
-    res.starting_device_id = 0;
-    res.ending_device_id   = 0;
+    auto res              = basic_parameters(k, num_devices);
+    res.ksp_params.method = parameters::KSP_Method::Lazy_Eppstein;
 
     return res;
   }

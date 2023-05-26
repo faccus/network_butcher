@@ -16,19 +16,20 @@ namespace
   {
     auto const params = io::IO_Manager::read_parameters("test_data/configs/test5_parameters.conf");
 
-    ASSERT_EQ(params.model_name, "ResNet");
-    ASSERT_EQ(params.model_path, "test_data/models/resnet18-v2-7-inferred.onnx");
-    ASSERT_EQ(params.export_directory, "ksp_result5");
+    ASSERT_EQ(params.model_params.model_name, "ResNet");
+    ASSERT_EQ(params.model_params.model_path, "test_data/models/resnet18-v2-7-inferred.onnx");
+    ASSERT_EQ(params.model_params.export_directory, "ksp_result5");
 
-    ASSERT_EQ(params.K, 12);
-    ASSERT_EQ(params.method, parameters::KSP_Method::Lazy_Eppstein);
-    ASSERT_EQ(params.starting_device_id, 0);
-    ASSERT_EQ(params.ending_device_id, 0);
+    ASSERT_EQ(params.ksp_params.K, 12);
+    ASSERT_EQ(params.ksp_params.method, parameters::KSP_Method::Lazy_Eppstein);
+    ASSERT_EQ(params.block_graph_generation_params.starting_device_id, 0);
+    ASSERT_EQ(params.block_graph_generation_params.ending_device_id, 0);
 
-    ASSERT_EQ(params.backward_connections_allowed, false);
+    ASSERT_EQ(params.block_graph_generation_params.backward_connections_allowed, false);
 
-    ASSERT_EQ(params.memory_constraint, true);
-    ASSERT_EQ(params.memory_constraint_type, parameters::Memory_Constraint_Type::Preload_Parameters);
+    ASSERT_EQ(params.block_graph_generation_params.memory_constraint, true);
+    ASSERT_EQ(params.block_graph_generation_params.memory_constraint_type,
+              parameters::Memory_Constraint_Type::Preload_Parameters);
     ASSERT_EQ(params.devices.size(), 2);
 
     ASSERT_EQ(params.weights_params.weight_import_mode, parameters::Weight_Import_Mode::aMLLibrary_block);
