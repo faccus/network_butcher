@@ -442,9 +442,7 @@ namespace network_butcher
 
         for (std::size_t k = 1; k < num_devices; ++k)
           {
-            auto dep_cpy = new_dependencies.back();
-
-            new_dependencies.push_back(std::move(dep_cpy));
+            new_dependencies.emplace_back(new_dependencies.back());
           }
       }
 
@@ -453,10 +451,15 @@ namespace network_butcher
         for (std::size_t i = 2; i < supp_size; ++i)
           {
             auto const id = new_dependencies.size();
-            new_dependencies.emplace_back(std::make_pair<node_id_collection_type, node_id_collection_type>({}, {}));
+            new_dependencies.emplace_back();
 
             auto &in  = new_dependencies.back().first;
             auto &out = new_dependencies.back().second;
+
+            for (std::size_t k = 0; k < num_devices; ++k)
+              {
+                in.insert(in.end(), id - num_devices + k);
+              }
 
             for (std::size_t k = 0; k < num_devices; ++k)
               {
@@ -465,8 +468,7 @@ namespace network_butcher
 
             for (std::size_t k = 1; k < num_devices; ++k)
               {
-                auto tmp_dep = new_dependencies.back();
-                new_dependencies.emplace_back(std::move(tmp_dep));
+                new_dependencies.emplace_back(new_dependencies.back());
               }
           }
       }
@@ -479,19 +481,20 @@ namespace network_butcher
           std::make_pair<node_id_collection_type, node_id_collection_type>({}, {id + num_devices}));
 
         auto &in = new_dependencies.back().first;
-        in.insert(in.end(), id - num_devices);
+        for (std::size_t k = 0; k < num_devices; ++k)
+          {
+            in.insert(in.end(), id - num_devices + k);
+          }
 
         for (std::size_t k = 1; k < num_devices; ++k)
           {
-            auto dep_cpy = new_dependencies.back();
-
-            new_dependencies.emplace_back(std::move(dep_cpy));
+            new_dependencies.emplace_back(new_dependencies.back());
           }
       }
 
       // The last layer is fully connected with the last node
       {
-        new_dependencies.emplace_back(std::make_pair<node_id_collection_type, node_id_collection_type>({}, {}));
+        new_dependencies.emplace_back();
 
         auto &in = new_dependencies.back().first;
         for (std::size_t k = 0; k < num_devices; ++k)
@@ -511,7 +514,7 @@ namespace network_butcher
 
         auto const &bandwidth = weights_params.bandwidth;
 
-        // The first node is connected with the first layer
+        // Node 0, Input: -, Outputs: following layer nodes
         {
           new_dependencies.emplace_back();
           auto &out = new_dependencies.back().second;
@@ -533,7 +536,7 @@ namespace network_butcher
             }
         }
 
-        // Inputs: first node, Outputs: following layer nodes
+        // Node 1...num_devices , Inputs: first node, Outputs: following layer nodes
         {
           auto const &root_node_outs = new_dependencies.back().second;
           for (node_id_type k = 0; k < num_devices; ++k)
@@ -553,7 +556,7 @@ namespace network_butcher
             }
         }
 
-        // Inputs: previous layer nodes, Outputs: following layer nodes
+        // Nodes up to final_size - 1 - num_devices, Inputs: previous layer nodes, Outputs: following layer nodes
         {
           for (node_id_type i = 2; i < supp_size; ++i)
             {
@@ -568,25 +571,24 @@ namespace network_butcher
 
                   for (auto const &neighbour : bandwidth->get_input_nodes(k))
                     {
-                      in.insert(in.end(), id - num_devices + neighbour);
+                      in.insert(in.end(), base_id - num_devices + neighbour);
                     }
 
                   for (auto const &neighbour : bandwidth->get_output_nodes(k))
                     {
-                      out.insert(out.end(), id + num_devices + neighbour);
+                      out.insert(out.end(), base_id + num_devices + neighbour);
                     }
                 }
             }
         }
 
-        // Inputs: previous layer nodes, Outputs: last node
+        // Nodes final_size - 1 - num_devices, ..., final_size - 1 - 1, Inputs: previous layer nodes, Outputs: last node
         {
           auto const  base_id            = new_dependencies.size();
           auto const &device_inputs_sink = bandwidth->get_input_nodes(block_graph_generation_params.ending_device_id);
 
           for (node_id_type k = 0; k < num_devices; ++k)
             {
-              auto const id = base_id + k;
               new_dependencies.emplace_back();
 
               auto &in  = new_dependencies.back().first;
@@ -594,18 +596,18 @@ namespace network_butcher
 
               for (auto const &neighbour : bandwidth->get_input_nodes(k))
                 {
-                  in.insert(in.end(), id - num_devices + neighbour);
+                  in.insert(in.end(), base_id - num_devices + neighbour);
                 }
 
               if (device_inputs_sink.contains(k) ||
                   bandwidth->check_weight(2, std::pair(k, block_graph_generation_params.ending_device_id)))
                 {
-                  out.insert(out.end(), id + num_devices);
+                  out.insert(out.end(), base_id + num_devices);
                 }
             }
         }
 
-        // The last layer is fully connected with the last node
+        // Node final_size-1, Inputs: previous layer nodes, Output: -
         {
           auto const  base_id            = new_dependencies.size();
           auto const &device_inputs_sink = bandwidth->get_input_nodes(block_graph_generation_params.ending_device_id);
@@ -644,15 +646,15 @@ namespace network_butcher
     new_nodes.front().content.first = block_graph_generation_params.starting_device_id;
     new_nodes.back().content.first  = block_graph_generation_params.ending_device_id;
 
-    if (transmission_weights == nullptr)
+    if (block_graph_generation_params.use_bandwidth_to_manage_connections)
       {
         return block_graph_type(
-          new_nodes, process_full_dependencies(new_nodes.size(), supp_size, this->original_graph.get_num_devices()));
+          new_nodes, process_partial_dependencies(new_nodes.size(), supp_size, this->original_graph.get_num_devices()));
       }
     else
       {
         return block_graph_type(
-          new_nodes, process_partial_dependencies(new_nodes.size(), supp_size, this->original_graph.get_num_devices()));
+          new_nodes, process_full_dependencies(new_nodes.size(), supp_size, this->original_graph.get_num_devices()));
       }
   }
 

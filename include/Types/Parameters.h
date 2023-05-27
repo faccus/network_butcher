@@ -132,6 +132,9 @@ namespace network_butcher::parameters
       /// Block Graph Generation mode for Butcher
       Block_Graph_Generation_Mode block_graph_mode;
 
+      /// Do we have to use the bandwidth to manage connections, i.e. determine if two devices can communicate?
+      bool use_bandwidth_to_manage_connections;
+
       /// Do we have to check for memory constraints?
       bool memory_constraint;
 

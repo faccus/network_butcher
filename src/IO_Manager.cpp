@@ -202,23 +202,50 @@ namespace network_butcher::io::IO_Manager
           bandwidth_type    band;
           access_delay_type acc;
 
+          // Check if the option is set
           if (len != 0)
             {
-              band = file(path, 0, std::numeric_limits<bandwidth_type>::min());
+              std::string tmp = file(path, 0, "");
+
+              // If it's empty, this means it was not provided. But that's not possible! We will default to unset.
+              if (tmp.empty())
+                {
+                  band = std::numeric_limits<access_delay_type>::min();
+                }
+              else
+                {
+                  // If it's not a valid double, it will throw!
+                  band = std::stod(tmp);
+                }
+
+              // If a second value was provided, we will perform a similar check as before.
               if (len == 2)
                 {
-                  acc = file(path, 1, std::numeric_limits<access_delay_type>::min());
+                  tmp = file(path, 1, "");
+
+                  if (tmp.empty())
+                    {
+                      acc = std::numeric_limits<access_delay_type>::min();
+                    }
+                  else
+                    {
+                      // If it's not a valid double, it will throw!
+                      acc = std::stod(tmp);
+                    }
                 }
+              // If not provided, we will default to 0.
               else
                 {
                   acc = 0.;
                 }
 
+              // If bandwidth was set negative, we will throw.
               if (band < 0 && band != std::numeric_limits<bandwidth_type>::min())
                 {
                   throw std::invalid_argument(error_msg("bandwidth", i, j));
                 }
 
+              // If access_time was set negative, we will throw.
               if (acc < 0 && acc != std::numeric_limits<access_delay_type>::min())
                 {
                   throw std::invalid_argument(error_msg("access delay", i, j));
@@ -247,7 +274,7 @@ namespace network_butcher::io::IO_Manager
                   continue;
                 }
 
-              auto const path_name = "/" + std::to_string(i) + "/" + std::to_string(j);
+              auto const path_name = "/from_" + std::to_string(i) + "_to_" + std::to_string(j);
               if (process_id_pair(i, j, "bandwidth" + path_name, file, weights[0]))
                 {
                   connections[i].second.insert(j);
@@ -343,6 +370,9 @@ namespace network_butcher::io::IO_Manager
 
       params.block_graph_generation_params.starting_device_id = file(basic_infos + "/starting_device_id", 0);
       params.block_graph_generation_params.ending_device_id   = file(basic_infos + "/ending_device_id", 0);
+
+      params.block_graph_generation_params.use_bandwidth_to_manage_connections =
+        file(basic_infos + "/use_bandwidth_to_manage_connections", false);
 
       params.block_graph_generation_params.block_graph_mode = read_block_graph_mode(file);
     };

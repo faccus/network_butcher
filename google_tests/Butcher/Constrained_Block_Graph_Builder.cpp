@@ -25,15 +25,17 @@ namespace
   using GraphType    = MWGraph<false, Node_type>;
 
   GraphType
-  basic_graph();
+  basic_graph(std::size_t num_devices = 2);
+
   GraphType
-  basic_graph2();
+  basic_graph2(std::size_t num_devices = 2);
+
 
   parameters::Parameters
-  eppstein_parameters();
+  full_connection_parameters();
 
   parameters::Parameters
-  lazy_eppstein_parameters();
+  partial_connection_parameters();
 
   template <class Graph>
   void
@@ -57,7 +59,7 @@ namespace
   TEST(BlockGraphBuilderTest, Devices)
   {
     auto graph  = basic_graph();
-    auto params = eppstein_parameters();
+    auto params = full_connection_parameters();
 
     Constrained_Block_Graph_Builder builder(graph, params);
 
@@ -75,7 +77,7 @@ namespace
   TEST(BlockGraphBuilderTest, ConstructionClassic)
   {
     auto graph  = basic_graph();
-    auto params = eppstein_parameters();
+    auto params = full_connection_parameters();
 
     Constrained_Block_Graph_Builder builder(graph, params);
 
@@ -100,7 +102,7 @@ namespace
   TEST(BlockGraphBuilderTest, ConstructionClassic2)
   {
     auto graph  = basic_graph2();
-    auto params = eppstein_parameters();
+    auto params = full_connection_parameters();
 
     Constrained_Block_Graph_Builder builder(graph, params);
 
@@ -117,7 +119,7 @@ namespace
   TEST(BlockGraphBuilderTest, ConstructionInput)
   {
     auto graph                                            = basic_graph();
-    auto params                                           = eppstein_parameters();
+    auto params                                           = full_connection_parameters();
     params.block_graph_generation_params.block_graph_mode = parameters::Block_Graph_Generation_Mode::input;
 
     Constrained_Block_Graph_Builder builder(graph, params);
@@ -142,7 +144,7 @@ namespace
   TEST(BlockGraphBuilderTest, ConstructionInput2)
   {
     auto graph                                            = basic_graph2();
-    auto params                                           = eppstein_parameters();
+    auto params                                           = full_connection_parameters();
     params.block_graph_generation_params.block_graph_mode = parameters::Block_Graph_Generation_Mode::input;
 
     Constrained_Block_Graph_Builder builder(graph, params);
@@ -165,7 +167,7 @@ namespace
   TEST(BlockGraphBuilderTest, ConstructionOutput)
   {
     auto graph                                            = basic_graph();
-    auto params                                           = eppstein_parameters();
+    auto params                                           = full_connection_parameters();
     params.block_graph_generation_params.block_graph_mode = parameters::Block_Graph_Generation_Mode::output;
 
     Constrained_Block_Graph_Builder builder(graph, params);
@@ -190,7 +192,7 @@ namespace
   TEST(BlockGraphBuilderTest, ConstructionOutput2)
   {
     auto graph                                            = basic_graph2();
-    auto params                                           = eppstein_parameters();
+    auto params                                           = full_connection_parameters();
     params.block_graph_generation_params.block_graph_mode = parameters::Block_Graph_Generation_Mode::output;
 
     Constrained_Block_Graph_Builder builder(graph, params);
@@ -211,10 +213,225 @@ namespace
   }
 
 
+  TEST(BlockGraphBuilderTest, CheckNeighbours)
+  {
+    auto graph  = basic_graph();
+    auto params = full_connection_parameters();
+
+    Constrained_Block_Graph_Builder builder(graph, params);
+
+    auto const block_graph = builder.construct_block_graph();
+
+    // Node 0 should be fully connected with the next one
+    std::set<node_id_type> tmp{1, 2};
+    ASSERT_EQ(block_graph.get_output_nodes(0), tmp);
+
+    // Nodes 1 and 2 should be connected with Node 0 (in), 3,4 (out)
+    tmp = std::set<node_id_type>{3, 4};
+    ASSERT_EQ(block_graph.get_input_nodes(1), std::set<node_id_type>{0});
+    ASSERT_EQ(block_graph.get_input_nodes(2), std::set<node_id_type>{0});
+    ASSERT_EQ(block_graph.get_output_nodes(1), tmp);
+    ASSERT_EQ(block_graph.get_output_nodes(2), tmp);
+
+
+    // Nodes 3 and 4 should be connected with Nodes 1,2 (in), 5,6 (out)
+    tmp = std::set<node_id_type>{1, 2};
+    ASSERT_EQ(block_graph.get_input_nodes(3), tmp);
+    ASSERT_EQ(block_graph.get_input_nodes(4), tmp);
+
+    tmp = std::set<node_id_type>{5, 6};
+    ASSERT_EQ(block_graph.get_output_nodes(3), tmp);
+    ASSERT_EQ(block_graph.get_output_nodes(4), tmp);
+
+
+    // Nodes 5 and 6 should be connected with Nodes 3,4 (in), 7,8 (out)
+    tmp = std::set<node_id_type>{3, 4};
+    ASSERT_EQ(block_graph.get_input_nodes(5), tmp);
+    ASSERT_EQ(block_graph.get_input_nodes(6), tmp);
+
+    tmp = std::set<node_id_type>{7, 8};
+    ASSERT_EQ(block_graph.get_output_nodes(5), tmp);
+    ASSERT_EQ(block_graph.get_output_nodes(6), tmp);
+
+    // Nodes 7 and 8 should be connected with Nodes 5,6 (in), 9 (out)
+    tmp = std::set<node_id_type>{5, 6};
+    ASSERT_EQ(block_graph.get_input_nodes(7), tmp);
+    ASSERT_EQ(block_graph.get_input_nodes(8), tmp);
+
+    tmp = std::set<node_id_type>{9};
+    ASSERT_EQ(block_graph.get_output_nodes(7), tmp);
+    ASSERT_EQ(block_graph.get_output_nodes(8), tmp);
+
+    // Node 9 should be connected with Nodes 7,8 (in)
+    tmp = std::set<node_id_type>{7, 8};
+    ASSERT_EQ(block_graph.get_input_nodes(9), tmp);
+  }
+
+  TEST(BlockGraphBuilderTest, CheckNeighbours2)
+  {
+    auto graph  = basic_graph(4);
+    auto params = partial_connection_parameters();
+
+    auto const &bandwidth = params.weights_params.bandwidth;
+
+    Constrained_Block_Graph_Builder builder(graph, params);
+
+    auto const block_graph = builder.construct_block_graph();
+
+    // Check output neighbours for node 0
+    std::set<node_id_type> tmp{};
+    for (auto const &neighbour : bandwidth->get_output_nodes(params.block_graph_generation_params.starting_device_id))
+      {
+        tmp.insert(neighbour + 1);
+      }
+    ASSERT_EQ(block_graph.get_output_nodes(0), tmp);
+
+
+    // Check input neighbours for 1->4 nodes
+    for (std::size_t i = 1; i < 5; ++i)
+      {
+        if (tmp.contains(i))
+          {
+            ASSERT_EQ(block_graph.get_input_nodes(i), std::set<node_id_type>{0});
+          }
+        else
+          {
+            ASSERT_EQ(block_graph.get_input_nodes(i), std::set<node_id_type>{});
+          }
+      }
+
+    // Check input neighbours for the 5->16 nodes
+    for (std::size_t i = 5; i < 17; ++i)
+      {
+        tmp.clear();
+        for (auto const &neighbour : bandwidth->get_input_nodes(block_graph[i].content.first))
+          {
+            tmp.insert(1 + neighbour + ((i - 5) / 4) * 4);
+          }
+        ASSERT_EQ(block_graph.get_input_nodes(i), tmp);
+      }
+
+    // Check output neighbours for the 1->12 nodes
+    for (std::size_t i = 1; i < 13; ++i)
+      {
+        tmp.clear();
+        for (auto const &neighbour : bandwidth->get_output_nodes(block_graph[i].content.first))
+          {
+            tmp.insert(5 + neighbour + ((i - 1) / 4) * 4);
+          }
+        ASSERT_EQ(block_graph.get_output_nodes(i), tmp);
+      }
+
+
+    // Check input neighbours for node 17
+    tmp.clear();
+    for (auto const &neighbour : bandwidth->get_input_nodes(params.block_graph_generation_params.ending_device_id))
+      {
+        tmp.insert(13 + neighbour);
+      }
+    ASSERT_EQ(block_graph.get_input_nodes(17), tmp);
+
+    // Check output neighbours for the 13->16 nodes
+    for (std::size_t i = 13; i < 17; ++i)
+      {
+        if (tmp.contains(i))
+          {
+            ASSERT_EQ(block_graph.get_output_nodes(i), std::set<node_id_type>{17});
+          }
+        else
+          {
+            ASSERT_EQ(block_graph.get_output_nodes(i), std::set<node_id_type>{});
+          }
+      }
+  }
+
+  TEST(BlockGraphBuilderTest, CheckNeighbours3)
+  {
+    auto graph  = basic_graph(4);
+    auto params = partial_connection_parameters();
+
+    params.weights_params.bandwidth->set_weight(1, std::make_pair(0, 2), std::make_pair(1., 0.));
+
+    auto const &bandwidth = params.weights_params.bandwidth;
+
+    Constrained_Block_Graph_Builder builder(graph, params);
+
+    auto const block_graph = builder.construct_block_graph();
+
+    // Check output neighbours for node 0
+    std::set<node_id_type> tmp{};
+    for (auto const &neighbour : bandwidth->get_output_nodes(params.block_graph_generation_params.starting_device_id))
+      {
+        tmp.insert(neighbour + 1);
+      }
+    tmp.insert(3);
+    ASSERT_EQ(block_graph.get_output_nodes(0), tmp);
+
+
+    // Check input neighbours for 1->4 nodes
+    for (std::size_t i = 1; i < 5; ++i)
+      {
+        if (tmp.contains(i))
+          {
+            ASSERT_EQ(block_graph.get_input_nodes(i), std::set<node_id_type>{0});
+          }
+        else
+          {
+            ASSERT_EQ(block_graph.get_input_nodes(i), std::set<node_id_type>{});
+          }
+      }
+
+    // Check input neighbours for the 5->16 nodes
+    for (std::size_t i = 5; i < 17; ++i)
+      {
+        tmp.clear();
+        for (auto const &neighbour : bandwidth->get_input_nodes(block_graph[i].content.first))
+          {
+            tmp.insert(1 + neighbour + ((i - 5) / 4) * 4);
+          }
+        ASSERT_EQ(block_graph.get_input_nodes(i), tmp);
+      }
+
+    // Check output neighbours for the 1->12 nodes
+    for (std::size_t i = 1; i < 13; ++i)
+      {
+        tmp.clear();
+        for (auto const &neighbour : bandwidth->get_output_nodes(block_graph[i].content.first))
+          {
+            tmp.insert(5 + neighbour + ((i - 1) / 4) * 4);
+          }
+        ASSERT_EQ(block_graph.get_output_nodes(i), tmp);
+      }
+
+
+    // Check input neighbours for node 17
+    tmp.clear();
+    ;
+    for (auto const &neighbour : bandwidth->get_input_nodes(params.block_graph_generation_params.ending_device_id))
+      {
+        tmp.insert(13 + neighbour);
+      }
+    ASSERT_EQ(block_graph.get_input_nodes(17), tmp);
+
+    // Check output neighbours for the 13->16 nodes
+    for (std::size_t i = 13; i < 17; ++i)
+      {
+        if (tmp.contains(i))
+          {
+            ASSERT_EQ(block_graph.get_output_nodes(i), std::set<node_id_type>{17});
+          }
+        else
+          {
+            ASSERT_EQ(block_graph.get_output_nodes(i), std::set<node_id_type>{});
+          }
+      }
+  }
+
+
   TEST(BlockGraphBuilderTest, TransmissionWeights)
   {
     auto graph                                            = basic_graph();
-    auto params                                           = eppstein_parameters();
+    auto params                                           = full_connection_parameters();
     params.block_graph_generation_params.block_graph_mode = parameters::Block_Graph_Generation_Mode::output;
 
     Constrained_Block_Graph_Builder builder(graph, params);
@@ -247,7 +464,7 @@ namespace
   TEST(BlockGraphBuilderTest, WeightsBlockSingle)
   {
     auto graph                                            = basic_graph();
-    auto params                                           = eppstein_parameters();
+    auto params                                           = full_connection_parameters();
     params.block_graph_generation_params.block_graph_mode = parameters::Block_Graph_Generation_Mode::output;
     params.weights_params.weight_import_mode              = parameters::Weight_Import_Mode::block_single_direct_read;
 
@@ -279,7 +496,7 @@ namespace
   TEST(BlockGraphBuilderTest, WeightsBlockMultiple)
   {
     auto graph                                            = basic_graph();
-    auto params                                           = eppstein_parameters();
+    auto params                                           = full_connection_parameters();
     params.block_graph_generation_params.block_graph_mode = parameters::Block_Graph_Generation_Mode::output;
     params.weights_params.weight_import_mode              = parameters::Weight_Import_Mode::block_multiple_direct_read;
 
@@ -313,7 +530,7 @@ namespace
 
 
   GraphType
-  basic_graph()
+  basic_graph(std::size_t num_devices)
   {
     std::vector<Node_type> nodes;
 
@@ -327,11 +544,11 @@ namespace
     nodes.emplace_back(std::move(Content_Builder<Input>().set_input({{"X5", 5}}).set_output({{"X6", 6}})).build());
     nodes.emplace_back(std::move(Content_Builder<Input>().set_input({{"X6", 6}}).set_output({{"X7", 7}})).build());
 
-    return GraphType(2, std::move(nodes));
+    return GraphType(num_devices, std::move(nodes));
   }
 
   GraphType
-  basic_graph2()
+  basic_graph2(std::size_t num_devices)
   {
     std::vector<Node_type> nodes;
 
@@ -342,8 +559,9 @@ namespace
       std::move(Content_Builder<Input>().set_input({{"X1", 1}, {"X2", 2}}).set_output({{"X3", 3}})).build());
     nodes.emplace_back(std::move(Content_Builder<Input>().set_input({{"X3", 3}}).set_output({{"X4", 4}})).build());
 
-    return GraphType(2, std::move(nodes));
+    return GraphType(num_devices, std::move(nodes));
   }
+
 
   std::function<type_weight(edge_type const &, std::size_t, std::size_t)>
   basic_transmission(std::size_t devices, std::size_t size)
@@ -380,9 +598,8 @@ namespace
 
 
   parameters::Parameters
-  eppstein_parameters()
+  full_connection_parameters()
   {
-    using g_type = parameters::Parameters::Weights::connection_type::element_type;
     parameters::Parameters res;
 
     res.ksp_params.K      = 5;
@@ -392,31 +609,9 @@ namespace
     for (std::size_t i = 0; i < res.devices.size(); ++i)
       res.devices[i].id = i;
 
-    g_type::Dependencies_Type deps(2);
-    for (std::size_t i = 0; i < 2; ++i)
-      {
-        for (std::size_t j = 0; j < 2; ++j)
-          {
-            deps[i].second.insert(j);
-            deps[j].first.insert(i);
-          }
-      }
-
-    res.weights_params.bandwidth = std::make_unique<g_type>(3, g_type::Node_Collection_Type(2), deps);
-
-    for (std::size_t i = 0; i < 2; ++i)
-      {
-        for (std::size_t j = 0; j < 2; ++j)
-          {
-            if (i != j)
-              {
-                res.weights_params.bandwidth->set_weight(0, std::make_pair(i, j), std::make_pair(1., 0.));
-              }
-          }
-      }
-
     res.block_graph_generation_params.memory_constraint_type = parameters::Memory_Constraint_Type::None;
     res.block_graph_generation_params.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
+    res.block_graph_generation_params.use_bandwidth_to_manage_connections = false;
 
     res.block_graph_generation_params.starting_device_id = 0;
     res.block_graph_generation_params.ending_device_id   = 0;
@@ -425,22 +620,33 @@ namespace
   }
 
   parameters::Parameters
-  lazy_eppstein_parameters()
+  partial_connection_parameters()
   {
+    using g_type = parameters::Parameters::Weights::connection_type::element_type;
     parameters::Parameters res;
 
     res.ksp_params.K      = 5;
     res.ksp_params.method = parameters::KSP_Method::Lazy_Eppstein;
-    res.devices           = std::vector<parameters::Device>(2);
+    res.devices           = std::vector<parameters::Device>(4);
 
     for (std::size_t i = 0; i < res.devices.size(); ++i)
       res.devices[i].id = i;
 
     res.block_graph_generation_params.memory_constraint_type = parameters::Memory_Constraint_Type::None;
     res.block_graph_generation_params.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
+    res.block_graph_generation_params.use_bandwidth_to_manage_connections = true;
+
+    g_type::Dependencies_Type deps(4);
+    deps[0] = std::make_pair(std::set<node_id_type>{0}, std::set<node_id_type>{0, 1, 3});
+    deps[1] = std::make_pair(std::set<node_id_type>{0, 1, 2}, std::set<node_id_type>{1, 2});
+    deps[2] = std::make_pair(std::set<node_id_type>{1, 2}, std::set<node_id_type>{1, 2, 3});
+    deps[3] = std::make_pair(std::set<node_id_type>{0, 2, 3}, std::set<node_id_type>{3});
+
+    res.weights_params.bandwidth = std::make_unique<g_type>(4, g_type::Node_Collection_Type(4), std::move(deps));
+
 
     res.block_graph_generation_params.starting_device_id = 0;
-    res.block_graph_generation_params.ending_device_id   = 0;
+    res.block_graph_generation_params.ending_device_id   = 3;
 
     return res;
   }

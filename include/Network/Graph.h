@@ -43,8 +43,7 @@ namespace network_butcher::types
     {
       for (node_id_type i = 0; i < nodes.size(); ++i)
         {
-          Node &node = nodes[i];
-          node.set_id(i);
+          nodes[i].set_id(i);
         }
     }
 
@@ -206,8 +205,7 @@ namespace network_butcher::types
     {
       for (node_id_type i = 0; i < nodes.size(); ++i)
         {
-          Node &node = nodes[i];
-          node.set_id(i);
+          nodes[i].set_id(i);
         }
     }
 
@@ -218,8 +216,7 @@ namespace network_butcher::types
     {
       for (node_id_type i = 0; i < nodes.size(); ++i)
         {
-          Node &node = nodes[i];
-          node.set_id(i);
+          nodes[i].set_id(i);
         }
 
       compute_dependencies();
