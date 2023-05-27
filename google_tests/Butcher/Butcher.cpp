@@ -218,32 +218,9 @@ namespace
     for (std::size_t i = 0; i < res.devices.size(); ++i)
       res.devices[i].id = i;
 
-    g_type::Dependencies_Type deps(num_devices);
-    for (std::size_t i = 0; i < num_devices; ++i)
-      {
-        for (std::size_t j = 0; j < num_devices; ++j)
-          {
-            deps[i].second.insert(j);
-            deps[j].first.insert(i);
-          }
-      }
-
-    res.weights_params.bandwidth = std::make_unique<g_type>(3, g_type::Node_Collection_Type(num_devices), deps);
-
-    for (std::size_t i = 0; i < num_devices; ++i)
-      {
-        for (std::size_t j = 0; j < num_devices; ++j)
-          {
-            if (i != j)
-              {
-                res.weights_params.bandwidth->set_weight(0, std::make_pair(i, j), std::make_pair(1., 0.));
-              }
-          }
-      }
-
-
     res.block_graph_generation_params.memory_constraint_type = parameters::Memory_Constraint_Type::None;
     res.block_graph_generation_params.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
+    res.block_graph_generation_params.use_bandwidth_to_manage_connections = false;
 
     res.block_graph_generation_params.starting_device_id = 0;
     res.block_graph_generation_params.ending_device_id   = 0;

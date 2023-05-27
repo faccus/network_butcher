@@ -26,7 +26,7 @@ namespace
 
   TEST(GeneralManagerTest, boot_test)
   {
-    execute_boot("ksp_result", "test_data/configs/test_parameters.conf");
+    execute_boot("ksp_result", "test_data/configs/test1_parameters.conf");
   }
 
   TEST(GeneralManagerTest, boot_test2)

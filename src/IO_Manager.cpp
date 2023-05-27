@@ -298,7 +298,7 @@ namespace network_butcher::io::IO_Manager
     };
     auto const read_k_method = [basic_infos](auto &file) {
       std::string const method = network_butcher::Utilities::trim_copy(
-        network_butcher::Utilities::to_lowercase_copy(file(basic_infos + "/method", "")));
+        network_butcher::Utilities::to_lowercase_copy(file(basic_infos + "/method", "lazy_eppstein")));
 
       if (method == "eppstein")
         {
@@ -460,6 +460,7 @@ namespace network_butcher::io::IO_Manager
   {
     if (network_butcher::Utilities::directory_exists(params.model_params.export_directory))
       network_butcher::Utilities::directory_delete(params.model_params.export_directory);
+
     network_butcher::Utilities::create_directory(params.model_params.export_directory);
 
     Utilities::output_onnx_file(model,

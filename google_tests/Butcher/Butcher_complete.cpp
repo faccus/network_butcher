@@ -102,8 +102,7 @@ namespace
   }
 
 
-  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)> basic_transmission(std::size_t,
-                                                                                                std::size_t);
+  std::function<type_weight(edge_type const &, std::size_t, std::size_t)> basic_transmission(std::size_t, std::size_t);
 
 
   void
@@ -115,16 +114,16 @@ namespace
 
   TEST(ButcherTest, compute_k_shortest_paths_test_network_basic_weights)
   {
-    std::string path      = "test_data/models/resnet18-v2-7-inferred";
-    std::string extension = ".onnx";
+    std::string path        = "test_data/models/resnet18-v2-7-inferred";
+    std::string extension   = ".onnx";
+    std::size_t num_devices = 3;
 
-    Butcher butcher(std::get<0>(io::IO_Manager::import_from_onnx(path + extension)));
+    Butcher butcher(std::get<0>(io::IO_Manager::import_from_onnx(path + extension, true, true, num_devices)));
 
     auto       &graph = butcher.get_graph_ref();
     auto const &nodes = graph.get_nodes();
     auto const  k     = 1000;
 
-    std::size_t                          num_devices = 3;
     std::vector<type_collection_weights> weight_maps;
 
 
@@ -203,7 +202,8 @@ namespace
 
         std::cout << "Test number #" << (num_test + 1) << ", Lazy: " << time_instance_lazy / 1000
                   << " ms, Epp: " << time_instance_std / 1000 << " ms"
-                  << "Average Lazy: " << time_lazy / ((num_test + 1) * 1000) << std::endl;
+                  << "Average Lazy: " << time_lazy / ((num_test + 1) * 1000) << ", Found path: " << lazy_eppstein.size()
+                  << std::endl;
       }
 
     std::cout << "Lazy Eppstein: " << time_lazy / 1000 / number_of_tests << " milliseconds" << std::endl;
@@ -231,10 +231,11 @@ namespace
     return Butcher(std::move(graph_cons));
   }
 
-  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+  std::function<type_weight(edge_type const &, std::size_t, std::size_t)>
   basic_transmission(std::size_t devices, std::size_t size)
   {
-    return [devices, size](node_id_type const &input, std::size_t first, std::size_t second) {
+    return [devices, size](edge_type const &in_edge, std::size_t first, std::size_t second) {
+      auto const &[input, tmp] = in_edge;
       if (0 <= input && input < size && first < devices && second < devices)
         {
           auto in_device_id  = first;
@@ -291,7 +292,7 @@ namespace
   real_butcher()
   {
     std::string const path  = "test_data/models/version-RFB-640-inferred.onnx"; //"version-RFB-640.onnx";
-    auto              tuple = io::IO_Manager::import_from_onnx(path, true, 3);
+    auto              tuple = io::IO_Manager::import_from_onnx(path, true, true, 3);
     auto             &graph = std::get<0>(tuple);
 
     Parameters params;
@@ -312,13 +313,47 @@ namespace
   base_parameters(std::size_t k, bool backward, std::size_t num_devices)
   {
     Parameters res;
-    res.ksp_params.K                                               = k;
-    res.block_graph_generation_params.backward_connections_allowed = backward;
-    res.devices                                                    = std::vector<Device>(num_devices);
-    res.weights_params.weight_import_mode                          = parameters::Weight_Import_Mode::single_direct_read;
+    res.ksp_params.K                      = k;
+    res.devices                           = std::vector<Device>(num_devices);
+    res.weights_params.weight_import_mode = parameters::Weight_Import_Mode::single_direct_read;
+    res.block_graph_generation_params.use_bandwidth_to_manage_connections = false;
 
     for (std::size_t i = 0; i < res.devices.size(); ++i)
       res.devices[i].id = i;
+
+    if (backward)
+      {
+        using g_type = parameters::Parameters::Weights::connection_type::element_type;
+        g_type::Dependencies_Type deps(num_devices);
+
+        for (std::size_t i = 0; i < num_devices; ++i)
+          {
+            for (std::size_t j = i; j < num_devices; ++j)
+              {
+                deps[i].second.insert(j);
+                deps[j].first.insert(i);
+              }
+          }
+
+        res.block_graph_generation_params.use_bandwidth_to_manage_connections = true;
+        res.weights_params.bandwidth =
+          std::make_unique<g_type>(3, g_type::Node_Collection_Type(num_devices), std::move(deps));
+
+        for (std::size_t i = 0; i < num_devices; ++i)
+          {
+            for (std::size_t j = i + 1; j < num_devices; ++j)
+              {
+                res.weights_params.bandwidth->set_weight(0, std::make_pair(i, j), std::make_pair(1., 0.));
+              }
+
+            for (std::size_t j = 0; j < i; ++j)
+              {
+                res.weights_params.bandwidth->set_weight(1, std::make_pair(i, j), std::make_pair(1., 0.));
+                res.weights_params.bandwidth->set_weight(2, std::make_pair(i, j), std::make_pair(1., 0.));
+              }
+          }
+      }
+
 
     res.block_graph_generation_params.memory_constraint_type = Memory_Constraint_Type::None;
     res.block_graph_generation_params.starting_device_id     = 0;

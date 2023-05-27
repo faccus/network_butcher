@@ -18,7 +18,7 @@ namespace
 
     ASSERT_EQ(params.model_params.model_name, "ResNet");
     ASSERT_EQ(params.model_params.model_path, "test_data/models/resnet18-v2-7-inferred.onnx");
-    ASSERT_EQ(params.model_params.export_directory, "ksp_result5");
+    ASSERT_EQ(params.model_params.export_directory, "ksp_result6");
 
     ASSERT_EQ(params.ksp_params.K, 12);
     ASSERT_EQ(params.ksp_params.method, parameters::KSP_Method::Lazy_Eppstein);
@@ -31,10 +31,13 @@ namespace
     ASSERT_EQ(params.devices.size(), 2);
 
     ASSERT_EQ(params.weights_params.weight_import_mode, parameters::Weight_Import_Mode::aMLLibrary_block);
+
+    ASSERT_EQ(params.aMLLibrary_params.aMLLibrary_inference_variables.size(), 2);
     ASSERT_EQ(params.aMLLibrary_params.aMLLibrary_inference_variables[0], "1stInfTime");
     ASSERT_EQ(params.aMLLibrary_params.aMLLibrary_inference_variables[1], "2ndInfTime");
 
     std::vector<std::string> vect{"tensorLength", "networkingTime", "NrParameters", "NrNodes", "Memory", "MACs"};
+    ASSERT_EQ(params.aMLLibrary_params.aMLLibrary_csv_features.size(), vect.size());
     ASSERT_EQ(params.aMLLibrary_params.aMLLibrary_csv_features, vect);
 
     for (std::size_t i = 0; i < params.devices.size(); ++i)
@@ -56,6 +59,19 @@ namespace
 
     ASSERT_EQ(bandwidth, 18.88);
     ASSERT_EQ(access, 0.005);
+
+    ASSERT_FALSE(params.weights_params.bandwidth->get_input_nodes(0).contains(1));
+    auto const &[in_bandwidth, in_access] = params.weights_params.bandwidth->get_weight(1, std::make_pair(1, 0));
+    ASSERT_EQ(in_bandwidth, 100000.);
+    ASSERT_EQ(in_access, 1.);
+
+    auto const &[out_bandwidth, out_access] = params.weights_params.bandwidth->get_weight(2, std::make_pair(1, 0));
+    ASSERT_EQ(out_bandwidth, 200000.);
+    ASSERT_EQ(out_access, 2.);
+
+    ASSERT_FALSE(params.weights_params.bandwidth->check_weight(0, std::make_pair(1, 0)));
+    ASSERT_FALSE(params.weights_params.bandwidth->check_weight(1, std::make_pair(0, 1)));
+    ASSERT_FALSE(params.weights_params.bandwidth->check_weight(2, std::make_pair(0, 1)));
   }
 
   TEST(IOManagerTest, ImportOnnx)

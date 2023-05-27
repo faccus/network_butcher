@@ -163,7 +163,10 @@ namespace network_butcher::io
 
         out_file << std::endl;
 
-        out_file << "Number of found paths: " << paths.size() << std::endl;
+        out_file << "Number of found paths: " << paths.size() << std::endl << std::endl;
+
+        out_file << "Imported Bandwidth: " << std::endl;
+        out_file << params.weights_params.bandwidth->print_graph() << std::endl;
 
         out_file.close();
       }

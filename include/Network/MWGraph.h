@@ -137,6 +137,63 @@ namespace network_butcher::types
       return weigth_map.size();
     }
 
+    /// Simple helper function that will print the graph
+    /// \return The graph description
+    [[nodiscard]] std::string
+    print_graph() const
+    {
+      std::stringstream builder;
+      builder << "In Out Weight_Map_Id Weight" << std::endl;
+
+      for (auto const &node : Parent_type::nodes)
+        {
+          for (auto const &out : Parent_type::get_output_nodes(node.get_id()))
+            {
+              std::string base_tmp = std::to_string(node.get_id()) + " " + std::to_string(out) + " ";
+              for (std::size_t i = 0; i < weigth_map.size(); ++i)
+                {
+                  auto const &map = weigth_map[i];
+
+                  if constexpr (Parallel_Edges)
+                    {
+                      std::string new_base = base_tmp + std::to_string(i) + " ";
+                      auto        it       = map.find(std::make_pair(node.get_id(), out));
+                      if (it != map.cend())
+                        {
+                          for (auto const &w : it->second)
+                            {
+                              builder << new_base << Utilities::custom_to_string(w) << std::endl;
+                            }
+                        }
+                      else
+                        {
+                          builder << "$" << std::endl;
+                        }
+                    }
+                  else
+                    {
+                      builder << base_tmp << std::to_string(i) << " ";
+
+                      auto it = map.find(std::make_pair(node.get_id(), out));
+                      if (it != map.cend())
+                        {
+                          builder << Utilities::custom_to_string(it->second);
+                        }
+                      else
+                        {
+                          builder << "$";
+                        }
+
+                      builder << std::endl;
+                    }
+                }
+            }
+        }
+
+      return builder.str();
+    }
+
+
     ~MWGraph() override = default;
   };
 
@@ -268,6 +325,62 @@ namespace network_butcher::types
     get_num_devices() const
     {
       return weigth_map.size();
+    }
+
+    /// Simple helper function that will print the graph
+    /// \return The graph description
+    [[nodiscard]] std::string
+    print_graph() const
+    {
+      std::stringstream builder;
+      builder << "In Out Weight_Map_Id Weight";
+
+      for (auto const &node : Parent_type::nodes)
+        {
+          for (auto const &out : Parent_type::get_output_nodes(node.get_id()))
+            {
+              std::string base_tmp = std::to_string(node.get_id()) + " " + std::to_string(out) + " ";
+              for (std::size_t i = 0; i < weigth_map.size(); ++i)
+                {
+                  auto const &map = weigth_map[i];
+
+                  if constexpr (Parallel_Edges)
+                    {
+                      std::string new_base = base_tmp + std::to_string(i) + " ";
+                      auto        it       = map.find(std::make_pair(node.get_id(), out));
+                      if (it != map.cend())
+                        {
+                          for (auto const &w : it->second)
+                            {
+                              builder << new_base << std::to_string(w) << std::endl;
+                            }
+                        }
+                      else
+                        {
+                          builder << "$" << std::endl;
+                        }
+                    }
+                  else
+                    {
+                      builder << base_tmp << std::to_string(i) << " ";
+
+                      auto it = map.find(std::make_pair(node.get_id(), out));
+                      if (it != map.cend())
+                        {
+                          builder << std::to_string(it->second);
+                        }
+                      else
+                        {
+                          builder << "$";
+                        }
+
+                      builder << std::endl;
+                    }
+                }
+            }
+        }
+
+      return builder.str();
     }
 
     ~MWGraph() override = default;
