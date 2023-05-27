@@ -47,4 +47,10 @@ namespace
     std::filesystem::remove(model_path_copy);
   }
 
+  TEST(UtilitiesTest, CustomToString) {
+    ASSERT_EQ(Utilities::custom_to_string(501), "501");
+    ASSERT_EQ(Utilities::custom_to_string(std::make_pair(501, 502)), "501 502");
+    ASSERT_EQ(Utilities::custom_to_string(std::make_tuple(501, 502)), "");
+  }
+
 } // namespace

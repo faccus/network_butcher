@@ -18,6 +18,42 @@
 
 namespace network_butcher::Utilities
 {
+
+  /// Simple function that will apply std::to_string, if available
+  /// \tparam T The type of the object to convert to string
+  /// \param obj The object of type T to be converted to a string
+  /// \return The string
+  template <typename T>
+    requires requires(T const &a) { std::to_string(a); }
+  std::string
+  custom_to_string(T const &obj)
+  {
+    return std::to_string(obj);
+  }
+
+  /// Simple function that will apply std::to_string, if available
+  /// \tparam T The type of the object to convert to string
+  /// \param obj The object of type T to be converted to a string
+  /// \return The string
+  template <typename T>
+  std::string
+  custom_to_string(T const &obj)
+  {
+    return "";
+  }
+
+  /// Simple function that will apply std::to_string, if available
+  /// \tparam T The type of the object to convert to string
+  /// \param obj The object of type T to be converted to a string
+  /// \return The string
+  template <typename T>
+  std::string
+  custom_to_string(std::pair<T, T> const &obj)
+  {
+    return custom_to_string(obj.first) + " " + custom_to_string(obj.second);
+  }
+
+
   /// From onnx::TensorProto_DataType_*, it will return the size of the respective type in bytes
   /// \param input The onnx_type
   /// \return The memory usage of the type
