@@ -36,7 +36,7 @@ namespace network_butcher::io::Weight_importer_helpers
   /// \param column_suffix A suffix to place after the column name in the result object
   /// \param only_non_negative It will convert negative weights to zeros
   /// \return The numeric columns in a map
-  csv_result_type<double>
+  csv_result_type<weight_type>
   read_csv_numerics(std::string const              &path,
                     char                            separator,
                     std::vector<std::string> const &columns_to_read,

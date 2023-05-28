@@ -37,7 +37,7 @@ class network_butcher::kfinder::Weighted_Graph<TestGraph<T>,
                                                t_Reversed,
                                                typename TestGraph<T>::Node_Type,
                                                typename TestGraph<T>::Node_Collection_Type,
-                                               double> : base_Weighted_Graph
+                                               long double> : base_Weighted_Graph
 {
 public:
   using Node_Id_Type = std::size_t;

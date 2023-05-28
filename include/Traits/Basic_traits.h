@@ -39,7 +39,7 @@ namespace network_butcher
 
 
   using operation_id_type       = std::string;
-  using weight_type             = double;
+  using weight_type             = long double;
   using weights_collection_type = std::map<edge_type, weight_type>;
 } // namespace network_butcher
 

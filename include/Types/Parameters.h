@@ -80,7 +80,8 @@ namespace network_butcher::parameters
     {
       using connection_information_type = std::pair<bandwidth_type, access_delay_type>;
       using connection_type             = std::unique_ptr<
-        network_butcher::types::MWGraph<false, network_butcher::types::Node, connection_information_type>>;
+        network_butcher::types::WGraph<false, network_butcher::types::Node, connection_information_type>>;
+      using io_connection_type = std::map<edge_type, connection_information_type>;
 
       /// Mode for weight import
       Weight_Import_Mode weight_import_mode;
@@ -94,10 +95,10 @@ namespace network_butcher::parameters
       /// The separator
       char separator;
 
-      /// The bandwidth information between the different devices (Mbps - s). The first map will be associated
-      /// to standard connections between layers, the second one to the input padding node while the third one
-      /// to the output padding node.
-      connection_type bandwidth;
+      /// The bandwidth information between the different devices (Mbps , s).
+      connection_type    bandwidth;
+      io_connection_type in_bandwidth;
+      io_connection_type out_bandwidth;
     };
 
     struct Model

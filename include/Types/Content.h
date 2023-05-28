@@ -20,9 +20,14 @@ namespace network_butcher::types
   class Content
   {
   public:
-    using io_collection        = io_collection_type<T>;
+    /// Inputs, Outputs and parameters are of this type
+    using io_collection = io_collection_type<T>;
+
+    /// The attributes are of this type
     using attribute_collection = std::unordered_map<std::string, DynamicType>;
-    using Element_Type         = T;
+
+    /// The type of the elements stored in io_collection (indexed by std::string)
+    using Element_Type = T;
 
   private:
     friend class Content_Builder<T>;
@@ -45,6 +50,21 @@ namespace network_butcher::types
     Content() = default;
 
   public:
+    /// Constructor of Content. It requires all the options. If they are not available, use the builder class
+    /// \param in input
+    /// \param out output
+    /// \param params parameters
+    /// \param attrs attributes
+    /// \param op_id operation_id
+    template <typename A, typename B, typename C, typename D, typename E>
+    Content(A &&in, B &&out, C &&params, D &&attrs, E &&op_id)
+      : input(std::forward<A>(in))
+      , output(std::forward<B>(out))
+      , parameters(std::forward<C>(params))
+      , attributes(std::forward<D>(attrs))
+      , operation_id(std::forward<E>(op_id))
+    {}
+
     /// Read-only getter for input
     /// \return Const reference to input
     inline const io_collection &
@@ -91,70 +111,99 @@ namespace network_butcher::types
   };
 
 
+  /// Simple builder class for Content.
+  /// \tparam T
   template <typename T>
   class Content_Builder
   {
   public:
     using Content_Type = Content<T>;
 
-    template <typename A = decltype(Content<T>::input)>
+    /// Add the specified input to Content (using perfect forwarding)
+    /// \param in The input field of Content
+    /// \return A reference to the builder
+    template <typename A = decltype(Content_Type::input)>
     Content_Builder &
     set_input(A &&in)
-      requires std::is_assignable_v<A, decltype(Content<T>::input)>
     {
       res.input = std::forward<A>(in);
       return *this;
     }
 
-    template <typename A = decltype(Content<T>::output)>
+    /// Add the specified input to Content (using perfect forwarding)
+    /// \param out The output field of Content
+    /// \return A reference to the builder
+    template <typename A = decltype(Content_Type::output)>
     Content_Builder &
     set_output(A &&out)
-      requires std::is_assignable_v<A, decltype(Content<T>::output)>
     {
       res.output = std::forward<A>(out);
       return *this;
     }
 
-    template <typename A = decltype(Content<T>::parameters)>
+
+    /// Add the specified input to Content (using perfect forwarding)
+    /// \param params The parameters field of Content
+    /// \return A reference to the builder
+    template <typename A = decltype(Content_Type::parameters)>
     Content_Builder &
     set_parameters(A &&params)
-      requires std::is_assignable_v<A, decltype(Content<T>::parameters)>
     {
       res.parameters = std::forward<A>(params);
       return *this;
     }
 
-    template <typename A = decltype(Content<T>::attributes)>
+
+    /// Add the specified input to Content (using perfect forwarding)
+    /// \param attributes The attributes field of Content
+    /// \return A reference to the builder
+    template <typename A = decltype(Content_Type::attributes)>
     Content_Builder &
     set_attributes(A &&attributes)
-      requires std::is_assignable_v<A, decltype(Content<T>::attributes)>
     {
       res.attributes = std::forward<A>(attributes);
       return *this;
     }
 
-    template <typename A = decltype(Content<T>::operation_id)>
+
+    /// Add the specified input to Content (using perfect forwarding)
+    /// \param operation_id The operation_id field of Content
+    /// \return A reference to the builder
+    template <typename A = decltype(Content_Type::operation_id)>
     Content_Builder &
     set_operation_id(A &&operation_id)
-      requires std::is_assignable_v<A, decltype(Content<T>::operation_id)>
     {
       res.operation_id = std::forward<A>(operation_id);
       return *this;
     }
 
+    /// Build the Content object. Notice that it can only be called if the builder is a rvalue.
+    /// \return The moved content
     auto
     build() &&
     {
       return std::move(res);
     }
 
+    /// Default constructor
     Content_Builder() = default;
+
+    /// Copy constructor and copy assignment are deleted
+    Content_Builder(const Content_Builder &) = delete;
+    Content_Builder &
+    operator=(const Content_Builder &) = delete;
+
+    /// Move constructor and move assignment are deleted
+    Content_Builder(Content_Builder &&) = delete;
+    Content_Builder &
+    operator=(Content_Builder &&) = delete;
+
+    /// Destructor
+    ~Content_Builder() = default;
 
   private:
     Content_Type res;
   };
-
-
 } // namespace network_butcher::types
 
 #endif // NETWORK_BUTCHER_CONTENT_H

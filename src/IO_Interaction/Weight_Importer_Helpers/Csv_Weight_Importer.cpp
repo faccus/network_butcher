@@ -41,6 +41,13 @@ namespace network_butcher::io
 
             ++it;
           }
+
+        // The edges to the padding node should not have any weight (but it must be set to avoid errors later on).
+        auto const last_id = graph.get_nodes().back().get_id();
+        for (auto const &in : graph.get_input_nodes(last_id))
+          {
+            graph.set_weight(devices[i], {in, last_id}, 0.);
+          }
       }
   }
 
@@ -96,6 +103,13 @@ namespace network_butcher::io
 
             skip_device(it, devices.size());
           }
+      }
+
+    // The edges to the padding node should not have any weight (but it must be set to avoid errors later on).
+    auto const last_id = graph.get_nodes().back().get_id();
+    for (auto const &in : graph.get_input_nodes(last_id))
+      {
+        graph.set_weight({in, last_id}, 0.);
       }
   }
 } // namespace network_butcher::io

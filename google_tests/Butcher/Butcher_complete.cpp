@@ -337,19 +337,19 @@ namespace
 
         res.block_graph_generation_params.use_bandwidth_to_manage_connections = true;
         res.weights_params.bandwidth =
-          std::make_unique<g_type>(3, g_type::Node_Collection_Type(num_devices), std::move(deps));
+          std::make_unique<g_type>(g_type::Node_Collection_Type(num_devices), std::move(deps));
 
         for (std::size_t i = 0; i < num_devices; ++i)
           {
             for (std::size_t j = i + 1; j < num_devices; ++j)
               {
-                res.weights_params.bandwidth->set_weight(0, std::make_pair(i, j), std::make_pair(1., 0.));
+                res.weights_params.bandwidth->set_weight(std::make_pair(i, j), std::make_pair(1., 0.));
               }
 
             for (std::size_t j = 0; j < i; ++j)
               {
-                res.weights_params.bandwidth->set_weight(1, std::make_pair(i, j), std::make_pair(1., 0.));
-                res.weights_params.bandwidth->set_weight(2, std::make_pair(i, j), std::make_pair(1., 0.));
+                res.weights_params.in_bandwidth[std::make_pair(i, j)] = std::make_pair(1., 0.);
+                res.weights_params.out_bandwidth[std::make_pair(i, j)] = std::make_pair(1., 0.);
               }
           }
       }

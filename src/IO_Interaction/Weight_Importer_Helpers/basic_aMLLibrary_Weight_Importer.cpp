@@ -12,7 +12,7 @@ namespace network_butcher::io
     if(weights_params.bandwidth->size() != 2)
       throw std::logic_error("aMLLibrary only supports graphs with two devices");
 
-    if(weights_params.bandwidth->check_weight(0, std::make_pair(1, 0)))
+    if(weights_params.bandwidth->check_weight(std::make_pair(1, 0)))
       throw std::logic_error("aMLLibrary doesn't support backward connections");
 #else
     throw std::logic_error("aMLLibrary not supported. Please compile with PYBIND_ACTIVE"); //

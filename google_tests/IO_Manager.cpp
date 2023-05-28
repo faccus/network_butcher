@@ -53,25 +53,33 @@ namespace
     ASSERT_EQ(params.devices[1].maximum_memory, 32 * gb);
     ASSERT_EQ(params.devices[1].weights_path, "test_data/aMLLibrary_data/models/test1_2.pickle");
 
-    ASSERT_TRUE(params.weights_params.bandwidth->check_weight(0, std::make_pair(0, 1)));
+    ASSERT_TRUE(params.weights_params.bandwidth->check_weight(std::make_pair(0, 1)));
 
-    auto const &[bandwidth, access] = params.weights_params.bandwidth->get_weight(0, std::make_pair(0, 1));
+    auto const &[bandwidth, access] = params.weights_params.bandwidth->get_weight(std::make_pair(0, 1));
 
     ASSERT_EQ(bandwidth, 18.88);
     ASSERT_EQ(access, 0.005);
 
     ASSERT_FALSE(params.weights_params.bandwidth->get_input_nodes(0).contains(1));
-    auto const &[in_bandwidth, in_access] = params.weights_params.bandwidth->get_weight(1, std::make_pair(1, 0));
+    auto in_it = params.weights_params.in_bandwidth.find(std::make_pair(1, 0));
+    ASSERT_NE(in_it, params.weights_params.in_bandwidth.cend());
+
+    auto const &[in_bandwidth, in_access] = in_it->second;
     ASSERT_EQ(in_bandwidth, 100000.);
     ASSERT_EQ(in_access, 1.);
 
-    auto const &[out_bandwidth, out_access] = params.weights_params.bandwidth->get_weight(2, std::make_pair(1, 0));
+    auto out_it = params.weights_params.out_bandwidth.find(std::make_pair(1, 0));
+    ASSERT_NE(out_it, params.weights_params.out_bandwidth.cend());
+
+    auto const &[out_bandwidth, out_access] = out_it->second;
     ASSERT_EQ(out_bandwidth, 200000.);
     ASSERT_EQ(out_access, 2.);
 
-    ASSERT_FALSE(params.weights_params.bandwidth->check_weight(0, std::make_pair(1, 0)));
-    ASSERT_FALSE(params.weights_params.bandwidth->check_weight(1, std::make_pair(0, 1)));
-    ASSERT_FALSE(params.weights_params.bandwidth->check_weight(2, std::make_pair(0, 1)));
+    ASSERT_FALSE(params.weights_params.bandwidth->check_weight(std::make_pair(1, 0)));
+
+    ASSERT_EQ(params.weights_params.in_bandwidth.find(std::make_pair(0, 1)), params.weights_params.in_bandwidth.cend());
+    ASSERT_EQ(params.weights_params.out_bandwidth.find(std::make_pair(0, 1)),
+              params.weights_params.out_bandwidth.cend());
   }
 
   TEST(IOManagerTest, ImportOnnx)

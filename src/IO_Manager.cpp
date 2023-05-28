@@ -37,8 +37,8 @@ namespace network_butcher::io::IO_Manager
         if (partition_model.first)
           {
             export_to_onnx(partition_model.second,
-                           export_base_path + "-" + std::to_string(i) + "-device-" + std::to_string(partition.first) +
-                             ".onnx");
+                           export_base_path + "-" + Utilities::custom_to_string(i) + "-device-" +
+                             Utilities::custom_to_string(partition.first) + ".onnx");
           }
       }
 
@@ -184,11 +184,11 @@ namespace network_butcher::io::IO_Manager
 
       g_type::Dependencies_Type connections(num_devices);
 
-      std::vector<g_type::Weight_Collection_Type> weights(3);
+      g_type::Weight_Collection_Type weights;
 
       auto const error_msg = [](const std::string &name, node_id_type i, node_id_type j) {
-        return "Parameters: the provided " + name + " for " + std::to_string(i) + " to " + std::to_string(j) +
-               " was invalid. Please, check the configuration file!";
+        return "Parameters: the provided " + name + " for " + Utilities::custom_to_string(i) + " to " +
+               Utilities::custom_to_string(j) + " was invalid. Please, check the configuration file!";
       };
 
       auto const process_id_pair =
@@ -267,33 +267,32 @@ namespace network_butcher::io::IO_Manager
         {
           for (std::size_t j = 0; j < num_devices; ++j)
             {
-              if (i == j)
+              auto const path_name =
+                "/from_" + Utilities::custom_to_string(i) + "_to_" + Utilities::custom_to_string(j);
+              if (process_id_pair(i, j, "bandwidth" + path_name, file, weights))
                 {
+                  connections[i].second.insert(j);
+                  connections[j].first.insert(i);
+                }
+              else if (i == j)
+                {
+                  weights[std::make_pair(i, j)] = std::make_pair(std::numeric_limits<weight_type>::infinity(), 0.);
+
                   connections[i].second.insert(j);
                   connections[j].first.insert(i);
                   continue;
                 }
 
-              auto const path_name = "/from_" + std::to_string(i) + "_to_" + std::to_string(j);
-              if (process_id_pair(i, j, "bandwidth" + path_name, file, weights[0]))
-                {
-                  connections[i].second.insert(j);
-                  connections[j].first.insert(i);
-                }
-
-              process_id_pair(i, j, "in_bandwidth" + path_name, file, weights[1]);
-              process_id_pair(i, j, "out_bandwidth" + path_name, file, weights[2]);
+              process_id_pair(i, j, "in_bandwidth" + path_name, file, res.in_bandwidth);
+              process_id_pair(i, j, "out_bandwidth" + path_name, file, res.out_bandwidth);
             }
         }
 
-      res.bandwidth = std::make_unique<g_type>(3, g_type::Node_Collection_Type(num_devices), connections);
+      res.bandwidth = std::make_unique<g_type>(g_type::Node_Collection_Type(num_devices), connections);
 
-      for (std::size_t i = 0; i < 3; ++i)
+      for (auto const &[key, w] : weights)
         {
-          for (auto const &[key, w] : weights[i])
-            {
-              res.bandwidth->set_weight(i, key, w);
-            }
+          res.bandwidth->set_weight(key, w);
         }
     };
     auto const read_k_method = [basic_infos](auto &file) {
@@ -413,7 +412,7 @@ namespace network_butcher::io::IO_Manager
 
       for (std::size_t i = 0; i < num_devices; ++i)
         {
-          std::string const prx = "device_" + std::to_string(i);
+          std::string const prx = "device_" + Utilities::custom_to_string(i);
 
           network_butcher::parameters::Device dev;
 
@@ -422,6 +421,11 @@ namespace network_butcher::io::IO_Manager
           dev.maximum_memory = file(prx + "/maximum_memory", std::size_t{0}) * 1024 * 1024;
           dev.weights_path   = file(prx + "/path", "");
           dev.relevant_entry = file(prx + "/relevant_entry", "");
+
+          if (dev.name == "" && dev.maximum_memory == 0 && dev.weights_path == "" && dev.relevant_entry == "")
+            {
+              throw std::runtime_error("Parameters: device_" + Utilities::custom_to_string(i) + " is empty");
+            }
 
           network_butcher::Utilities::trim(dev.relevant_entry);
           network_butcher::Utilities::to_lowercase(dev.relevant_entry);
@@ -475,21 +479,22 @@ namespace network_butcher::io::IO_Manager
     std::vector<std::size_t> v(paths.size());
     std::generate(v.begin(), v.end(), [n = 0]() mutable { return n++; });
 
-    std::for_each(
-      PAR_UNSEQ,
-      v.cbegin(),
-      v.cend(),
-      [&params, &paths, &model, &link_id_nodeproto, &preprocessed_node_ios](std::size_t j) {
-        auto const dir_path = Utilities::combine_path(params.model_params.export_directory, std::to_string(j));
-        network_butcher::Utilities::create_directory(dir_path);
+    std::for_each(PAR_UNSEQ,
+                  v.cbegin(),
+                  v.cend(),
+                  [&params, &paths, &model, &link_id_nodeproto, &preprocessed_node_ios](std::size_t j) {
+                    auto const dir_path =
+                      Utilities::combine_path(params.model_params.export_directory, Utilities::custom_to_string(j));
+                    network_butcher::Utilities::create_directory(dir_path);
 
-        auto const output_path = Utilities::combine_path(dir_path, params.model_params.model_name);
-        utilities::reconstruct_model_and_export(paths[j], model, link_id_nodeproto, preprocessed_node_ios, output_path);
-      });
+                    auto const output_path = Utilities::combine_path(dir_path, params.model_params.model_name);
+                    utilities::reconstruct_model_and_export(
+                      paths[j], model, link_id_nodeproto, preprocessed_node_ios, output_path);
+                  });
 #else
     for (std::size_t j = 0; j < paths.size(); ++j)
       {
-        auto const dir_path = Utilities::combine_path(params.export_directory, std::to_string(j));
+        auto const dir_path = Utilities::combine_path(params.export_directory, Utilities::custom_to_string(j));
         network_butcher::Utilities::create_directory(dir_path);
 
         auto const output_path = Utilities::combine_path(dir_path, params.model_name);

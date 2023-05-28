@@ -44,7 +44,7 @@ namespace
   {
     auto const graph = basic_graph();
 
-    auto res = Shortest_path_finder::dijkstra(Weighted_Graph_type<false>(graph));
+    auto res = Shortest_path_finder::dijkstra(Weighted_Graph_type<false>(graph), 0);
 
     std::vector<node_id_type> theoretical_res = {0, 2, 0, 1, 3, 2, 5};
 

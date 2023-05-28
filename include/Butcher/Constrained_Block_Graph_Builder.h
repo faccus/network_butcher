@@ -54,6 +54,7 @@ namespace network_butcher
 
     /// Import weights using an importer
     /// \param new_graph The block graph
+    /// \return True if the import was successful, false if it was not performed
     bool
     apply_weights_from_importer(block_graph_type &new_graph) const;
 
@@ -528,7 +529,9 @@ namespace network_butcher
             {
               for (node_id_type i = 0; i < num_devices; ++i)
                 {
-                  if (!out.contains(i + 1) && bandwidth->check_weight(1, std::pair(0, i)))
+                  // Check if it is in the neighbour or if it's allowed by an input bandwidth
+                  if (!out.contains(i + 1) &&
+                      weights_params.in_bandwidth.find(std::pair(0, i)) != weights_params.in_bandwidth.cend())
                     {
                       out.insert(out.end(), 1 + i);
                     }
@@ -600,7 +603,8 @@ namespace network_butcher
                 }
 
               if (device_inputs_sink.contains(k) ||
-                  bandwidth->check_weight(2, std::pair(k, block_graph_generation_params.ending_device_id)))
+                  weights_params.out_bandwidth.find(std::pair(k, block_graph_generation_params.ending_device_id)) !=
+                    weights_params.out_bandwidth.cend())
                 {
                   out.insert(out.end(), base_id + num_devices);
                 }
@@ -616,8 +620,10 @@ namespace network_butcher
           auto &in = new_dependencies.back().first;
           for (node_id_type k = 0; k < num_devices; ++k)
             {
+              // Check if it is in the neighbour or if it's allowed by an output bandwidth
               if (device_inputs_sink.contains(k) ||
-                  bandwidth->check_weight(2, std::pair(k, block_graph_generation_params.ending_device_id)))
+                  weights_params.out_bandwidth.find(std::pair(k, block_graph_generation_params.ending_device_id)) !=
+                    weights_params.out_bandwidth.cend())
                 {
                   in.insert(in.end(), base_id - num_devices + k);
                 }
@@ -722,7 +728,7 @@ namespace network_butcher
             // linearized graph)
             auto const &outputs = *out_node.content.second;
 
-            double weight_cost = 0.;
+            weight_type weight_cost = 0.;
 
             // 1-1 correspondence
             if (outputs.size() == 1 && inputs.size() == 1)
@@ -840,7 +846,7 @@ namespace network_butcher
             // linearized graph)
             auto const &outputs = *out_node.content.second;
 
-            double final_cost = 0.;
+            weight_type final_cost = 0.;
 
             // 1-1 correspondence
             if (outputs.size() == 1 && inputs.size() == 1)

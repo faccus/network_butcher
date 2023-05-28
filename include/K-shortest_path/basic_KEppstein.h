@@ -52,8 +52,6 @@ namespace network_butcher::kfinder
 
       template <typename A, typename B, typename C>
       sidetrack(A &&current_h_g, B &&location, C &&delta_weight)
-        requires std::is_convertible_v<A, typename H_g_collection::const_iterator> &&
-                   std::is_convertible_v<B, location_dg_type> && std::is_convertible_v<C, Weight_Type>
         : current_h_g(std::forward<A>(current_h_g))
         , location(std::forward<B>(location))
         , delta_weight(std::forward<C>(delta_weight))
@@ -75,7 +73,6 @@ namespace network_butcher::kfinder
 
       template <typename A, typename B>
       implicit_path_info(A &&sidetracks, B &&length)
-        requires std::is_convertible_v<A, std::vector<sidetrack>> && std::is_convertible_v<B, Weight_Type>
         : sidetracks(std::forward<A>(sidetracks))
         , length(std::forward<B>(length))
       {}
@@ -157,7 +154,8 @@ namespace network_butcher::kfinder
     /// \param K The number of shortest paths to find
     /// \return The shortest paths
     [[nodiscard]] Output_Type
-    compute(std::size_t K) const override;;
+    compute(std::size_t K) const override;
+    ;
 
     explicit basic_KEppstein(Weighted_Graph<Graph_type> const &g, std::size_t root, std::size_t sink)
       : base(g, root, sink){};
@@ -183,16 +181,16 @@ namespace network_butcher::kfinder
     auto const dij_res = Shortest_path_finder::dijkstra(this->graph.reverse(), sink); // time:
 
     if (K == 1)
-    {
-      if constexpr (Only_Distance)
       {
-        return {dij_res.second[root]};
+        if constexpr (Only_Distance)
+          {
+            return {dij_res.second[root]};
+          }
+        else
+          {
+            return {Shortest_path_finder::shortest_path_finder(graph, dij_res, root, sink)};
+          }
       }
-      else
-      {
-        return {Shortest_path_finder::shortest_path_finder(graph, dij_res, root, sink)};
-      }
-    }
 
     return start(K, dij_res);
   }
@@ -333,15 +331,8 @@ namespace network_butcher::kfinder
       return final_steps;
     };
 
-    auto const extrack_edge = [](H_out_collection::const_iterator h_out, location_dg_type const &loc) {
-      if (loc.second != std::numeric_limits<node_id_type>::max())
-        {
-          return h_out->second.get_elem(loc.second).edge;
-        }
-      else
-        {
-          return h_out->second.get_head().edge;
-        }
+    auto const extract_edge = [](H_out_collection::const_iterator h_out, location_dg_type const &loc) {
+      return h_out->second.get_elem(loc.second).edge;
     };
 
     // Basically, we start from the specified node and go along the shortest path until we meet a sidetrack edge
@@ -363,7 +354,7 @@ namespace network_butcher::kfinder
             std::size_t node_to_insert = root;
 
             auto h_out_pos       = it->current_h_g->second.get_elem(it->location.first);
-            auto [first, second] = extrack_edge(h_out_pos, it->location);
+            auto [first, second] = extract_edge(h_out_pos, it->location);
 
             while (node_to_insert != sink)
               {
@@ -385,7 +376,7 @@ namespace network_butcher::kfinder
 
                     h_out_pos = it->current_h_g->second.get_elem(it->location.first);
 
-                    auto tmp = extrack_edge(h_out_pos, it->location);
+                    auto tmp = extract_edge(h_out_pos, it->location);
                     first    = tmp.first;
                     second   = tmp.second;
                   }
@@ -462,20 +453,19 @@ namespace network_butcher::kfinder
             auto const  edge    = std::make_pair(tail, head);
             auto const &weights = graph.get_weight(edge);
 
+            // If it is its successor...
             if (successors[tail] == head)
               {
+                // ...and it has more than one weight, then we have to consider the edge with the smallest weight as the
+                // edge in the shortest path tree, while the other ones will be sidetrack edges.
                 if (weights.size() > 1)
                   {
                     bool found = false;
-                    for (auto const &weight : weights)
-                      {
-                        auto to_insert = weight + distances_from_sink[head] - distances_from_sink[tail];
 
-                        if (!found && to_insert == 0)
-                          {
-                            found = true;
-                            continue;
-                          }
+                    for (auto it = ++weights.cbegin(); it != weights.cend(); ++it)
+                      {
+                        auto const &weight    = *it;
+                        auto        to_insert = weight + distances_from_sink[head] - distances_from_sink[tail];
 
                         res.insert(res.cend(),
                                    {edge, weight + distances_from_sink[head] - distances_from_sink[tail]}); // O(1)}

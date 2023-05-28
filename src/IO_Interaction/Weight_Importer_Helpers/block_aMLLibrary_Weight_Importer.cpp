@@ -82,8 +82,8 @@ namespace network_butcher::io
                 }
             }
 
-            auto const &[band, access] = weights_params.bandwidth->get_weight(0, std::make_pair(0, 1));
-            auto const net_time        = access + mem * 8 / (band * std::pow(10, 6));
+            auto const &[band, access] = weights_params.bandwidth->get_weight(std::make_pair(0, 1));
+            auto const net_time        = access + mem * static_cast<long double>(8) / (band * std::pow(10, 6));
             res.push_back(std::to_string(net_time));
           }
         else if (lower_case == "optype")

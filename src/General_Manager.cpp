@@ -12,9 +12,7 @@ namespace network_butcher::io
   {
     std::function<weight_type(edge_type const &, std::size_t, std::size_t)> transmission_weights =
       [&weights_params, &graph](edge_type const &edge, std::size_t first_device, std::size_t second_device) {
-        // If the first device is the same as the second, we have no transmission
-        if (first_device == second_device)
-          return 0.;
+        auto const device_pair = std::make_pair(first_device, second_device);
 
         auto const &bandwidth = weights_params.bandwidth;
 
@@ -25,22 +23,22 @@ namespace network_butcher::io
 
         // Is the node the front facing node?
         if (tail == graph.get_nodes().front().get_id() &&
-            bandwidth->check_weight(1, std::pair(first_device, second_device)))
+            weights_params.in_bandwidth.find(device_pair) != weights_params.in_bandwidth.cend())
           {
-            auto [tmp_bdw, tmp_acc] = bandwidth->get_weight(1, std::pair(first_device, second_device));
+            auto [tmp_bdw, tmp_acc] = weights_params.in_bandwidth.find(device_pair)->second;
             bdw                     = tmp_bdw;
             acc                     = tmp_acc;
           }
         else if (head == graph.get_nodes().back().get_id() &&
-                 bandwidth->check_weight(2, std::pair(first_device, second_device)))
+                 weights_params.out_bandwidth.find(device_pair) != weights_params.out_bandwidth.cend())
           {
-            auto [tmp_bdw, tmp_acc] = bandwidth->get_weight(2, std::pair(first_device, second_device));
+            auto [tmp_bdw, tmp_acc] = weights_params.out_bandwidth.find(device_pair)->second;
             bdw                     = tmp_bdw;
             acc                     = tmp_acc;
           }
-        else if (bandwidth->check_weight(0, std::pair(first_device, second_device)))
+        else if (bandwidth->check_weight(device_pair))
           {
-            auto [tmp_bdw, tmp_acc] = bandwidth->get_weight(0, std::pair(first_device, second_device));
+            auto [tmp_bdw, tmp_acc] = bandwidth->get_weight(device_pair);
             bdw                     = tmp_bdw;
             acc                     = tmp_acc;
           }
@@ -57,12 +55,14 @@ namespace network_butcher::io
         if (mem > 0)
           {
             // Conversion from MBit to Bytes
-            constexpr auto MBit_to_Bytes = 1000000. / 8;
+            constexpr auto MBit_to_Bytes = static_cast<weight_type>(1000000.) / 8;
 
             return (mem / MBit_to_Bytes) / bdw + acc;
           }
         else
-          return acc;
+          {
+            return static_cast<weight_type>(acc);
+          }
       };
     return transmission_weights;
   }
@@ -165,8 +165,49 @@ namespace network_butcher::io
 
         out_file << "Number of found paths: " << paths.size() << std::endl << std::endl;
 
-        out_file << "Imported Bandwidth: " << std::endl;
-        out_file << params.weights_params.bandwidth->print_graph() << std::endl;
+        if (params.block_graph_generation_params.use_bandwidth_to_manage_connections)
+          {
+            out_file << "Imported Bandwidth: " << std::endl;
+            out_file << params.weights_params.bandwidth->print_graph() << std::endl << std::endl;
+
+            out_file << "Input Bandwidth: ";
+            if (params.weights_params.in_bandwidth.empty())
+              {
+                out_file << "Not specified" << std::endl;
+              }
+            else
+              {
+                out_file << std::endl;
+
+                out_file << "In Out Bandwidth Access_Time" << std::endl;
+
+                for (auto const &[edge, bw] : params.weights_params.in_bandwidth)
+                  {
+                    out_file << Utilities::custom_to_string(edge) << " " << Utilities::custom_to_string(bw)
+                             << std::endl;
+                  }
+              }
+
+            out_file << "Output Bandwidth: ";
+            if (params.weights_params.out_bandwidth.empty())
+              {
+                out_file << "Not specified" << std::endl << std::endl;
+              }
+            else
+              {
+                out_file << std::endl;
+
+                out_file << "In Out Bandwidth Access_Time" << std::endl;
+
+                for (auto const &[edge, bw] : params.weights_params.out_bandwidth)
+                  {
+                    out_file << Utilities::custom_to_string(edge) << " " << Utilities::custom_to_string(bw)
+                             << std::endl;
+                  }
+
+                out_file << std::endl;
+              }
+          }
 
         out_file.close();
       }

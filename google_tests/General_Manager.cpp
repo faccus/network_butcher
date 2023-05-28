@@ -24,7 +24,7 @@ namespace
     EXPECT_NO_THROW(General_Manager::boot(conf_path, true));
   }
 
-  TEST(GeneralManagerTest, boot_test)
+  TEST(GeneralManagerTest, boot_test1)
   {
     execute_boot("ksp_result", "test_data/configs/test1_parameters.conf");
   }
@@ -52,10 +52,5 @@ namespace
   TEST(GeneralManagerTest, boot_test7)
   {
     execute_boot("ksp_result7", "test_data/configs/test7_parameters.conf");
-  }
-
-  TEST(GeneralManagerTest, boot_test8)
-  {
-    execute_boot("ksp_result8", "test_data/configs/test8_parameters.conf");
   }
 } // namespace

@@ -17,18 +17,16 @@ namespace network_butcher::computer
   {
   private:
     template <class T>
-    using Standard_Graph_Type = network_butcher::types::Graph<T>;
-    template <class T>
     using Node_Type = network_butcher::types::CNode<T>;
 
     template <class T>
     using Content_Type = network_butcher::types::Content<T>;
 
     template <class T>
-    using Contented_Graph_Type =
-      network_butcher::types::Graph<network_butcher::types::CNode<network_butcher::types::Content<T>>>;
-    template <class T>
     using Content_Node_Type = network_butcher::types::CNode<network_butcher::types::Content<T>>;
+
+    template <class T>
+    using Contented_Graph_Type = network_butcher::types::Graph<Content_Node_Type<T>>;
 
     template <class T>
     [[nodiscard]] static memory_type
@@ -43,9 +41,9 @@ namespace network_butcher::computer
     }
 
 
-    template <class T>
+    template <typename T>
     [[nodiscard]] static std::vector<memory_type>
-    compute_nodes_memory_usage_gen(const Standard_Graph_Type<T>                               &graph,
+    compute_nodes_memory_usage_gen(const Contented_Graph_Type<T>                              &graph,
                                    std::function<memory_type(Node_Type<T> const &node)> const &func)
     {
       auto const              &nodes = graph.get_nodes();
@@ -158,17 +156,7 @@ namespace network_butcher::computer
     }
 
 
-    template <class T>
-    static inline std::vector<memory_type>
-    compute_nodes_memory_usage(Node_Type<T> const &graph)
-    {
-      return compute_nodes_memory_usage_gen(graph, [](typename Standard_Graph_Type<T>::Node_Type const &node) {
-        return compute_memory_usage(node);
-      });
-    }
-
-
-    template <class T>
+    template <typename T>
     static inline std::vector<memory_type>
     compute_nodes_memory_usage(Contented_Graph_Type<T> const &graph, bool include_initialized = true)
     {
@@ -178,17 +166,7 @@ namespace network_butcher::computer
     }
 
 
-    template <class T>
-    static inline memory_type
-    compute_memory_usage(Standard_Graph_Type<T> const &graph)
-    {
-      auto const nodes_memory_usage = compute_nodes_memory_usage(graph);
-
-      return Utilities::potentially_par_unseq_reduce(nodes_memory_usage.cbegin(), nodes_memory_usage.cend());
-    }
-
-
-    template <class T>
+    template <typename T>
     static inline std::vector<memory_type>
     compute_nodes_memory_usage_input(Contented_Graph_Type<T> const &graph)
     {
@@ -207,7 +185,7 @@ namespace network_butcher::computer
     }
 
 
-    template <class T>
+    template <typename T>
     static inline std::vector<memory_type>
     compute_nodes_memory_usage_output(Contented_Graph_Type<T> const &graph, bool include_parameters = false)
     {
@@ -234,7 +212,7 @@ namespace network_butcher::computer
     }
 
 
-    template <class T>
+    template <typename T>
     static inline std::vector<memory_type>
     compute_nodes_memory_usage_parameters(Contented_Graph_Type<T> const &graph)
     {
@@ -253,7 +231,7 @@ namespace network_butcher::computer
     }
 
 
-    template <class T>
+    template <typename T>
     static inline memory_type
     compute_memory_usage_input(Contented_Graph_Type<T> const &graph)
     {
@@ -263,7 +241,7 @@ namespace network_butcher::computer
     }
 
 
-    template <class T>
+    template <typename T>
     static inline memory_type
     compute_memory_usage_parameters(Contented_Graph_Type<T> const &graph)
     {

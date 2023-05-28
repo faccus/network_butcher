@@ -62,7 +62,7 @@ namespace network_butcher::kfinder::Shortest_path_finder
   template <Valid_Weighted_Graph v_Weighted_Graph>
   [[nodiscard]] dijkstra_result_type<typename v_Weighted_Graph::Weight_Type>
   dijkstra(v_Weighted_Graph const &graph,
-           node_id_type            root = 0) // time: ((N+E)log(N)), space: O(N)
+           node_id_type            root) // time: ((N+E)log(N)), space: O(N)
   {
     using dijkstra_result_type   = dijkstra_result_type<typename v_Weighted_Graph::Weight_Type>;
     using dijkstra_helper_struct = dijkstra_helper_struct<typename v_Weighted_Graph::Weight_Type>;

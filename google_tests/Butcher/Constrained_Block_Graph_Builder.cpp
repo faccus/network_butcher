@@ -350,7 +350,7 @@ namespace
     auto graph  = basic_graph(4);
     auto params = partial_connection_parameters();
 
-    params.weights_params.bandwidth->set_weight(1, std::make_pair(0, 2), std::make_pair(1., 0.));
+    params.weights_params.in_bandwidth[std::make_pair(0, 2)] = std::make_pair(1., 0.);
 
     auto const &bandwidth = params.weights_params.bandwidth;
 
@@ -642,7 +642,7 @@ namespace
     deps[2] = std::make_pair(std::set<node_id_type>{1, 2}, std::set<node_id_type>{1, 2, 3});
     deps[3] = std::make_pair(std::set<node_id_type>{0, 2, 3}, std::set<node_id_type>{3});
 
-    res.weights_params.bandwidth = std::make_unique<g_type>(4, g_type::Node_Collection_Type(4), std::move(deps));
+    res.weights_params.bandwidth = std::make_unique<g_type>(g_type::Node_Collection_Type(4), std::move(deps));
 
 
     res.block_graph_generation_params.starting_device_id = 0;

@@ -79,6 +79,15 @@ namespace network_butcher::types
       return neighbours[id].second;
     }
 
+    /// Checks if the given edge exists
+    /// \param edge The edge
+    /// \return True if the edge exists, false otherwise
+    [[nodiscard]] bool
+    check_edge(edge_type const &edge) const
+    {
+      return get_output_nodes(edge.first).contains(edge.second);
+    }
+
 
     /// Get the number of nodes
     /// \return The number of nodes
@@ -209,14 +218,23 @@ namespace network_butcher::types
         }
     }
 
-    template <typename A>
-    explicit Graph(A &&v)
-      requires std::is_convertible_v<typename std::decay<A>::type, Node_Collection_Type>
-      : nodes(std::forward<A>(v))
+    explicit Graph(Node_Collection_Type const &v)
+      : nodes(v)
     {
       for (node_id_type i = 0; i < nodes.size(); ++i)
         {
           nodes[i].set_id(i);
+        }
+
+      compute_dependencies();
+    }
+
+    explicit Graph(Node_Collection_Type &&v)
+      : nodes(std::move(v))
+    {
+      for (node_id_type i = 0; i < this->nodes.size(); ++i)
+        {
+          this->nodes[i].set_id(i);
         }
 
       compute_dependencies();
@@ -252,6 +270,15 @@ namespace network_butcher::types
     get_output_nodes(node_id_type id) const
     {
       return neighbours[id].second;
+    }
+
+    /// Checks if the given edge exists
+    /// \param edge The edge
+    /// \return True if the edge exists, false otherwise
+    [[nodiscard]] bool
+    check_edge(edge_type const &edge) const
+    {
+      return get_output_nodes(edge.first).contains(edge.second);
     }
 
 
