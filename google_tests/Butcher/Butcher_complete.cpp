@@ -270,8 +270,7 @@ namespace
     auto const mbps = 1000. / 8;
 
     return [&graph, mbps](node_id_type const &node, std::size_t from_device, std::size_t to_device) {
-      Computer_memory cm;
-      auto const      mem_to_transmit = cm.compute_memory_usage_output(graph.get_nodes()[node]);
+      auto const mem_to_transmit = Computer_memory::compute_memory_usage_output(graph.get_nodes()[node]);
 
       auto const first  = std::min(from_device, to_device);
       auto const second = std::max(from_device, to_device);
@@ -348,7 +347,7 @@ namespace
 
             for (std::size_t j = 0; j < i; ++j)
               {
-                res.weights_params.in_bandwidth[std::make_pair(i, j)] = std::make_pair(1., 0.);
+                res.weights_params.in_bandwidth[std::make_pair(i, j)]  = std::make_pair(1., 0.);
                 res.weights_params.out_bandwidth[std::make_pair(i, j)] = std::make_pair(1., 0.);
               }
           }
