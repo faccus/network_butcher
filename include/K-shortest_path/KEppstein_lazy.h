@@ -5,6 +5,8 @@
 #ifndef NETWORK_BUTCHER_KEPPSTEIN_LAZY_H
 #define NETWORK_BUTCHER_KEPPSTEIN_LAZY_H
 
+#include <list>
+
 #include "Heap_traits.h"
 #include "basic_KEppstein.h"
 

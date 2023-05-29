@@ -7,7 +7,7 @@
 
 #include "DynamicType.h"
 #include "Type_info.h"
-#include "Type_info_traits.h"
+
 #include "Utilities.h"
 
 #include <vector>
