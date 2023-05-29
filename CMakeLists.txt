@@ -13,9 +13,6 @@ option(ENABLE_PARALLEL "Enable parallel execution" ON)
 
 option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
 
-option(USE_YAML_CPP "Use yaml-cpp" OFF)
-option(BUILD_YAML_CPP_SOURCE "Download and compile yaml-cpp from git" ON)
-
 option(USE_PYBIND "Download and compile pybind11 from git:" ON)
 
 
@@ -31,9 +28,6 @@ message(STATUS "Enable parallel execution: ${ENABLE_PARALLEL}")
 
 message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
 
-message(STATUS "It will use the yaml-cpp library to read yaml files: " ${USE_YAML_CPP})
-message(STATUS "Download and compile yaml-cpp from git: " ${BUILD_YAML_CPP_SOURCE})
-
 message(STATUS "Download and compile pybind11 from git: " ${USE_PYBIND})
 
 message(STATUS "Build documentation: ${BUILD_DOC}")
@@ -48,10 +42,6 @@ include(src/CMakeLists.txt)
 
 # Dependencies manager
 include(cmake/CMakeLists.txt)
-
-if (USE_YAML_CPP)
-    add_compile_definitions(YAML_CPP_ACTIVE)
-endif ()
 
 if (USE_PYBIND)
     add_compile_definitions(PYBIND_ACTIVE)

@@ -56,32 +56,10 @@ if(USE_PYBIND)
     list(APPEND RUN_LIBRARIES_LOCATION pybind11::embed pybind11::pybind11)
 endif()
 
-
-
-if (USE_YAML_CPP)
-    if (BUILD_YAML_CPP_SOURCE)
-        FetchContent_Declare(
-                yaml-cpp
-                GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-                GIT_TAG 0579ae3d976091d7d664aa9d2527e0d0cff25763
-        )
-        option(YAML_CPP_BUILD_TESTS OFF)
-        FetchContent_MakeAvailable(yaml-cpp)
-
-        list(APPEND RUN_LIBRARIES_LOCATION yaml-cpp)
-    else ()
-        find_package(yaml-cpp REQUIRED)
-
-        include_directories(${YAML_CPP_INCLUDE_DIR})
-        list(APPEND RUN_LIBRARIES_LOCATION ${YAML_CPP_LIBRARIES})
-    endif ()
-endif ()
-
 if (ENABLE_PARALLEL)
     find_package(TBB REQUIRED)
     list(APPEND RUN_LIBRARIES_LOCATION TBB::tbb)
 endif ()
-
 
 if (BUILD_TESTS)
     # Add google test library from git
