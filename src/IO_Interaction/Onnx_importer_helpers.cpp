@@ -188,7 +188,7 @@ namespace network_butcher::io
 
         if (iterator != value_infos.cend())
           {
-            if (iterator->second->initialized())
+            if (iterator->second->is_initialized())
               parameters_collection.insert({io_name, iterator->second});
             else
               res.insert({io_name, iterator->second});

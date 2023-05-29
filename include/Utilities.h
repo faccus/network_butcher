@@ -5,11 +5,14 @@
 #ifndef NETWORK_BUTCHER_UTILITIES_H
 #define NETWORK_BUTCHER_UTILITIES_H
 
+#if PARALLEL
+#  include <execution>
+#endif
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 
 #include "Basic_traits.h"
-#include "Type_info_traits.h"
 #include "onnx.pb.h"
 
 #include "Dense_tensor.h"
@@ -246,6 +249,20 @@ namespace network_butcher::Utilities
     return std::reduce(std::execution::par_unseq, std::forward<Args>(args)...);
 #else
     return std::reduce(args...);
+#endif
+  };
+
+  /// Based on the compiler pre-processor PARALLEL (associated to the same setting in the CMakeList file), it will
+  /// apply the std::for_each function to the given arguments with either a parallel unsequenced policy or with
+  /// sequential policy
+  template <typename... Args>
+  auto
+  potentially_par_unseq_for_each(Args &&...args)
+  {
+#if PARALLEL
+    std::for_each(std::execution::par_unseq, std::forward<Args>(args)...);
+#else
+    std::for_each(std::forward<Args>(args)...);
 #endif
   };
 

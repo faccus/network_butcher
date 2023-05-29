@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "Type_info_traits.h"
+#include "Starting_traits.h"
 
 namespace network_butcher::types
 {
@@ -20,16 +20,16 @@ namespace network_butcher::types
     std::string name;
 
     /// Is the value of this type given by the network?
-    bool t_initialized;
+    bool initialized{false};
 
     /// Is it constant?
-    bool constant;
+    bool constant{false};
 
   public:
     Type_info() = default;
 
     Type_info(bool initialized, bool constant, std::string const &in_name = "")
-      : t_initialized(initialized)
+      : initialized(initialized)
       , constant(constant)
       , name(in_name)
     {}
@@ -47,9 +47,9 @@ namespace network_butcher::types
     /// Get if the value of this type is given by the network
     /// \return True if it has been already initialized
     [[nodiscard]] bool
-    initialized() const
+    is_initialized() const
     {
-      return t_initialized;
+      return initialized;
     }
 
 

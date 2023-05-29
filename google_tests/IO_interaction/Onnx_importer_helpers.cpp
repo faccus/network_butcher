@@ -26,14 +26,14 @@ namespace
     auto const name = "boxes";
 
     EXPECT_NE(in_map.find(name), in_map.cend());
-    EXPECT_FALSE(in_map.find(name)->second->initialized());
+    EXPECT_FALSE(in_map.find(name)->second->is_initialized());
 
     in_map.clear();
     Onnx_importer_helpers::read_ios(in_map, graph.output(), {name});
 
 
     EXPECT_NE(in_map.find(name), in_map.cend());
-    EXPECT_TRUE(in_map.find(name)->second->initialized());
+    EXPECT_TRUE(in_map.find(name)->second->is_initialized());
   }
 
   TEST(OnnxImporterHelpersTests, ReadIOsTensorProto)
@@ -47,7 +47,7 @@ namespace
     auto const name = "base_net.7.branch2.1.bn.running_var";
 
     EXPECT_NE(in_map.find(name), in_map.cend());
-    EXPECT_FALSE(in_map.find(name)->second->initialized());
+    EXPECT_FALSE(in_map.find(name)->second->is_initialized());
     EXPECT_EQ(in_map.find(name)->second->get_shape()[0], 12);
 
 
@@ -55,7 +55,7 @@ namespace
     Onnx_importer_helpers::read_ios(in_map, graph.initializer(), {name});
 
     EXPECT_NE(in_map.find(name), in_map.cend());
-    EXPECT_TRUE(in_map.find(name)->second->initialized());
+    EXPECT_TRUE(in_map.find(name)->second->is_initialized());
   }
 
   TEST(OnnxImporterHelpersTests, ProcessNodeIOs)

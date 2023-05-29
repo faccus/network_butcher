@@ -17,15 +17,9 @@ namespace network_butcher::types
   /// \tparam T Type of the content of the node
   class Node
   {
-  protected:
+  private:
     /// Current node id
     node_id_type id;
-
-    /// Basic constructor for a node
-    /// \param starting_id Initial node id
-    explicit Node(node_id_type starting_id)
-      : id(starting_id)
-    {}
 
   public:
     /// Name of the node
@@ -62,21 +56,8 @@ namespace network_butcher::types
   public:
     using Content_Type = T;
 
-  protected:
-    /// Basic constructor for a node
-    /// \param starting_id Initial node id
-    /// \param starting_content Initial content
-    CNode(node_id_type starting_id, Content_Type starting_content)
-      : Node(starting_id)
-      , content(std::move(starting_content))
-    {}
-
-  public:
     /// Node content
     Content_Type content;
-
-    /// Name of the node
-    std::string name;
 
     CNode() = default;
 

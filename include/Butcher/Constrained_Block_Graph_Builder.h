@@ -5,8 +5,9 @@
 #ifndef NETWORK_BUTCHER_CONSTRAINED_BLOCK_GRAPH_BUILDER_H
 #define NETWORK_BUTCHER_CONSTRAINED_BLOCK_GRAPH_BUILDER_H
 
-#include "Block_Graph_Builder.h"
+#include <list>
 
+#include "Block_Graph_Builder.h"
 #include "Weight_importers.h"
 
 namespace network_butcher

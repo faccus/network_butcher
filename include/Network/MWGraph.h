@@ -16,7 +16,7 @@ namespace network_butcher::types
   template <bool Parallel_Edges, typename t_Node_Type = Node, typename t_weight_type = weight_type>
   class MWGraph : public Graph<t_Node_Type>
   {
-  private:
+  protected:
     using Parent_Type = Graph<t_Node_Type>;
 
   public:
@@ -30,7 +30,7 @@ namespace network_butcher::types
     using Weight_Collection_Type =
       std::conditional_t<Parallel_Edges, std::multimap<edge_type, Weight_Type>, std::map<edge_type, Weight_Type>>;
 
-  private:
+  protected:
     std::vector<Weight_Collection_Type> weigth_map;
 
   public:

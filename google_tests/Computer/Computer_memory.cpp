@@ -22,11 +22,6 @@ namespace
   Graph_type
   basic_graph();
 
-  TEST(ComputerTests, MemoryConctructor)
-  {
-    Computer_memory computer{};
-  }
-
   TEST(ComputerTests, ComputeMemoryUsageTypeInfo)
   {
     Dense_tensor d(onnx::TensorProto_DataType_INT64, {1, 1, 2, 2}); // total memory 2*2*64=256 bits
