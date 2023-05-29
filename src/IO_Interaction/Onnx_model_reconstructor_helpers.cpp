@@ -132,11 +132,13 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
   {
     auto const &container = current_edited_graph->input();
 
+    auto const get_node_inputs  = [](auto const &node) { return node.input(); };
     auto const get_node_outputs = [](auto const &node) { return node.output(); };
-    auto const get_new_entry    = [current_edited_graph]() { return current_edited_graph->add_input(); };
+
+    auto const get_new_entry = [current_edited_graph]() { return current_edited_graph->add_input(); };
 
     return helper_add_missing_io<false>(
-      original_model, current_edited_graph, container, get_node_outputs, get_new_entry);
+      original_model, current_edited_graph, container, get_node_outputs, get_node_inputs, get_new_entry);
   }
 
 
@@ -145,11 +147,13 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
   {
     auto const &container = current_edited_graph->output();
 
-    auto const get_node_outputs = [](auto const &node) { return node.input(); };
-    auto const get_new_entry    = [current_edited_graph]() { return current_edited_graph->add_output(); };
+    auto const get_node_inputs  = [](auto const &node) { return node.input(); };
+    auto const get_node_outputs = [](auto const &node) { return node.output(); };
+
+    auto const get_new_entry = [current_edited_graph]() { return current_edited_graph->add_output(); };
 
     return helper_add_missing_io<true>(
-      original_model, current_edited_graph, container, get_node_outputs, get_new_entry);
+      original_model, current_edited_graph, container, get_node_inputs, get_node_outputs, get_new_entry);
   }
 
 

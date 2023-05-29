@@ -140,7 +140,8 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
   /// \param  original_model The original model
   /// \param  edit_graph The onnx graph of the new model
   /// \param  container Either the input or the output of the graph
-  /// \param  get_node_io A function that given a node, it returns the inputs/outputs of the node
+  /// \param  get_io A function that given a node, it returns the inputs/outputs of the node
+  /// \param  get_second_io A function that given a node, it returns the outputs/inputs of the node
   /// \param  get_new_entry A function that adds either a new input or a new output to the graph
   template <bool reversed>
   void
@@ -148,14 +149,19 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
     onnx::ModelProto const                                         &original_model,
     onnx::GraphProto                                               *edit_graph,
     google::protobuf::RepeatedPtrField<onnx::ValueInfoProto> const &container,
-    const std::function<google::protobuf::RepeatedPtrField<std::basic_string<char>>(onnx::NodeProto const &)>
-                                                  &get_node_io,
-    const std::function<onnx::ValueInfoProto *()> &get_new_entry)
+    std::function<google::protobuf::RepeatedPtrField<std::basic_string<char>>(onnx::NodeProto const &)> const &get_io,
+    std::function<google::protobuf::RepeatedPtrField<std::basic_string<char>>(onnx::NodeProto const &)> const
+                                                  &get_node_container,
+    std::function<onnx::ValueInfoProto *()> const &get_new_entry)
   {
+    // Get the nodes
     auto const &nodes = edit_graph->mutable_node();
 
-    auto const cond_node = [](auto const &node, auto const &name) { return node == name; };
-    auto const cond_init = [](auto const &node, auto const &name) { return node.name() == name; };
+    // Simple node comparisons: name v name
+    auto const comp_names = [](auto const &node, auto const &name) { return node == name; };
+
+    // Simple node comparisons: node v name
+    auto const compo_node_name = [](auto const &node, auto const &name) { return node.name() == name; };
 
     // Checks if the specified element of the container has the same name as the input string
     auto const checkout = [](std::string const &name, auto const &container, auto const &cond_func) {
@@ -189,18 +195,21 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
         }
     };
 
-
     auto const start = begin();
 
+    // Cycle through the nodes (either forward or backward)
     for (auto it = start; it != end(); ++it)
       {
-        auto const &inner_container = (*it).input();
+        // inner_container is the collection containing ios that, if they are not already in the graph, must be inserted
+        auto const &inner_container = get_node_container(*it);
         for (auto const &el : inner_container)
           {
-            bool ok = checkout(el, container, cond_init);
+            // Check if it's an input/output of the original model
+            bool ok = checkout(el, container, compo_node_name);
 
-            for (auto it2 = start; it != it2 && !ok; ++it2)
-              ok = checkout(el, get_node_io(*it2), cond_node);
+            // Check the already processed nodes for the missing io
+            for (auto it2 = start; !ok && it != it2; ++it2)
+              ok = checkout(el, get_io(*it2), comp_names);
 
             // If the input/output didn't appear, then let's add it!
             if (!ok)

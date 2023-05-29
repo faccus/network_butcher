@@ -1,6 +1,6 @@
 #include "Graph_traits.h"
 #include "KFinder_Factory.h"
-#include "KFinder_Test_Graph_Specialization.h"
+#include "Weighted_Graph_Graph_Specialization.h"
 
 #include "TestClass.h"
 #include "TestGraph.h"

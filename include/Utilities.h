@@ -8,7 +8,10 @@
 #if PARALLEL
 #  include <execution>
 #endif
+
 #include <algorithm>
+#include <numeric>
+
 #include <filesystem>
 #include <fstream>
 
