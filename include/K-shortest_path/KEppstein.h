@@ -85,16 +85,7 @@ namespace network_butcher::kfinder
     auto h_out = construct_h_out(successors, sidetrack_distances_res); // O(N+E)
     auto h_g   = construct_h_g(h_out, successors);                     // O(N*log(N))
 
-    auto epp_res = base::general_algo_eppstein(K, dij_res, sidetrack_distances_res, h_g, h_out);
-
-    if constexpr (Only_Distance)
-      {
-        return epp_res;
-      }
-    else
-      {
-        return base::helper_eppstein(dij_res, epp_res);
-      }
+    return base::general_algo_eppstein(K, dij_res, sidetrack_distances_res, h_g, h_out);
   }
 
 

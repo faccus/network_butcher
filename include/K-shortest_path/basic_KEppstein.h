@@ -6,6 +6,7 @@
 #define NETWORK_BUTCHER_BASIC_KEPPSTEIN_H
 
 #include <functional>
+#include <optional>
 
 #include "Heap_traits.h"
 #include "Shortest_path_finder.h"
@@ -50,13 +51,6 @@ namespace network_butcher::kfinder
       location_dg_type               location;
       Weight_Type                    delta_weight;
 
-      template <typename A, typename B, typename C>
-      sidetrack(A &&current_h_g, B &&location, C &&delta_weight)
-        : current_h_g(std::forward<A>(current_h_g))
-        , location(std::forward<B>(location))
-        , delta_weight(std::forward<C>(delta_weight))
-      {}
-
       bool
       operator<(sidetrack const &rhs) const
       {
@@ -68,19 +62,49 @@ namespace network_butcher::kfinder
     /// Simple struct to represent an implicit path
     struct implicit_path_info : crtp_greater<implicit_path_info>
     {
-      std::vector<sidetrack> sidetracks;
-      Weight_Type            length;
-
-      template <typename A, typename B>
-      implicit_path_info(A &&sidetracks, B &&length)
-        : sidetracks(std::forward<A>(sidetracks))
-        , length(std::forward<B>(length))
-      {}
+      std::optional<sidetrack> current_sidetrack;
+      implicit_path_info      *previous_sidetracks;
+      Weight_Type              length;
 
       bool
       operator<(const implicit_path_info &rhs) const
       {
-        return length < rhs.length || (length == rhs.length && sidetracks < rhs.sidetracks);
+        return length < rhs.length;
+      }
+
+      void
+      compute_sidetracks(std::list<sidetrack const *> &sidetracks) const
+      {
+        if (!current_sidetrack)
+          {
+            return;
+          }
+
+        sidetracks.push_back(&current_sidetrack.value());
+
+        if (previous_sidetracks != nullptr)
+          {
+            previous_sidetracks->compute_sidetracks(sidetracks);
+          }
+      }
+
+      std::list<sidetrack const *>
+      compute_sidetracks() const
+      {
+        if (!current_sidetrack)
+          {
+            return {};
+          }
+
+        std::list<sidetrack const *> sidetracks;
+        sidetracks.push_back(&current_sidetrack.value());
+
+        if (previous_sidetracks != nullptr)
+          {
+            previous_sidetracks->compute_sidetracks(sidetracks);
+          }
+
+        return sidetracks;
       }
     };
 
@@ -126,7 +150,6 @@ namespace network_butcher::kfinder
     /// \return The shortest paths
     [[nodiscard]] std::vector<path_info>
     helper_eppstein(dijkstra_result_type const &dij_res, std::vector<implicit_path_info> const &epp_res) const;
-    ;
 
 
     [[nodiscard]] virtual Output_Type
@@ -140,7 +163,7 @@ namespace network_butcher::kfinder
     /// \param h_out The h_out map
     /// \param callback_fun A callback function called during the loop used to find the shortest paths
     /// \return The (implicit) shortest paths
-    algo_output
+    Output_Type
     general_algo_eppstein(std::size_t                       K,
                           dijkstra_result_type const       &dij_res,
                           internal_weight_collection const &sidetrack_distances,
@@ -155,7 +178,6 @@ namespace network_butcher::kfinder
     /// \return The shortest paths
     [[nodiscard]] Output_Type
     compute(std::size_t K) const override;
-    ;
 
     explicit basic_KEppstein(Weighted_Graph<Graph_type> const &g, std::size_t root, std::size_t sink)
       : base(g, root, sink){};
@@ -197,7 +219,7 @@ namespace network_butcher::kfinder
 
 
   template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::algo_output
+  basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::Output_Type
   basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::general_algo_eppstein(
     std::size_t                                        K,
     const basic_KEppstein::dijkstra_result_type       &dij_res,
@@ -216,22 +238,26 @@ namespace network_butcher::kfinder
       return {};
 
     // Start with the shortest path
-    std::conditional_t<Only_Distance, std::vector<Weight_Type>, std::vector<implicit_path_info>> res;
+    std::vector<implicit_path_info> res;
 
-    if constexpr (Only_Distance)
-      {
-        res.push_back({shortest_distance[root]});
-      }
-    else
-      {
-        res.push_back(implicit_path_info(std::vector<sidetrack>(), shortest_distance[root]));
-      }
+    res.push_back(implicit_path_info{.current_sidetrack   = std::optional<sidetrack>(),
+                                     .previous_sidetracks = nullptr,
+                                     .length              = shortest_distance[root]});
 
     // Find the first sidetrack edge
     typename H_g_collection::const_iterator h_g_it = h_g.find(root);
 
     if (h_g_it == h_g.end() || h_g_it->second.empty())
-      return res;
+      {
+        if constexpr (Only_Distance)
+          {
+            return {shortest_distance[root]};
+          }
+        else
+          {
+            return {Shortest_path_finder::shortest_path_finder(base::graph, dij_res, root, base::sink)};
+          }
+      }
 
     auto const &first_side_track = extract_first_sidetrack_edge(h_g_it);
 
@@ -239,28 +265,21 @@ namespace network_butcher::kfinder
 
     // Collection of "final" implicit paths to be added to res
     Heap<implicit_path_info, std::greater<>> Q;
-
     Q.reserve(K);
 
     // First deviatory path
-    Q.emplace(std::vector{first_side_track}, first_side_track.delta_weight + shortest_distance[root]);
+    Q.push(implicit_path_info{.current_sidetrack   = first_side_track,
+                              .previous_sidetracks = nullptr,
+                              .length              = first_side_track.delta_weight + shortest_distance[root]});
 
     std::size_t k = 2;
     // Loop through Q until either Q is empty or the number of paths found is K
     for (; k <= K && !Q.empty(); ++k)
       {
-        auto SK = Q.pop_head();
+        res.emplace_back(Q.pop_head());
+        auto const &SK = res.back();
 
-        if constexpr (Only_Distance)
-          {
-            res.emplace_back(SK.length);
-          }
-        else
-          {
-            res.emplace_back(SK);
-          }
-
-        auto const &[current_h_g, current_location, _e_weight] = SK.sidetracks.back();
+        auto const &[current_h_g, current_location, _e_weight] = *SK.current_sidetrack;
 
         auto const &e_h_out            = current_h_g->second.get_elem(current_location.first);
         auto const &[e_edge, e_weight] = current_location.second == std::numeric_limits<node_id_type>::max() ?
@@ -269,39 +288,51 @@ namespace network_butcher::kfinder
 
         // "Helper" function that can be called if needed
         if (callback_fun != nullptr)
-          h_g_it = callback_fun(h_g, h_out, sidetrack_distances, successors, e_edge.second);
+          {
+            h_g_it = callback_fun(h_g, h_out, sidetrack_distances, successors, e_edge.second);
+          }
         else
-          h_g_it = h_g.find(e_edge.second);
+          {
+            h_g_it = h_g.find(e_edge.second);
+          }
 
         if (h_g_it != h_g.end() && !h_g_it->second.empty())
           {
             // Extract the first sidetrack edge, if it exists
             auto const &f = extract_first_sidetrack_edge(h_g_it);
 
-            auto mod_sk = SK;
-            mod_sk.sidetracks.emplace_back(f);
-            mod_sk.length += f.delta_weight;
-            Q.emplace(std::move(mod_sk));
+            Q.push(implicit_path_info{.current_sidetrack   = f,
+                                      .previous_sidetracks = &res.back(),
+                                      .length              = SK.length + f.delta_weight});
           }
 
         auto const alternatives = get_alternatives(current_h_g, current_location);
 
         if (!alternatives.empty())
           {
-            SK.sidetracks.pop_back();
-
             for (auto const &sidetrack_edge : alternatives)
               {
-                auto mod_sk = SK;
-                mod_sk.sidetracks.emplace_back(sidetrack_edge);
-                mod_sk.length += (sidetrack_edge.delta_weight - e_weight);
-
-                Q.emplace(std::move(mod_sk));
+                Q.push(implicit_path_info{.current_sidetrack   = sidetrack_edge,
+                                          .previous_sidetracks = SK.previous_sidetracks,
+                                          .length              = SK.length + sidetrack_edge.delta_weight - e_weight});
               }
           }
       }
 
-    return res;
+    if constexpr (Only_Distance)
+      {
+        std::vector<Weight_Type> final_res;
+        final_res.reserve(res.size());
+
+        for (auto const &path : res)
+          final_res.push_back(path.length);
+
+        return final_res;
+      }
+    else
+      {
+        return helper_eppstein(dij_res, res);
+      }
   }
 
 
@@ -343,7 +374,7 @@ namespace network_butcher::kfinder
         path_info info;
         info.length = implicit_path.length;
 
-        auto const &sidetracks = implicit_path.sidetracks;
+        auto const &sidetracks = implicit_path.compute_sidetracks();
         if (sidetracks.empty())
           {
             info.path = go_shortest(root);
@@ -353,8 +384,9 @@ namespace network_butcher::kfinder
             auto        it             = sidetracks.cbegin();
             std::size_t node_to_insert = root;
 
-            auto h_out_pos       = it->current_h_g->second.get_elem(it->location.first);
-            auto [first, second] = extract_edge(h_out_pos, it->location);
+
+            auto h_out_pos       = (*it)->current_h_g->second.get_elem((*it)->location.first);
+            auto [first, second] = extract_edge(h_out_pos, (*it)->location);
 
             while (node_to_insert != sink)
               {
@@ -374,9 +406,9 @@ namespace network_butcher::kfinder
                         break;
                       }
 
-                    h_out_pos = it->current_h_g->second.get_elem(it->location.first);
+                    h_out_pos = (*it)->current_h_g->second.get_elem((*it)->location.first);
 
-                    auto tmp = extract_edge(h_out_pos, it->location);
+                    auto tmp = extract_edge(h_out_pos, (*it)->location);
                     first    = tmp.first;
                     second   = tmp.second;
                   }

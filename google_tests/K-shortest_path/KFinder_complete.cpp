@@ -152,14 +152,35 @@ namespace
     return std::tie(graph, s, t, k);
   }
 
+  // https://github.com/yosupo06/library-checker-problems
   std::vector<std::string>
   get_test_names()
   {
-    return {"almost_path_00",     "almost_path_01",     "almost_path_02", "max_random_01",   "max_random_02",
-            "max_random_03",      "max_random_04",      "dense_00",       "dense_01",        "path_00",
-            "random_00",          "random_02",          "random_04",      "small_random_00", "small_random_02",
-            "smallest_random_00", "smallest_random_01", "example_00",     "max_random_00",   "random_01",
-            "small_random_01",    "smallest_random_02", "sparse_00",      "sparse_01"};
+    return {"almost_path_00",
+            "almost_path_01",
+            "almost_path_02",
+            "dense_00",
+            "dense_01",
+            "example_00",
+            "loop_00",
+            "max_random_00",
+            "max_random_01",
+            "max_random_02",
+            "max_random_03",
+            "max_random_04",
+            "path_00",
+            "random_00",
+            "random_01",
+            "random_02",
+            "random_04",
+            "small_random_00",
+            "small_random_01",
+            "small_random_02",
+            "smallest_random_00",
+            "smallest_random_01",
+            "smallest_random_02",
+            "sparse_00",
+            "sparse_01"};
   }
 
 } // namespace
