@@ -300,8 +300,7 @@ namespace network_butcher::types
         }
       else
         {
-          if (it != map.cend())
-            res = it->second;
+          res = it->second;
         }
 
       return res;

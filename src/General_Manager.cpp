@@ -233,33 +233,6 @@ namespace network_butcher::io
 
             General_Manager::boot(config_path, true);
           }
-        else if (command_line.vector_variable_size("annotations") ||
-                 command_line.vector_variable_size("candidate_deployments") ||
-                 command_line.vector_variable_size("candidate_resources"))
-          {
-#if YAML_CPP_ACTIVE
-            std::string const annotations_path = command_line("annotations", "annotations.yaml");
-            std::string const candidate_deployments_path =
-              command_line("candidate_deployments", "candidate_deployments.yaml");
-            std::string const candidate_resources_path =
-              command_line("candidate_resources", "candidate_resources.yaml");
-
-            auto params =
-              IO_Manager::read_parameters_yaml(candidate_resources_path, candidate_deployments_path, annotations_path);
-
-            for (std::size_t i = 0; i < params.size(); ++i)
-              {
-                auto &param = params[i];
-
-                param.export_directory = "ksp_result_yaml_" + std::to_string(i);
-                General_Manager::boot(param, true);
-              }
-#else
-            std::cout << "The library Yaml-Cpp is required to read .yaml files. Please, check the CMakeList.txt "
-                         "configuration file."
-                      << std::endl;
-#endif
-          }
         else
           {
             Helper_Functions::print_help();

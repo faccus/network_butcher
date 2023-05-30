@@ -14,6 +14,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <ranges>
 
 #include "Basic_traits.h"
 #include "onnx.pb.h"
@@ -25,7 +26,7 @@
 namespace network_butcher::Utilities
 {
 
-  /// Simple function that will apply std::to_string, if available
+  /// Simple function that will apply std::to_string, if available. If the std::to_string was not provided, print " "
   /// \tparam T The type of the object to convert to string
   /// \param obj The object of type T to be converted to a string
   /// \return The string
@@ -37,7 +38,7 @@ namespace network_butcher::Utilities
     return std::to_string(obj);
   }
 
-  /// Simple function that will apply std::to_string, if available
+  /// Simple function that will apply std::to_string, if available. If the std::to_string was not provided, print " "
   /// \tparam T The type of the object to convert to string
   /// \param obj The object of type T to be converted to a string
   /// \return The string
@@ -48,7 +49,7 @@ namespace network_butcher::Utilities
     return "";
   }
 
-  /// Simple function that will apply std::to_string, if available
+  /// Simple function that will apply std::to_string, if available. Specialized for pairs
   /// \tparam T The type of the object to convert to string
   /// \param obj The object of type T to be converted to a string
   /// \return The string
@@ -225,6 +226,8 @@ namespace network_butcher::Utilities
   std::string
   combine_path(std::string const &first, std::string const &second);
 
+
+
   /// Based on the compiler pre-processor PARALLEL (associated to the same setting in the CMakeList file), it will
   /// apply the std::transform function to the given arguments with either a parallel unsequenced policy or with
   /// sequential policy
@@ -235,7 +238,6 @@ namespace network_butcher::Utilities
 #if PARALLEL
 
     std::transform(std::execution::par_unseq, std::forward<Args>(args)...);
-
 #else
     std::transform(args...);
 #endif
@@ -268,6 +270,7 @@ namespace network_butcher::Utilities
     std::for_each(std::forward<Args>(args)...);
 #endif
   };
+
 
 
 } // namespace network_butcher::Utilities

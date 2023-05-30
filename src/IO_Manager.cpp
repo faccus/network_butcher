@@ -512,9 +512,9 @@ namespace network_butcher::io::IO_Manager
               Csv_Weight_Importer(graph, params.devices, params.weights_params.separator));
           }
         default:
-          throw std::logic_error(
-            "The specified Weight_Import_Mode is either not available or not found. Please, check that you "
-            "specified the correct import mode!");
+          throw std::logic_error("The specified Weight_Import_Mode is either not available or "
+                                 "not found. Please, check that you "
+                                 "specified the correct import mode!");
       }
   }
 
@@ -572,83 +572,3 @@ namespace network_butcher::io::IO_Manager
 
 
 } // namespace network_butcher::io::IO_Manager
-
-#if YAML_CPP_ACTIVE
-
-namespace network_butcher::io::IO_Manager
-{
-
-  std::vector<network_butcher::parameters::Parameters>
-  read_parameters_yaml(std::string const &candidate_resources_path,
-                       std::string const &candidate_deployments_path,
-                       std::string const &annotations_path)
-  {
-    std::vector<network_butcher::parameters::Parameters> res;
-
-    // Reads the candidate_resources file and tries to construct the network domain hierarchy. Moreover, it will produce
-    // the list of avaible resources
-    auto [network_domains, subdomain_to_domain, devices_map] =
-      Yaml_importer_helpers::read_candidate_resources(candidate_resources_path);
-
-    // Reads the annotation file
-    auto const to_deploy = Yaml_importer_helpers::read_annotations(annotations_path);
-
-    // Reads the candidate deployments file
-    auto const model_devices_ram =
-      Yaml_importer_helpers::read_candidate_deployments(candidate_deployments_path, to_deploy, devices_map);
-
-    for (auto const &[model_friendly_name, pair_ram_vram] : to_deploy)
-      {
-        auto const devices_ram = model_devices_ram.find(model_friendly_name)->second;
-
-        // If there is more than one "feasible" device
-        if (devices_ram.size() > 1)
-          {
-            // Prepare the collection of parameters for the current set of devices
-            for (auto const &devices : Yaml_importer_helpers::get_devices_for_partitions(devices_ram))
-              {
-                auto &params = res.emplace_back();
-
-                params.model_name = model_friendly_name;
-                params.model_path = "";
-
-                params.starting_device_id = 0;
-                params.ending_device_id   = 0;
-
-                params.method                                  = network_butcher::parameters::KSP_Method::Lazy_Eppstein;
-                params.K                                       = 100;
-                params.ksp_params.backward_connections_allowed = false;
-
-                std::size_t k = 0;
-                for (auto const &device : devices)
-                  {
-                    params.devices.emplace_back();
-
-                    auto &dev          = params.devices.back();
-                    dev.id             = k++;
-                    dev.maximum_memory = device.second;
-                    dev.name           = device.first;
-                    dev.weights_path   = "";
-                  }
-
-                for (std::size_t i = 0; i < params.devices.size(); ++i)
-                  {
-                    for (std::size_t j = i + 1; j < params.devices.size(); ++j)
-                      {
-                        auto const &first_domain  = devices_map[devices[i].first].domain_name;
-                        auto const &second_domain = devices_map[devices[j].first].domain_name;
-
-                        params.weights_params.bandwidth[{i, j}] = Yaml_importer_helpers::find_bandwidth(
-                          network_domains, subdomain_to_domain, first_domain, second_domain);
-                      }
-                  }
-              }
-          }
-      }
-
-    return res;
-  }
-
-} // namespace network_butcher::io::IO_Manager
-
-#endif

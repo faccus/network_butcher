@@ -8,7 +8,10 @@ set(CMAKE_CXX_STANDARD 20)
 
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_COMPLETE_TESTS "Build complete tests" OFF)
-option(ENABLE_PARALLEL "Enable parallel execution" ON)
+option(ENABLE_PARALLEL "Enable parallel execution" OFF)
+
+
+option(BUILD_EXTRA_MAINS "Build extra main executables" ON)
 
 
 option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
@@ -51,8 +54,8 @@ if (ENABLE_PARALLEL)
     add_compile_definitions(PARALLEL)
 endif ()
 
-add_executable(network_butcher src/main.cpp ${BASE_SOURCE} ${PROTO_SRCS})
-target_include_directories(network_butcher PUBLIC
+set(
+        INCLUDES
         include
         include/APSC
         include/Computer
@@ -64,57 +67,62 @@ target_include_directories(network_butcher PUBLIC
         include/Traits
         include/Types
         ${EXTRA_INCLUDE_DIR}
-        )
+)
 
+add_executable(network_butcher src/main.cpp ${BASE_SOURCE} ${PROTO_SRCS})
+target_include_directories(network_butcher PUBLIC ${INCLUDES})
 target_link_libraries(network_butcher ${RUN_LIBRARIES_LOCATION})
 
+
+
 if (BUILD_TESTS)
+
     include(google_tests/CMakeLists.txt)
 
     enable_testing()
 
+
+
     add_executable(test_run ${TESTS_SOURCE} ${BASE_SOURCE})
-    target_include_directories(test_run PUBLIC
-            include
-            include/APSC
-            include/Computer
-            include/Butcher
-            include/IO_Interaction
-            include/IO_Interaction/Weight_Importer_Helpers
-            include/K-shortest_path
-            include/Network
-            include/Traits
-            include/Types
-            google_tests
-            ${EXTRA_INCLUDE_DIR}
-            )
+    target_include_directories(test_run PUBLIC ${INCLUDES} google_tests)
     target_link_libraries(test_run ${TEST_LIBRARIES_LOCATION})
 
+
+
     add_executable(test_run_complete ${TESTS_SOURCE} ${COMPLETE_TESTS_SOURCE} ${BASE_SOURCE})
-    target_include_directories(test_run_complete PUBLIC
-            include
-            include/APSC
-            include/Computer
-            include/Butcher
-            include/IO_Interaction
-            include/IO_Interaction/Weight_Importer_Helpers
-            include/K-shortest_path
-            include/Network
-            include/Traits
-            include/Types
-            google_tests
-            ${EXTRA_INCLUDE_DIR}
-            )
+    target_include_directories(test_run_complete PUBLIC ${INCLUDES} google_tests)
     target_link_libraries(test_run_complete ${TEST_LIBRARIES_LOCATION})
 
     include(GoogleTest)
 
     if (BUILD_COMPLETE_TESTS)
         gtest_discover_tests(test_run_complete)
-    else()
+    else ()
         gtest_discover_tests(test_run)
     endif ()
+
 endif ()
+
+if ( BUILD_EXTRA_MAINS )
+
+    add_executable(main_kfinder mains/KFinder/main_kfinder.cpp ${BASE_SOURCE} ${PROTO_SRCS})
+    target_include_directories(main_kfinder PUBLIC ${INCLUDES} google_tests)
+    target_link_libraries(main_kfinder ${RUN_LIBRARIES_LOCATION})
+
+
+
+    add_executable(main_path_reconstruction mains/KFinder/main_path_reconstruction.cpp ${BASE_SOURCE} ${PROTO_SRCS})
+    target_include_directories(main_path_reconstruction PUBLIC ${INCLUDES} google_tests)
+    target_link_libraries(main_path_reconstruction ${RUN_LIBRARIES_LOCATION})
+
+
+
+    add_executable(main_IO_Manager mains/IO_Manager/main_IO_Manager.cpp ${BASE_SOURCE} ${PROTO_SRCS})
+    target_include_directories(main_IO_Manager PUBLIC ${INCLUDES} google_tests)
+    target_link_libraries(main_IO_Manager ${RUN_LIBRARIES_LOCATION})
+
+endif()
+
 
 if (BUILD_DOC)
     include(doc/CMakeLists.txt)

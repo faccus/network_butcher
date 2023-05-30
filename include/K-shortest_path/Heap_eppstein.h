@@ -92,6 +92,13 @@ namespace network_butcher::kfinder
       return children.empty();
     }
 
+    [[nodiscard]] std::size_t
+    size() const
+    {
+      return children.size();
+    }
+
+
     [[nodiscard]] T const &
     get_head() const
     {

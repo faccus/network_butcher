@@ -10,11 +10,6 @@
 #include "Onnx_importer_helpers.h"
 #include "Onnx_model_reconstructor_helpers.h"
 
-#if YAML_CPP_ACTIVE
-#  include "Yaml_importer_helpers.h"
-#  include <yaml-cpp/yaml.h>
-#endif
-
 #include "GetPot"
 #include "Weight_importers.h"
 #include "chrono.h"

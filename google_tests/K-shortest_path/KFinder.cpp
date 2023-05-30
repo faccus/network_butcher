@@ -45,21 +45,25 @@ namespace
     std::vector<type_weight> real_sol = {55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
     auto                     res      = kfinder.compute(real_sol.size());
 
-    std::vector<type_weight> real_path_lengths;
-    std::vector<type_weight> path_lengths;
-
-    path_lengths.reserve(k);
-    real_path_lengths.reserve(k);
-
     EXPECT_EQ(real_sol.size(), res.size());
 
-    for (auto i = 0; i < real_sol.size(); ++i)
+    for (std::size_t j = 0; j < res.size(); ++j)
       {
-        path_lengths.push_back(res[i].length);
-        real_path_lengths.push_back(real_sol[i]);
-      }
+        auto const &path = res[j];
 
-    ASSERT_EQ(path_lengths, real_path_lengths);
+        decltype(path.length) weight = 0.;
+        for (std::size_t i = 0; i < path.path.size() - 1; ++i)
+          {
+            ASSERT_TRUE(graph.get_output_nodes(path.path[i]).contains(path.path[i + 1]));
+            weight += graph.get_weight(std::make_pair(path.path[i], path.path[i + 1]));
+          }
+
+        ASSERT_EQ(graph.get_nodes().front().get_id(), path.path.front());
+        ASSERT_EQ(graph.get_nodes().back().get_id(), path.path.back());
+
+        ASSERT_EQ(weight, path.length);
+        ASSERT_EQ(real_sol[j], path.length);
+      }
   }
 
   TEST(KFinderTest, LazyEppsteinOriginalNetwork)
@@ -80,13 +84,23 @@ namespace
 
     EXPECT_EQ(real_sol.size(), res.size());
 
-    for (auto i = 0; i < k && i < res.size(); ++i)
+    for (std::size_t j = 0; j < res.size(); ++j)
       {
-        path_lengths.push_back(res[i].length);
-        real_path_lengths.push_back(real_sol[i]);
-      }
+        auto const &path = res[j];
 
-    ASSERT_EQ(path_lengths, real_path_lengths);
+        decltype(path.length) weight = 0.;
+        for (std::size_t i = 0; i < path.path.size() - 1; ++i)
+          {
+            ASSERT_TRUE(graph.get_output_nodes(path.path[i]).contains(path.path[i + 1]));
+            weight += graph.get_weight(std::make_pair(path.path[i], path.path[i + 1]));
+          }
+
+        ASSERT_EQ(graph.get_nodes().front().get_id(), path.path.front());
+        ASSERT_EQ(graph.get_nodes().back().get_id(), path.path.back());
+
+        ASSERT_EQ(weight, path.length);
+        ASSERT_EQ(real_sol[j], path.length);
+      }
   }
 
   TEST(KFinderTest, LazyEppsteinOriginalTestGraph)
@@ -107,13 +121,23 @@ namespace
 
     EXPECT_EQ(real_sol.size(), res.size());
 
-    for (auto i = 0; i < k && i < res.size(); ++i)
+    for (std::size_t j = 0; j < res.size(); ++j)
       {
-        path_lengths.push_back(res[i].length);
-        real_path_lengths.push_back(real_sol[i]);
-      }
+        auto const &path = res[j];
 
-    ASSERT_EQ(path_lengths, real_path_lengths);
+        decltype(path.length) weight = 0.;
+        for (std::size_t i = 0; i < path.path.size() - 1; ++i)
+          {
+            ASSERT_TRUE(graph.dependencies.find(path.path[i])->second.second.contains(path.path[i + 1]));
+            weight += graph.map_weight.find(std::make_pair(path.path[i], path.path[i + 1]))->second;
+          }
+
+        ASSERT_EQ(0, path.path.front());
+        ASSERT_EQ(graph.nodes.size() - 1, path.path.back());
+
+        ASSERT_EQ(weight, path.length);
+        ASSERT_EQ(real_sol[j], path.length);
+      }
   }
 
   Graph_type

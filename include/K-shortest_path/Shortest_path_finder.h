@@ -152,7 +152,7 @@ namespace network_butcher::kfinder::Shortest_path_finder
                        node_id_type                                                        root,
                        node_id_type                                                        sink)
   {
-    t_path_info info;
+    t_path_info<typename v_Weighted_Graph::Weight_Type> info;
     info.length = dij_res.second[root];
     info.path.reserve(graph.size());
 

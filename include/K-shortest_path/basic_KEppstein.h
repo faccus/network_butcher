@@ -7,6 +7,7 @@
 
 #include <functional>
 #include <optional>
+#include <ranges>
 
 #include "Heap_traits.h"
 #include "Shortest_path_finder.h"
@@ -80,12 +81,12 @@ namespace network_butcher::kfinder
             return;
           }
 
-        sidetracks.push_back(&current_sidetrack.value());
-
         if (previous_sidetracks != nullptr)
           {
             previous_sidetracks->compute_sidetracks(sidetracks);
           }
+
+        sidetracks.push_back(&current_sidetrack.value());
       }
 
       std::list<sidetrack const *>
@@ -97,12 +98,12 @@ namespace network_butcher::kfinder
           }
 
         std::list<sidetrack const *> sidetracks;
-        sidetracks.push_back(&current_sidetrack.value());
-
         if (previous_sidetracks != nullptr)
           {
             previous_sidetracks->compute_sidetracks(sidetracks);
           }
+
+        sidetracks.push_back(&current_sidetrack.value());
 
         return sidetracks;
       }
@@ -347,8 +348,7 @@ namespace network_butcher::kfinder
 
     auto const &[successors, distances] = dij_res;
 
-    std::vector<path_info> res;
-    res.reserve(epp_res.size());
+    std::vector<path_info> res(epp_res.size());
 
     auto const go_shortest = [&successors, sink](node_id_type node) {
       std::vector<node_id_type> final_steps;
@@ -369,12 +369,16 @@ namespace network_butcher::kfinder
     // Basically, we start from the specified node and go along the shortest path until we meet a sidetrack edge
     // contained in the implicit path. In that case, we add the sidetrack edge and proceed along the "new" shortest
     // path until either the "sink" node is reached or another sidetrack edge is met
-    for (const auto &implicit_path : epp_res)
-      {
-        path_info info;
+    auto const process_path =
+      [&go_shortest, &extract_edge, &dij_res = dij_res, &res = res, &epp_res = epp_res, &root, &sink](
+        std::size_t index) {
+        auto const &implicit_path = epp_res[index];
+
+        auto       &info       = res[index];
+        auto const &sidetracks = implicit_path.compute_sidetracks();
+
         info.length = implicit_path.length;
 
-        auto const &sidetracks = implicit_path.compute_sidetracks();
         if (sidetracks.empty())
           {
             info.path = go_shortest(root);
@@ -416,9 +420,10 @@ namespace network_butcher::kfinder
                   node_to_insert = dij_res.first[node_to_insert];
               }
           }
+      };
 
-        res.emplace_back(std::move(info));
-      }
+    auto const &view = std::ranges::iota_view(std::size_t{0}, epp_res.size());
+    Utilities::potentially_par_unseq_for_each(view.begin(), view.end(), process_path);
 
     return res;
   }
@@ -525,7 +530,8 @@ namespace network_butcher::kfinder
     const H_g_collection::const_iterator &h_g_it) const
   {
     auto const &edge = h_g_it->second.get_elem(0)->second.get_elem(0);
-    return {h_g_it, std::make_pair(0, 0), edge.delta_weight};
+
+    return sidetrack{.current_h_g = h_g_it, .location = std::make_pair(0, 0), .delta_weight = edge.delta_weight};
   }
 } // namespace network_butcher::kfinder
 
