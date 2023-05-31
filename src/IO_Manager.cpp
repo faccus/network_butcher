@@ -7,6 +7,40 @@
 namespace network_butcher::io::IO_Manager
 {
   void
+  export_network_partitions(const network_butcher::parameters::Parameters                 &params,
+                            onnx::ModelProto const                                        &model,
+                            std::map<node_id_type, node_id_type> const                    &link_id_nodeproto,
+                            const std::vector<network_butcher::types::Weighted_Real_Path> &paths)
+  {
+    if (network_butcher::Utilities::directory_exists(params.model_params.export_directory))
+      network_butcher::Utilities::directory_delete(params.model_params.export_directory);
+
+    network_butcher::Utilities::create_directory(params.model_params.export_directory);
+
+    Utilities::output_onnx_file(model,
+                                Utilities::combine_path(params.model_params.export_directory,
+                                                        params.model_params.model_name + ".onnx"));
+
+    auto const preprocessed_node_ios = Onnx_model_reconstructor_helpers::process_node_ios_nodes(model.graph());
+
+    // https://stackoverflow.com/a/63340360
+
+    std::vector<std::size_t> v(paths.size());
+    std::generate(v.begin(), v.end(), [n = 0]() mutable { return n++; });
+
+    Utilities::potentially_par_unseq_for_each(
+      v.cbegin(), v.cend(), [&params, &paths, &model, &link_id_nodeproto, &preprocessed_node_ios](std::size_t j) {
+        auto const dir_path =
+          Utilities::combine_path(params.model_params.export_directory, Utilities::custom_to_string(j));
+        network_butcher::Utilities::create_directory(dir_path);
+
+        auto const output_path = Utilities::combine_path(dir_path, params.model_params.model_name);
+        utilities::reconstruct_model_and_export(paths[j], model, link_id_nodeproto, preprocessed_node_ios, output_path);
+      });
+  }
+
+
+  void
   utilities::reconstruct_model_and_export(network_butcher::types::Weighted_Real_Path const &weighted_path,
                                           const onnx::ModelProto                           &original_model,
                                           const std::map<node_id_type, node_id_type>       &link_id_nodeproto,
@@ -43,6 +77,52 @@ namespace network_butcher::io::IO_Manager
       }
 
     report_file.close();
+  }
+
+
+  std::pair<bool, onnx::ModelProto>
+  reconstruct_model_from_partition(const network_butcher::types::Real_Partition &partition,
+                                   const onnx::ModelProto                       &original_model,
+                                   const std::map<node_id_type, node_id_type>   &link_id_nodeproto,
+                                   const preprocessed_ios_nodes_type            &preprocessed_ios_nodes,
+                                   const onnx::GraphProto                       &model_graph)
+  {
+    onnx::ModelProto new_model;
+    auto const      &node_ids = partition.second;
+
+    if (!node_ids.empty())
+      {
+        network_butcher::io::Onnx_model_reconstructor_helpers::prepare_new_model(original_model, new_model);
+
+        auto current_edited_graph =
+          network_butcher::io::Onnx_model_reconstructor_helpers::prepare_new_graph(original_model);
+
+        network_butcher::io::Onnx_model_reconstructor_helpers::add_nodes(
+          link_id_nodeproto, model_graph, node_ids, current_edited_graph, preprocessed_ios_nodes);
+
+        if (current_edited_graph->node_size() > 0)
+          {
+            network_butcher::io::Onnx_model_reconstructor_helpers::add_missing_inputs(original_model,
+                                                                                      current_edited_graph,
+                                                                                      preprocessed_ios_nodes);
+            network_butcher::io::Onnx_model_reconstructor_helpers::add_missing_outputs(original_model,
+                                                                                       current_edited_graph,
+                                                                                       preprocessed_ios_nodes);
+
+            new_model.set_allocated_graph(current_edited_graph);
+
+            return {true, new_model};
+          }
+      }
+
+    return {false, new_model};
+  }
+
+
+  void
+  export_to_onnx(const onnx::ModelProto &model, std::string path)
+  {
+    network_butcher::Utilities::output_onnx_file(model, path);
   }
 
 
@@ -115,13 +195,6 @@ namespace network_butcher::io::IO_Manager
       }
 
     return {graph_type(num_devices, nodes), onnx_model, link_id_nodeproto};
-  }
-
-
-  void
-  export_to_onnx(const onnx::ModelProto &model, std::string path)
-  {
-    network_butcher::Utilities::output_onnx_file(model, path);
   }
 
 
@@ -455,41 +528,6 @@ namespace network_butcher::io::IO_Manager
     return res;
   }
 
-
-  void
-  export_network_partitions(const network_butcher::parameters::Parameters                 &params,
-                            onnx::ModelProto const                                        &model,
-                            std::map<node_id_type, node_id_type> const                    &link_id_nodeproto,
-                            const std::vector<network_butcher::types::Weighted_Real_Path> &paths)
-  {
-    if (network_butcher::Utilities::directory_exists(params.model_params.export_directory))
-      network_butcher::Utilities::directory_delete(params.model_params.export_directory);
-
-    network_butcher::Utilities::create_directory(params.model_params.export_directory);
-
-    Utilities::output_onnx_file(model,
-                                Utilities::combine_path(params.model_params.export_directory,
-                                                        params.model_params.model_name + ".onnx"));
-
-    auto const preprocessed_node_ios = Onnx_model_reconstructor_helpers::process_node_ios_nodes(model.graph());
-
-    // https://stackoverflow.com/a/63340360
-
-    std::vector<std::size_t> v(paths.size());
-    std::generate(v.begin(), v.end(), [n = 0]() mutable { return n++; });
-
-    Utilities::potentially_par_unseq_for_each(
-      v.cbegin(), v.cend(), [&params, &paths, &model, &link_id_nodeproto, &preprocessed_node_ios](std::size_t j) {
-        auto const dir_path =
-          Utilities::combine_path(params.model_params.export_directory, Utilities::custom_to_string(j));
-        network_butcher::Utilities::create_directory(dir_path);
-
-        auto const output_path = Utilities::combine_path(dir_path, params.model_params.model_name);
-        utilities::reconstruct_model_and_export(paths[j], model, link_id_nodeproto, preprocessed_node_ios, output_path);
-      });
-  }
-
-
   std::unique_ptr<Weight_Importer>
   generate_weight_importer(graph_type &graph, network_butcher::parameters::Parameters const &params)
   {
@@ -518,6 +556,7 @@ namespace network_butcher::io::IO_Manager
       }
   }
 
+
   void
   import_weights(graph_type &graph, const network_butcher::parameters::Parameters &params)
   {
@@ -531,43 +570,6 @@ namespace network_butcher::io::IO_Manager
       }
 
     generate_weight_importer(graph, params)->import_weights();
-  }
-
-
-  std::pair<bool, onnx::ModelProto>
-  reconstruct_model_from_partition(const network_butcher::types::Real_Partition &partition,
-                                   const onnx::ModelProto                       &original_model,
-                                   const std::map<node_id_type, node_id_type>   &link_id_nodeproto,
-                                   const preprocessed_ios_nodes_type            &preprocessed_ios_nodes,
-                                   const onnx::GraphProto                       &model_graph)
-  {
-    onnx::ModelProto new_model;
-    auto const      &node_ids = partition.second;
-
-    if (!node_ids.empty())
-      {
-        network_butcher::io::Onnx_model_reconstructor_helpers::prepare_new_model(original_model, new_model);
-
-        auto current_edited_graph =
-          network_butcher::io::Onnx_model_reconstructor_helpers::prepare_new_graph(original_model);
-
-        network_butcher::io::Onnx_model_reconstructor_helpers::add_nodes(
-          link_id_nodeproto, model_graph, node_ids, current_edited_graph, preprocessed_ios_nodes);
-
-        if (current_edited_graph->node_size() > 0)
-          {
-            network_butcher::io::Onnx_model_reconstructor_helpers::add_missing_inputs(original_model,
-                                                                                      current_edited_graph);
-            network_butcher::io::Onnx_model_reconstructor_helpers::add_missing_outputs(original_model,
-                                                                                       current_edited_graph);
-
-            new_model.set_allocated_graph(current_edited_graph);
-
-            return {true, new_model};
-          }
-      }
-
-    return {false, new_model};
   }
 
 

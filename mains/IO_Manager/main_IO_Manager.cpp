@@ -29,45 +29,6 @@ using Graph_type      = MWGraph<false, Node_type>;
 using Real_Graph_Type = MWGraph<false, graph_input_type>;
 
 
-Butcher<Graph_type>
-basic_butcher(int);
-
-parameters::Parameters
-base_parameters(std::size_t k, bool backward, std::size_t num_devices);
-
-parameters::Parameters
-eppstein_parameters(std::size_t k, bool backward, std::size_t num_devices);
-
-parameters::Parameters
-lazy_eppstein_parameters(std::size_t k, bool backward, std::size_t num_devices);
-
-
-template <class Graph>
-void
-complete_weights(Graph &graph)
-{
-  auto const num_nodes = graph.get_nodes().size();
-
-  for (node_id_type tail = 0; tail < num_nodes; ++tail)
-    for (auto const &head : graph.get_output_nodes(tail))
-      {
-        for (std::size_t k = 0; k < graph.get_num_devices(); ++k)
-          {
-            if (graph.get_weight(k, {tail, head}) == -1.)
-              graph.set_weight(k, {tail, head}, 0.);
-          }
-      }
-};
-
-struct path_comparison
-{
-  bool
-  operator()(Weighted_Real_Path const &rhs, Weighted_Real_Path const &lhs) const
-  {
-    return rhs.first < lhs.first || rhs.first == lhs.first && rhs.second < lhs.second;
-  };
-};
-
 template <class Graph>
 void
 basic_weight(Graph &graph, bool fully_random)
@@ -97,41 +58,6 @@ basic_weight(Graph &graph, bool fully_random)
           }
       }
 }
-
-
-std::function<type_weight(edge_type const &, std::size_t, std::size_t)>
-basic_transmission(std::size_t devices, std::size_t size)
-{
-  return [devices, size](edge_type const &in_edge, std::size_t first, std::size_t second) {
-    auto const &[input, tmp] = in_edge;
-    if (input < size && first < devices && second < devices)
-      {
-        auto in_device_id  = first;
-        auto out_device_id = second;
-
-        if (in_device_id > out_device_id)
-          std::swap(in_device_id, out_device_id);
-
-        if (out_device_id - in_device_id == 2)
-          return 80.;
-        else if (out_device_id - in_device_id == 1)
-          {
-            if (out_device_id == 2)
-              return 40.;
-            else
-              return 20.;
-          }
-        else
-          return 0.;
-      }
-    else
-      {
-        std::cout << "Incorrect device id or input id" << std::endl;
-        return -1.;
-      }
-  };
-}
-
 
 parameters::Parameters
 base_parameters(std::size_t k, bool backward, std::size_t num_devices)
@@ -184,10 +110,10 @@ base_parameters(std::size_t k, bool backward, std::size_t num_devices)
   res.block_graph_generation_params.memory_constraint_type = Memory_Constraint_Type::None;
   res.block_graph_generation_params.starting_device_id     = 0;
   res.block_graph_generation_params.ending_device_id       = 1;
-  res.block_graph_generation_params.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
+  res.block_graph_generation_params.block_graph_mode       = parameters::Block_Graph_Generation_Mode::output;
 
   return res;
-}
+};
 
 Parameters
 lazy_eppstein_parameters(std::size_t k, bool backward, std::size_t num_devices)
@@ -199,10 +125,48 @@ lazy_eppstein_parameters(std::size_t k, bool backward, std::size_t num_devices)
 }
 
 
+std::function<type_weight(edge_type const &, std::size_t, std::size_t)>
+basic_transmission(std::size_t devices, std::size_t size)
+{
+  return [devices, size](edge_type const &in_edge, std::size_t first, std::size_t second) {
+    auto const &[input, tmp] = in_edge;
+    if (input < size && first < devices && second < devices)
+      {
+        auto in_device_id  = first;
+        auto out_device_id = second;
+
+        if (in_device_id > out_device_id)
+          std::swap(in_device_id, out_device_id);
+
+        if (out_device_id - in_device_id == 2)
+          return 80.;
+        else if (out_device_id - in_device_id == 1)
+          {
+            if (out_device_id == 2)
+              return 40.;
+            else
+              return 20.;
+          }
+        else
+          return 0.;
+      }
+    else
+      {
+        std::cout << "Incorrect device id or input id" << std::endl;
+        return -1.;
+      }
+  };
+}
+
+
 std::vector<std::string>
 get_test_names()
 {
-  return {"mobilenet_v2-inferred", "resnet18-v2-7-inferred", "version-RFB-640-inferred", "yolov5s_shape_inferred"};
+  return {"mobilenet_v2-inferred",
+          "resnet18-v2-7-inferred",
+          "version-RFB-640-inferred",
+          "yolov5s_shape_inferred",
+          "age_googlenet_shapes_only"};
 }
 
 int
@@ -234,7 +198,7 @@ main(int argc, char **argv)
       auto const params            = lazy_eppstein_parameters(k, true, num_devices);
       auto const lazy_eppstein_res = butcher.compute_k_shortest_path(transmission_fun, params);
 
-      long double time = .0;
+      long double time = 0.;
 
 
       // The actual test starts here:
@@ -249,7 +213,8 @@ main(int argc, char **argv)
           long double local_time = crono.wallTime();
           time += local_time;
 
-          std::cout << "Test #" << Utilities::custom_to_string(i+1) << ": " << local_time / 1000. << " ms" << std::endl;
+          std::cout << "Test #" << Utilities::custom_to_string(i + 1) << ": " << local_time / 1000. << " ms"
+                    << std::endl;
         }
 
       time /= (num_tests * static_cast<long double>(1000.));
