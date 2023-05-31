@@ -242,12 +242,13 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
                 if (tmp_it != preprocessed_ios_nodes.cend() && tmp_it->second.first == IO_Type::Fake_ValueInfo)
                   continue;
 
-                auto tmp_res   = get_type(original_model, el);
-                auto new_entry = get_new_entry();
-                new_entry->set_name(el);
+                auto tmp_res = get_type(original_model, el);
 
                 if (tmp_res.has_value() && tmp_res.value()->has_type())
                   {
+                    auto new_entry = get_new_entry();
+                    new_entry->set_name(el);
+
                     new_entry->set_allocated_type(new onnx::TypeProto(tmp_res.value()->type()));
                   }
               }

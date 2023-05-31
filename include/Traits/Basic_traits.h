@@ -1,4 +1,4 @@
-  //
+//
 // Created by faccus on 14/10/21.
 //
 
@@ -10,6 +10,18 @@
 
 #include <map>
 #include <memory>
+
+
+#if PARALLEL
+#  include <execution>
+#  define SEQ std::execution::seq
+#  define PAR_UNSEQ std::execution::par_unseq
+#  define PAR std::execution::par
+#else
+#  define SEQ
+#  define PAR_UNSEQ
+#  define PAR
+#endif
 
 namespace network_butcher
 {

@@ -217,8 +217,12 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
                 else
                   {
                     res.emplace(input,
-                                preprocessed_ios_new_entry(
-                                  false, false, it_init != model_graph.initializer().cend(), true, it, it_init));
+                                preprocessed_ios_new_entry(false,
+                                                           false,
+                                                           it_init != model_graph.initializer().cend(),
+                                                           it != model_graph.value_info().cend(),
+                                                           it,
+                                                           it_init));
                   }
               }
           }

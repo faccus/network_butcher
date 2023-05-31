@@ -423,7 +423,7 @@ namespace network_butcher::kfinder
       };
 
     auto const &view = std::ranges::iota_view(std::size_t{0}, epp_res.size());
-    Utilities::potentially_par_unseq_for_each(view.begin(), view.end(), process_path);
+    Utilities::potentially_par_for_each(view.begin(), view.end(), process_path);
 
     return res;
   }

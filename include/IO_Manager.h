@@ -95,9 +95,9 @@ namespace network_butcher::io::IO_Manager
   /// \param link_id_nodeproto The map that associates to every node of the graph a node of the original model
   /// \param paths The different partitions to be exported
   void
-  export_network_partitions(const network_butcher::parameters::Parameters     &params,
-                            const onnx::ModelProto                            &model,
-                            std::map<node_id_type, node_id_type> const        &link_id_nodeproto,
+  export_network_partitions(const network_butcher::parameters::Parameters                 &params,
+                            const onnx::ModelProto                                        &model,
+                            std::map<node_id_type, node_id_type> const                    &link_id_nodeproto,
                             const std::vector<network_butcher::types::Weighted_Real_Path> &paths);
 
 

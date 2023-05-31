@@ -154,7 +154,8 @@ namespace network_butcher::io
         std::cout << "Export: " << export_time / 1000. << " ms" << std::endl;
 
         std::ofstream out_file;
-        out_file.open(params.model_params.export_directory + "/report.txt");
+
+        out_file.open(Utilities::combine_path(params.model_params.export_directory, "report.txt"));
 
         out_file << "Network import: " << import_time / 1000. << " ms" << std::endl;
         out_file << "Weight import: " << import_weights_time / 1000. << " ms" << std::endl;
@@ -210,6 +211,13 @@ namespace network_butcher::io
           }
 
         out_file.close();
+
+        auto path = params.model_params.config_path;
+        if (path.back() == '/')
+          path = path.substr(0, path.size() - 1);
+        auto name = path.substr(path.find_last_of('/')+1);
+
+        Utilities::file_copy(path, Utilities::combine_path(params.model_params.export_directory, name));
       }
   }
 

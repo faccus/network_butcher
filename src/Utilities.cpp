@@ -231,4 +231,16 @@ namespace network_butcher::Utilities
     return s;
   }
 
-} // namespace network_butcher
+  bool
+  file_copy(std::string const &from, std::string const &to)
+  {
+    if (Utilities::file_exists(from))
+      {
+        std::filesystem::copy_file(from, to);
+        return true;
+      }
+
+    return false;
+  }
+
+} // namespace network_butcher::Utilities

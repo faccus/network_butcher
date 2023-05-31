@@ -18,7 +18,7 @@ namespace network_butcher
   using bandwidth_type    = double;
   using access_delay_type = double;
 
-  using node_id_type = std::size_t;
+  using node_id_type = long unsigned int;
 } // namespace network_butcher
 
 namespace network_butcher

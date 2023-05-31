@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_COMPLETE_TESTS "Build complete tests" OFF)
-option(ENABLE_PARALLEL "Enable parallel execution" OFF)
+option(ENABLE_PARALLEL "Enable parallel execution" ON)
 
 
 option(BUILD_EXTRA_MAINS "Build extra main executables" ON)
@@ -120,6 +120,12 @@ if ( BUILD_EXTRA_MAINS )
     add_executable(main_IO_Manager mains/IO_Manager/main_IO_Manager.cpp ${BASE_SOURCE} ${PROTO_SRCS})
     target_include_directories(main_IO_Manager PUBLIC ${INCLUDES} google_tests)
     target_link_libraries(main_IO_Manager ${RUN_LIBRARIES_LOCATION})
+
+
+
+    add_executable(main_Constrained_Builder mains/Butcher/main_Constrained_Builder.cpp ${BASE_SOURCE} ${PROTO_SRCS})
+    target_include_directories(main_Constrained_Builder PUBLIC ${INCLUDES} google_tests)
+    target_link_libraries(main_Constrained_Builder ${RUN_LIBRARIES_LOCATION})
 
 endif()
 

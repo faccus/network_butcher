@@ -145,7 +145,7 @@ namespace network_butcher::computer::Computer_memory
     std::vector<memory_type> memory_usages;
     memory_usages.resize(nodes.size());
 
-    Utilities::potentially_par_unseq_transform(nodes.cbegin(), nodes.cend(), memory_usages.begin(), func);
+    Utilities::potentially_par_transform(nodes.cbegin(), nodes.cend(), memory_usages.begin(), func);
 
     return memory_usages;
   }
@@ -169,12 +169,12 @@ namespace network_butcher::computer::Computer_memory
     std::vector<memory_type> memory_usages;
     memory_usages.resize(nodes.size());
 
-    Utilities::potentially_par_unseq_transform(nodes.cbegin(),
-                                               nodes.cend(),
-                                               memory_usages.begin(),
-                                               [](Content_Node_Type<T> const &node) {
-                                                 return compute_memory_usage_input(node);
-                                               });
+    Utilities::potentially_par_transform(nodes.cbegin(),
+                                         nodes.cend(),
+                                         memory_usages.begin(),
+                                         [](Content_Node_Type<T> const &node) {
+                                           return compute_memory_usage_input(node);
+                                         });
 
     return memory_usages;
   }
@@ -201,7 +201,7 @@ namespace network_butcher::computer::Computer_memory
         func = [](Content_Node_Type<T> const &node) { return compute_memory_usage_output(node); };
       }
 
-    Utilities::potentially_par_unseq_transform(nodes.cbegin(), nodes.cend(), memory_usages.begin(), func);
+    Utilities::potentially_par_transform(nodes.cbegin(), nodes.cend(), memory_usages.begin(), func);
 
     return memory_usages;
   }
@@ -215,12 +215,12 @@ namespace network_butcher::computer::Computer_memory
     std::vector<memory_type> memory_usages;
     memory_usages.resize(nodes.size());
 
-    Utilities::potentially_par_unseq_transform(nodes.cbegin(),
-                                               nodes.cend(),
-                                               memory_usages.begin(),
-                                               [](Content_Node_Type<T> const &node) {
-                                                 return compute_memory_usage_parameters(node);
-                                               });
+    Utilities::potentially_par_transform(nodes.cbegin(),
+                                         nodes.cend(),
+                                         memory_usages.begin(),
+                                         [](Content_Node_Type<T> const &node) {
+                                           return compute_memory_usage_parameters(node);
+                                         });
 
     return memory_usages;
   }
@@ -232,7 +232,7 @@ namespace network_butcher::computer::Computer_memory
   {
     auto const nodes_usage = compute_nodes_memory_usage_input(graph);
 
-    return Utilities::potentially_par_unseq_reduce(nodes_usage.cbegin(), nodes_usage.cend());
+    return Utilities::potentially_par_reduce(nodes_usage.cbegin(), nodes_usage.cend());
   }
 
 
@@ -242,7 +242,7 @@ namespace network_butcher::computer::Computer_memory
   {
     auto const nodes_usage = compute_nodes_memory_usage_parameters(graph);
 
-    return Utilities::potentially_par_unseq_reduce(nodes_usage.cbegin(), nodes_usage.cend());
+    return Utilities::potentially_par_reduce(nodes_usage.cbegin(), nodes_usage.cend());
   }
 } // namespace network_butcher::computer::Computer_memory
 

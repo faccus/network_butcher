@@ -449,14 +449,18 @@ namespace network_butcher
       }
 
       // Inputs: previous layer nodes, Outputs: following layer nodes
-      {
-        for (std::size_t i = 2; i < supp_size; ++i)
-          {
-            auto const id = new_dependencies.size();
-            new_dependencies.emplace_back();
+      if (supp_size > 2)
+        {
+#if PARALLEL
+          std::vector<std::size_t> v(supp_size - 2);
+          std::generate(v.begin(), v.end(), [n = 2]() mutable { return n++; });
 
-            auto &in  = new_dependencies.back().first;
-            auto &out = new_dependencies.back().second;
+          new_dependencies.resize(new_dependencies.size() + (supp_size - 2) * num_devices);
+
+          Utilities::potentially_par_for_each(v.cbegin(), v.cend(), [&new_dependencies, num_devices](std::size_t i) {
+            auto const id = num_devices * (i - 1) + 1;
+
+            auto &[in, out] = new_dependencies[id];
 
             for (std::size_t k = 0; k < num_devices; ++k)
               {
@@ -470,10 +474,36 @@ namespace network_butcher
 
             for (std::size_t k = 1; k < num_devices; ++k)
               {
-                new_dependencies.emplace_back(new_dependencies.back());
+                new_dependencies[id + k].first  = in;
+                new_dependencies[id + k].second = out;
               }
-          }
-      }
+          });
+#else
+          for (std::size_t i = 2; i < supp_size; ++i)
+            {
+              auto const id = new_dependencies.size();
+              new_dependencies.emplace_back();
+
+              auto &in  = new_dependencies.back().first;
+              auto &out = new_dependencies.back().second;
+
+              for (std::size_t k = 0; k < num_devices; ++k)
+                {
+                  in.insert(in.end(), id - num_devices + k);
+                }
+
+              for (std::size_t k = 0; k < num_devices; ++k)
+                {
+                  out.insert(out.end(), id + num_devices + k);
+                }
+
+              for (std::size_t k = 1; k < num_devices; ++k)
+                {
+                  new_dependencies.emplace_back(new_dependencies.back());
+                }
+            }
+#endif
+        }
 
       // Inputs: previous layer nodes, Outputs: last node
       {
@@ -561,30 +591,59 @@ namespace network_butcher
         }
 
         // Nodes up to final_size - 1 - num_devices, Inputs: previous layer nodes, Outputs: following layer nodes
-        {
-          for (node_id_type i = 2; i < supp_size; ++i)
-            {
-              auto const base_id = new_dependencies.size();
-              for (node_id_type k = 0; k < num_devices; ++k)
-                {
-                  auto const id = base_id + k;
-                  new_dependencies.emplace_back();
+        if (supp_size > 2)
+          {
+#if PARALLEL
+            std::vector<std::size_t> v(supp_size - 2);
+            std::generate(v.begin(), v.end(), [n = 2]() mutable { return n++; });
 
-                  auto &in  = new_dependencies.back().first;
-                  auto &out = new_dependencies.back().second;
+            new_dependencies.resize(new_dependencies.size() + (supp_size - 2) * num_devices);
+            Utilities::potentially_par_for_each(v.cbegin(),
+                                                v.cend(),
+                                                [num_devices, &bandwidth, &new_dependencies](std::size_t i) {
+                                                  auto const base_id = num_devices * (i - 1) + 1;
+                                                  for (node_id_type k = 0; k < num_devices; ++k)
+                                                    {
+                                                      auto const id = base_id + k;
 
-                  for (auto const &neighbour : bandwidth->get_input_nodes(k))
-                    {
-                      in.insert(in.end(), base_id - num_devices + neighbour);
-                    }
+                                                      auto &[in, out] = new_dependencies[id];
 
-                  for (auto const &neighbour : bandwidth->get_output_nodes(k))
-                    {
-                      out.insert(out.end(), base_id + num_devices + neighbour);
-                    }
-                }
-            }
-        }
+                                                      for (auto const &neighbour : bandwidth->get_input_nodes(k))
+                                                        {
+                                                          in.insert(in.end(), base_id - num_devices + neighbour);
+                                                        }
+
+                                                      for (auto const &neighbour : bandwidth->get_output_nodes(k))
+                                                        {
+                                                          out.insert(out.end(), base_id + num_devices + neighbour);
+                                                        }
+                                                    }
+                                                });
+#else
+            for (node_id_type i = 2; i < supp_size; ++i)
+              {
+                auto const base_id = new_dependencies.size();
+                for (node_id_type k = 0; k < num_devices; ++k)
+                  {
+                    auto const id = base_id + k;
+                    new_dependencies.emplace_back();
+
+                    auto &in  = new_dependencies.back().first;
+                    auto &out = new_dependencies.back().second;
+
+                    for (auto const &neighbour : bandwidth->get_input_nodes(k))
+                      {
+                        in.insert(in.end(), base_id - num_devices + neighbour);
+                      }
+
+                    for (auto const &neighbour : bandwidth->get_output_nodes(k))
+                      {
+                        out.insert(out.end(), base_id + num_devices + neighbour);
+                      }
+                  }
+              }
+#endif
+          }
 
         // Nodes final_size - 1 - num_devices, ..., final_size - 1 - 1, Inputs: previous layer nodes, Outputs: last node
         {

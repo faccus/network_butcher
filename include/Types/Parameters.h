@@ -111,6 +111,9 @@ namespace network_butcher::parameters
 
       /// The export directory
       std::string export_directory;
+
+      /// The config path
+      std::string config_path;
     };
 
     struct KSP

@@ -7,6 +7,9 @@
 #include "TestClass.h"
 #include "chrono.h"
 
+#include "Starting_traits.h"
+#include "Utilities.h"
+
 #include "GetPot"
 
 #include <fstream>
@@ -17,17 +20,7 @@ using namespace network_butcher::types;
 using namespace network_butcher::computer;
 using namespace network_butcher::parameters;
 
-using type_weight             = double;
-using type_collection_weights = std::map<std::pair<node_id_type, node_id_type>, type_weight>;
-
-using basic_type   = int;
-using Input        = TestMemoryUsage<int>;
-using Content_type = Content<Input>;
-using Node_type    = CNode<Content_type>;
-
-using Graph_type      = MWGraph<false, Node_type>;
-using Real_Graph_Type = MWGraph<false, graph_input_type>;
-
+using time_type = long double;
 
 template <class Graph>
 void
@@ -60,7 +53,7 @@ basic_weight(Graph &graph, bool fully_random)
 }
 
 parameters::Parameters
-base_parameters(std::size_t k, bool backward, std::size_t num_devices)
+base_parameters(std::size_t k, std::size_t num_devices)
 {
   Parameters res;
   res.ksp_params.K                      = k;
@@ -73,37 +66,36 @@ base_parameters(std::size_t k, bool backward, std::size_t num_devices)
   for (std::size_t i = 0; i < res.devices.size(); ++i)
     res.devices[i].id = i;
 
-  if (backward)
+  using g_type = parameters::Parameters::Weights::connection_type::element_type;
+  g_type::Dependencies_Type deps(num_devices);
+
+  for (std::size_t i = 0; i < num_devices; ++i)
     {
-      using g_type = parameters::Parameters::Weights::connection_type::element_type;
-      g_type::Dependencies_Type deps(num_devices);
-
-      for (std::size_t i = 0; i < num_devices; ++i)
+      for (std::size_t j = i; j < num_devices; ++j)
         {
-          for (std::size_t j = i; j < num_devices; ++j)
-            {
-              deps[i].second.insert(j);
-              deps[j].first.insert(i);
-            }
+          deps[i].second.insert(j);
+          deps[j].first.insert(i);
+        }
+    }
+
+  res.block_graph_generation_params.use_bandwidth_to_manage_connections = true;
+  res.weights_params.bandwidth = std::make_unique<g_type>(g_type::Node_Collection_Type(num_devices), std::move(deps));
+
+  for (std::size_t i = 0; i < num_devices; ++i)
+    {
+      for (std::size_t j = i + 1; j < num_devices; ++j)
+        {
+          res.weights_params.bandwidth->set_weight(std::make_pair(i, j), std::make_pair(1., 0.));
         }
 
-      res.block_graph_generation_params.use_bandwidth_to_manage_connections = true;
-      res.weights_params.bandwidth =
-        std::make_unique<g_type>(g_type::Node_Collection_Type(num_devices), std::move(deps));
-
-      for (std::size_t i = 0; i < num_devices; ++i)
+      for (std::size_t j = 0; j < i; ++j)
         {
-          for (std::size_t j = i + 1; j < num_devices; ++j)
-            {
-              res.weights_params.bandwidth->set_weight(std::make_pair(i, j), std::make_pair(1., 0.));
-            }
-
-          for (std::size_t j = 0; j < i; ++j)
-            {
-              res.weights_params.in_bandwidth[std::make_pair(i, j)]  = std::make_pair(1., 0.);
-              res.weights_params.out_bandwidth[std::make_pair(i, j)] = std::make_pair(1., 0.);
-            }
+          res.weights_params.in_bandwidth[std::make_pair(i, j)]  = std::make_pair(1., 0.);
+          res.weights_params.out_bandwidth[std::make_pair(i, j)] = std::make_pair(1., 0.);
         }
+
+      res.weights_params.bandwidth->set_weight(std::make_pair(i, i),
+                                               std::make_pair(std::numeric_limits<bandwidth_type>::infinity(), 0.));
     }
 
 
@@ -116,16 +108,16 @@ base_parameters(std::size_t k, bool backward, std::size_t num_devices)
 };
 
 Parameters
-lazy_eppstein_parameters(std::size_t k, bool backward, std::size_t num_devices)
+lazy_eppstein_parameters(std::size_t k, std::size_t num_devices)
 {
-  auto res              = base_parameters(k, backward, num_devices);
+  auto res              = base_parameters(k, num_devices);
   res.ksp_params.method = KSP_Method::Lazy_Eppstein;
 
   return res;
-}
+};
 
 
-std::function<type_weight(edge_type const &, std::size_t, std::size_t)>
+std::function<weight_type(edge_type const &, std::size_t, std::size_t)>
 basic_transmission(std::size_t devices, std::size_t size)
 {
   return [devices, size](edge_type const &in_edge, std::size_t first, std::size_t second) {
@@ -169,14 +161,36 @@ get_test_names()
           "age_googlenet_shapes_only"};
 }
 
+void
+print_csv(std::string const &export_path, std::vector<std::tuple<std::string, time_type>> const &rows)
+{
+  std::ofstream out_file(export_path);
+
+  for (auto const &header : {"Test", "TotalTime"})
+    {
+      out_file << header << ",";
+    }
+  out_file << std::endl;
+
+  for (auto const &row : rows)
+    {
+      auto const &[name, total_time] = row;
+      out_file << name << "," << total_time << std::endl;
+    }
+
+  out_file.close();
+};
+
+
 int
 main(int argc, char **argv)
 {
-  GetPot command_line(argc, argv);
+  GetPot      command_line(argc, argv);
+  std::string export_path = "report_IO_Manager.txt";
 
-  std::vector<std::tuple<std::string, long double>> results;
-  std::size_t                                       num_tests   = command_line("num_tests", 10);
-  std::size_t                                       num_devices = 3, k = 1000;
+  std::vector<std::tuple<std::string, time_type>> results;
+  std::size_t                                     num_tests   = command_line("num_tests", 10);
+  std::size_t                                     num_devices = 3, k = 1000;
 
 
   Chrono crono;
@@ -195,10 +209,10 @@ main(int argc, char **argv)
       basic_weight(graph, false);
       auto const transmission_fun = basic_transmission(num_devices, nodes.size());
 
-      auto const params            = lazy_eppstein_parameters(k, true, num_devices);
+      auto const params            = lazy_eppstein_parameters(k, num_devices);
       auto const lazy_eppstein_res = butcher.compute_k_shortest_path(transmission_fun, params);
 
-      long double time = 0.;
+      time_type time = 0.;
 
 
       // The actual test starts here:
@@ -210,7 +224,7 @@ main(int argc, char **argv)
           io::IO_Manager::export_network_partitions(params, model, map, lazy_eppstein_res);
           crono.stop();
 
-          long double local_time = crono.wallTime();
+          time_type local_time = crono.wallTime();
           time += local_time;
 
           std::cout << "Test #" << Utilities::custom_to_string(i + 1) << ": " << local_time / 1000. << " ms"
@@ -219,15 +233,10 @@ main(int argc, char **argv)
 
       time /= (num_tests * static_cast<long double>(1000.));
 
-      std::cout << std::endl << "Export time average " << time << " ms" << std::endl << std::endl;
+      std::cout << std::endl << "Total time average " << time << " ms" << std::endl << std::endl;
 
       results.emplace_back(file_name, time);
     }
 
-  std::string   export_path = "report_IO_Manager.txt";
-  std::ofstream out_file(export_path);
-
-  out_file << "Test,ExportTime" << std::endl;
-  for (auto const &[name, time] : results)
-    out_file << name << "," << time << std::endl;
+  print_csv(export_path, results);
 }
