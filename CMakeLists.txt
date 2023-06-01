@@ -13,7 +13,7 @@ option(BUILD_TESTS "Build tests" ON)
 option(BUILD_COMPLETE_TESTS "Build complete tests" OFF)
 
 option(ENABLE_PARALLEL "Enable parallel execution" ON)
-option(USE_OPENMP "Use OpenMP" ON)
+option(USE_OPENMP "Use OpenMP" OFF)
 
 
 option(BUILD_EXTRA_MAINS "Build extra main executables" ON)
@@ -60,7 +60,7 @@ endif ()
 if (ENABLE_PARALLEL)
     add_compile_definitions(PARALLEL)
 
-    if( USE_OPENMP )
+    if (USE_OPENMP)
         add_compile_definitions(PARALLEL_OPENMP)
     else ()
         add_compile_definitions(PARALLEL_TBB)

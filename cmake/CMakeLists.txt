@@ -56,11 +56,15 @@ if(USE_PYBIND)
 endif()
 
 if (ENABLE_PARALLEL)
-    find_package(OpenMP REQUIRED)
-    list(APPEND RUN_LIBRARIES_LOCATION OpenMP::OpenMP_CXX)
 
-    #find_package(TBB REQUIRED)
-    #list(APPEND RUN_LIBRARIES_LOCATION TBB::tbb)
+    if( USE_OPENMP )
+        find_package(OpenMP REQUIRED)
+        list(APPEND RUN_LIBRARIES_LOCATION OpenMP::OpenMP_CXX)
+    else()
+        find_package(TBB REQUIRED)
+        list(APPEND RUN_LIBRARIES_LOCATION TBB::tbb)
+    endif()
+
 endif ()
 
 if (BUILD_TESTS)

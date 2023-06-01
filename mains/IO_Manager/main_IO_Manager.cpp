@@ -161,25 +161,17 @@ get_test_names()
           "age_googlenet_shapes_only"};
 }
 
-void
-print_csv(std::string const &export_path, std::vector<std::tuple<std::string, time_type>> const &rows)
+std::size_t
+simple_pow(std::size_t base, std::size_t exp)
 {
-  std::ofstream out_file(export_path);
-
-  for (auto const &header : {"Test", "TotalTime"})
+  std::size_t res = 1;
+  for (; exp > 0; --exp)
     {
-      out_file << header << ",";
-    }
-  out_file << std::endl;
-
-  for (auto const &row : rows)
-    {
-      auto const &[name, total_time] = row;
-      out_file << name << "," << total_time << std::endl;
+      res *= base;
     }
 
-  out_file.close();
-};
+  return res;
+}
 
 
 int
@@ -190,10 +182,39 @@ main(int argc, char **argv)
 
   std::vector<std::tuple<std::string, time_type>> results;
   std::size_t                                     num_tests   = command_line("num_tests", 10);
-  std::size_t                                     num_devices = 3, k = 1000;
+  std::size_t                                     max_k_power = command_line("max_k_power", 11);
+  std::size_t                                     num_devices = 3;
 
+  #if PARALLEL_OPENMP
+    std::cout << "Is OpenMP enabled? Let's check it!" << std::endl;
+
+    int nthreads, tid;
+
+  #  pragma omp parallel default(none) private(nthreads, tid)
+    {
+      /* Obtain thread number */
+      tid = omp_get_thread_num();
+      printf("Hello world from omp thread %d\n", tid);
+
+      /* Only master thread does this */
+      if (tid == 0)
+        {
+          nthreads = omp_get_num_threads();
+          printf("Number of threads = %d\n", nthreads);
+        }
+
+    } /* All threads join master thread and disband */
+  #endif
 
   Chrono crono;
+
+  {
+    std::ofstream out_file(export_path);
+    out_file << "file,k,Export" << std::endl;
+    out_file.close();
+  }
+
+
   for (auto const &file_name : get_test_names())
     {
       std::string input = "test_data/models/" + file_name + ".onnx";
@@ -209,34 +230,44 @@ main(int argc, char **argv)
       basic_weight(graph, false);
       auto const transmission_fun = basic_transmission(num_devices, nodes.size());
 
-      auto const params            = lazy_eppstein_parameters(k, num_devices);
-      auto const lazy_eppstein_res = butcher.compute_k_shortest_path(transmission_fun, params);
-
-      time_type time = 0.;
-
-
-      // The actual test starts here:
-      for (std::size_t i = 0; i < num_tests; ++i)
+      for (std::size_t k_power = 5; k_power < max_k_power; ++k_power)
         {
-          Utilities::directory_delete(params.model_params.export_directory);
+          std::size_t k = simple_pow(2, k_power);
 
-          crono.start();
-          io::IO_Manager::export_network_partitions(params, model, map, lazy_eppstein_res);
-          crono.stop();
+          auto const params            = lazy_eppstein_parameters(k, num_devices);
+          auto const lazy_eppstein_res = butcher.compute_k_shortest_path(transmission_fun, params);
 
-          time_type local_time = crono.wallTime();
-          time += local_time;
+          time_type time = 0.;
 
-          std::cout << "Test #" << Utilities::custom_to_string(i + 1) << ": " << local_time / 1000. << " ms"
-                    << std::endl;
+          std::cout << "K=" << k << std::endl;
+
+
+          if (lazy_eppstein_res.size() < k)
+            break;
+
+
+          // The actual test starts here:
+          for (std::size_t i = 0; i < num_tests; ++i)
+            {
+              Utilities::directory_delete(params.model_params.export_directory);
+
+              crono.start();
+              io::IO_Manager::export_network_partitions(params, model, map, lazy_eppstein_res);
+              crono.stop();
+
+              time_type local_time = crono.wallTime();
+              time += local_time;
+
+              std::cout << "Test #" << Utilities::custom_to_string(i + 1) << ": " << local_time / 1000. << " ms"
+                        << std::endl;
+            }
+          time /= (num_tests * static_cast<long double>(1000.));
+          std::cout << std::endl << "K: " << k << ", T: " << time << " ms" << std::endl << std::endl;
+
+
+          std::ofstream out_file(export_path, std::ios_base::app);
+          out_file << file_name << "," << k << "," << time << std::endl;
+          out_file.close();
         }
-
-      time /= (num_tests * static_cast<long double>(1000.));
-
-      std::cout << std::endl << "Total time average " << time << " ms" << std::endl << std::endl;
-
-      results.emplace_back(file_name, time);
     }
-
-  print_csv(export_path, results);
 }

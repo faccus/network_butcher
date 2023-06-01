@@ -56,7 +56,6 @@ namespace network_butcher::io::IO_Manager
             paths[j], model, link_id_nodeproto, preprocessed_node_ios, output_path);
         }
     }
-
 #endif
   }
 

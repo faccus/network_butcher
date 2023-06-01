@@ -16,7 +16,7 @@ using namespace network_butcher;
 using namespace network_butcher::types;
 
 using Node_type = Node;
-using GraphType = MWGraph<false, Node_type>;
+using GraphType = MWGraph<false, Node_type, long>;
 using time_type = long double;
 
 
@@ -51,7 +51,7 @@ basic_weight(Graph &graph, bool fully_random = false)
 }
 
 // Sample transmission: returns bandwidth + access time
-std::function<weight_type(edge_type const &, std::size_t, std::size_t)>
+std::function<GraphType::Weight_Type(edge_type const &, std::size_t, std::size_t)>
 basic_transmission(parameters::Parameters::Weights const &weight_params, std::size_t num_nodes)
 {
   return [&weight_params, num_nodes](edge_type const &in_edge, std::size_t first, std::size_t second) {
@@ -149,26 +149,6 @@ generate_parameters()
   return res;
 }
 
-void
-print_csv(std::string const &export_path, std::vector<std::tuple<std::string, time_type>> const &rows)
-{
-  std::ofstream out_file(export_path);
-
-  for (auto const &header : {"Test", "TotalTime"})
-    {
-      out_file << header << ",";
-    }
-  out_file << std::endl;
-
-  for (auto const &row : rows)
-    {
-      auto const &[name, total_time] = row;
-      out_file << name << "," << total_time << std::endl;
-    }
-
-  out_file.close();
-};
-
 std::size_t
 simple_pow(std::size_t base, std::size_t exp)
 {
@@ -189,12 +169,41 @@ main(int argc, char **argv)
 
   std::vector<std::tuple<std::string, time_type>> results;
   std::size_t                                     num_tests = command_line("num_tests", 10);
-  std::size_t                                     max_power = command_line("max_power", 6);
+  std::size_t                                     max_power = command_line("max_power", 15);
+
+#if PARALLEL_OPENMP
+  std::cout << "Is OpenMP enabled? Let's check it!" << std::endl;
+
+  int nthreads, tid;
+
+#  pragma omp parallel default(none) private(nthreads, tid)
+  {
+    /* Obtain thread number */
+    tid = omp_get_thread_num();
+    printf("Hello world from omp thread %d\n", tid);
+
+    /* Only master thread does this */
+    if (tid == 0)
+      {
+        nthreads = omp_get_num_threads();
+        printf("Number of threads = %d\n", nthreads);
+      }
+
+  } /* All threads join master thread and disband */
+#endif
+
 
   Chrono crono;
-  for (std::size_t power = 1; power <= max_power; ++power)
+
+  {
+    std::ofstream out_file(export_path);
+    out_file << "NumNodes,TotalTime" << std::endl;
+    out_file.close();
+  }
+
+  for (std::size_t power = 10; power <= max_power; ++power)
     {
-      std::size_t nodes = simple_pow(10, power);
+      std::size_t nodes = simple_pow(2, power);
       time_type   time  = 0.;
 
       auto params       = generate_parameters();
@@ -203,14 +212,14 @@ main(int argc, char **argv)
 
       basic_weight(graph);
 
+
       for (std::size_t test_num = 0; test_num < num_tests; ++test_num)
         {
           Constrained_Block_Graph_Builder<GraphType> builder(graph, params);
           builder.construct_weights(transmission);
 
-
           crono.start();
-          auto const res = builder.construct_block_graph();
+          builder.construct_block_graph();
           crono.stop();
 
           time_type local_time = crono.wallTime();
@@ -223,11 +232,11 @@ main(int argc, char **argv)
       time /= (num_tests * static_cast<long double>(1000.));
 
       std::cout << std::endl
-                << "Total time average for 10^" << (power) << " nodes: " << time << " ms" << std::endl
+                << "Total time average for " << nodes << " nodes: " << time << " ms" << std::endl
                 << std::endl;
 
-      results.emplace_back(Utilities::custom_to_string(power), time);
+      std::ofstream out_file(export_path, std::ios_base::app);
+      out_file << nodes << "," << time << std::endl;
+      out_file.close();
     }
-
-  print_csv(export_path, results);
 }
