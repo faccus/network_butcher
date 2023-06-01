@@ -16,7 +16,6 @@ if (BUILD_PROTOBUF_SOURCE)
 
     list(APPEND EXTRA_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/onnx_proto)
     list(APPEND BASE_SOURCE ${CMAKE_SOURCE_DIR}/onnx_proto/onnx.pb.cc)
-
 else ()
     find_package(Protobuf REQUIRED)
     list(APPEND RUN_LIBRARIES_LOCATION ${Protobuf_LIBRARIES})
@@ -57,8 +56,11 @@ if(USE_PYBIND)
 endif()
 
 if (ENABLE_PARALLEL)
-    find_package(TBB REQUIRED)
-    list(APPEND RUN_LIBRARIES_LOCATION TBB::tbb)
+    find_package(OpenMP REQUIRED)
+    list(APPEND RUN_LIBRARIES_LOCATION OpenMP::OpenMP_CXX)
+
+    #find_package(TBB REQUIRED)
+    #list(APPEND RUN_LIBRARIES_LOCATION TBB::tbb)
 endif ()
 
 if (BUILD_TESTS)

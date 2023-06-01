@@ -10,6 +10,23 @@
 
 namespace network_butcher::types
 {
+  struct hash_pair
+  {
+    /// Probably not the best hash function, but for our purposes the elements of the pair are always different...
+    /// \tparam T1 Type 1
+    /// \tparam T2 Type 2
+    /// \param p Pair
+    /// \return The hash
+    template <class T1, class T2>
+    std::size_t
+    operator()(const std::pair<T1, T2> &p) const
+    {
+      auto hash1 = std::hash<T1>{}(p.first);
+      auto hash2 = std::hash<T2>{}(p.second);
+      return hash1 ^ hash2;
+    }
+  };
+
   /// A custom graph class. It contains a single graph and multiple weight maps. Technically, it can be viewed
   /// as a collection of graphs with the same structure, but different weight maps.
   /// \tparam T Type of the content of the nodes
@@ -19,6 +36,7 @@ namespace network_butcher::types
   protected:
     using Parent_Type = Graph<t_Node_Type>;
 
+
   public:
     using Dependencies_Type    = Parent_Type::Neighbours_Type;
     using Node_Type            = Parent_Type::Node_Type;
@@ -26,9 +44,16 @@ namespace network_butcher::types
 
     using Weight_Type = t_weight_type;
 
+  private:
+    using single_edge_weight_container = std::vector<std::map<node_id_type, Weight_Type>>;
+    // std::map<edge_type, Weight_Type>;      // std::unordered_map<edge_type, Weight_Type, hash_pair>;
+    using multi_edge_weight_container = std::vector<std::multimap<node_id_type, Weight_Type>>;
+    // std::multimap<edge_type, Weight_Type>; // std::unordered_multimap<edge_type, Weight_Type, hash_pair>;
+
+  public:
     using Edge_Weight_Type = std::conditional_t<Parallel_Edges, std::multiset<Weight_Type>, Weight_Type>;
     using Weight_Collection_Type =
-      std::conditional_t<Parallel_Edges, std::multimap<edge_type, Weight_Type>, std::map<edge_type, Weight_Type>>;
+      std::conditional_t<Parallel_Edges, multi_edge_weight_container, single_edge_weight_container>;
 
   protected:
     std::vector<Weight_Collection_Type> weigth_map;
@@ -45,6 +70,10 @@ namespace network_butcher::types
         }
 
       weigth_map.resize(num_maps);
+      for (auto &map : weigth_map)
+        {
+          map.resize(Parent_Type::size());
+        }
     }
 
 
@@ -55,7 +84,7 @@ namespace network_butcher::types
     [[nodiscard]] bool
     check_weight(std::size_t device, edge_type const &edge) const
     {
-      return weigth_map[device].contains(edge);
+      return weigth_map[device][edge.first].contains(edge.second);
     }
 
 
@@ -66,16 +95,22 @@ namespace network_butcher::types
     [[nodiscard]] auto
     get_weight(std::size_t device, edge_type const &edge) const
     {
-      auto const      &map = weigth_map[device];
-      auto             it  = map.find(edge);
-      Edge_Weight_Type res;
+      if (device >= weigth_map.size())
+        {
+          throw std::runtime_error("MWGraph: the device " + Utilities::custom_to_string(device) + " does not exist");
+        }
 
+      auto const &map = weigth_map[device][edge.first];
+      auto        it  = map.find(edge.second);
+
+      Edge_Weight_Type res;
       if (it == map.cend())
         {
           if (Parent_Type::check_edge(edge))
             {
               throw std::runtime_error("MWGraph: the edge " + Utilities::custom_to_string(edge) +
-                                       " was not associated with any weight of device " + std::to_string(device));
+                                       " was not associated with any weight of device " +
+                                       Utilities::custom_to_string(device));
             }
           else
             {
@@ -85,7 +120,7 @@ namespace network_butcher::types
 
       if constexpr (Parallel_Edges)
         {
-          for (; it != map.cend() && it->first == edge; ++it)
+          for (; it != map.cend() && it->first == edge.second; ++it)
             res.insert(it->second);
         }
       else
@@ -111,11 +146,11 @@ namespace network_butcher::types
 
       if constexpr (Parallel_Edges)
         {
-          weigth_map[device].emplace(edge, weight);
+          weigth_map[device][edge.first].emplace(edge.second, weight);
         }
       else
         {
-          weigth_map[device][edge] = weight;
+          weigth_map[device][edge.first][edge.second] = weight;
         }
     }
 
@@ -130,7 +165,7 @@ namespace network_butcher::types
       if (Parent_Type::check_edge(edge))
         {
           for (auto const &weight : weights)
-            weigth_map[device].emplace(edge, weight);
+            weigth_map[device][edge.first].emplace(edge.second, weight);
         }
       else
         {
@@ -161,20 +196,21 @@ namespace network_butcher::types
           for (auto const &out : Parent_Type::get_output_nodes(node.get_id()))
             {
               recorded_edges.emplace_hint(recorded_edges.end(), std::make_pair(node.get_id(), out));
-              std::string base_tmp = std::to_string(node.get_id()) + " " + std::to_string(out) + " ";
+              std::string base_tmp =
+                Utilities::custom_to_string(node.get_id()) + " " + Utilities::custom_to_string(out) + " ";
               for (std::size_t i = 0; i < weigth_map.size(); ++i)
                 {
                   auto const &map = weigth_map[i];
 
                   if constexpr (Parallel_Edges)
                     {
-                      std::string new_base = base_tmp + std::to_string(i) + " ";
-                      auto        it       = map.find(std::make_pair(node.get_id(), out));
-                      if (it != map.cend())
+                      std::string new_base = base_tmp + Utilities::custom_to_string(i) + " ";
+                      auto        it       = map[node.get_id()].find(out);
+                      if (it != map[node.get_id()].cend())
                         {
-                          for (auto const &w : it->second)
+                          for (; it != map[node.get_id()].cend() && it->first == out; ++it)
                             {
-                              builder << new_base << Utilities::custom_to_string(w) << std::endl;
+                              builder << new_base << Utilities::custom_to_string(it->second) << std::endl;
                             }
                         }
                       else
@@ -184,10 +220,11 @@ namespace network_butcher::types
                     }
                   else
                     {
-                      builder << base_tmp << std::to_string(i) << " ";
+                      builder << base_tmp << Utilities::custom_to_string(i) << " ";
 
-                      auto it = map.find(std::make_pair(node.get_id(), out));
-                      if (it != map.cend())
+                      auto it = map[node.get_id()].find(out);
+
+                      if (it != map[node.get_id()].cend())
                         {
                           builder << Utilities::custom_to_string(it->second);
                         }
@@ -225,9 +262,16 @@ namespace network_butcher::types
 
     using Weight_Type = weight_type;
 
-    using Edge_Weight_Type = std::conditional_t<Parallel_Edges, std::multiset<weight_type>, weight_type>;
+  private:
+    using single_edge_weight_container = std::vector<std::map<node_id_type, Weight_Type>>;
+    // std::map<edge_type, Weight_Type>;      // std::unordered_map<edge_type, Weight_Type, hash_pair>;
+    using multi_edge_weight_container = std::vector<std::multimap<node_id_type, Weight_Type>>;
+    // std::multimap<edge_type, Weight_Type>; // std::unordered_multimap<edge_type, Weight_Type, hash_pair>;
+
+  public:
+    using Edge_Weight_Type = std::conditional_t<Parallel_Edges, std::multiset<Weight_Type>, Weight_Type>;
     using Weight_Collection_Type =
-      std::conditional_t<Parallel_Edges, std::multimap<edge_type, weight_type>, std::map<edge_type, weight_type>>;
+      std::conditional_t<Parallel_Edges, multi_edge_weight_container, single_edge_weight_container>;
 
   protected:
     std::vector<Weight_Collection_Type> weigth_map;
@@ -243,6 +287,10 @@ namespace network_butcher::types
           throw std::runtime_error("MWGraph: the number of maps must be greater than 0");
         }
       weigth_map.resize(num_maps);
+      for (auto &map : weigth_map)
+        {
+          map.resize(Parent_Type::size());
+        }
     }
 
     template <typename A>
@@ -255,6 +303,10 @@ namespace network_butcher::types
           throw std::runtime_error("MWGraph: the number of maps must be greater than 0");
         }
       weigth_map.resize(num_maps);
+      for (auto &map : weigth_map)
+        {
+          map.resize(Parent_Type::size());
+        }
     }
 
 
@@ -265,7 +317,7 @@ namespace network_butcher::types
     [[nodiscard]] bool
     check_weight(std::size_t device, edge_type const &edge) const
     {
-      return weigth_map[device].contains(edge);
+      return weigth_map[device][edge.first].contains(edge.second);
     }
 
 
@@ -276,16 +328,22 @@ namespace network_butcher::types
     [[nodiscard]] Edge_Weight_Type
     get_weight(std::size_t device, edge_type const &edge) const
     {
-      auto const      &map = weigth_map[device];
-      auto             it  = map.find(edge);
-      Edge_Weight_Type res;
+      if (device >= weigth_map.size())
+        {
+          throw std::runtime_error("MWGraph: the device " + Utilities::custom_to_string(device) + " does not exist");
+        }
 
+      auto const &map = weigth_map[device][edge.first];
+      auto        it  = map.find(edge.second);
+
+      Edge_Weight_Type res;
       if (it == map.cend())
         {
           if (Parent_Type::check_edge(edge))
             {
               throw std::runtime_error("MWGraph: the edge " + Utilities::custom_to_string(edge) +
-                                       " was not associated with any weight of device " + std::to_string(device));
+                                       " was not associated with any weight of device " +
+                                       Utilities::custom_to_string(device));
             }
           else
             {
@@ -295,7 +353,7 @@ namespace network_butcher::types
 
       if constexpr (Parallel_Edges)
         {
-          for (; it != map.cend() && it->first == edge; ++it)
+          for (; it != map.cend() && it->first == edge.second; ++it)
             res.insert(it->second);
         }
       else
@@ -321,11 +379,11 @@ namespace network_butcher::types
 
       if constexpr (Parallel_Edges)
         {
-          weigth_map[device].emplace(edge, weight);
+          weigth_map[device][edge.first].emplace(edge.second, weight);
         }
       else
         {
-          weigth_map[device][edge] = weight;
+          weigth_map[device][edge.first][edge.second] = weight;
         }
     }
 
@@ -341,7 +399,7 @@ namespace network_butcher::types
       if (Parent_Type::check_edge(edge))
         {
           for (auto const &weight : weights)
-            weigth_map[device].emplace(edge, weight);
+            weigth_map[device][edge.first].emplace(edge.second, weight);
         }
       else
         {
@@ -371,20 +429,21 @@ namespace network_butcher::types
           for (auto const &out : Parent_Type::get_output_nodes(node.get_id()))
             {
               recorded_edges.emplace_hint(recorded_edges.end(), std::make_pair(node.get_id(), out));
-              std::string base_tmp = std::to_string(node.get_id()) + " " + std::to_string(out) + " ";
+              std::string base_tmp =
+                Utilities::custom_to_string(node.get_id()) + " " + Utilities::custom_to_string(out) + " ";
               for (std::size_t i = 0; i < weigth_map.size(); ++i)
                 {
                   auto const &map = weigth_map[i];
 
                   if constexpr (Parallel_Edges)
                     {
-                      std::string new_base = base_tmp + std::to_string(i) + " ";
-                      auto        it       = map.find(std::make_pair(node.get_id(), out));
+                      std::string new_base = base_tmp + Utilities::custom_to_string(i) + " ";
+                      auto        it       = map[node.get_id()].find(out);
                       if (it != map.cend())
                         {
-                          for (auto const &w : it->second)
+                          for (; it != map[node.get_id()].cend() && it->first == out; ++it)
                             {
-                              builder << new_base << Utilities::custom_to_string(w) << std::endl;
+                              builder << new_base << Utilities::custom_to_string(it->second) << std::endl;
                             }
                         }
                       else
@@ -394,10 +453,10 @@ namespace network_butcher::types
                     }
                   else
                     {
-                      builder << base_tmp << std::to_string(i) << " ";
+                      builder << base_tmp << Utilities::custom_to_string(i) << " ";
 
-                      auto it = map.find(std::make_pair(node.get_id(), out));
-                      if (it != map.cend())
+                      auto it = map[node.get_id()].find(out);
+                      if (it != map[node.get_id()].cend())
                         {
                           builder << Utilities::custom_to_string(it->second);
                         }

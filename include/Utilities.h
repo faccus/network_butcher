@@ -5,10 +5,6 @@
 #ifndef NETWORK_BUTCHER_UTILITIES_H
 #define NETWORK_BUTCHER_UTILITIES_H
 
-#if PARALLEL
-#  include <execution>
-#endif
-
 #include <algorithm>
 #include <numeric>
 
@@ -229,6 +225,7 @@ namespace network_butcher::Utilities
   std::string
   combine_path(std::string const &first, std::string const &second);
 
+  /*
 
   /// Based on the compiler pre-processor PARALLEL (associated to the same setting in the CMakeList file), it will
   /// apply the std::transform function to the given arguments with either a parallel policy or with
@@ -272,6 +269,8 @@ namespace network_butcher::Utilities
     std::for_each(std::forward<Args>(args)...);
 #endif
   };
+
+  */
 
 
 } // namespace network_butcher::Utilities

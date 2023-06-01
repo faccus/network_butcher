@@ -12,15 +12,10 @@
 #include <memory>
 
 
-#if PARALLEL
-#  include <execution>
-#  define SEQ std::execution::seq
-#  define PAR_UNSEQ std::execution::par_unseq
-#  define PAR std::execution::par
-#else
-#  define SEQ
-#  define PAR_UNSEQ
-#  define PAR
+#if PARALLEL_TBB
+#include <execution>
+#elif PARALLEL_OPENMP
+#include <omp.h>
 #endif
 
 namespace network_butcher

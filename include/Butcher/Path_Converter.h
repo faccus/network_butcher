@@ -51,39 +51,76 @@ namespace network_butcher::Utilities
   {
     std::vector<network_butcher::types::Weighted_Real_Path> final_res(paths.size());
 
-    auto func = [&graph = graph](auto const &path) {
-      network_butcher::types::Real_Path res;
-      std::size_t                       current_model_device = 0;
-
-      res.emplace_back(current_model_device, std::set<node_id_type>());
-
-      auto const &path_nodes = path.path;
-
-      // Loop through the nodes of the path
-      for (auto const &node_id_new_graph : path_nodes)
-        {
-          auto const &node = graph[node_id_new_graph];
-
-          // Check if a new device is requested
-          if (node.content.first != current_model_device)
-            {
-              // Add a new partition
-              current_model_device = node.content.first;
-              res.emplace_back(current_model_device, std::set<node_id_type>());
-            }
-
-          // Add the current node to the last partition
-          res.back().second.insert(node.content.second->begin(), node.content.second->end());
-        }
-
-      return network_butcher::types::Weighted_Real_Path{path.length, res};
-    };
-
+#if PARALLEL_TBB
     // Process the different paths into partitioning
-    Utilities::potentially_par_transform(paths.cbegin(), paths.cend(), final_res.begin(), func);
+    std::transform(
+      std::execution::par, paths.cbegin(), paths.cend(), final_res.begin(), [&graph = graph](auto const &path) {
+        network_butcher::types::Real_Path res;
+        std::size_t                       current_model_device = 0;
+
+        res.emplace_back(current_model_device, std::set<node_id_type>());
+
+        auto const &path_nodes = path.path;
+
+        // Loop through the nodes of the path
+        for (auto const &node_id_new_graph : path_nodes)
+          {
+            auto const &node = graph[node_id_new_graph];
+
+            // Check if a new device is requested
+            if (node.content.first != current_model_device)
+              {
+                // Add a new partition
+                current_model_device = node.content.first;
+                res.emplace_back(current_model_device, std::set<node_id_type>());
+              }
+
+            // Add the current node to the last partition
+            res.back().second.insert(node.content.second->begin(), node.content.second->end());
+          }
+
+        return network_butcher::types::Weighted_Real_Path{path.length, res};
+      });
+#else
+    #pragma omp parallel default(none) shared(final_res, paths)
+    {
+      #pragma omp for
+      for (std::size_t i = 0; i < paths.size(); ++i)
+        {
+          auto const &path     = paths[i];
+          auto       &res      = final_res[i];
+          auto       &path_res = res.second;
+
+          res.first = path.length;
+
+          std::size_t current_model_device = 0;
+
+          path_res.emplace_back(current_model_device, std::set<node_id_type>());
+
+          auto const &path_nodes = path.path;
+
+          // Loop through the nodes of the path
+          for (auto const &node_id_new_graph : path_nodes)
+            {
+              auto const &node = graph[node_id_new_graph];
+
+              // Check if a new device is requested
+              if (node.content.first != current_model_device)
+                {
+                  // Add a new partition
+                  current_model_device = node.content.first;
+                  path_res.emplace_back(current_model_device, std::set<node_id_type>());
+                }
+
+              // Add the current node to the last partition
+              path_res.back().second.insert(node.content.second->begin(), node.content.second->end());
+            }
+        }
+    }
+#endif
 
     return final_res;
-  }
+  } // namespace network_butcher::Utilities
 } // namespace network_butcher::Utilities
 
 #endif // NETWORK_BUTCHER_PATH_CONVERTER_H

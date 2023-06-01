@@ -2,13 +2,18 @@ cmake_minimum_required(VERSION 3.21)
 project("Network Butcher" DESCRIPTION "Just a normal butcher. A network butcher")
 set(CMAKE_CXX_STANDARD 20)
 
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
+
 # #######################################################################################################################
 # ############ USER OPTIONS #############################################################################################
 # #######################################################################################################################
 
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_COMPLETE_TESTS "Build complete tests" OFF)
+
 option(ENABLE_PARALLEL "Enable parallel execution" ON)
+option(USE_OPENMP "Use OpenMP" ON)
 
 
 option(BUILD_EXTRA_MAINS "Build extra main executables" ON)
@@ -28,6 +33,8 @@ option(BUILD_DOC "Build documentation" ON)
 message(STATUS "Build tests: ${BUILD_TESTS}")
 message(STATUS "Build complete tests: ${BUILD_COMPLETE_TESTS}")
 message(STATUS "Enable parallel execution: ${ENABLE_PARALLEL}")
+
+message(STATUS "Enable OpenMP: ${USE_OPENMP}")
 
 message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
 
@@ -52,6 +59,13 @@ endif ()
 
 if (ENABLE_PARALLEL)
     add_compile_definitions(PARALLEL)
+
+    if( USE_OPENMP )
+        add_compile_definitions(PARALLEL_OPENMP)
+    else ()
+        add_compile_definitions(PARALLEL_TBB)
+    endif ()
+
 endif ()
 
 set(
@@ -74,7 +88,6 @@ target_include_directories(network_butcher PUBLIC ${INCLUDES})
 target_link_libraries(network_butcher ${RUN_LIBRARIES_LOCATION})
 
 
-
 if (BUILD_TESTS)
 
     include(google_tests/CMakeLists.txt)
@@ -82,11 +95,9 @@ if (BUILD_TESTS)
     enable_testing()
 
 
-
     add_executable(test_run ${TESTS_SOURCE} ${BASE_SOURCE})
     target_include_directories(test_run PUBLIC ${INCLUDES} google_tests)
     target_link_libraries(test_run ${TEST_LIBRARIES_LOCATION})
-
 
 
     add_executable(test_run_complete ${TESTS_SOURCE} ${COMPLETE_TESTS_SOURCE} ${BASE_SOURCE})
@@ -103,12 +114,11 @@ if (BUILD_TESTS)
 
 endif ()
 
-if ( BUILD_EXTRA_MAINS )
+if (BUILD_EXTRA_MAINS)
 
     add_executable(main_kfinder mains/KFinder/main_kfinder.cpp ${BASE_SOURCE} ${PROTO_SRCS})
     target_include_directories(main_kfinder PUBLIC ${INCLUDES} google_tests)
     target_link_libraries(main_kfinder ${RUN_LIBRARIES_LOCATION})
-
 
 
     add_executable(main_path_reconstruction mains/KFinder/main_path_reconstruction.cpp ${BASE_SOURCE} ${PROTO_SRCS})
@@ -116,18 +126,16 @@ if ( BUILD_EXTRA_MAINS )
     target_link_libraries(main_path_reconstruction ${RUN_LIBRARIES_LOCATION})
 
 
-
     add_executable(main_IO_Manager mains/IO_Manager/main_IO_Manager.cpp ${BASE_SOURCE} ${PROTO_SRCS})
     target_include_directories(main_IO_Manager PUBLIC ${INCLUDES} google_tests)
     target_link_libraries(main_IO_Manager ${RUN_LIBRARIES_LOCATION})
-
 
 
     add_executable(main_Constrained_Builder mains/Butcher/main_Constrained_Builder.cpp ${BASE_SOURCE} ${PROTO_SRCS})
     target_include_directories(main_Constrained_Builder PUBLIC ${INCLUDES} google_tests)
     target_link_libraries(main_Constrained_Builder ${RUN_LIBRARIES_LOCATION})
 
-endif()
+endif ()
 
 
 if (BUILD_DOC)

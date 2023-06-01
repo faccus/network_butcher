@@ -16,27 +16,29 @@ namespace network_butcher::types
   /// \tparam t_Node_Type Type of nodes
   /// \tparam t_weight_type Type of the weight
   template <bool Parallel_Edges, typename t_Node_Type = Node, typename t_weight_type = weight_type>
-  class WGraph : public Graph<t_Node_Type>
+  class WGraph : public MWGraph<Parallel_Edges, t_Node_Type, t_weight_type>
   {
   private:
-    using Parent_Type  = Graph<t_Node_Type>;
-    using MWGraph_Type = MWGraph<Parallel_Edges, t_Node_Type, t_weight_type>;
+    using Parent_Type = MWGraph<Parallel_Edges, t_Node_Type, t_weight_type>;
 
-    MWGraph_Type::Weight_Collection_Type weigth_map;
+    using Parent_Type::check_weight;
+    using Parent_Type::get_num_devices;
+    using Parent_Type::get_weight;
+    using Parent_Type::print_graph;
+    using Parent_Type::set_weight;
 
   public:
-    using Dependencies_Type    = MWGraph_Type::Dependencies_Type;
-    using Node_Type            = MWGraph_Type::Node_Type;
-    using Node_Collection_Type = MWGraph_Type::Node_Collection_Type;
+    using Dependencies_Type    = Parent_Type::Dependencies_Type;
+    using Node_Type            = Parent_Type::Node_Type;
+    using Node_Collection_Type = Parent_Type::Node_Collection_Type;
 
-    using Weight_Type            = MWGraph_Type::Weight_Type;
-    using Edge_Weight_Type       = MWGraph_Type::Edge_Weight_Type;
-    using Weight_Collection_Type = MWGraph_Type::Weight_Collection_Type;
+    using Weight_Type            = Parent_Type::Weight_Type;
+    using Edge_Weight_Type       = Parent_Type::Edge_Weight_Type;
+    using Weight_Collection_Type = Parent_Type::Weight_Collection_Type;
 
     template <typename A, typename B>
     explicit WGraph(A &&v, B &&dep)
-      : Parent_Type(std::forward<A>(v), std::forward<B>(dep))
-      , weigth_map{}
+      : Parent_Type(1, std::forward<A>(v), std::forward<B>(dep))
     {}
 
 
@@ -46,7 +48,7 @@ namespace network_butcher::types
     [[nodiscard]] bool
     check_weight(edge_type const &edge) const
     {
-      return weigth_map.contains(edge);
+      return Parent_Type::check_weight(0, edge);
     }
 
 
@@ -56,27 +58,7 @@ namespace network_butcher::types
     [[nodiscard]] auto
     get_weight(edge_type const &edge) const
     {
-      auto const      &map = weigth_map;
-      auto             it  = map.find(edge);
-      Edge_Weight_Type res;
-
-      if (it == map.cend())
-        {
-          throw std::runtime_error("WGraph: the edge " + Utilities::custom_to_string(edge) +
-                                   " was not associated with any weight");
-        }
-
-      if constexpr (Parallel_Edges)
-        {
-          for (; it != map.cend() && it->first == edge; ++it)
-            res.insert(it->second);
-        }
-      else
-        {
-          res = it->second;
-        }
-
-      return res;
+      return Parent_Type::get_weight(0, edge);
     }
 
 
@@ -86,20 +68,7 @@ namespace network_butcher::types
     void
     set_weight(edge_type const &edge, t_weight_type const &weight)
     {
-      if (!Parent_Type::check_edge(edge))
-        {
-          std::cout << "WGraph: the edge " << Utilities::custom_to_string(edge) << " is not in the graph" << std::endl;
-          return;
-        }
-
-      if constexpr (Parallel_Edges)
-        {
-          weigth_map.emplace(edge, weight);
-        }
-      else
-        {
-          weigth_map[edge] = weight;
-        }
+      Parent_Type::set_weight(0, edge, weight);
     }
 
 
@@ -110,22 +79,14 @@ namespace network_butcher::types
     set_weight(edge_type const &edge, Edge_Weight_Type weights)
       requires Parallel_Edges
     {
-      if (Parent_Type::check_edge(edge))
-        {
-          for (auto const &weight : weights)
-            weigth_map.emplace(edge, weight);
-        }
-      else
-        {
-          std::cout << "WGraph: the edge " << Utilities::custom_to_string(edge) << " is not in the graph" << std::endl;
-        }
+      Parent_Type::set_weight(0, edge, weights);
     }
 
 
     /// Simple helper function that will print the graph
     /// \return The graph description
-    [[nodiscard]] decltype(auto)
-    print_graph() const
+    [[nodiscard]] std::string
+    print_graph() const override
     {
       std::stringstream builder;
       builder << "In Out Weight" << std::endl;
@@ -158,6 +119,14 @@ namespace network_butcher::types
             }
         }
       return builder.str();
+    }
+
+
+    void
+    reserve_weight_map(std::size_t max_size)
+      requires std::is_same_v<Weight_Collection_Type, std::unordered_map<edge_type, Weight_Type, hash_pair>>
+    {
+      Parent_Type::weigth_map[0].reserve(max_size);
     }
 
 
@@ -169,37 +138,38 @@ namespace network_butcher::types
   /// \tparam Parallel_Edges If true, the graph will support parallel edges
   /// \tparam T The type of the content of the nodes
   template <bool Parallel_Edges, typename T>
-  class WGraph<Parallel_Edges, CNode<Content<T>>> : public Graph<CNode<Content<T>>>
+  class WGraph<Parallel_Edges, CNode<Content<T>>> : public MWGraph<Parallel_Edges, CNode<Content<T>>>
   {
   private:
-    using t_Node_Type   = CNode<Content<T>>;
-    using t_weight_type = weight_type;
+    using Parent_Type   = MWGraph<Parallel_Edges, CNode<Content<T>>>;
+    using t_Node_Type   = Parent_Type::Node_Type;
+    using t_weight_type = Parent_Type::Weight_Type;
 
-    using Parent_Type  = Graph<t_Node_Type>;
-    using MWGraph_Type = MWGraph<Parallel_Edges, t_Node_Type, t_weight_type>;
-
-    MWGraph_Type::Weight_Collection_Type weigth_map;
+    using Parent_Type::check_weight;
+    using Parent_Type::get_num_devices;
+    using Parent_Type::get_weight;
+    using Parent_Type::print_graph;
+    using Parent_Type::set_weight;
 
   public:
-    using Dependencies_Type    = MWGraph_Type::Dependencies_Type;
-    using Node_Type            = MWGraph_Type::Node_Type;
-    using Node_Collection_Type = MWGraph_Type::Node_Collection_Type;
+    using Dependencies_Type    = Parent_Type::Dependencies_Type;
+    using Node_Type            = Parent_Type::Node_Type;
+    using Node_Collection_Type = Parent_Type::Node_Collection_Type;
 
-    using Weight_Type            = MWGraph_Type::Weight_Type;
-    using Edge_Weight_Type       = MWGraph_Type::Edge_Weight_Type;
-    using Weight_Collection_Type = MWGraph_Type::Weight_Collection_Type;
+    using Weight_Type            = Parent_Type::Weight_Type;
+    using Edge_Weight_Type       = Parent_Type::Edge_Weight_Type;
+    using Weight_Collection_Type = Parent_Type::Weight_Collection_Type;
 
     template <typename A, typename B>
     explicit WGraph(A &&v, B &&dep)
-      : Parent_Type(std::forward<A>(v), std::forward<B>(dep))
-      , weigth_map{}
+      : Parent_Type(1, std::forward<A>(v), std::forward<B>(dep))
     {}
 
     explicit WGraph(Node_Collection_Type const &v)
-      : Parent_Type(v)
+      : Parent_Type(1, v)
     {}
     explicit WGraph(Node_Collection_Type &&v)
-      : Parent_Type(std::move(v))
+      : Parent_Type(1, std::move(v))
     {}
 
 
@@ -209,7 +179,7 @@ namespace network_butcher::types
     [[nodiscard]] bool
     check_weight(edge_type const &edge) const
     {
-      return weigth_map.contains(edge);
+      return Parent_Type::check_weight(0, edge);
     }
 
 
@@ -219,27 +189,7 @@ namespace network_butcher::types
     [[nodiscard]] auto
     get_weight(edge_type const &edge) const
     {
-      auto const      &map = weigth_map;
-      auto             it  = map.find(edge);
-      Edge_Weight_Type res;
-
-      if (it == map.cend())
-        {
-          throw std::runtime_error("WGraph: the edge " + Utilities::custom_to_string(edge) +
-                                   " was not associated with any weight");
-        }
-
-      if constexpr (Parallel_Edges)
-        {
-          for (; it != map.cend() && it->first == edge; ++it)
-            res.insert(it->second);
-        }
-      else
-        {
-          res = it->second;
-        }
-
-      return res;
+      return Parent_Type::get_weight(0, edge);
     }
 
 
@@ -249,20 +199,7 @@ namespace network_butcher::types
     void
     set_weight(edge_type const &edge, t_weight_type const &weight)
     {
-      if (!Parent_Type::check_edge(edge))
-        {
-          std::cout << "WGraph: the edge " << Utilities::custom_to_string(edge) << " is not in the graph" << std::endl;
-          return;
-        }
-
-      if constexpr (Parallel_Edges)
-        {
-          weigth_map.emplace(edge, weight);
-        }
-      else
-        {
-          weigth_map[edge] = weight;
-        }
+      Parent_Type::set_weight(0, edge, weight);
     }
 
 
@@ -273,22 +210,14 @@ namespace network_butcher::types
     set_weight(edge_type const &edge, Edge_Weight_Type weights)
       requires Parallel_Edges
     {
-      if (Parent_Type::check_edge(edge))
-        {
-          for (auto const &weight : weights)
-            weigth_map.emplace(edge, weight);
-        }
-      else
-        {
-          std::cout << "WGraph: the edge " << Utilities::custom_to_string(edge) << " is not in the graph" << std::endl;
-        }
+      Parent_Type::set_weight(0, edge, weights);
     }
 
 
     /// Simple helper function that will print the graph
     /// \return The graph description
-    [[nodiscard]] decltype(auto)
-    print_graph() const
+    [[nodiscard]] std::string
+    print_graph() const override
     {
       std::stringstream builder;
       builder << "In Out Weight" << std::endl;
@@ -321,6 +250,14 @@ namespace network_butcher::types
             }
         }
       return builder.str();
+    }
+
+
+    void
+    reserve_weight_map(std::size_t max_size)
+      requires std::is_same_v<Weight_Collection_Type, std::unordered_map<edge_type, Weight_Type, hash_pair>>
+    {
+      Parent_Type::weigth_map[0].reserve(max_size);
     }
 
 

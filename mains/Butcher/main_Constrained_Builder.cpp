@@ -189,11 +189,12 @@ main(int argc, char **argv)
 
   std::vector<std::tuple<std::string, time_type>> results;
   std::size_t                                     num_tests = command_line("num_tests", 10);
+  std::size_t                                     max_power = command_line("max_power", 6);
 
   Chrono crono;
-  for (std::size_t power = 0; power <= 5; ++power)
+  for (std::size_t power = 1; power <= max_power; ++power)
     {
-      std::size_t nodes = simple_pow(10, power + 2);
+      std::size_t nodes = simple_pow(10, power);
       time_type   time  = 0.;
 
       auto params       = generate_parameters();
@@ -222,10 +223,10 @@ main(int argc, char **argv)
       time /= (num_tests * static_cast<long double>(1000.));
 
       std::cout << std::endl
-                << "Total time average for 10^" << (power + 2) << " nodes: " << time << " ms" << std::endl
+                << "Total time average for 10^" << (power) << " nodes: " << time << " ms" << std::endl
                 << std::endl;
 
-      results.emplace_back(Utilities::custom_to_string(power + 2), time);
+      results.emplace_back(Utilities::custom_to_string(power), time);
     }
 
   print_csv(export_path, results);

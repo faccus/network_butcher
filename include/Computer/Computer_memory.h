@@ -145,7 +145,18 @@ namespace network_butcher::computer::Computer_memory
     std::vector<memory_type> memory_usages;
     memory_usages.resize(nodes.size());
 
-    Utilities::potentially_par_transform(nodes.cbegin(), nodes.cend(), memory_usages.begin(), func);
+#if PARALLEL_TBB
+    std::transform(std::execution::par, nodes.cbegin(), nodes.cend(), memory_usages.begin(), func);
+#else
+#  pragma omp parallel default(none) shared(nodes, memory_usages)
+    {
+#  pragma omp for
+      for (std::size_t i = 0; i < nodes.size(); ++i)
+        {
+          memory_usages[i] = func(nodes[i]);
+        }
+    }
+#endif
 
     return memory_usages;
   }
@@ -169,12 +180,22 @@ namespace network_butcher::computer::Computer_memory
     std::vector<memory_type> memory_usages;
     memory_usages.resize(nodes.size());
 
-    Utilities::potentially_par_transform(nodes.cbegin(),
-                                         nodes.cend(),
-                                         memory_usages.begin(),
-                                         [](Content_Node_Type<T> const &node) {
-                                           return compute_memory_usage_input(node);
-                                         });
+#if PARALLEL_TBB
+    std::transform(std::execution::par,
+                   nodes.cbegin(),
+                   nodes.cend(),
+                   memory_usages.begin(),
+                   [](Content_Node_Type<T> const &node) { return compute_memory_usage_input(node); });
+#else
+#  pragma omp parallel default(none) shared(nodes, memory_usages)
+    {
+#  pragma omp for
+      for (std::size_t i = 0; i < nodes.size(); ++i)
+        {
+          memory_usages[i] = compute_memory_usage_input(nodes[i]);
+        }
+    }
+#endif
 
     return memory_usages;
   }
@@ -201,7 +222,19 @@ namespace network_butcher::computer::Computer_memory
         func = [](Content_Node_Type<T> const &node) { return compute_memory_usage_output(node); };
       }
 
-    Utilities::potentially_par_transform(nodes.cbegin(), nodes.cend(), memory_usages.begin(), func);
+
+#if PARALLEL_TBB
+    std::transform(std::execution::par, nodes.cbegin(), nodes.cend(), memory_usages.begin(), func);
+#else
+#  pragma omp parallel default(none) shared(nodes, memory_usages, func)
+    {
+#  pragma omp for
+      for (std::size_t i = 0; i < nodes.size(); ++i)
+        {
+          memory_usages[i] = func(nodes[i]);
+        }
+    }
+#endif
 
     return memory_usages;
   }
@@ -215,34 +248,84 @@ namespace network_butcher::computer::Computer_memory
     std::vector<memory_type> memory_usages;
     memory_usages.resize(nodes.size());
 
-    Utilities::potentially_par_transform(nodes.cbegin(),
-                                         nodes.cend(),
-                                         memory_usages.begin(),
-                                         [](Content_Node_Type<T> const &node) {
-                                           return compute_memory_usage_parameters(node);
-                                         });
+#if PARALLEL_TBB
+    std::transform(std::execution::par,
+                   nodes.cbegin(),
+                   nodes.cend(),
+                   memory_usages.begin(),
+                   [](Content_Node_Type<T> const &node) { return compute_memory_usage_parameters(node); });
+#else
+
+#  pragma omp parallel default(none) shared(nodes, memory_usages)
+    {
+#  pragma omp for
+      for (std::size_t i = 0; i < nodes.size(); ++i)
+        {
+          memory_usages[i] = compute_memory_usage_parameters(nodes[i]);
+        }
+    }
+
+#endif
 
     return memory_usages;
   }
 
 
   template <typename T>
-  static inline memory_type
+  static inline auto
   compute_memory_usage_input(Contented_Graph_Type<T> const &graph)
   {
     auto const nodes_usage = compute_nodes_memory_usage_input(graph);
 
-    return Utilities::potentially_par_reduce(nodes_usage.cbegin(), nodes_usage.cend());
+#if PARALLEL_TBB
+    return std::reduce(std::execution::par, nodes_usage.cbegin(), nodes_usage.cend());
+#else
+    if (nodes_usage.size() == 1)
+      {
+        return nodes_usage.front();
+      }
+
+    auto mem = nodes_usage.front();
+    #pragma omp parallel default(none) shared(nodes_usage, mem)
+    {
+      #pragma omp for reduction(+ : mem)
+      for (std::size_t i = 1; i < nodes_usage.size(); ++i)
+        {
+          mem += nodes_usage[i];
+        }
+    }
+
+    return mem;
+#endif
   }
 
 
   template <typename T>
-  static inline memory_type
+  static inline auto
   compute_memory_usage_parameters(Contented_Graph_Type<T> const &graph)
   {
     auto const nodes_usage = compute_nodes_memory_usage_parameters(graph);
 
-    return Utilities::potentially_par_reduce(nodes_usage.cbegin(), nodes_usage.cend());
+#if PARALLEL_TBB
+    return std::reduce(std::execution::par, nodes_usage.cbegin(), nodes_usage.cend());
+#else
+    if (nodes_usage.size() == 1)
+      {
+        return nodes_usage.front();
+      }
+
+    auto mem = nodes_usage.front();
+#pragma omp parallel default(none) shared(nodes_usage, mem)
+    {
+#pragma omp for reduction(+ : mem)
+      for (std::size_t i = 1; i < nodes_usage.size(); ++i)
+        {
+          mem += nodes_usage[i];
+        }
+    }
+
+    return mem;
+#endif
   }
 } // namespace network_butcher::computer::Computer_memory
 
