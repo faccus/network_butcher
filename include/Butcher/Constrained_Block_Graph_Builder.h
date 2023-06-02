@@ -7,19 +7,21 @@
 
 #include <list>
 
-#include "Block_Graph_Builder.h"
+#include "Graph_Constraint.h"
 #include "Weight_importers.h"
 
 namespace network_butcher
 {
   /// This block graph builder class is used when extra constraints have to be applied during the construction of block
-  /// graph
+  /// graph. It will take the input graph and the parameters as constant reference and, based on the graph structure,
+  /// it will generate the block graph. The constraints are applied after the block graph is generated.
   /// \tparam GraphType The original graph type
   template <typename GraphType>
-  class Constrained_Block_Graph_Builder : public Block_Graph_Builder<GraphType>
+  class Constrained_Block_Graph_Builder
   {
   protected:
-    using Parent                 = Block_Graph_Builder<GraphType>;
+    GraphType const &original_graph;
+
     using transmission_func_type = std::function<weight_type(const edge_type &, std::size_t, std::size_t)>;
 
     std::vector<std::unique_ptr<constraints::Graph_Constraint>> constraints;
@@ -35,7 +37,7 @@ namespace network_butcher
 
     /// The actual construction of the block graph is performed when this function is called
     /// \return The block graph
-    block_graph_type
+    [[nodiscard]] block_graph_type
     build_block_graph() const;
 
     /// Apply to the input block graph the weights from the original graph
@@ -67,7 +69,7 @@ namespace network_butcher
     /// \param aMLLibrary_params aMLLibrary parameters
     /// \param weights_params Weights parameters
     /// \param devices The collection of devices
-    /// \param expression_generator A function that should generate the initial constraints for the builder
+    /// \param initial_constraint_gen A function that should generate the initial constraints for the builder
     explicit Constrained_Block_Graph_Builder(
       GraphType const                                                                    &original_graph,
       parameters::Parameters::Block_Graph_Generation const                               &block_graph_generation_params,
@@ -75,9 +77,9 @@ namespace network_butcher
       parameters::Parameters::Weights const                                              &weights_params,
       parameters::Parameters::Model const                                                &model_params,
       parameters::Parameters::Devices const                                              &devices,
-      std::function<std::vector<std::unique_ptr<constraints::Graph_Constraint>>()> const &expression_generator =
+      std::function<std::vector<std::unique_ptr<constraints::Graph_Constraint>>()> const &initial_constraint_gen =
         nullptr)
-      : Block_Graph_Builder<GraphType>(original_graph)
+      : original_graph(original_graph)
       , block_graph_generation_params{block_graph_generation_params}
       , aMLLibrary_params{aMLLibrary_params}
       , weights_params{weights_params}
@@ -86,22 +88,22 @@ namespace network_butcher
       , weights{false}
       , transmission_weights(nullptr)
     {
-      if (expression_generator)
+      if (initial_constraint_gen)
         {
-          constraints = expression_generator();
+          constraints = initial_constraint_gen();
         }
     };
 
     /// Simple constructor for a Constrained Block Graph Builder
     /// \param original_graph The original graph. This is saved through a const reference
     /// \param params Parameters of the program
-    /// \param expression_generator A function that should generate the initial constraints for the builder
+    /// \param initial_constraint_gen A function that should generate the initial constraints for the builder
     explicit Constrained_Block_Graph_Builder(
       GraphType const                                                                    &original_graph,
       parameters::Parameters const                                                       &params,
-      std::function<std::vector<std::unique_ptr<constraints::Graph_Constraint>>()> const &expression_generator =
+      std::function<std::vector<std::unique_ptr<constraints::Graph_Constraint>>()> const &initial_constraint_gen =
         nullptr)
-      : Block_Graph_Builder<GraphType>(original_graph)
+      : original_graph(original_graph)
       , block_graph_generation_params{params.block_graph_generation_params}
       , aMLLibrary_params{params.aMLLibrary_params}
       , weights_params{params.weights_params}
@@ -110,9 +112,9 @@ namespace network_butcher
       , weights{false}
       , transmission_weights(nullptr)
     {
-      if (expression_generator)
+      if (initial_constraint_gen)
         {
-          constraints = expression_generator();
+          constraints = initial_constraint_gen();
         }
     };
 
@@ -144,10 +146,10 @@ namespace network_butcher
     /// The basic construct method. It will produce the block graph using the specified options.
     /// \return The resulting block graph
     [[nodiscard]] block_graph_type
-    construct_block_graph() const override;
+    construct_block_graph() const;
 
 
-    ~Constrained_Block_Graph_Builder() override = default;
+    ~Constrained_Block_Graph_Builder() = default;
   };
 
 
