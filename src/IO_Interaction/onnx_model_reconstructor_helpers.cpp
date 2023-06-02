@@ -55,13 +55,13 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
 
 
   void
-  add_nodes(const std::map<node_id_type, node_id_type>                    &link_id_nodeproto,
+  add_nodes(const std::map<Node_Id_Type, Node_Id_Type>                    &link_id_nodeproto,
             const onnx::GraphProto                                        &model_graph,
-            const std::set<node_id_type>                                  &nodes,
+            const std::set<Node_Id_Type>                                  &nodes,
             onnx::GraphProto                                              *current_edited_graph,
-            Onnx_model_reconstructor_helpers::preprocessed_ios_type const &preprocessed_ios_nodes)
+            Onnx_model_reconstructor_helpers::Preprocessed_Ios_Type const &preprocessed_ios_nodes)
   {
-    for (network_butcher::node_id_type node : nodes)
+    for (network_butcher::Node_Id_Type node : nodes)
       {
         auto const it = link_id_nodeproto.find(node);
 
@@ -79,7 +79,7 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
   void
   add_node_ios_nodes(onnx::GraphProto            *graph,
                      onnx::NodeProto             *node,
-                     preprocessed_ios_type const &preprocessed_ios_nodes)
+                     Preprocessed_Ios_Type const &preprocessed_ios_nodes)
   {
     for (int i = 0; i < node->input_size(); ++i)
       {
@@ -139,7 +139,7 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
   void
   add_missing_inputs(const onnx::ModelProto      &original_model,
                      onnx::GraphProto            *current_edited_graph,
-                     preprocessed_ios_type const &preprocessed_ios_nodes)
+                     Preprocessed_Ios_Type const &preprocessed_ios_nodes)
   {
     auto const &container = current_edited_graph->input();
 
@@ -161,7 +161,7 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
   void
   add_missing_outputs(const onnx::ModelProto      &original_model,
                       onnx::GraphProto            *current_edited_graph,
-                      preprocessed_ios_type const &preprocessed_ios_nodes)
+                      Preprocessed_Ios_Type const &preprocessed_ios_nodes)
   {
     auto const &container = current_edited_graph->output();
 
@@ -180,10 +180,10 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
   }
 
 
-  preprocessed_ios_type
+  Preprocessed_Ios_Type
   process_node_ios_nodes(const onnx::GraphProto &model_graph)
   {
-    preprocessed_ios_type res;
+    Preprocessed_Ios_Type res;
 
     std::set<std::string> previous_outputs;
     for (auto const &node : model_graph.node())
@@ -234,7 +234,7 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
   }
 
 
-  preprocessed_ios_type::mapped_type
+  Preprocessed_Ios_Type::mapped_type
   preprocessed_ios_new_entry(bool found_input,
                              bool found_value_info,
                              bool found_initializer,

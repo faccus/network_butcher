@@ -15,13 +15,13 @@ namespace
   using Input         = Test_Class<basic_type>;
   using Content_type  = Content<Input>;
   using Graph_type    = Graph<CNode<Content_type>>;
-  using IO_collection = io_collection_type<Input>;
+  using IO_collection = Io_Collection_Type<Input>;
   using Node_type     = Graph_type::Node_Type;
 
   TEST(GraphTests, DefaultConstructors)
   {
     Graph<CNode<Input>>     graph_empty;
-    Graph<graph_input_type> graph_empty2;
+    Graph<Onnx_Converted_Node_Type> graph_empty2;
   }
 
   TEST(GraphTests, ConstructorFromCustomClass)

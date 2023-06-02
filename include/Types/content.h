@@ -21,28 +21,28 @@ namespace network_butcher::types
   {
   public:
     /// Inputs, Outputs and parameters are of this type
-    using io_collection = io_collection_type<T>;
+    using io_collection_type = Io_Collection_Type<T>;
 
     /// The attributes are of this type
-    using attribute_collection = std::unordered_map<std::string, Variant_Attribute>;
+    using attribute_collection_type = std::unordered_map<std::string, Variant_Attribute>;
 
     /// The type of the elements stored in io_collection (indexed by std::string)
-    using Element_Type = T;
+    using element_type = T;
 
   private:
     friend class Content_Builder<T>;
 
     /// Collection of the ids of inputs of the node
-    io_collection input;
+    io_collection_type input;
 
     /// Collection of the ids of outputs of the node
-    io_collection output;
+    io_collection_type output;
 
     /// Collection of the ids of parameters of the node
-    io_collection parameters;
+    io_collection_type parameters;
 
     /// Collection of the attributes of the node
-    attribute_collection attributes;
+    attribute_collection_type attributes;
 
     /// The operation id (name)
     std::string operation_id;
@@ -67,7 +67,7 @@ namespace network_butcher::types
 
     /// Read-only getter for input
     /// \return Const reference to input
-    inline const io_collection &
+    inline const io_collection_type &
     get_input() const
     {
       return input;
@@ -76,7 +76,7 @@ namespace network_butcher::types
 
     /// Read-only getter for output
     /// \return Const reference to output
-    inline const io_collection &
+    inline const io_collection_type &
     get_output() const
     {
       return output;
@@ -85,7 +85,7 @@ namespace network_butcher::types
 
     /// Read-only getter for parameters
     /// \return Const reference to parameters
-    inline const io_collection &
+    inline const io_collection_type &
     get_parameters() const
     {
       return parameters;
@@ -94,7 +94,7 @@ namespace network_butcher::types
 
     /// Read-only getter for attributes
     /// \return Const reference to attributes
-    inline const attribute_collection &
+    inline const attribute_collection_type &
     get_attributes() const
     {
       return attributes;

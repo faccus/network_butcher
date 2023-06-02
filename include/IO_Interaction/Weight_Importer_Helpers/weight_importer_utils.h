@@ -11,7 +11,7 @@
 namespace network_butcher::io::Weight_importer_helpers
 {
   template <typename T>
-  using csv_result_type = std::map<std::string, std::vector<T>>;
+  using Csv_Result_Type = std::map<std::string, std::vector<T>>;
 
   enum Index_Type
   {
@@ -36,7 +36,7 @@ namespace network_butcher::io::Weight_importer_helpers
   /// \param column_suffix A suffix to place after the column name in the result object
   /// \param only_non_negative It will convert negative weights to zeros
   /// \return The numeric columns in a map
-  csv_result_type<weight_type>
+  Csv_Result_Type<Time_Type>
   read_csv_numerics(std::string const              &path,
                     char                            separator,
                     std::vector<std::string> const &columns_to_read,
@@ -49,7 +49,7 @@ namespace network_butcher::io::Weight_importer_helpers
   /// \param columns_to_read The columns to read
   /// \param column_suffix A suffix to place after the column name in the result object
   /// \return The columns in a map
-  csv_result_type<std::string>
+  Csv_Result_Type<std::string>
   read_csv(std::string const       &path,
            char                     separator       = ',',
            std::vector<std::string> columns_to_read = {},

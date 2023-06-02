@@ -17,10 +17,10 @@ namespace network_butcher::kfinder
   template <typename Graph_type,
             bool                 Only_Distance                  = false,
             Valid_Weighted_Graph t_Weighted_Graph_Complete_Type = Weighted_Graph<Graph_type>>
-  class KFinder_Lazy_Eppstein final : public basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>
+  class KFinder_Lazy_Eppstein final : public Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>
   {
   private:
-    using base = basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>;
+    using base = Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>;
 
   public:
     using Output_Type = typename base::Output_Type;
@@ -42,7 +42,7 @@ namespace network_butcher::kfinder
     /// \return A pair: a boolean that is true if the relevant H_g is found and the relevant iterator to the
     /// relevant H_g
     H_g_collection::iterator
-    find_h_g(H_g_collection &h_g, node_id_type node) const;
+    find_h_g(H_g_collection &h_g, Node_Id_Type node) const;
 
 
     /// It will add to the h_out map the h_out associates to the current node
@@ -54,8 +54,8 @@ namespace network_butcher::kfinder
     H_out_collection::const_iterator
     construct_partial_h_out(H_out_collection                 &h_out_collection,
                             internal_weight_collection const &sidetrack_distances,
-                            std::vector<node_id_type> const  &successors,
-                            node_id_type                      tail) const;
+                            std::vector<Node_Id_Type> const  &successors,
+                            Node_Id_Type                      tail) const;
 
     /// It will add to the h_g map the h_g associated to the current node. It will also update the edge_edges map
     /// (that associated every edge to its children)
@@ -69,8 +69,8 @@ namespace network_butcher::kfinder
     construct_partial_h_g(H_g_collection                   &h_g,
                           H_out_collection                 &h_out,
                           internal_weight_collection const &sidetrack_distances,
-                          std::vector<node_id_type> const  &successors,
-                          node_id_type                      node) const;
+                          std::vector<Node_Id_Type> const  &successors,
+                          Node_Id_Type                      node) const;
 
     /// The basic function for the lazy Eppstein algorithm
     /// \param K The number of shortest paths
@@ -109,13 +109,13 @@ namespace network_butcher::kfinder
 
     for (auto const &node : this->graph)
       {
-        if (successors[node.get_id()] != std::numeric_limits<node_id_type>::max())
+        if (successors[node.get_id()] != std::numeric_limits<Node_Id_Type>::max())
           {
             h_g.emplace_hint(h_g.end(), node.get_id(), typename H_g_collection::mapped_type());
           }
       }
 
-    std::list<node_id_type> to_compute;
+    std::list<Node_Id_Type> to_compute;
     to_compute.push_back(base::root);
 
     while (to_compute.back() != base::sink)
@@ -132,7 +132,7 @@ namespace network_butcher::kfinder
                       H_out_collection                                &h_out_,
                       internal_weight_collection const                &sidetrack_distances_,
                       typename dijkstra_result_type::first_type const &successors_,
-                      node_id_type                                     node_) {
+                      Node_Id_Type                                     node_) {
       return construct_partial_h_g(h_g_, h_out_, sidetrack_distances_, successors_, node_);
     };
 
@@ -144,7 +144,7 @@ namespace network_butcher::kfinder
   template <class Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
   KFinder_Lazy_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::H_g_collection::iterator
   KFinder_Lazy_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::find_h_g(H_g_collection &h_g,
-                                                                                             node_id_type    node) const
+                                                                                             Node_Id_Type    node) const
   {
     return h_g.find(node);
   }
@@ -155,12 +155,12 @@ namespace network_butcher::kfinder
   KFinder_Lazy_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::construct_partial_h_out(
     H_out_collection                 &h_out_collection,
     const internal_weight_collection &sidetrack_distances,
-    const std::vector<node_id_type>  &successors,
-    node_id_type                      tail) const
+    const std::vector<Node_Id_Type>  &successors,
+    Node_Id_Type                      tail) const
   {
     // If we can find the required H_out, return it
     auto h_out_it = h_out_collection.find(tail);
-    if (h_out_it != h_out_collection.cend() || successors[tail] == std::numeric_limits<node_id_type>::max())
+    if (h_out_it != h_out_collection.cend() || successors[tail] == std::numeric_limits<Node_Id_Type>::max())
       return h_out_it;
 
     auto const &graph = base::graph;
@@ -171,7 +171,7 @@ namespace network_butcher::kfinder
     // For every "sidetrack" node in the outer start of node
     for (auto const &exit : graph.get_output_nodes(tail))
       {
-        auto [begin, end] = sidetrack_distances.equal_range(edge_type{tail, exit});
+        auto [begin, end] = sidetrack_distances.equal_range(Edge_Type{tail, exit});
         for (; begin != end; ++begin)
           {
             // Add the sidetrack edges to the H_out
@@ -189,8 +189,8 @@ namespace network_butcher::kfinder
     H_g_collection                   &h_g,
     H_out_collection                 &h_out,
     const internal_weight_collection &sidetrack_distances,
-    const std::vector<node_id_type>  &successors,
-    node_id_type                      node) const
+    const std::vector<Node_Id_Type>  &successors,
+    Node_Id_Type                      node) const
   {
     // If H_g has been already computed, return it
     auto iterator = find_h_g(h_g, node);

@@ -26,7 +26,7 @@ namespace network_butcher::kfinder
   private:
     using kfinder_type = KFinder<T, Only_Distance, t_Weighted_Graph_Complete_Type>;
 
-    using Builder_type = std::function<std::unique_ptr<kfinder_type>(T const &, node_id_type, node_id_type)>;
+    using Builder_type = std::function<std::unique_ptr<kfinder_type>(T const &, Node_Id_Type, Node_Id_Type)>;
 
     using Factory = GenericFactory::Factory<kfinder_type, std::string, Builder_type>;
 
@@ -51,7 +51,7 @@ namespace network_butcher::kfinder
     /// \param sink The sink node id
     /// \return The KFinder object
     std::unique_ptr<kfinder_type>
-    create(std::string const &name, T const &graph, node_id_type root, node_id_type sink) const;
+    create(std::string const &name, T const &graph, Node_Id_Type root, Node_Id_Type sink) const;
 
     /// Creates a new KFinder object
     /// \param method Enum for the method to use
@@ -60,7 +60,7 @@ namespace network_butcher::kfinder
     /// \param sink The sink node id
     /// \return The KFinder object
     std::unique_ptr<kfinder_type>
-    create(parameters::KSP_Method method, T const &graph, node_id_type root, node_id_type sink) const;
+    create(parameters::KSP_Method method, T const &graph, Node_Id_Type root, Node_Id_Type sink) const;
 
     /// Returns the vector of registered builders
     /// \return The vector of registered builders
@@ -84,8 +84,8 @@ namespace network_butcher::kfinder
   std::unique_ptr<typename KFinder_Factory<T, Only_Distance, t_Weighted_Graph_Complete_Type>::kfinder_type>
   KFinder_Factory<T, Only_Distance, t_Weighted_Graph_Complete_Type>::create(const std::string &name,
                                                                             const T           &graph,
-                                                                            node_id_type       root,
-                                                                            node_id_type       sink) const
+                                                                            Node_Id_Type       root,
+                                                                            Node_Id_Type       sink) const
   {
     return Factory::Instance().create(name, graph, root, sink);
   }
@@ -95,8 +95,8 @@ namespace network_butcher::kfinder
   std::unique_ptr<typename KFinder_Factory<T, Only_Distance, t_Weighted_Graph_Complete_Type>::kfinder_type>
   KFinder_Factory<T, Only_Distance, t_Weighted_Graph_Complete_Type>::create(parameters::KSP_Method method,
                                                                             const T               &graph,
-                                                                            node_id_type           root,
-                                                                            node_id_type           sink) const
+                                                                            Node_Id_Type           root,
+                                                                            Node_Id_Type           sink) const
   {
     switch (method)
       {
@@ -148,10 +148,10 @@ namespace network_butcher::kfinder
   {
     auto &factory = Factory::Instance();
 
-    factory.add("eppstein", [](T const &graph, node_id_type root, node_id_type sink) {
+    factory.add("eppstein", [](T const &graph, Node_Id_Type root, Node_Id_Type sink) {
       return std::make_unique<KFinder_Eppstein<T, Only_Distance, t_Weighted_Graph_Complete_Type>>(graph, root, sink);
     });
-    factory.add("lazy_eppstein", [](T const &graph, node_id_type root, node_id_type sink) {
+    factory.add("lazy_eppstein", [](T const &graph, Node_Id_Type root, Node_Id_Type sink) {
       return std::make_unique<KFinder_Lazy_Eppstein<T, Only_Distance, t_Weighted_Graph_Complete_Type>>(graph,
                                                                                                        root,
                                                                                                        sink);

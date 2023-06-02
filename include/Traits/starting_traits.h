@@ -9,22 +9,22 @@
 
 namespace network_butcher
 {
-  using type_info_id_type = int;
-  using shape_type        = unsigned long;
+  using Type_Info_Id_Type       = int;
+  using Onnx_Element_Shape_Type = unsigned long;
 
-  using memory_type = unsigned long long;
-  using weight_type = long double;
+  using Memory_Type = unsigned long long;
+  using Time_Type   = long double;
 
-  using bandwidth_type    = double;
-  using access_delay_type = double;
+  using Bandwidth_Value_Type    = double;
+  using Access_Delay_Value_Type = double;
 
-  using node_id_type = long unsigned int;
+  using Node_Id_Type = long unsigned int;
 } // namespace network_butcher
 
 namespace network_butcher
 {
-  using node_id_collection_type = std::set<node_id_type>;
-  using edge_type               = std::pair<node_id_type, node_id_type>;
+  using Node_Id_Collection_Type = std::set<Node_Id_Type>;
+  using Edge_Type               = std::pair<Node_Id_Type, Node_Id_Type>;
 } // namespace network_butcher
 
 

@@ -60,8 +60,8 @@ namespace network_butcher::Utilities
   /// From onnx::TensorProto_DataType_*, it will return the size of the respective type in bytes
   /// \param input The onnx_type
   /// \return The memory usage of the type
-  memory_type
-  compute_memory_usage_from_enum(type_info_id_type input);
+  Memory_Type
+  compute_memory_usage_from_enum(Type_Info_Id_Type input);
 
 
   /// Construct a ModelProto from an onnx file

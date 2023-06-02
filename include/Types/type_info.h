@@ -13,7 +13,7 @@
 namespace network_butcher::types
 {
   /// Generic type contained in a onnx model (only type info, no values are actually stored)
-  class Type_info
+  class Type_Info
   {
   protected:
     /// Name of the type
@@ -26,9 +26,9 @@ namespace network_butcher::types
     bool constant{false};
 
   public:
-    Type_info() = default;
+    Type_Info() = default;
 
-    Type_info(bool initialized, bool constant, std::string const &in_name = "")
+    Type_Info(bool initialized, bool constant, std::string const &in_name = "")
       : initialized(initialized)
       , constant(constant)
       , name(in_name)
@@ -55,24 +55,24 @@ namespace network_butcher::types
 
     /// Virtual method to compute the total memory of the type
     /// \return Memory usage of the associated type
-    [[nodiscard]] virtual memory_type
+    [[nodiscard]] virtual Memory_Type
     compute_memory_usage() const = 0;
 
 
     /// Basic getter for shape
     /// \return The shape
-    [[nodiscard]] virtual std::vector<shape_type> const &
+    [[nodiscard]] virtual std::vector<Onnx_Element_Shape_Type> const &
     get_shape() const = 0;
 
 
     /// Compute the number of elements in the tensor
     /// \return The number of elements in the tensor
-    [[nodiscard]] virtual shape_type
+    [[nodiscard]] virtual Onnx_Element_Shape_Type
     compute_shape_volume() const = 0;
 
 
     /// Default deconstructor
-    virtual ~Type_info() = default;
+    virtual ~Type_Info() = default;
   };
 } // namespace network_butcher::types
 

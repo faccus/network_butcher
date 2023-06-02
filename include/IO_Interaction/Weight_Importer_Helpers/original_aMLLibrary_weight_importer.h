@@ -15,14 +15,14 @@ namespace network_butcher::io
   protected:
     using base = basic_aMLLibrary_Weight_Importer;
 
-    graph_type &graph;
+    Converted_Onnx_Graph_Type &graph;
 
     /// It will generate the relevant entry given its name and the node
     /// \param entry The entry name
     /// \param node The node
     /// \return The resulting entry value
     [[nodiscard]] std::string
-    generate_entry(std::string const &entry, graph_type::Node_Type const &node) const;
+    generate_entry(std::string const &entry, Converted_Onnx_Graph_Type::Node_Type const &node) const;
 
     /// It will generate the relevant entry given its name and the node
     /// \param entry The entry name
@@ -32,15 +32,15 @@ namespace network_butcher::io
     [[nodiscard]] std::string
     generate_entry(std::string const                               &entry,
                    Weight_importer_helpers::onnx_tool_output const &basic_info,
-                   graph_type::Node_Type const                     &node) const;
+                   Converted_Onnx_Graph_Type::Node_Type const                     &node) const;
 
   public:
-    original_aMLLibrary_Weight_Importer(graph_type &graph, network_butcher::parameters::Parameters const &params)
+    original_aMLLibrary_Weight_Importer(Converted_Onnx_Graph_Type                     &graph, network_butcher::parameters::Parameters const &params)
       : basic_aMLLibrary_Weight_Importer{params}
       , graph{graph} {};
 
     explicit original_aMLLibrary_Weight_Importer(
-      graph_type                                                            &graph,
+      Converted_Onnx_Graph_Type                                             &graph,
       network_butcher::parameters::Parameters::Block_Graph_Generation const &block_graph_generation_params,
       network_butcher::parameters::Parameters::aMLLibrary const             &aMLLibrary_params,
       parameters::Parameters::Weights const                                 &weights_params,
@@ -55,7 +55,7 @@ namespace network_butcher::io
 
 
     void
-    import_weights(std::function<bool(graph_type::Node_Type const &)> const &extra_condition);
+    import_weights(std::function<bool(Converted_Onnx_Graph_Type::Node_Type const &)> const &extra_condition);
 
     void
     import_weights() override;

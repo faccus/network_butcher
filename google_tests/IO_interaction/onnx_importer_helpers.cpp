@@ -63,9 +63,9 @@ namespace
     auto const  model = import_simple_model();
     auto const &graph = model.graph();
 
-    io_collection_type<type_info_pointer> params;
+    Io_Collection_Type<Type_Info_Pointer> params;
     Onnx_importer_helpers::Map_IO         map;
-    map.emplace("245", std::make_shared<network_butcher::types::Dense_tensor>(10, std::vector<shape_type>{1, 1, 2, 2}));
+    map.emplace("245", std::make_shared<network_butcher::types::Dense_tensor>(10, std::vector<Onnx_Element_Shape_Type>{1, 1, 2, 2}));
 
     auto const in = Onnx_importer_helpers::process_node_ios(graph.node(0).output(), params, map);
 

@@ -20,10 +20,10 @@
 
 namespace network_butcher
 {
-  using type_info_pointer = std::shared_ptr<network_butcher::types::Type_info const>;
+  using Type_Info_Pointer = std::shared_ptr<network_butcher::types::Type_Info const>;
 
-  template <class T = type_info_pointer>
-  using io_collection_type = std::map<std::string, T>;
+  template <class T = Type_Info_Pointer>
+  using Io_Collection_Type = std::map<std::string, T>;
 } // namespace network_butcher
 
 

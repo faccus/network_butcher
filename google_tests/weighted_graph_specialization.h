@@ -16,12 +16,12 @@ namespace network_butcher::kfinder
     Reversed,
     network_butcher::types::Node,
     std::vector<network_butcher::types::Node>,
-    unsigned long long int> : base_Weighted_Graph
+    unsigned long long int> : Base_Weighted_Graph
   {
   public:
     using Weight_Type = unsigned long long int;
 
-    using Edge_Type = std::pair<node_id_type, node_id_type>;
+    using Edge_Type = std::pair<Node_Id_Type, Node_Id_Type>;
 
     using Graph_Type =
       network_butcher::types::WGraph<Parallel_Edges, network_butcher::types::Node, unsigned long long int>;
@@ -64,8 +64,8 @@ namespace network_butcher::kfinder
       return graph.empty();
     };
 
-    [[nodiscard]] std::set<node_id_type> const &
-    get_output_nodes(node_id_type const &id) const
+    [[nodiscard]] std::set<Node_Id_Type> const &
+    get_output_nodes(Node_Id_Type const &id) const
     {
       if constexpr (Reversed)
         {
@@ -79,7 +79,7 @@ namespace network_butcher::kfinder
 
 
     Node_Type const &
-    operator[](node_id_type const &id) const
+    operator[](Node_Id_Type const &id) const
     {
       return graph[id];
     };
@@ -117,7 +117,7 @@ namespace network_butcher::kfinder
 
 
     explicit Weighted_Graph(Graph_Type const &g)
-      : base_Weighted_Graph()
+      : Base_Weighted_Graph()
       , graph(g)
     {}
 

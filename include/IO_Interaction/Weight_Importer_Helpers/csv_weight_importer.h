@@ -33,14 +33,14 @@ namespace network_butcher::io
     /// Reads the data from the .csv file(s)
     /// \param single_call True if a single path was provided, false otherwise
     /// \return A map with the data read from the .csv file(s)
-    [[nodiscard]] Weight_importer_helpers::csv_result_type<weight_type>
+    [[nodiscard]] Weight_importer_helpers::Csv_Result_Type<Time_Type>
     get_data(bool single_call) const;
 
     /// Checks if the columns in the .csv file(s) coincide with relevant_entries. If not, it will throw an exception
     /// \param data The data read from the .csv file(s)
     /// \param single_call True if a single path was provided, false otherwise
     void
-    check_entries(Weight_importer_helpers::csv_result_type<weight_type> const &data, bool single_call) const;
+    check_entries(Weight_importer_helpers::Csv_Result_Type<Time_Type> const &data, bool single_call) const;
 
 
   public:
@@ -116,7 +116,7 @@ namespace network_butcher::io
   template <typename T>
   void
   Csv_Weight_Importer<T>::check_entries(
-    const Weight_importer_helpers::csv_result_type<network_butcher::weight_type> &data,
+    const Weight_importer_helpers::Csv_Result_Type<network_butcher::Time_Type> &data,
     bool                                                                          single_call) const
   {
     // Check if there are missing entries
@@ -132,10 +132,10 @@ namespace network_butcher::io
   }
 
   template <typename T>
-  Weight_importer_helpers::csv_result_type<weight_type>
+  Weight_importer_helpers::Csv_Result_Type<Time_Type>
   Csv_Weight_Importer<T>::get_data(bool single_call) const
   {
-    Weight_importer_helpers::csv_result_type<weight_type> data;
+    Weight_importer_helpers::Csv_Result_Type<Time_Type> data;
 
     // Import the data (if from multiple files, append to the name of the columns a suffix)
     if (single_call)

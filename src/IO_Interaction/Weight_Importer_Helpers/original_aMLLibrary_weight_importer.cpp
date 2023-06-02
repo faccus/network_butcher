@@ -6,7 +6,8 @@
 namespace network_butcher::io
 {
   std::string
-  original_aMLLibrary_Weight_Importer::generate_entry(const std::string &entry, const graph_type::Node_Type &node) const
+  original_aMLLibrary_Weight_Importer::generate_entry(const std::string                          &entry,
+                                                      const Converted_Onnx_Graph_Type::Node_Type &node) const
   {
     auto const lower_case = Utilities::to_lowercase_copy(entry);
     if (lower_case == "nrparameters")
@@ -28,7 +29,7 @@ namespace network_butcher::io
   std::string
   original_aMLLibrary_Weight_Importer::generate_entry(const std::string                               &entry,
                                                       const Weight_importer_helpers::onnx_tool_output &basic_info,
-                                                      const graph_type::Node_Type                     &node) const
+                                                      const Converted_Onnx_Graph_Type::Node_Type      &node) const
   {
     auto const lower_case = Utilities::to_lowercase_copy(entry);
 
@@ -73,7 +74,7 @@ namespace network_butcher::io
 
   void
   original_aMLLibrary_Weight_Importer::import_weights(
-    std::function<bool(graph_type::Node_Type const &)> const &extra_condition)
+    std::function<bool(Converted_Onnx_Graph_Type::Node_Type const &)> const &extra_condition)
   {
     pybind11::initialize_interpreter();
 

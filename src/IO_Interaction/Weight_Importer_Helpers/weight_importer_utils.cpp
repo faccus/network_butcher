@@ -6,23 +6,23 @@
 
 namespace network_butcher::io::Weight_importer_helpers
 {
-  csv_result_type<weight_type>
+  Csv_Result_Type<Time_Type>
   read_csv_numerics(std::string const              &path,
                     char                            separator,
                     std::vector<std::string> const &columns_to_read,
                     std::string const              &column_suffix,
                     bool                            only_non_negative)
   {
-    csv_result_type<weight_type> res;
+    Csv_Result_Type<Time_Type> res;
 
     auto const data = read_csv(path, separator, columns_to_read, column_suffix);
 
-    std::function<std::vector<weight_type>(std::vector<std::string> const &)> process_data_entry;
+    std::function<std::vector<Time_Type>(std::vector<std::string> const &)> process_data_entry;
 
     if (only_non_negative)
       {
         process_data_entry = [](auto const &value) {
-          std::vector<weight_type> tmp_vec;
+          std::vector<Time_Type> tmp_vec;
           tmp_vec.reserve(value.size());
           for (auto const &val : value)
             {
@@ -34,7 +34,7 @@ namespace network_butcher::io::Weight_importer_helpers
     else
       {
         process_data_entry = [](auto const &value) {
-          std::vector<weight_type> tmp_vec;
+          std::vector<Time_Type> tmp_vec;
           tmp_vec.reserve(value.size());
           for (auto const &val : value)
             {
@@ -53,7 +53,7 @@ namespace network_butcher::io::Weight_importer_helpers
   }
 
 
-  csv_result_type<std::string>
+  Csv_Result_Type<std::string>
   read_csv(std::string const       &path,
            char                     separator,
            std::vector<std::string> columns_to_read,
@@ -61,7 +61,7 @@ namespace network_butcher::io::Weight_importer_helpers
   {
     std::ifstream file(path);
 
-    csv_result_type<std::string> res;
+    Csv_Result_Type<std::string> res;
 
 
     if (file.is_open())

@@ -12,34 +12,34 @@
 namespace network_butcher::Utilities
 {
   /// Simple class used to convert the output of the K-shortest path algorithms to a Weighted_Real_Paths
-  template <typename Weight_Type = weight_type>
+  template <typename Weight_Type = Time_Type>
   class Path_Converter
   {
   private:
-    block_graph_type const &graph;
+    Block_Graph_Type const &graph;
 
   public:
     /// It will prepare a Path_Converter
     /// \param graph A const reference to a block graph
-    explicit Path_Converter(block_graph_type const &graph)
+    explicit Path_Converter(Block_Graph_Type const &graph)
       : graph{graph} {};
 
     /// It will convert a collection of paths of the block graph to a partitioning
     /// \param paths The collection of paths
     /// \return The different partitioning
     [[nodiscard]] std::vector<network_butcher::types::Weighted_Real_Path>
-    convert_to_weighted_real_path(std::vector<network_butcher::kfinder::t_path_info<Weight_Type>> const &paths) const;
+    convert_to_weighted_real_path(std::vector<network_butcher::kfinder::Path_Info<Weight_Type>> const &paths) const;
 
     /// It will convert a path of the block graph to a partitioning
     /// \param path The path
     /// \return The related partitioning
     [[nodiscard]] network_butcher::types::Weighted_Real_Path
-    convert_to_weighted_real_path(network_butcher::kfinder::t_path_info<Weight_Type> const &path) const;
+    convert_to_weighted_real_path(network_butcher::kfinder::Path_Info<Weight_Type> const &path) const;
   };
 
   template <typename Weight_Type>
   network_butcher::types::Weighted_Real_Path
-  Path_Converter<Weight_Type>::convert_to_weighted_real_path(const kfinder::t_path_info<Weight_Type> &path) const
+  Path_Converter<Weight_Type>::convert_to_weighted_real_path(const kfinder::Path_Info<Weight_Type> &path) const
   {
     return convert_to_weighted_real_path({path});
   }
@@ -47,7 +47,7 @@ namespace network_butcher::Utilities
   template <typename Weight_Type>
   std::vector<network_butcher::types::Weighted_Real_Path>
   Path_Converter<Weight_Type>::convert_to_weighted_real_path(
-    const std::vector<network_butcher::kfinder::t_path_info<Weight_Type>> &paths) const
+    const std::vector<network_butcher::kfinder::Path_Info<Weight_Type>> &paths) const
   {
     std::vector<network_butcher::types::Weighted_Real_Path> final_res(paths.size());
 
@@ -58,7 +58,7 @@ namespace network_butcher::Utilities
         network_butcher::types::Real_Path res;
         std::size_t                       current_model_device = 0;
 
-        res.emplace_back(current_model_device, std::set<node_id_type>());
+        res.emplace_back(current_model_device, std::set<Node_Id_Type>());
 
         auto const &path_nodes = path.path;
 
@@ -72,7 +72,7 @@ namespace network_butcher::Utilities
               {
                 // Add a new partition
                 current_model_device = node.content.first;
-                res.emplace_back(current_model_device, std::set<node_id_type>());
+                res.emplace_back(current_model_device, std::set<Node_Id_Type>());
               }
 
             // Add the current node to the last partition

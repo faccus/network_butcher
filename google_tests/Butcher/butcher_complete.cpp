@@ -19,7 +19,7 @@ namespace
   using namespace network_butcher::parameters;
 
   using type_weight             = double;
-  using type_collection_weights = std::map<std::pair<node_id_type, node_id_type>, type_weight>;
+  using type_collection_weights = std::map<std::pair<Node_Id_Type, Node_Id_Type>, type_weight>;
 
   using basic_type   = int;
   using Input        = Test_Class<int>;
@@ -27,13 +27,13 @@ namespace
   using Node_type    = CNode<Content_type>;
 
   using Graph_type      = MWGraph<false, Node_type>;
-  using Real_Graph_Type = MWGraph<false, graph_input_type>;
+  using Real_Graph_Type = MWGraph<false, Onnx_Converted_Node_Type>;
 
 
   Butcher<Graph_type>
   basic_butcher(int);
 
-  std::tuple<Butcher<graph_type>, onnx::ModelProto, std::map<node_id_type, node_id_type>>
+  std::tuple<Butcher<Converted_Onnx_Graph_Type>, onnx::ModelProto, std::map<Node_Id_Type, Node_Id_Type>>
   real_butcher();
 
   parameters::Parameters
@@ -59,7 +59,7 @@ namespace
   {
     auto const num_nodes = graph.get_nodes().size();
 
-    for (node_id_type tail = 0; tail < num_nodes; ++tail)
+    for (Node_Id_Type tail = 0; tail < num_nodes; ++tail)
       for (auto const &head : graph.get_output_nodes(tail))
         {
           for (std::size_t k = 0; k < graph.get_num_devices(); ++k)
@@ -102,13 +102,13 @@ namespace
   }
 
 
-  std::function<type_weight(edge_type const &, std::size_t, std::size_t)> basic_transmission(std::size_t, std::size_t);
+  std::function<type_weight(Edge_Type const &, std::size_t, std::size_t)> basic_transmission(std::size_t, std::size_t);
 
 
   void
   real_weight(Real_Graph_Type &);
 
-  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+  std::function<type_weight(Node_Id_Type const &, std::size_t, std::size_t)>
   real_transmission(Real_Graph_Type const &);
 
 
@@ -231,10 +231,10 @@ namespace
     return Butcher(std::move(graph_cons));
   }
 
-  std::function<type_weight(edge_type const &, std::size_t, std::size_t)>
+  std::function<type_weight(Edge_Type const &, std::size_t, std::size_t)>
   basic_transmission(std::size_t devices, std::size_t size)
   {
-    return [devices, size](edge_type const &in_edge, std::size_t first, std::size_t second) {
+    return [devices, size](Edge_Type const &in_edge, std::size_t first, std::size_t second) {
       auto const &[input, tmp] = in_edge;
       if (0 <= input && input < size && first < devices && second < devices)
         {
@@ -264,12 +264,12 @@ namespace
     };
   }
 
-  std::function<type_weight(node_id_type const &, std::size_t, std::size_t)>
+  std::function<type_weight(Node_Id_Type const &, std::size_t, std::size_t)>
   real_transmission(Real_Graph_Type const &graph)
   {
     auto const mbps = 1000. / 8;
 
-    return [&graph, mbps](node_id_type const &node, std::size_t from_device, std::size_t to_device) {
+    return [&graph, mbps](Node_Id_Type const &node, std::size_t from_device, std::size_t to_device) {
       auto const mem_to_transmit = Computer_memory::compute_memory_usage_output(graph.get_nodes()[node]);
 
       auto const first  = std::min(from_device, to_device);
@@ -287,7 +287,7 @@ namespace
   }
 
 
-  std::tuple<Butcher<graph_type>, onnx::ModelProto, std::map<node_id_type, node_id_type>>
+  std::tuple<Butcher<Converted_Onnx_Graph_Type>, onnx::ModelProto, std::map<Node_Id_Type, Node_Id_Type>>
   real_butcher()
   {
     std::string const path  = "test_data/models/version-RFB-640-inferred.onnx"; //"version-RFB-640.onnx";

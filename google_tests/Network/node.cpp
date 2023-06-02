@@ -23,11 +23,11 @@ namespace
 
   TEST(NodeTests, MoveConstructible)
   {
-    ASSERT_TRUE(std::is_move_constructible_v<graph_input_type>);
+    ASSERT_TRUE(std::is_move_constructible_v<Onnx_Converted_Node_Type>);
   }
 
   TEST(NodeTests, MoveAssignable)
   {
-    ASSERT_TRUE(std::is_move_assignable_v<graph_input_type>);
+    ASSERT_TRUE(std::is_move_assignable_v<Onnx_Converted_Node_Type>);
   }
 } // namespace

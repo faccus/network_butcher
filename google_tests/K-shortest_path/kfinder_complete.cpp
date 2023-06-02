@@ -31,7 +31,7 @@ namespace
                                                       Graph_type_Parallel::Node_Collection_Type,
                                                       Test_Weight_Type>;
 
-  std::tuple<Graph_type_Parallel, node_id_type, node_id_type, node_id_type>
+  std::tuple<Graph_type_Parallel, Node_Id_Type, Node_Id_Type, Node_Id_Type>
   import_graph(std::string file_path);
 
   std::vector<std::string>
@@ -120,19 +120,19 @@ namespace
   }
 
 
-  std::tuple<Graph_type_Parallel, node_id_type, node_id_type, node_id_type>
+  std::tuple<Graph_type_Parallel, Node_Id_Type, Node_Id_Type, Node_Id_Type>
   import_graph(std::string file_path)
   {
     std::size_t                  N, M, s, t, k, u, v;
-    network_butcher::weight_type tmp_weight;
+    network_butcher::Time_Type   tmp_weight;
 
     std::ifstream in_file(file_path);
     in_file >> N >> M >> s >> t >> k;
 
     std::vector<network_butcher::types::Node> nodes(N);
-    graph_type::Dependencies_Type             deps(N);
+    Converted_Onnx_Graph_Type::Dependencies_Type             deps(N);
     std::vector<
-      std::pair<std::pair<network_butcher::node_id_type, network_butcher::node_id_type>, network_butcher::weight_type>>
+      std::pair<std::pair<network_butcher::Node_Id_Type, network_butcher::Node_Id_Type>, network_butcher::Time_Type>>
       edges;
     edges.reserve(M);
 

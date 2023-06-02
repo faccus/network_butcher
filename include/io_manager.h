@@ -37,7 +37,7 @@ namespace network_butcher::io::IO_Manager
     void
     reconstruct_model_and_export(network_butcher::types::Weighted_Real_Path const &weighted_path,
                                  onnx::ModelProto const                           &original_model,
-                                 std::map<node_id_type, node_id_type> const       &link_id_nodeproto,
+                                 std::map<Node_Id_Type, Node_Id_Type> const       &link_id_nodeproto,
                                  preprocessed_ios_nodes_type const                &preprocessed_ios_nodes,
                                  const std::string                                &export_base_path);
 
@@ -60,7 +60,7 @@ namespace network_butcher::io::IO_Manager
   /// \param num_devices The number of devices
   /// \return A tuple made by the graph, the onnx::ModelProto for the .onnx file and a map associating every node
   /// in the graph to every node in the model (through their ids)
-  std::tuple<graph_type, onnx::ModelProto, std::map<node_id_type, node_id_type>>
+  std::tuple<Converted_Onnx_Graph_Type, onnx::ModelProto, std::map<Node_Id_Type, Node_Id_Type>>
   import_from_onnx(std::string const &path,
                    bool               add_input_padding  = true,
                    bool               add_output_padding = true,
@@ -78,7 +78,7 @@ namespace network_butcher::io::IO_Manager
   /// \param graph The graph
   /// \param params The parameters
   void
-  import_weights(graph_type &graph, const network_butcher::parameters::Parameters &params);
+  import_weights(Converted_Onnx_Graph_Type &graph, const network_butcher::parameters::Parameters &params);
 
 
   /// It will generate the Weight_Importer for the given graph
@@ -86,7 +86,7 @@ namespace network_butcher::io::IO_Manager
   /// \param params The parameters
   /// \return The Weight_Importer
   std::unique_ptr<Weight_Importer>
-  generate_weight_importer(graph_type &graph, network_butcher::parameters::Parameters const &params);
+  generate_weight_importer(Converted_Onnx_Graph_Type &graph, network_butcher::parameters::Parameters const &params);
 
 
   /// It will export the network partitions to multiple .onnx files
@@ -97,7 +97,7 @@ namespace network_butcher::io::IO_Manager
   void
   export_network_partitions(const network_butcher::parameters::Parameters                 &params,
                             const onnx::ModelProto                                        &model,
-                            std::map<node_id_type, node_id_type> const                    &link_id_nodeproto,
+                            std::map<Node_Id_Type, Node_Id_Type> const                    &link_id_nodeproto,
                             const std::vector<network_butcher::types::Weighted_Real_Path> &paths);
 
 
@@ -111,7 +111,7 @@ namespace network_butcher::io::IO_Manager
   std::pair<bool, onnx::ModelProto>
   reconstruct_model_from_partition(network_butcher::types::Real_Partition const &partition,
                                    onnx::ModelProto const                       &original_model,
-                                   std::map<node_id_type, node_id_type> const   &link_id_nodeproto,
+                                   std::map<Node_Id_Type, Node_Id_Type> const   &link_id_nodeproto,
                                    preprocessed_ios_nodes_type const            &preprocessed_ios_nodes,
                                    onnx::GraphProto const                       &model_graph);
 

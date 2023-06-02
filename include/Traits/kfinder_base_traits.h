@@ -12,7 +12,7 @@
 namespace network_butcher::kfinder
 {
   template <typename T>
-  concept Valid_Weighted_Graph = std::is_base_of_v<base_Weighted_Graph, T>;
+  concept Valid_Weighted_Graph = std::is_base_of_v<Base_Weighted_Graph, T>;
 }
 
 #endif // NETWORK_BUTCHER_KFINDER_BASE_TRAITS_H

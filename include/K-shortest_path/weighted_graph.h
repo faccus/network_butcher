@@ -10,19 +10,19 @@
 
 namespace network_butcher::kfinder
 {
-  class base_Weighted_Graph;
+  class Base_Weighted_Graph;
 
   template <typename Base_Weighted_Graph,
             bool t_Reversed                 = false,
             typename t_Node_Type            = typename Base_Weighted_Graph::Node_Type,
             typename t_Node_Collection_Type = typename Base_Weighted_Graph::Node_Collection_Type,
-            typename t_Weight_Type          = weight_type>
+            typename t_Weight_Type          = Time_Type>
   class Weighted_Graph;
 
-  class base_Weighted_Graph
+  class Base_Weighted_Graph
   {
   private:
-    base_Weighted_Graph() = default;
+    Base_Weighted_Graph() = default;
 
     template <typename Base_Weighted_Graph,
               bool t_Reversed,
@@ -32,7 +32,7 @@ namespace network_butcher::kfinder
     friend class Weighted_Graph;
 
   public:
-    virtual ~base_Weighted_Graph() = default;
+    virtual ~Base_Weighted_Graph() = default;
   };
 
   /// Interface class for a Weighted Graph
@@ -44,12 +44,12 @@ namespace network_butcher::kfinder
             typename t_Node_Type,
             typename t_Node_Collection_Type,
             typename t_Weight_Type>
-  class Weighted_Graph : base_Weighted_Graph
+  class Weighted_Graph : Base_Weighted_Graph
   {
   public:
     using Weight_Type = t_Weight_Type;
 
-    using Edge_Type = std::pair<node_id_type, node_id_type>;
+    using Edge_Type = std::pair<Node_Id_Type, Node_Id_Type>;
 
     using Graph_Type       = Base_Weighted_Graph;
     using Weight_Edge_Type = std::multiset<Weight_Type>;
@@ -61,19 +61,19 @@ namespace network_butcher::kfinder
     [[nodiscard]] Weight_Edge_Type
     get_weight(Edge_Type const &edge) const;
 
-    [[nodiscard]] node_id_type
+    [[nodiscard]] Node_Id_Type
     size() const;
 
     [[nodiscard]] bool
     empty() const;
 
 
-    [[nodiscard]] std::set<node_id_type> const &
-    get_output_nodes(node_id_type const &id) const;
+    [[nodiscard]] std::set<Node_Id_Type> const &
+    get_output_nodes(Node_Id_Type const &id) const;
 
 
     Node_Type const &
-    operator[](node_id_type const &id) const;
+    operator[](Node_Id_Type const &id) const;
 
     typename Node_Collection_Type::const_iterator
     cbegin() const;
@@ -101,7 +101,7 @@ namespace network_butcher::kfinder
     }
 
     explicit Weighted_Graph(Graph_Type const &g)
-      : base_Weighted_Graph()
+      : Base_Weighted_Graph()
       , graph(g)
     {}
 

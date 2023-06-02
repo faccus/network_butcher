@@ -21,7 +21,7 @@ namespace network_butcher::kfinder
   template <typename Graph_type,
             bool                 Only_Distance,
             Valid_Weighted_Graph t_Weighted_Graph_Complete_Type = Weighted_Graph<Graph_type>>
-  class basic_KEppstein : public KFinder<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>
+  class Basic_KEppstein : public KFinder<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>
   {
   protected:
     using base = KFinder<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>;
@@ -31,10 +31,10 @@ namespace network_butcher::kfinder
     using base::graph;
 
     using edge_info = t_edge_info<Weight_Type>;
-    using path_info = t_path_info<Weight_Type>;
+    using path_info = Path_Info<Weight_Type>;
 
-    using H_g_collection   = t_H_g_collection<Weight_Type>;
-    using H_out_collection = t_H_out_collection<Weight_Type>;
+    using H_g_collection   = H_G_Collection_Template<Weight_Type>;
+    using H_out_collection = H_out_Collection_Template<Weight_Type>;
 
 
     // (Position of H_out in H_g, Position of sidetrack in H_out)
@@ -42,8 +42,8 @@ namespace network_butcher::kfinder
     using element_dg_type  = std::pair<edge_info, location_dg_type>;
     using elements_dg_type = std::vector<element_dg_type>;
 
-    using internal_weight_collection = std::multimap<edge_type, Weight_Type>;
-    using dijkstra_result_type = network_butcher::kfinder::Shortest_path_finder::dijkstra_result_type<Weight_Type>;
+    using internal_weight_collection = std::multimap<Edge_Type, Weight_Type>;
+    using dijkstra_result_type = network_butcher::kfinder::Shortest_path_finder::Dijkstra_Result_Type<Weight_Type>;
 
     /// Sidetrack edge can be represented as two elements: the relevant H_g and the position of the edge in H_g as two
     /// integers, one for the position in H_g and one for the position in H_out
@@ -62,7 +62,7 @@ namespace network_butcher::kfinder
     };
 
     /// Simple struct to represent an implicit path
-    struct implicit_path_info : crtp_greater<implicit_path_info>
+    struct implicit_path_info : Crtp_Greater<implicit_path_info>
     {
       std::optional<sidetrack> current_sidetrack;
       implicit_path_info      *previous_sidetracks;
@@ -114,14 +114,12 @@ namespace network_butcher::kfinder
     using Output_Type = std::conditional_t<Only_Distance, std::vector<Weight_Type>, std::vector<path_info>>;
 
   protected:
-    using algo_output = std::conditional_t<Only_Distance, std::vector<Weight_Type>, std::vector<implicit_path_info>>;
-
     using callback_function =
       std::function<typename H_g_collection::const_iterator(H_g_collection &,
                                                             H_out_collection &,
                                                             internal_weight_collection const &,
                                                             typename dijkstra_result_type::first_type const &,
-                                                            node_id_type)>;
+                                                            Node_Id_Type)>;
 
 
     /// It extracts the first sidetrack associated to the given node
@@ -181,19 +179,19 @@ namespace network_butcher::kfinder
     [[nodiscard]] Output_Type
     compute(std::size_t K) const override;
 
-    explicit basic_KEppstein(Weighted_Graph<Graph_type> const &g, std::size_t root, std::size_t sink)
+    explicit Basic_KEppstein(Weighted_Graph<Graph_type> const &g, std::size_t root, std::size_t sink)
       : base(g, root, sink){};
 
-    explicit basic_KEppstein(Graph_type const &g, std::size_t root, std::size_t sink)
+    explicit Basic_KEppstein(Graph_type const &g, std::size_t root, std::size_t sink)
       : base(g, root, sink){};
 
-    virtual ~basic_KEppstein() = default;
+    virtual ~Basic_KEppstein() = default;
   };
 
 
   template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::Output_Type
-  basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::compute(std::size_t K) const
+  Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::Output_Type
+  Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::compute(std::size_t K) const
   {
     auto const &graph = base::graph;
     auto const &root  = base::root;
@@ -221,17 +219,17 @@ namespace network_butcher::kfinder
 
 
   template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::Output_Type
-  basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::general_algo_eppstein(
+  Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::Output_Type
+  Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::general_algo_eppstein(
     std::size_t                                        K,
-    const basic_KEppstein::dijkstra_result_type       &dij_res,
-    const basic_KEppstein::internal_weight_collection &sidetrack_distances,
-    basic_KEppstein::H_g_collection                   &h_g,
-    basic_KEppstein::H_out_collection                 &h_out,
-    const basic_KEppstein::callback_function          &callback_fun) const
+    const Basic_KEppstein::dijkstra_result_type       &dij_res,
+    const Basic_KEppstein::internal_weight_collection &sidetrack_distances,
+    Basic_KEppstein::H_g_collection                   &h_g,
+    Basic_KEppstein::H_out_collection                 &h_out,
+    const Basic_KEppstein::callback_function          &callback_fun) const
   {
     auto const &root   = base::root;
-    auto constexpr inf = std::numeric_limits<node_id_type>::max();
+    auto constexpr inf = std::numeric_limits<Node_Id_Type>::max();
 
     auto const &[successors, shortest_distance] = dij_res;
 
@@ -284,7 +282,7 @@ namespace network_butcher::kfinder
         auto const &[current_h_g, current_location, _e_weight] = *SK.current_sidetrack;
 
         auto const &e_h_out            = current_h_g->second.get_elem(current_location.first);
-        auto const &[e_edge, e_weight] = current_location.second == std::numeric_limits<node_id_type>::max() ?
+        auto const &[e_edge, e_weight] = current_location.second == std::numeric_limits<Node_Id_Type>::max() ?
                                            e_h_out->second.get_elem(0) :
                                            e_h_out->second.get_elem(current_location.second);
 
@@ -339,9 +337,9 @@ namespace network_butcher::kfinder
 
 
   template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  std::vector<typename basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::path_info>
-  basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::helper_eppstein(
-    const basic_KEppstein::dijkstra_result_type &dij_res,
+  std::vector<typename Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::path_info>
+  Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::helper_eppstein(
+    const Basic_KEppstein::dijkstra_result_type &dij_res,
     const std::vector<implicit_path_info>       &epp_res) const
   {
     auto const &root = base::root;
@@ -352,8 +350,8 @@ namespace network_butcher::kfinder
 
     std::vector<path_info> res(epp_res.size());
 
-    auto const go_shortest = [&successors, sink](node_id_type node) {
-      std::vector<node_id_type> final_steps;
+    auto const go_shortest = [&successors, sink](Node_Id_Type node) {
+      std::vector<Node_Id_Type> final_steps;
       while (node != sink)
         {
           final_steps.push_back(node);
@@ -493,13 +491,13 @@ namespace network_butcher::kfinder
 
 
   template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  std::vector<typename basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::sidetrack>
-  basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::get_alternatives(
+  std::vector<typename Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::sidetrack>
+  Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::get_alternatives(
     const H_g_collection::const_iterator    &h_g_it,
-    const basic_KEppstein::location_dg_type &position) const
+    const Basic_KEppstein::location_dg_type &position) const
   {
-    std::vector<typename basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::sidetrack> res;
-    auto constexpr inf = std::numeric_limits<node_id_type>::max();
+    std::vector<typename Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::sidetrack> res;
+    auto constexpr inf = std::numeric_limits<Node_Id_Type>::max();
 
     auto [h_out_index, index] = position;
     auto const &h_g           = h_g_it->second;
@@ -532,9 +530,9 @@ namespace network_butcher::kfinder
 
 
   template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::internal_weight_collection
-  basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::sidetrack_distances(
-    const basic_KEppstein::dijkstra_result_type &dij_res) const
+  Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::internal_weight_collection
+  Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::sidetrack_distances(
+    const Basic_KEppstein::dijkstra_result_type &dij_res) const
   {
     internal_weight_collection res;
     auto const &[successors, distances_from_sink] = dij_res;
@@ -588,8 +586,8 @@ namespace network_butcher::kfinder
 
 
   template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::sidetrack
-  basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::extract_first_sidetrack_edge(
+  Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::sidetrack
+  Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::extract_first_sidetrack_edge(
     const H_g_collection::const_iterator &h_g_it) const
   {
     auto const &edge = h_g_it->second.get_elem(0)->second.get_elem(0);

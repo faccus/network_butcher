@@ -21,7 +21,7 @@ namespace
 
   TEST(DenseTensorTest, ConstuctorValueInfoProto)
   {
-    memory_type lhs = 0;
+    Memory_Type lhs = 0;
 
     {
       onnx::ValueInfoProto   value;
@@ -48,7 +48,7 @@ namespace
       lhs = d.compute_memory_usage();
     }
 
-    memory_type rhs = 24 * sizeof(int64_t);
+    Memory_Type rhs = 24 * sizeof(int64_t);
 
     ASSERT_EQ(lhs, rhs);
   }

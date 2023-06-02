@@ -47,7 +47,7 @@ namespace network_butcher::parameters
     std::string name;
 
     /// Maximum memory capacity (in bytes)
-    memory_type maximum_memory;
+    Memory_Type maximum_memory;
 
     /// The .csv file of weights
     std::string weights_path;
@@ -78,10 +78,10 @@ namespace network_butcher::parameters
 
     struct Weights
     {
-      using connection_information_type = std::pair<bandwidth_type, access_delay_type>;
+      using connection_information_type = std::pair<Bandwidth_Value_Type, Access_Delay_Value_Type>;
       using connection_type             = std::unique_ptr<
         network_butcher::types::WGraph<false, network_butcher::types::Node, connection_information_type>>;
-      using io_connection_type = std::map<edge_type, connection_information_type>;
+      using io_connection_type = std::map<Edge_Type, connection_information_type>;
 
       /// Mode for weight import
       Weight_Import_Mode weight_import_mode;

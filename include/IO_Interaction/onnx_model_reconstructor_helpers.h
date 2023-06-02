@@ -42,7 +42,7 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
 
   /// Map that associates to the name of the tensor a pair describing if it's a input/output/initializer and its
   /// iterator
-  using preprocessed_ios_type =
+  using Preprocessed_Ios_Type =
     std::unordered_map<std::string,
                        std::pair<IO_Type,
                                  std::pair<google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator,
@@ -94,11 +94,11 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
   /// \param current_edited_graph The current graph
   /// \param preprocessed_ios_nodes The output of process_node_ios_nodes
   void
-  add_nodes(const std::map<node_id_type, node_id_type> &link_id_nodeproto,
+  add_nodes(const std::map<Node_Id_Type, Node_Id_Type> &link_id_nodeproto,
             const onnx::GraphProto                     &model_graph,
-            const std::set<node_id_type>               &nodes,
+            const std::set<Node_Id_Type>               &nodes,
             onnx::GraphProto                           *current_edited_graph,
-            preprocessed_ios_type const                &preprocessed_ios_nodes);
+            Preprocessed_Ios_Type const                &preprocessed_ios_nodes);
 
 
   /// It will add to the graph the inputs of the node to either to input, to value_info or to initializer
@@ -108,7 +108,7 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
   void
   add_node_ios_nodes(onnx::GraphProto            *graph,
                      onnx::NodeProto             *node,
-                     preprocessed_ios_type const &preprocessed_ios_nodes);
+                     Preprocessed_Ios_Type const &preprocessed_ios_nodes);
 
 
   /// Adds the "missing" inputs of the current graph. They represent the new inputs for the new model
@@ -118,7 +118,7 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
   void
   add_missing_inputs(const onnx::ModelProto      &original_model,
                      onnx::GraphProto            *current_edited_graph,
-                     preprocessed_ios_type const &preprocessed_ios_nodes);
+                     Preprocessed_Ios_Type const &preprocessed_ios_nodes);
 
 
   /// Adds the "missing" outputs of the current graph. They represent the new outputs for the new model
@@ -128,14 +128,14 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
   void
   add_missing_outputs(const onnx::ModelProto      &original_model,
                       onnx::GraphProto            *current_edited_graph,
-                      preprocessed_ios_type const &preprocessed_ios_nodes);
+                      Preprocessed_Ios_Type const &preprocessed_ios_nodes);
 
 
   /// It will find the inputs/outputs and/or initializers of a given graph
   /// \param model_graph The graph of the given model
   /// \return A map that associates to the name of the tensor a pair describing if it's a in/out/init and its
   /// position in the object graph
-  preprocessed_ios_type
+  Preprocessed_Ios_Type
   process_node_ios_nodes(const onnx::GraphProto &model_graph);
 
 
@@ -148,7 +148,7 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
   /// (nor a graph input). It may be an initializer
   /// \param it The iterator to the ValueInfoProto
   /// \param init The initializer iterator
-  preprocessed_ios_type::mapped_type
+  Preprocessed_Ios_Type::mapped_type
   preprocessed_ios_new_entry(bool found_input,
                              bool found_value_info,
                              bool found_initializer,
@@ -176,7 +176,7 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
     std::function<google::protobuf::RepeatedPtrField<std::basic_string<char>>(onnx::NodeProto const &)> const
                                                   &get_node_container,
     std::function<onnx::ValueInfoProto *()> const &get_new_entry,
-    preprocessed_ios_type const                   &preprocessed_ios_nodes)
+    Preprocessed_Ios_Type const                   &preprocessed_ios_nodes)
   {
     // Get the nodes
     auto const &nodes = edit_graph->mutable_node();

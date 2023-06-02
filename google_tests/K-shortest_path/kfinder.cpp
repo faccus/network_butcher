@@ -26,7 +26,7 @@ namespace
 
   template <bool Reversed>
   using Weighted_Graph_type =
-    Weighted_Graph<Graph_type, Reversed, Graph_type::Node_Type, Graph_type::Node_Collection_Type, weight_type>;
+    Weighted_Graph<Graph_type, Reversed, Graph_type::Node_Type, Graph_type::Node_Collection_Type, Time_Type>;
 
   Graph_type
   eppstein_graph();

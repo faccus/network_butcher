@@ -26,21 +26,21 @@ namespace network_butcher::computer::Computer_memory
 
 
   template <class T>
-  [[nodiscard]] inline static memory_type
+  [[nodiscard]] inline static Memory_Type
   compute_memory_usage(const T &in)
   {
     return in.compute_memory_usage();
   }
 
   template <class T>
-  [[nodiscard]] inline static memory_type
+  [[nodiscard]] inline static Memory_Type
   compute_memory_usage(const std::unique_ptr<T> &in)
   {
     return in->compute_memory_usage();
   }
 
   template <class T>
-  [[nodiscard]] inline static memory_type
+  [[nodiscard]] inline static Memory_Type
   compute_memory_usage(const std::shared_ptr<T> &in)
   {
     return in->compute_memory_usage();
@@ -48,10 +48,10 @@ namespace network_butcher::computer::Computer_memory
 
 
   template <class T>
-  [[nodiscard]] static memory_type
-  compute_memory_usage_io_collection_type(io_collection_type<T> const &collection)
+  [[nodiscard]] static Memory_Type
+  compute_memory_usage_io_collection_type(Io_Collection_Type<T> const &collection)
   {
-    memory_type res = 0;
+    Memory_Type res = 0;
 
     for (auto const &el : collection)
       res += compute_memory_usage(el.second);
@@ -61,7 +61,7 @@ namespace network_butcher::computer::Computer_memory
 
 
   template <class T>
-  [[nodiscard]] inline static memory_type
+  [[nodiscard]] inline static Memory_Type
   compute_memory_usage_input(Content_Type<T> const &in)
   {
     return compute_memory_usage_io_collection_type(in.get_input());
@@ -69,7 +69,7 @@ namespace network_butcher::computer::Computer_memory
 
 
   template <class T>
-  [[nodiscard]] inline static memory_type
+  [[nodiscard]] inline static Memory_Type
   compute_memory_usage_output(Content_Type<T> const &in)
   {
     return compute_memory_usage_io_collection_type(in.get_output());
@@ -77,7 +77,7 @@ namespace network_butcher::computer::Computer_memory
 
 
   template <class T>
-  [[nodiscard]] inline static memory_type
+  [[nodiscard]] inline static Memory_Type
   compute_memory_usage_output(Content_Node_Type<T> const &in)
   {
     return compute_memory_usage_output(in.content);
@@ -85,7 +85,7 @@ namespace network_butcher::computer::Computer_memory
 
 
   template <class T>
-  [[nodiscard]] inline static memory_type
+  [[nodiscard]] inline static Memory_Type
   compute_memory_usage_parameters(Content_Type<T> const &in)
   {
     return compute_memory_usage_io_collection_type(in.get_parameters());
@@ -93,10 +93,10 @@ namespace network_butcher::computer::Computer_memory
 
 
   template <class T>
-  [[nodiscard]] inline static memory_type
+  [[nodiscard]] inline static Memory_Type
   compute_memory_usage(Content_Type<T> const &in, bool include_initialized = true)
   {
-    memory_type res = compute_memory_usage_input(in) + compute_memory_usage_output(in);
+    Memory_Type res = compute_memory_usage_input(in) + compute_memory_usage_output(in);
     if (include_initialized)
       return res + compute_memory_usage_parameters(in);
     else
@@ -105,7 +105,7 @@ namespace network_butcher::computer::Computer_memory
 
 
   template <class T>
-  static inline memory_type
+  static inline Memory_Type
   compute_memory_usage(Node_Type<T> const &node)
   {
     return compute_memory_usage(node.content);
@@ -113,7 +113,7 @@ namespace network_butcher::computer::Computer_memory
 
 
   template <class T>
-  [[nodiscard]] inline static memory_type
+  [[nodiscard]] inline static Memory_Type
   compute_memory_usage_input(Content_Node_Type<T> const &in)
   {
     return compute_memory_usage_input(in.content);
@@ -121,7 +121,7 @@ namespace network_butcher::computer::Computer_memory
 
 
   template <class T>
-  [[nodiscard]] inline static memory_type
+  [[nodiscard]] inline static Memory_Type
   compute_memory_usage_parameters(Content_Node_Type<T> const &in)
   {
     return compute_memory_usage_parameters(in.content);
@@ -129,7 +129,7 @@ namespace network_butcher::computer::Computer_memory
 
 
   template <class T>
-  static inline memory_type
+  static inline Memory_Type
   compute_memory_usage(Content_Node_Type<T> const &node, bool include_initialized = true)
   {
     return compute_memory_usage(node.content, include_initialized);
@@ -137,12 +137,12 @@ namespace network_butcher::computer::Computer_memory
 
 
   template <typename T>
-  [[nodiscard]] static std::vector<memory_type>
+  [[nodiscard]] static std::vector<Memory_Type>
   compute_nodes_memory_usage_gen(const Contented_Graph_Type<T>                              &graph,
-                                 std::function<memory_type(Node_Type<T> const &node)> const &func)
+                                 std::function<Memory_Type(Node_Type<T> const &node)> const &func)
   {
     auto const              &nodes = graph.get_nodes();
-    std::vector<memory_type> memory_usages;
+    std::vector<Memory_Type> memory_usages;
     memory_usages.resize(nodes.size());
 
 #if PARALLEL_TBB
@@ -163,7 +163,7 @@ namespace network_butcher::computer::Computer_memory
 
 
   template <typename T>
-  static inline std::vector<memory_type>
+  static inline std::vector<Memory_Type>
   compute_nodes_memory_usage(Contented_Graph_Type<T> const &graph, bool include_initialized = true)
   {
     return compute_nodes_memory_usage_gen(graph, [include_initialized](Content_Node_Type<T> const &node) {
@@ -173,11 +173,11 @@ namespace network_butcher::computer::Computer_memory
 
 
   template <typename T>
-  static inline std::vector<memory_type>
+  static inline std::vector<Memory_Type>
   compute_nodes_memory_usage_input(Contented_Graph_Type<T> const &graph)
   {
     auto const              &nodes = graph.get_nodes();
-    std::vector<memory_type> memory_usages;
+    std::vector<Memory_Type> memory_usages;
     memory_usages.resize(nodes.size());
 
 #if PARALLEL_TBB
@@ -202,14 +202,14 @@ namespace network_butcher::computer::Computer_memory
 
 
   template <typename T>
-  static inline std::vector<memory_type>
+  static inline std::vector<Memory_Type>
   compute_nodes_memory_usage_output(Contented_Graph_Type<T> const &graph, bool include_parameters = false)
   {
     auto const              &nodes = graph.get_nodes();
-    std::vector<memory_type> memory_usages;
+    std::vector<Memory_Type> memory_usages;
     memory_usages.resize(nodes.size());
 
-    std::function<memory_type(Content_Node_Type<T> const &)> func;
+    std::function<Memory_Type(Content_Node_Type<T> const &)> func;
 
     if (include_parameters)
       {
@@ -241,11 +241,11 @@ namespace network_butcher::computer::Computer_memory
 
 
   template <typename T>
-  static inline std::vector<memory_type>
+  static inline std::vector<Memory_Type>
   compute_nodes_memory_usage_parameters(Contented_Graph_Type<T> const &graph)
   {
     auto const              &nodes = graph.get_nodes();
-    std::vector<memory_type> memory_usages;
+    std::vector<Memory_Type> memory_usages;
     memory_usages.resize(nodes.size());
 
 #if PARALLEL_TBB

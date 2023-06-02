@@ -15,14 +15,14 @@
 namespace network_butcher::types
 {
   /// tensor type of an onnx model
-  class Dense_tensor : public Type_info
+  class Dense_tensor : public Type_Info
   {
   private:
     /// Memory usage of the element type of the tensor
-    memory_type type_tensor_memory;
+    Memory_Type type_tensor_memory;
 
     /// Shape of the tensor
-    std::vector<shape_type> shape;
+    std::vector<Onnx_Element_Shape_Type> shape;
 
   public:
     /// Construct the tensor from the type id and the shape
@@ -30,8 +30,8 @@ namespace network_butcher::types
     /// \param in_shape Shape of the tensor
     /// \param given Is it already initialized?
     /// \param constant Is it constant?
-    Dense_tensor(type_info_id_type       in_type_id,
-                 std::vector<shape_type> in_shape,
+    Dense_tensor(Type_Info_Id_Type       in_type_id,
+                 std::vector<Onnx_Element_Shape_Type> in_shape,
                  bool                    given    = false,
                  bool                    constant = false);
 
@@ -52,19 +52,19 @@ namespace network_butcher::types
 
     /// Compute the total memory of the type
     /// \return Memory usage of the associated type
-    [[nodiscard]] memory_type
+    [[nodiscard]] Memory_Type
     compute_memory_usage() const override;
 
 
     /// Compute the number of elements in the tensor
     /// \return The number of elements in the tensor
-    [[nodiscard]] shape_type
+    [[nodiscard]] Onnx_Element_Shape_Type
     compute_shape_volume() const override;
 
 
     /// Basic getter for shape
     /// \return The shape
-    [[nodiscard]] inline std::vector<shape_type> const &
+    [[nodiscard]] inline std::vector<Onnx_Element_Shape_Type> const &
     get_shape() const override
     {
       return shape;

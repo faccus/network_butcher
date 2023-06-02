@@ -23,9 +23,9 @@ namespace network_butcher::io
       /// \param params The collection of parameters
       /// \param graph The graph
       /// \return  The transmission function
-      std::function<weight_type(const edge_type &, size_t, size_t)>
+      std::function<Time_Type(const Edge_Type &, size_t, size_t)>
       generate_bandwidth_transmission_function(const network_butcher::parameters::Parameters::Weights &weights_params,
-                                               const graph_type                                       &graph);
+                                               const Converted_Onnx_Graph_Type                        &graph);
 
 
       /// It prints the help/usage message in the console

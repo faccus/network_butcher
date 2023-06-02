@@ -12,7 +12,7 @@ namespace
   std::string graph_path  = Utilities::combine_path(base_path, "models/version-RFB-640-inferred.onnx");
   std::string graph2_path = Utilities::combine_path(base_path, "models/mobilenet_v2-inferred.onnx");
 
-  block_graph_type
+  Block_Graph_Type
   simple_graph_generator();
 
 
@@ -25,7 +25,7 @@ namespace
       graph, std::vector<std::string>{weight_path}, std::vector<std::string>{"pred"}, std::vector<std::size_t>{0}, ',');
 
     importer.import_weights(
-      [](const graph_type::Node_Type &node) { return node.content.get_operation_id() == "conv"; });
+      [](const Converted_Onnx_Graph_Type::Node_Type &node) { return node.content.get_operation_id() == "conv"; });
 
     ASSERT_DOUBLE_EQ(graph.get_weight(0, {72, 73}), 0.018818040739131837);
   }
@@ -45,7 +45,7 @@ namespace
                                      std::vector<network_butcher::parameters::Device>{fake_1, fake_2},
                                      ',');
     importer.import_weights(
-      [](const graph_type::Node_Type &node) { return node.content.get_operation_id() == "conv"; });
+      [](const Converted_Onnx_Graph_Type::Node_Type &node) { return node.content.get_operation_id() == "conv"; });
 
     EXPECT_DOUBLE_EQ(graph.get_weight(0, {1, 2}), 0.000177);
     ASSERT_DOUBLE_EQ(graph.get_weight(1, {1, 2}), 0.000249);
@@ -99,11 +99,11 @@ namespace
     EXPECT_DOUBLE_EQ(graph.get_weight({0, 2}), 1234.2);
   }
 
-  block_graph_type
+  Block_Graph_Type
   simple_graph_generator()
   {
-    std::vector<block_graph_type::Node_Type> nodes;
-    block_graph_type::Dependencies_Type      deps(8);
+    std::vector<Block_Graph_Type::Node_Type> nodes;
+    Block_Graph_Type::Dependencies_Type      deps(8);
 
     nodes.emplace_back(std::pair{0, nullptr});
     deps[0].second.insert({1, 2});
@@ -140,7 +140,7 @@ namespace
     deps[7].first.insert({5, 6});
 
 
-    return block_graph_type(std::move(nodes), std::move(deps));
+    return Block_Graph_Type(std::move(nodes), std::move(deps));
   }
 
 } // namespace

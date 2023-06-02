@@ -16,7 +16,7 @@ namespace
   using namespace network_butcher::types;
 
   using type_weight             = double;
-  using type_collection_weights = std::map<std::pair<node_id_type, node_id_type>, type_weight>;
+  using type_collection_weights = std::map<std::pair<Node_Id_Type, Node_Id_Type>, type_weight>;
 
   using basic_type   = int;
   using Input        = Test_Class<int>;
@@ -44,7 +44,7 @@ namespace
     auto const  num_nodes    = graph.get_nodes().size();
     auto const &dependencies = graph.get_neighbors();
 
-    for (node_id_type tail = 0; tail < num_nodes; ++tail)
+    for (Node_Id_Type tail = 0; tail < num_nodes; ++tail)
       for (auto const &head : dependencies[tail].second)
         {
           for (std::size_t k = 0; k < graph.get_num_devices(); ++k)
@@ -223,47 +223,47 @@ namespace
     auto const block_graph = builder.construct_block_graph();
 
     // Node 0 should be fully connected with the next one
-    std::set<node_id_type> tmp{1, 2};
+    std::set<Node_Id_Type> tmp{1, 2};
     ASSERT_EQ(block_graph.get_output_nodes(0), tmp);
 
     // Nodes 1 and 2 should be connected with Node 0 (in), 3,4 (out)
-    tmp = std::set<node_id_type>{3, 4};
-    ASSERT_EQ(block_graph.get_input_nodes(1), std::set<node_id_type>{0});
-    ASSERT_EQ(block_graph.get_input_nodes(2), std::set<node_id_type>{0});
+    tmp = std::set<Node_Id_Type>{3, 4};
+    ASSERT_EQ(block_graph.get_input_nodes(1), std::set<Node_Id_Type>{0});
+    ASSERT_EQ(block_graph.get_input_nodes(2), std::set<Node_Id_Type>{0});
     ASSERT_EQ(block_graph.get_output_nodes(1), tmp);
     ASSERT_EQ(block_graph.get_output_nodes(2), tmp);
 
 
     // Nodes 3 and 4 should be connected with Nodes 1,2 (in), 5,6 (out)
-    tmp = std::set<node_id_type>{1, 2};
+    tmp = std::set<Node_Id_Type>{1, 2};
     ASSERT_EQ(block_graph.get_input_nodes(3), tmp);
     ASSERT_EQ(block_graph.get_input_nodes(4), tmp);
 
-    tmp = std::set<node_id_type>{5, 6};
+    tmp = std::set<Node_Id_Type>{5, 6};
     ASSERT_EQ(block_graph.get_output_nodes(3), tmp);
     ASSERT_EQ(block_graph.get_output_nodes(4), tmp);
 
 
     // Nodes 5 and 6 should be connected with Nodes 3,4 (in), 7,8 (out)
-    tmp = std::set<node_id_type>{3, 4};
+    tmp = std::set<Node_Id_Type>{3, 4};
     ASSERT_EQ(block_graph.get_input_nodes(5), tmp);
     ASSERT_EQ(block_graph.get_input_nodes(6), tmp);
 
-    tmp = std::set<node_id_type>{7, 8};
+    tmp = std::set<Node_Id_Type>{7, 8};
     ASSERT_EQ(block_graph.get_output_nodes(5), tmp);
     ASSERT_EQ(block_graph.get_output_nodes(6), tmp);
 
     // Nodes 7 and 8 should be connected with Nodes 5,6 (in), 9 (out)
-    tmp = std::set<node_id_type>{5, 6};
+    tmp = std::set<Node_Id_Type>{5, 6};
     ASSERT_EQ(block_graph.get_input_nodes(7), tmp);
     ASSERT_EQ(block_graph.get_input_nodes(8), tmp);
 
-    tmp = std::set<node_id_type>{9};
+    tmp = std::set<Node_Id_Type>{9};
     ASSERT_EQ(block_graph.get_output_nodes(7), tmp);
     ASSERT_EQ(block_graph.get_output_nodes(8), tmp);
 
     // Node 9 should be connected with Nodes 7,8 (in)
-    tmp = std::set<node_id_type>{7, 8};
+    tmp = std::set<Node_Id_Type>{7, 8};
     ASSERT_EQ(block_graph.get_input_nodes(9), tmp);
   }
 
@@ -279,7 +279,7 @@ namespace
     auto const block_graph = builder.construct_block_graph();
 
     // Check output neighbours for node 0
-    std::set<node_id_type> tmp{};
+    std::set<Node_Id_Type> tmp{};
     for (auto const &neighbour : bandwidth->get_output_nodes(params.block_graph_generation_params.starting_device_id))
       {
         tmp.insert(neighbour + 1);
@@ -292,11 +292,11 @@ namespace
       {
         if (tmp.contains(i))
           {
-            ASSERT_EQ(block_graph.get_input_nodes(i), std::set<node_id_type>{0});
+            ASSERT_EQ(block_graph.get_input_nodes(i), std::set<Node_Id_Type>{0});
           }
         else
           {
-            ASSERT_EQ(block_graph.get_input_nodes(i), std::set<node_id_type>{});
+            ASSERT_EQ(block_graph.get_input_nodes(i), std::set<Node_Id_Type>{});
           }
       }
 
@@ -336,11 +336,11 @@ namespace
       {
         if (tmp.contains(i))
           {
-            ASSERT_EQ(block_graph.get_output_nodes(i), std::set<node_id_type>{17});
+            ASSERT_EQ(block_graph.get_output_nodes(i), std::set<Node_Id_Type>{17});
           }
         else
           {
-            ASSERT_EQ(block_graph.get_output_nodes(i), std::set<node_id_type>{});
+            ASSERT_EQ(block_graph.get_output_nodes(i), std::set<Node_Id_Type>{});
           }
       }
   }
@@ -359,7 +359,7 @@ namespace
     auto const block_graph = builder.construct_block_graph();
 
     // Check output neighbours for node 0
-    std::set<node_id_type> tmp{};
+    std::set<Node_Id_Type> tmp{};
     for (auto const &neighbour : bandwidth->get_output_nodes(params.block_graph_generation_params.starting_device_id))
       {
         tmp.insert(neighbour + 1);
@@ -373,11 +373,11 @@ namespace
       {
         if (tmp.contains(i))
           {
-            ASSERT_EQ(block_graph.get_input_nodes(i), std::set<node_id_type>{0});
+            ASSERT_EQ(block_graph.get_input_nodes(i), std::set<Node_Id_Type>{0});
           }
         else
           {
-            ASSERT_EQ(block_graph.get_input_nodes(i), std::set<node_id_type>{});
+            ASSERT_EQ(block_graph.get_input_nodes(i), std::set<Node_Id_Type>{});
           }
       }
 
@@ -418,11 +418,11 @@ namespace
       {
         if (tmp.contains(i))
           {
-            ASSERT_EQ(block_graph.get_output_nodes(i), std::set<node_id_type>{17});
+            ASSERT_EQ(block_graph.get_output_nodes(i), std::set<Node_Id_Type>{17});
           }
         else
           {
-            ASSERT_EQ(block_graph.get_output_nodes(i), std::set<node_id_type>{});
+            ASSERT_EQ(block_graph.get_output_nodes(i), std::set<Node_Id_Type>{});
           }
       }
   }
@@ -435,7 +435,7 @@ namespace
     params.block_graph_generation_params.block_graph_mode = parameters::Block_Graph_Generation_Mode::output;
 
     Constrained_Block_Graph_Builder builder(graph, params);
-    builder.construct_transmission_weights([](edge_type const &node_id, std::size_t in_dev, std::size_t out_dev) {
+    builder.construct_transmission_weights([](Edge_Type const &node_id, std::size_t in_dev, std::size_t out_dev) {
       if (in_dev == out_dev)
         return 1.;
       else if (in_dev > out_dev)
@@ -563,10 +563,10 @@ namespace
   }
 
 
-  std::function<type_weight(edge_type const &, std::size_t, std::size_t)>
+  std::function<type_weight(Edge_Type const &, std::size_t, std::size_t)>
   basic_transmission(std::size_t devices, std::size_t size)
   {
-    return [devices, size](edge_type const &t_input, std::size_t first, std::size_t second) {
+    return [devices, size](Edge_Type const &t_input, std::size_t first, std::size_t second) {
       auto const &[input, _tmp] = t_input;
       if (0 <= input && input < size && first < devices && second < devices)
         {
@@ -637,10 +637,10 @@ namespace
     res.block_graph_generation_params.use_bandwidth_to_manage_connections = true;
 
     g_type::Dependencies_Type deps(4);
-    deps[0] = std::make_pair(std::set<node_id_type>{0}, std::set<node_id_type>{0, 1, 3});
-    deps[1] = std::make_pair(std::set<node_id_type>{0, 1, 2}, std::set<node_id_type>{1, 2});
-    deps[2] = std::make_pair(std::set<node_id_type>{1, 2}, std::set<node_id_type>{1, 2, 3});
-    deps[3] = std::make_pair(std::set<node_id_type>{0, 2, 3}, std::set<node_id_type>{3});
+    deps[0] = std::make_pair(std::set<Node_Id_Type>{0}, std::set<Node_Id_Type>{0, 1, 3});
+    deps[1] = std::make_pair(std::set<Node_Id_Type>{0, 1, 2}, std::set<Node_Id_Type>{1, 2});
+    deps[2] = std::make_pair(std::set<Node_Id_Type>{1, 2}, std::set<Node_Id_Type>{1, 2, 3});
+    deps[3] = std::make_pair(std::set<Node_Id_Type>{0, 2, 3}, std::set<Node_Id_Type>{3});
 
     res.weights_params.bandwidth = std::make_unique<g_type>(g_type::Node_Collection_Type(4), std::move(deps));
 

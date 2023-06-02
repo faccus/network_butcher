@@ -26,9 +26,9 @@ namespace
 
   template <bool Reversed>
   using Weighted_Graph_type =
-    Weighted_Graph<Graph_type, Reversed, Graph_type::Node_Type, Graph_type::Node_Collection_Type, weight_type>;
+    Weighted_Graph<Graph_type, Reversed, Graph_type::Node_Type, Graph_type::Node_Collection_Type, Time_Type>;
 
-  using weights_collection_type = std::map<std::pair<node_id_type, node_id_type>, type_weight>;
+  using weights_collection_type = std::map<std::pair<Node_Id_Type, Node_Id_Type>, type_weight>;
 
   Graph_type
   basic_graph();
@@ -46,7 +46,7 @@ namespace
 
     auto res = Shortest_path_finder::dijkstra(Weighted_Graph_type<false>(graph), 0);
 
-    std::vector<node_id_type> theoretical_res = {0, 2, 0, 1, 3, 2, 5};
+    std::vector<Node_Id_Type> theoretical_res = {0, 2, 0, 1, 3, 2, 5};
 
     ASSERT_EQ(res.first, theoretical_res);
   }
@@ -57,7 +57,7 @@ namespace
 
     auto res = Shortest_path_finder::dijkstra(Weighted_Graph_type<true>(graph), 6);
 
-    std::vector<node_id_type> theoretical_res = {2, 3, 5, 4, 5, 6, 6};
+    std::vector<Node_Id_Type> theoretical_res = {2, 3, 5, 4, 5, 6, 6};
 
     ASSERT_EQ(res.first, theoretical_res);
   }
@@ -152,7 +152,7 @@ namespace
     std::vector<Node_type> nodes;
 
 
-    nodes.emplace_back(std::move(Content_Builder<Input>().set_output(io_collection_type<Input>{{"X0", 0}})).build());
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_output(Io_Collection_Type<Input>{{"X0", 0}})).build());
     nodes.emplace_back(
       std::move(Content_Builder<Input>().set_input({{"X0", 0}, {"X2", 2}, {"X4", 4}}).set_output({{"X1", 1}})).build());
     nodes.emplace_back(

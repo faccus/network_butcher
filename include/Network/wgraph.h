@@ -15,7 +15,7 @@ namespace network_butcher::types
   /// \tparam Parallel_Edges If true, the graph will support parallel edges
   /// \tparam t_Node_Type Type of nodes
   /// \tparam t_weight_type Type of the weight
-  template <bool Parallel_Edges, typename t_Node_Type = Node, typename t_weight_type = weight_type>
+  template <bool Parallel_Edges, typename t_Node_Type = Node, typename t_weight_type = Time_Type>
   class WGraph : public MWGraph<Parallel_Edges, t_Node_Type, t_weight_type>
   {
   private:
@@ -46,7 +46,7 @@ namespace network_butcher::types
     /// \param device The device id
     /// \return True if the edge has a weight on the given device, false otherwise
     [[nodiscard]] bool
-    check_weight(edge_type const &edge) const
+    check_weight(Edge_Type const &edge) const
     {
       return Parent_Type::check_weight(0, edge);
     }
@@ -56,7 +56,7 @@ namespace network_butcher::types
     /// \param edge The edge
     /// \return The weight
     [[nodiscard]] auto
-    get_weight(edge_type const &edge) const
+    get_weight(Edge_Type const &edge) const
     {
       return Parent_Type::get_weight(0, edge);
     }
@@ -66,7 +66,7 @@ namespace network_butcher::types
     /// \param edge The edge
     /// \param weight The weight
     void
-    set_weight(edge_type const &edge, t_weight_type const &weight)
+    set_weight(Edge_Type const &edge, t_weight_type const &weight)
     {
       Parent_Type::set_weight(0, edge, weight);
     }
@@ -76,7 +76,7 @@ namespace network_butcher::types
     /// \param edge The edge
     /// \param weights The weight
     void
-    set_weight(edge_type const &edge, Edge_Weight_Type weights)
+    set_weight(Edge_Type const &edge, Edge_Weight_Type weights)
       requires Parallel_Edges
     {
       Parent_Type::set_weight(0, edge, weights);
@@ -119,14 +119,6 @@ namespace network_butcher::types
             }
         }
       return builder.str();
-    }
-
-
-    void
-    reserve_weight_map(std::size_t max_size)
-      requires std::is_same_v<Weight_Collection_Type, std::unordered_map<edge_type, Weight_Type, hash_pair>>
-    {
-      Parent_Type::weigth_map[0].reserve(max_size);
     }
 
 
@@ -177,7 +169,7 @@ namespace network_butcher::types
     /// \param device The device id
     /// \return True if the edge has a weight on the given device, false otherwise
     [[nodiscard]] bool
-    check_weight(edge_type const &edge) const
+    check_weight(Edge_Type const &edge) const
     {
       return Parent_Type::check_weight(0, edge);
     }
@@ -187,7 +179,7 @@ namespace network_butcher::types
     /// \param edge The edge
     /// \return The weight
     [[nodiscard]] auto
-    get_weight(edge_type const &edge) const
+    get_weight(Edge_Type const &edge) const
     {
       return Parent_Type::get_weight(0, edge);
     }
@@ -197,7 +189,7 @@ namespace network_butcher::types
     /// \param edge The edge
     /// \param weight The weight
     void
-    set_weight(edge_type const &edge, t_weight_type const &weight)
+    set_weight(Edge_Type const &edge, t_weight_type const &weight)
     {
       Parent_Type::set_weight(0, edge, weight);
     }
@@ -207,7 +199,7 @@ namespace network_butcher::types
     /// \param edge The edge
     /// \param weights The weight
     void
-    set_weight(edge_type const &edge, Edge_Weight_Type weights)
+    set_weight(Edge_Type const &edge, Edge_Weight_Type weights)
       requires Parallel_Edges
     {
       Parent_Type::set_weight(0, edge, weights);
@@ -253,14 +245,6 @@ namespace network_butcher::types
     }
 
 
-    void
-    reserve_weight_map(std::size_t max_size)
-      requires std::is_same_v<Weight_Collection_Type, std::unordered_map<edge_type, Weight_Type, hash_pair>>
-    {
-      Parent_Type::weigth_map[0].reserve(max_size);
-    }
-
-
     ~WGraph() override = default;
   };
 } // namespace network_butcher::types
@@ -274,12 +258,12 @@ namespace network_butcher::kfinder
                        t_Reversed,
                        typename network_butcher::types::WGraph<Parallel_Edges, t_Node_Type>::Node_Type,
                        typename network_butcher::types::WGraph<Parallel_Edges, t_Node_Type>::Node_Collection_Type,
-                       weight_type> : base_Weighted_Graph
+                       Time_Type> : Base_Weighted_Graph
   {
   public:
-    using Weight_Type = weight_type;
+    using Weight_Type = Time_Type;
 
-    using Edge_Type = std::pair<node_id_type, node_id_type>;
+    using Edge_Type = std::pair<Node_Id_Type, Node_Id_Type>;
 
     using Graph_Type       = network_butcher::types::WGraph<Parallel_Edges, t_Node_Type>;
     using Weight_Edge_Type = std::multiset<Weight_Type>;
@@ -309,7 +293,7 @@ namespace network_butcher::kfinder
         }
     }
 
-    [[nodiscard]] node_id_type
+    [[nodiscard]] Node_Id_Type
     size() const
     {
       return graph.size();
@@ -321,8 +305,8 @@ namespace network_butcher::kfinder
       return graph.empty();
     };
 
-    [[nodiscard]] std::set<node_id_type> const &
-    get_output_nodes(node_id_type const &id) const
+    [[nodiscard]] std::set<Node_Id_Type> const &
+    get_output_nodes(Node_Id_Type const &id) const
     {
       if constexpr (t_Reversed)
         {
@@ -336,7 +320,7 @@ namespace network_butcher::kfinder
 
 
     Node_Type const &
-    operator[](node_id_type const &id) const
+    operator[](Node_Id_Type const &id) const
     {
       return graph[id];
     };
@@ -374,7 +358,7 @@ namespace network_butcher::kfinder
 
 
     explicit Weighted_Graph(Graph_Type const &g)
-      : base_Weighted_Graph()
+      : Base_Weighted_Graph()
       , graph(g)
     {}
 

@@ -11,10 +11,10 @@
 
 namespace network_butcher::io::Onnx_importer_helpers
 {
-  using Map_IO = std::unordered_map<std::string, type_info_pointer>;
+  using Map_IO = std::unordered_map<std::string, Type_Info_Pointer>;
 
   /// Simple helper struct used to store basic infos required to "decode" an onnx model
-  struct prepared_import_onnx
+  struct Prepared_Import_Onnx
   {
     Map_IO                                                value_infos;
     std::shared_ptr<network_butcher::types::Dense_tensor> pointer_input;
@@ -86,9 +86,9 @@ namespace network_butcher::io::Onnx_importer_helpers
   /// node
   /// \param value_infos The collection of IO and parameters elements
   /// \return The collection of Type_info associated to the IO elements for the given node
-  io_collection_type<type_info_pointer>
+  Io_Collection_Type<Type_Info_Pointer>
   process_node_ios(google::protobuf::RepeatedPtrField<std::basic_string<char>> const &io_names,
-                   io_collection_type<type_info_pointer>                             &parameters_collection,
+                   Io_Collection_Type<Type_Info_Pointer>                             &parameters_collection,
                    Map_IO const                                                      &value_infos);
 
   /// It will insert into onnx_io_ids the names of the elements of onnx_io
@@ -103,8 +103,8 @@ namespace network_butcher::io::Onnx_importer_helpers
   /// \param onnx_io_ids The collection of IO ids
   /// \param io_collection The collection IO/parameters for the given node
   /// \return The collection of "common" tensors
-  std::vector<type_info_pointer>
-  get_common_elements(const std::set<std::string> &onnx_io_ids, io_collection_type<type_info_pointer> &io_collection);
+  std::vector<Type_Info_Pointer>
+  get_common_elements(const std::set<std::string> &onnx_io_ids, Io_Collection_Type<Type_Info_Pointer> &io_collection);
 
 
   /// It will produce a map that associates to the tensor name of either an input, an output or a value_info that is
@@ -132,15 +132,15 @@ namespace network_butcher::io::Onnx_importer_helpers
   /// It will produce a prepared_import_onnx for the specified onnx_graph
   /// \param onnx_graph The onnx_graph
   /// \return The prepared_import_onnx struct
-  prepared_import_onnx
+  Prepared_Import_Onnx
   prepare_import_from_onnx(onnx::GraphProto const &onnx_graph);
 
   /// Simple helper method used to process during the graph construction a node
   /// \param node The specified node
   /// \param prepared_data The prepared_import_onnx struct
   /// \return The node with its inputs and outputs
-  std::tuple<graph_type::Node_Type, std::vector<type_info_pointer>, std::vector<type_info_pointer>>
-  process_node(const onnx::NodeProto &node, prepared_import_onnx const &prepared_data);
+  std::tuple<Converted_Onnx_Graph_Type::Node_Type, std::vector<Type_Info_Pointer>, std::vector<Type_Info_Pointer>>
+  process_node(const onnx::NodeProto &node, Prepared_Import_Onnx const &prepared_data);
 } // namespace network_butcher::io::Onnx_importer_helpers
 
 

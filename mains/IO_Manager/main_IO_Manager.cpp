@@ -95,7 +95,7 @@ base_parameters(std::size_t k, std::size_t num_devices)
         }
 
       res.weights_params.bandwidth->set_weight(std::make_pair(i, i),
-                                               std::make_pair(std::numeric_limits<bandwidth_type>::infinity(), 0.));
+                                               std::make_pair(std::numeric_limits<Bandwidth_Value_Type>::infinity(), 0.));
     }
 
 
@@ -117,10 +117,10 @@ lazy_eppstein_parameters(std::size_t k, std::size_t num_devices)
 };
 
 
-std::function<weight_type(edge_type const &, std::size_t, std::size_t)>
+std::function<Time_Type(Edge_Type const &, std::size_t, std::size_t)>
 basic_transmission(std::size_t devices, std::size_t size)
 {
-  return [devices, size](edge_type const &in_edge, std::size_t first, std::size_t second) {
+  return [devices, size](Edge_Type const &in_edge, std::size_t first, std::size_t second) {
     auto const &[input, tmp] = in_edge;
     if (input < size && first < devices && second < devices)
       {

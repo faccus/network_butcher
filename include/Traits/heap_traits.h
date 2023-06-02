@@ -13,28 +13,28 @@
 
 namespace network_butcher::kfinder
 {
-  template <typename Weight_Type = weight_type>
-  using t_H_out_collection = std::unordered_map<node_id_type, H_out<t_edge_info<Weight_Type>, std::greater<>>>;
+  template <typename Weight_Type = Time_Type>
+  using H_out_Collection_Template = std::unordered_map<Node_Id_Type, H_out<t_edge_info<Weight_Type>, std::greater<>>>;
 
-  template <typename Weight_Type = weight_type>
-  using H_out_pointer = t_H_out_collection<Weight_Type>::const_iterator;
+  template <typename Weight_Type = Time_Type>
+  using H_out_Template_Iterator = H_out_Collection_Template<Weight_Type>::const_iterator;
 
-  template <typename Weight_Type = weight_type>
-  struct pointer_greater
+  template <typename Weight_Type = Time_Type>
+  struct Pointer_Greater
   {
     std::less<> comp{};
 
     bool
-    operator()(t_H_out_collection<Weight_Type>::const_iterator const &lhs,
-               t_H_out_collection<Weight_Type>::const_iterator const &rhs) const
+    operator()(H_out_Collection_Template<Weight_Type>::const_iterator const &lhs,
+               H_out_Collection_Template<Weight_Type>::const_iterator const &rhs) const
     {
       return comp(rhs->second, lhs->second);
     }
   };
 
-  template <typename Weight_Type = weight_type>
-  using t_H_g_collection =
-    std::unordered_map<node_id_type, Heap<H_out_pointer<Weight_Type>, pointer_greater<Weight_Type>>>;
+  template <typename Weight_Type = Time_Type>
+  using H_G_Collection_Template =
+    std::unordered_map<Node_Id_Type, Heap<H_out_Template_Iterator<Weight_Type>, Pointer_Greater<Weight_Type>>>;
 } // namespace network_butcher::kfinder
 
 

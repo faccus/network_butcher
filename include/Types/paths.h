@@ -10,12 +10,12 @@
 
 namespace network_butcher::types
 {
-  using Slice_Type = std::set<node_id_type>;
+  using Slice_Type = std::set<Node_Id_Type>;
 
   using Real_Partition = std::pair<std::size_t, Slice_Type>;
   using Real_Path      = std::vector<Real_Partition>;
 
-  using Weighted_Real_Path  = std::pair<weight_type, Real_Path>;
+  using Weighted_Real_Path  = std::pair<Time_Type, Real_Path>;
 
   bool
   path_comparison(Weighted_Real_Path const &rhs, Weighted_Real_Path const &lhs);

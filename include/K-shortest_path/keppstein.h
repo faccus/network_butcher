@@ -17,10 +17,10 @@ namespace network_butcher::kfinder
   template <typename Graph_type,
             bool                 Only_Distance                  = false,
             Valid_Weighted_Graph t_Weighted_Graph_Complete_Type = Weighted_Graph<Graph_type>>
-  class KFinder_Eppstein final : public basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>
+  class KFinder_Eppstein final : public Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>
   {
   private:
-    using base = basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>;
+    using base = Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>;
 
   public:
     using Output_Type = typename base::Output_Type;
@@ -43,7 +43,7 @@ namespace network_butcher::kfinder
     /// \param sidetrack_distances The collection of the sidetrack distances for all the sidetrack edges
     /// \return H_out map
     [[nodiscard]] H_out_collection
-    construct_h_out(std::vector<node_id_type> const  &successors,
+    construct_h_out(std::vector<Node_Id_Type> const  &successors,
                     internal_weight_collection const &sidetrack_distances) const;
 
 
@@ -52,7 +52,7 @@ namespace network_butcher::kfinder
     /// \param successors The successors list
     /// \return The map associating every node to its corresponding H_g map
     [[nodiscard]] H_g_collection
-    construct_h_g(H_out_collection const &h_out_collection, std::vector<node_id_type> const &successors) const;
+    construct_h_g(H_out_collection const &h_out_collection, std::vector<Node_Id_Type> const &successors) const;
 
 
     /// The basic function for the Eppstein algorithm
@@ -92,7 +92,7 @@ namespace network_butcher::kfinder
   template <class Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
   KFinder_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::H_out_collection
   KFinder_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::construct_h_out(
-    const std::vector<node_id_type>  &successors,
+    const std::vector<Node_Id_Type>  &successors,
     const internal_weight_collection &sidetrack_distances) const
   {
     H_out_collection h_out_collection;
@@ -102,7 +102,7 @@ namespace network_butcher::kfinder
       {
         auto const &tail           = tail_node.get_id();
         auto const &tail_successor = successors[tail];
-        if (tail_successor == std::numeric_limits<node_id_type>::max())
+        if (tail_successor == std::numeric_limits<Node_Id_Type>::max())
           continue;
 
         auto &h_out =
@@ -115,7 +115,7 @@ namespace network_butcher::kfinder
         // Loop through the output neighbors of the current node
         for (auto const &head : head_nodes)
           {
-            auto [begin, end] = sidetrack_distances.equal_range(edge_type{tail, head});
+            auto [begin, end] = sidetrack_distances.equal_range(Edge_Type{tail, head});
 
             for (; begin != end; ++begin)
               {
@@ -132,7 +132,7 @@ namespace network_butcher::kfinder
   KFinder_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::H_g_collection
   KFinder_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::construct_h_g(
     const H_out_collection          &h_out_collection,
-    const std::vector<node_id_type> &successors) const // O(N*log(N))
+    const std::vector<Node_Id_Type> &successors) const // O(N*log(N))
   {
     H_g_collection h_g_collection;
 
@@ -142,7 +142,7 @@ namespace network_butcher::kfinder
 
     // sp_dependencies contains the predecessors of every node in the shortest path. Notice
     // that the sum of the sizes of all the stored sets is at most N
-    std::vector<std::set<node_id_type>> sp_dependencies;
+    std::vector<std::set<Node_Id_Type>> sp_dependencies;
     sp_dependencies.resize(num_nodes);
 
     for (auto const &node : graph)
@@ -150,7 +150,7 @@ namespace network_butcher::kfinder
         auto const &node_id   = node.get_id();
         auto const &successor = successors[node_id];
 
-        if (successor == std::numeric_limits<node_id_type>::max())
+        if (successor == std::numeric_limits<Node_Id_Type>::max())
           continue;
 
         // Prepare the H_g map
@@ -171,7 +171,7 @@ namespace network_butcher::kfinder
       }
 
     // Now, we have to find the nodes whose successor is the sink itself
-    std::queue<node_id_type> queue;
+    std::queue<Node_Id_Type> queue;
     for (auto const &node : graph) // O(N)
       {
         auto const &id = node.get_id();

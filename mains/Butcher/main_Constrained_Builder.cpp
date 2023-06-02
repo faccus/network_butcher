@@ -51,10 +51,10 @@ basic_weight(Graph &graph, bool fully_random = false)
 }
 
 // Sample transmission: returns bandwidth + access time
-std::function<GraphType::Weight_Type(edge_type const &, std::size_t, std::size_t)>
+std::function<GraphType::Weight_Type(Edge_Type const &, std::size_t, std::size_t)>
 basic_transmission(parameters::Parameters::Weights const &weight_params, std::size_t num_nodes)
 {
-  return [&weight_params, num_nodes](edge_type const &in_edge, std::size_t first, std::size_t second) {
+  return [&weight_params, num_nodes](Edge_Type const &in_edge, std::size_t first, std::size_t second) {
     auto const pair_device = std::make_pair(first, second);
 
     auto const &[tail, head] = in_edge;
@@ -121,10 +121,10 @@ generate_parameters()
   res.block_graph_generation_params.use_bandwidth_to_manage_connections = true;
 
   g_type::Dependencies_Type deps(4);
-  deps[0] = std::make_pair(std::set<node_id_type>{0}, std::set<node_id_type>{0, 1, 3});
-  deps[1] = std::make_pair(std::set<node_id_type>{0, 1, 2}, std::set<node_id_type>{1, 2});
-  deps[2] = std::make_pair(std::set<node_id_type>{1, 2}, std::set<node_id_type>{1, 2, 3});
-  deps[3] = std::make_pair(std::set<node_id_type>{0, 2, 3}, std::set<node_id_type>{3});
+  deps[0] = std::make_pair(std::set<Node_Id_Type>{0}, std::set<Node_Id_Type>{0, 1, 3});
+  deps[1] = std::make_pair(std::set<Node_Id_Type>{0, 1, 2}, std::set<Node_Id_Type>{1, 2});
+  deps[2] = std::make_pair(std::set<Node_Id_Type>{1, 2}, std::set<Node_Id_Type>{1, 2, 3});
+  deps[3] = std::make_pair(std::set<Node_Id_Type>{0, 2, 3}, std::set<Node_Id_Type>{3});
 
   res.weights_params.bandwidth = std::make_unique<g_type>(g_type::Node_Collection_Type(4), std::move(deps));
 
@@ -139,7 +139,7 @@ generate_parameters()
   for (std::size_t i = 0; i < res.weights_params.bandwidth->size(); ++i)
     {
       res.weights_params.bandwidth->set_weight(std::make_pair(i, i),
-                                               std::make_pair(std::numeric_limits<bandwidth_type>::infinity(), 0.));
+                                               std::make_pair(std::numeric_limits<Bandwidth_Value_Type>::infinity(), 0.));
     }
 
 

@@ -19,7 +19,7 @@ namespace network_butcher::types
   {
   private:
     /// Current node id
-    node_id_type id;
+    Node_Id_Type id;
 
   public:
     /// Name of the node
@@ -27,19 +27,19 @@ namespace network_butcher::types
 
     /// Basic move constructor for a node
     Node()
-      : id(std::numeric_limits<node_id_type>::max())
+      : id(std::numeric_limits<Node_Id_Type>::max())
     {}
 
 
     /// Getter for the node id
-    [[nodiscard]] inline node_id_type
+    [[nodiscard]] inline Node_Id_Type
     get_id() const
     {
       return id;
     }
 
     void
-    set_id(node_id_type starting_id)
+    set_id(Node_Id_Type starting_id)
     {
       id = starting_id;
     }

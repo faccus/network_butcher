@@ -22,7 +22,7 @@ namespace network_butcher
   protected:
     GraphType const &original_graph;
 
-    using transmission_func_type = std::function<weight_type(const edge_type &, std::size_t, std::size_t)>;
+    using transmission_func_type = std::function<Time_Type(const Edge_Type &, std::size_t, std::size_t)>;
 
     std::vector<std::unique_ptr<constraints::Graph_Constraint>> constraints;
 
@@ -37,29 +37,29 @@ namespace network_butcher
 
     /// The actual construction of the block graph is performed when this function is called
     /// \return The block graph
-    [[nodiscard]] block_graph_type
+    [[nodiscard]] Block_Graph_Type
     build_block_graph() const;
 
     /// Apply to the input block graph the weights from the original graph
     /// \param new_graph The block graph
     void
-    apply_operation_weights(block_graph_type &new_graph) const;
+    apply_operation_weights(Block_Graph_Type &new_graph) const;
 
     /// Apply to the input block graph the transmission weights
     /// \param new_graph The block graph
     void
-    apply_transmission_weights(block_graph_type &new_graph) const;
+    apply_transmission_weights(Block_Graph_Type &new_graph) const;
 
     /// Apply to the input graph the given collection of constraints
     /// \param new_graph The block graph
     void
-    apply_constraints(block_graph_type &new_graph) const;
+    apply_constraints(Block_Graph_Type &new_graph) const;
 
     /// Import weights using an importer
     /// \param new_graph The block graph
     /// \return True if the import was successful, false if it was not performed
     bool
-    apply_weights_from_importer(block_graph_type &new_graph) const;
+    apply_weights_from_importer(Block_Graph_Type &new_graph) const;
 
 
   public:
@@ -145,7 +145,7 @@ namespace network_butcher
 
     /// The basic construct method. It will produce the block graph using the specified options.
     /// \return The resulting block graph
-    [[nodiscard]] block_graph_type
+    [[nodiscard]] Block_Graph_Type
     construct_block_graph() const;
 
 
@@ -155,14 +155,14 @@ namespace network_butcher
 
   template <typename GraphType>
   bool
-  Constrained_Block_Graph_Builder<GraphType>::apply_weights_from_importer(block_graph_type &new_graph) const
+  Constrained_Block_Graph_Builder<GraphType>::apply_weights_from_importer(Block_Graph_Type &new_graph) const
   {
     using namespace network_butcher::parameters;
 
     // Check if we have to generate the weights though aMLLibrary
     if (weights_params.weight_import_mode == Weight_Import_Mode::aMLLibrary_block)
       {
-        if constexpr (std::is_same_v<GraphType, graph_type>)
+        if constexpr (std::is_same_v<GraphType, Converted_Onnx_Graph_Type>)
           {
             io::block_aMLLibrary_Weight_Importer(this->original_graph,
                                                  new_graph,
@@ -181,7 +181,7 @@ namespace network_butcher
     // Check if we have to import the block graph weights directly from a .csv file
     else if (weights_params.weight_import_mode == Weight_Import_Mode::block_single_direct_read)
       {
-        io::Csv_Weight_Importer<block_graph_type>(new_graph,
+        io::Csv_Weight_Importer<Block_Graph_Type>(new_graph,
                                                   {weights_params.single_weight_import_path},
                                                   weights_params.single_csv_columns_weights,
                                                   devices,
@@ -198,7 +198,7 @@ namespace network_butcher
             entries.push_back(device.relevant_entry);
           }
 
-        io::Csv_Weight_Importer<block_graph_type>(new_graph, paths, entries, devices, weights_params.separator)
+        io::Csv_Weight_Importer<Block_Graph_Type>(new_graph, paths, entries, devices, weights_params.separator)
           .import_weights();
       }
     else
@@ -245,7 +245,7 @@ namespace network_butcher
 
   template <typename GraphType>
   void
-  Constrained_Block_Graph_Builder<GraphType>::apply_constraints(block_graph_type &new_graph) const
+  Constrained_Block_Graph_Builder<GraphType>::apply_constraints(Block_Graph_Type &new_graph) const
   {
     for (auto const &constraint : constraints)
       {
@@ -255,7 +255,7 @@ namespace network_butcher
 
 
   template <typename GraphType>
-  block_graph_type
+  Block_Graph_Type
   Constrained_Block_Graph_Builder<GraphType>::build_block_graph() const
   {
     // It will construct the linearized version of the original graph
@@ -267,11 +267,11 @@ namespace network_butcher
       // connections than the inputs one.
       int counter = old_graph.get_output_nodes(0).size() - old_graph.get_input_nodes(0).size() - 1;
 
-      std::list<block_graph_type::Node_Type> starting_nodes;
+      std::list<Block_Graph_Type::Node_Type> starting_nodes;
 
 
-      starting_nodes.emplace_back(block_graph_type::Node_Type::Content_Type{0, nullptr});
-      starting_nodes.back().content.second = std::make_shared<node_id_collection_type>(node_id_collection_type{0});
+      starting_nodes.emplace_back(Block_Graph_Type::Node_Type::Content_Type{0, nullptr});
+      starting_nodes.back().content.second = std::make_shared<Node_Id_Collection_Type>(Node_Id_Collection_Type{0});
 
       // Cycle through all the nodes of the graph
       for (auto it = ++old_nodes.begin(); it != old_nodes.end(); ++it)
@@ -286,19 +286,19 @@ namespace network_butcher
           // Add new node
           if (local_counter <= 0 && counter == 0)
             {
-              starting_nodes.emplace_back(block_graph_type::Node_Type::Content_Type{0, nullptr});
+              starting_nodes.emplace_back(Block_Graph_Type::Node_Type::Content_Type{0, nullptr});
               starting_nodes.back().content.second =
-                std::make_shared<node_id_collection_type>(node_id_collection_type{node.get_id()});
+                std::make_shared<Node_Id_Collection_Type>(Node_Id_Collection_Type{node.get_id()});
             }
           // Add new node and add master node for next steps
           else if (local_counter > 0 && counter == 0)
             {
-              starting_nodes.emplace_back(block_graph_type::Node_Type::Content_Type{0, nullptr});
+              starting_nodes.emplace_back(Block_Graph_Type::Node_Type::Content_Type{0, nullptr});
               starting_nodes.back().content.second =
-                std::make_shared<node_id_collection_type>(node_id_collection_type{node.get_id()});
+                std::make_shared<Node_Id_Collection_Type>(Node_Id_Collection_Type{node.get_id()});
 
-              starting_nodes.emplace_back(block_graph_type::Node_Type::Content_Type{0, nullptr});
-              starting_nodes.back().content.second = std::make_shared<node_id_collection_type>();
+              starting_nodes.emplace_back(Block_Graph_Type::Node_Type::Content_Type{0, nullptr});
+              starting_nodes.back().content.second = std::make_shared<Node_Id_Collection_Type>();
 
               counter += local_counter;
             }
@@ -317,15 +317,15 @@ namespace network_butcher
               // End of the master node
               if (counter == 0)
                 {
-                  starting_nodes.emplace_back(block_graph_type::Node_Type::Content_Type{0, nullptr});
+                  starting_nodes.emplace_back(Block_Graph_Type::Node_Type::Content_Type{0, nullptr});
                   starting_nodes.back().content.second =
-                    std::make_shared<node_id_collection_type>(node_id_collection_type{node.get_id()});
+                    std::make_shared<Node_Id_Collection_Type>(Node_Id_Collection_Type{node.get_id()});
 
                   // Do we have to add another master node?
                   if (local_counter >= 0)
                     {
-                      starting_nodes.emplace_back(block_graph_type::Node_Type::Content_Type{0, nullptr});
-                      starting_nodes.back().content.second = std::make_shared<node_id_collection_type>();
+                      starting_nodes.emplace_back(Block_Graph_Type::Node_Type::Content_Type{0, nullptr});
+                      starting_nodes.back().content.second = std::make_shared<Node_Id_Collection_Type>();
                     }
                 }
               else
@@ -407,7 +407,7 @@ namespace network_butcher
     };
 
     // It will add all the nodes required in the block graph
-    auto const add_extra_nodes_per_device = [](std::list<block_graph_type::Node_Type> &starting_nodes,
+    auto const add_extra_nodes_per_device = [](std::list<Block_Graph_Type::Node_Type> &starting_nodes,
                                                std::size_t                             num_devices) {
       if (starting_nodes.size() > 2)
         {
@@ -417,7 +417,7 @@ namespace network_butcher
             {
               for (std::size_t i = 1; i < num_devices; ++i)
                 {
-                  starting_nodes.emplace(it, block_graph_type::Node_Type::Content_Type{i, it_follower->content.second});
+                  starting_nodes.emplace(it, Block_Graph_Type::Node_Type::Content_Type{i, it_follower->content.second});
                 }
             }
         }
@@ -425,7 +425,7 @@ namespace network_butcher
 
     // It will produce the dependencies for the block graph
     auto const process_full_dependencies = [](std::size_t dep_size, std::size_t supp_size, std::size_t num_devices) {
-      block_graph_type::Dependencies_Type new_dependencies;
+      Block_Graph_Type::Dependencies_Type new_dependencies;
       new_dependencies.reserve(dep_size);
 
       // The first node is fully connected with the first layer
@@ -439,7 +439,7 @@ namespace network_butcher
 
       // Inputs: first node, Outputs: following layer nodes
       {
-        new_dependencies.emplace_back(std::make_pair<node_id_collection_type, node_id_collection_type>({0}, {}));
+        new_dependencies.emplace_back(std::make_pair<Node_Id_Collection_Type, Node_Id_Collection_Type>({0}, {}));
         auto &out = new_dependencies.back().second;
         for (std::size_t k = 0; k < num_devices; ++k)
           out.insert(out.end(), 1 + num_devices + k);
@@ -521,7 +521,7 @@ namespace network_butcher
         auto const id = new_dependencies.size();
 
         new_dependencies.emplace_back(
-          std::make_pair<node_id_collection_type, node_id_collection_type>({}, {id + num_devices}));
+          std::make_pair<Node_Id_Collection_Type, Node_Id_Collection_Type>({}, {id + num_devices}));
 
         auto &in = new_dependencies.back().first;
         for (std::size_t k = 0; k < num_devices; ++k)
@@ -552,7 +552,7 @@ namespace network_butcher
       [&weights_params = weights_params,
        &block_graph_generation_params =
          block_graph_generation_params](std::size_t dep_size, std::size_t supp_size, std::size_t num_devices) {
-        block_graph_type::Dependencies_Type new_dependencies;
+        Block_Graph_Type::Dependencies_Type new_dependencies;
         new_dependencies.reserve(dep_size);
 
         auto const &bandwidth = weights_params.bandwidth;
@@ -569,7 +569,7 @@ namespace network_butcher
 
           if (out.size() != num_devices)
             {
-              for (node_id_type i = 0; i < num_devices; ++i)
+              for (Node_Id_Type i = 0; i < num_devices; ++i)
                 {
                   // Check if it is in the neighbour or if it's allowed by an input bandwidth
                   if (!out.contains(i + 1) &&
@@ -584,7 +584,7 @@ namespace network_butcher
         // Node 1...num_devices , Inputs: first node, Outputs: following layer nodes
         {
           auto const &root_node_outs = new_dependencies.back().second;
-          for (node_id_type k = 0; k < num_devices; ++k)
+          for (Node_Id_Type k = 0; k < num_devices; ++k)
             {
               new_dependencies.emplace_back();
 
@@ -615,7 +615,7 @@ namespace network_butcher
                           v.cend(),
                           [num_devices, &bandwidth, &new_dependencies](std::size_t i) {
                             auto const base_id = num_devices * (i - 1) + 1;
-                            for (node_id_type k = 0; k < num_devices; ++k)
+                            for (Node_Id_Type k = 0; k < num_devices; ++k)
                               {
                                 auto const id = base_id + k;
 
@@ -665,7 +665,7 @@ namespace network_butcher
           auto const  base_id            = new_dependencies.size();
           auto const &device_inputs_sink = bandwidth->get_input_nodes(block_graph_generation_params.ending_device_id);
 
-          for (node_id_type k = 0; k < num_devices; ++k)
+          for (Node_Id_Type k = 0; k < num_devices; ++k)
             {
               new_dependencies.emplace_back();
 
@@ -693,7 +693,7 @@ namespace network_butcher
           new_dependencies.emplace_back();
 
           auto &in = new_dependencies.back().first;
-          for (node_id_type k = 0; k < num_devices; ++k)
+          for (Node_Id_Type k = 0; k < num_devices; ++k)
             {
               // Check if it is in the neighbour or if it's allowed by an output bandwidth
               if (device_inputs_sink.contains(k) ||
@@ -716,7 +716,7 @@ namespace network_butcher
     add_extra_nodes_per_device(starting_nodes, this->original_graph.get_num_devices());
 
     // Prepare the collection of nodes
-    block_graph_type::Node_Collection_Type new_nodes;
+    Block_Graph_Type::Node_Collection_Type new_nodes;
     new_nodes.reserve(starting_nodes.size());
 
     new_nodes.insert(new_nodes.end(),
@@ -729,19 +729,19 @@ namespace network_butcher
 
     if (block_graph_generation_params.use_bandwidth_to_manage_connections)
       {
-        return block_graph_type(
+        return Block_Graph_Type(
           new_nodes, process_partial_dependencies(new_nodes.size(), supp_size, this->original_graph.get_num_devices()));
       }
     else
       {
-        return block_graph_type(
+        return Block_Graph_Type(
           new_nodes, process_full_dependencies(new_nodes.size(), supp_size, this->original_graph.get_num_devices()));
       }
   }
 
 
   template <typename GraphType>
-  block_graph_type
+  Block_Graph_Type
   Constrained_Block_Graph_Builder<GraphType>::construct_block_graph() const
   {
     // Construct the "naked" block graph
@@ -768,7 +768,7 @@ namespace network_butcher
 
   template <typename GraphType>
   void
-  Constrained_Block_Graph_Builder<GraphType>::apply_operation_weights(block_graph_type &new_graph) const
+  Constrained_Block_Graph_Builder<GraphType>::apply_operation_weights(Block_Graph_Type &new_graph) const
   {
     using namespace network_butcher::parameters;
 
@@ -796,7 +796,7 @@ namespace network_butcher
         {
           auto const &out_node = new_graph[second];
 
-          edge_type const edge = {first, second};
+          Edge_Type const edge = {first, second};
           // The device id of the output node (=0 starting device, >0 other device)
           auto const out_device_id = out_node.content.first;
 
@@ -804,7 +804,7 @@ namespace network_butcher
           // linearized graph)
           auto const &outputs = *out_node.content.second;
 
-          weight_type weight_cost = 0.;
+          Time_Type weight_cost = 0.;
 
           // 1-1 correspondence
           if (outputs.size() == 1 && inputs.size() == 1)
@@ -1011,7 +1011,7 @@ namespace network_butcher
 
   template <typename GraphType>
   void
-  Constrained_Block_Graph_Builder<GraphType>::apply_transmission_weights(block_graph_type &new_graph) const
+  Constrained_Block_Graph_Builder<GraphType>::apply_transmission_weights(Block_Graph_Type &new_graph) const
   {
     using namespace network_butcher::parameters;
 
@@ -1032,7 +1032,7 @@ namespace network_butcher
           {
             auto const &out_node = new_graph[second];
 
-            edge_type const edge = {first, second};
+            Edge_Type const edge = {first, second};
             // The device id of the output node (=0 starting device, >0 other device)
             auto const out_device_id = out_node.content.first;
 
@@ -1040,7 +1040,7 @@ namespace network_butcher
             // linearized graph)
             auto const &outputs = *out_node.content.second;
 
-            weight_type final_cost = 0.;
+            Time_Type final_cost = 0.;
 
             // 1-1 correspondence
             if (outputs.size() == 1 && inputs.size() == 1)
@@ -1089,7 +1089,7 @@ namespace network_butcher
                 else
                   {
                     // This is the collection of the input nodes of every node contained in outputs
-                    std::set<node_id_type> output_node_inputs;
+                    std::set<Node_Id_Type> output_node_inputs;
 
                     for (auto const &node_id : outputs)
                       {
@@ -1098,7 +1098,7 @@ namespace network_butcher
                       }
 
                     // This is the collection of nodes in inputs whose output tensors are fed to outputs
-                    std::vector<node_id_type> frontier_input(std::max(inputs.size(), output_node_inputs.size()));
+                    std::vector<Node_Id_Type> frontier_input(std::max(inputs.size(), output_node_inputs.size()));
                     auto const                close_frontier = std::set_intersection(output_node_inputs.cbegin(),
                                                                       output_node_inputs.cend(),
                                                                       inputs.cbegin(),

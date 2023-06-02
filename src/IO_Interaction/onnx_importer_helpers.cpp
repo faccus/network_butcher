@@ -100,9 +100,9 @@ namespace network_butcher::io
   }
 
 
-  std::vector<type_info_pointer>
+  std::vector<Type_Info_Pointer>
   Onnx_importer_helpers::get_common_elements(const std::set<std::string>           &onnx_io_ids,
-                                             io_collection_type<type_info_pointer> &io_collection)
+                                             Io_Collection_Type<Type_Info_Pointer> &io_collection)
   {
     std::set<std::string>    in_keys;
     std::vector<std::string> tmp;
@@ -118,7 +118,7 @@ namespace network_butcher::io
       std::set_intersection(onnx_io_ids.cbegin(), onnx_io_ids.cend(), in_keys.cbegin(), in_keys.cend(), tmp.begin());
     tmp.resize(it - tmp.begin());
 
-    std::vector<type_info_pointer> res;
+    std::vector<Type_Info_Pointer> res;
     res.reserve(tmp.size());
 
     for (auto const &tensor_name : tmp)
@@ -176,12 +176,12 @@ namespace network_butcher::io
   }
 
 
-  io_collection_type<type_info_pointer>
+  Io_Collection_Type<Type_Info_Pointer>
   Onnx_importer_helpers::process_node_ios(const google::protobuf::RepeatedPtrField<std::basic_string<char>> &io_names,
-                                          io_collection_type<type_info_pointer> &parameters_collection,
+                                          Io_Collection_Type<Type_Info_Pointer> &parameters_collection,
                                           Map_IO const                          &value_infos)
   {
-    io_collection_type<type_info_pointer> res;
+    Io_Collection_Type<Type_Info_Pointer> res;
     for (auto const &io_name : io_names)
       {
         auto const iterator = value_infos.find(io_name);
@@ -199,10 +199,10 @@ namespace network_butcher::io
   }
 
 
-  Onnx_importer_helpers::prepared_import_onnx
+  Onnx_importer_helpers::Prepared_Import_Onnx
   Onnx_importer_helpers::prepare_import_from_onnx(const onnx::GraphProto &onnx_graph)
   {
-    prepared_import_onnx res;
+    Prepared_Import_Onnx res;
 
     auto const &[value_infos, onnx_inputs_ids, onnx_outputs_ids] =
       compute_value_infos(onnx_graph.input(), onnx_graph.output(), onnx_graph.value_info(), onnx_graph.initializer());
@@ -211,28 +211,28 @@ namespace network_butcher::io
     res.onnx_inputs_ids  = onnx_inputs_ids;
     res.onnx_outputs_ids = onnx_outputs_ids;
 
-    res.pointer_output = std::make_shared<network_butcher::types::Dense_tensor>(0, std::vector<shape_type>{});
-    res.pointer_input  = std::make_shared<network_butcher::types::Dense_tensor>(0, std::vector<shape_type>{});
+    res.pointer_output = std::make_shared<network_butcher::types::Dense_tensor>(0, std::vector<Onnx_Element_Shape_Type>{});
+    res.pointer_input  = std::make_shared<network_butcher::types::Dense_tensor>(0, std::vector<Onnx_Element_Shape_Type>{});
     return res;
   }
 
 
-  std::tuple<graph_type::Node_Type, std::vector<type_info_pointer>, std::vector<type_info_pointer>>
+  std::tuple<Converted_Onnx_Graph_Type::Node_Type, std::vector<Type_Info_Pointer>, std::vector<Type_Info_Pointer>>
   Onnx_importer_helpers::process_node(const onnx::NodeProto                             &node,
-                                      const Onnx_importer_helpers::prepared_import_onnx &prepared_data)
+                                      const Onnx_importer_helpers::Prepared_Import_Onnx &prepared_data)
   {
     auto const &value_infos = prepared_data.value_infos;
 
     auto operation_type = network_butcher::Utilities::to_lowercase_copy(node.op_type());
 
-    io_collection_type<type_info_pointer> parameters;
+    Io_Collection_Type<Type_Info_Pointer> parameters;
     auto                                  inputs  = process_node_ios(node.input(), parameters, value_infos);
     auto                                  outputs = process_node_ios(node.output(), parameters, value_infos);
 
     auto const graph_inputs  = get_common_elements(prepared_data.onnx_inputs_ids, inputs);
     auto const graph_outputs = get_common_elements(prepared_data.onnx_outputs_ids, outputs);
 
-    auto res = graph_type::Node_Type(network_butcher::types::Content<type_info_pointer>(std::move(inputs),
+    auto res = Converted_Onnx_Graph_Type::Node_Type(network_butcher::types::Content<Type_Info_Pointer>(std::move(inputs),
                                                                                         std::move(outputs),
                                                                                         std::move(parameters),
                                                                                         process_node_attributes(node),

@@ -5,8 +5,8 @@
 
 namespace network_butcher::Utilities
 {
-  memory_type
-  compute_memory_usage_from_enum(type_info_id_type input)
+  Memory_Type
+  compute_memory_usage_from_enum(Type_Info_Id_Type input)
   {
     if (onnx::TensorProto_DataType_IsValid(input))
       {

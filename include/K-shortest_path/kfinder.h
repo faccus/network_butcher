@@ -23,8 +23,8 @@ namespace network_butcher::kfinder
 
 
     Weighted_Graph_Complete_Type graph;
-    node_id_type                 root;
-    node_id_type                 sink;
+    Node_Id_Type                 root;
+    Node_Id_Type                 sink;
 
   public:
     /// Applies a K-shortest path algorithm to find the k-shortest paths on the given graph (from the first node to
@@ -32,17 +32,17 @@ namespace network_butcher::kfinder
     /// \param K The number of shortest paths to find
     /// \return The shortest paths
     [[nodiscard]] virtual std::
-      conditional_t<Only_Distance, std::vector<Weight_Type>, std::vector<t_path_info<Weight_Type>>>
+      conditional_t<Only_Distance, std::vector<Weight_Type>, std::vector<Path_Info<Weight_Type>>>
       compute(std::size_t K) const = 0;
 
 
-    explicit KFinder(Graph_type const &g, node_id_type root, node_id_type sink)
+    explicit KFinder(Graph_type const &g, Node_Id_Type root, Node_Id_Type sink)
       : graph(g)
       , root(root)
       , sink(sink){};
 
 
-    explicit KFinder(Weighted_Graph_Complete_Type const &g, node_id_type root, node_id_type sink)
+    explicit KFinder(Weighted_Graph_Complete_Type const &g, Node_Id_Type root, Node_Id_Type sink)
       : graph(g)
       , root(root)
       , sink(sink){};

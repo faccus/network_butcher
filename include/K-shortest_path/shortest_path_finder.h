@@ -15,27 +15,27 @@
 namespace network_butcher::kfinder::Shortest_path_finder
 {
   /// A helper struct for the dijkstra algo
-  template <typename Weight_Type = weight_type>
-  struct dijkstra_helper_struct : crtp_greater<dijkstra_helper_struct<Weight_Type>>
+  template <typename Weight_Type = Time_Type>
+  struct Dijkstra_Helper : Crtp_Greater<Dijkstra_Helper<Weight_Type>>
   {
     Weight_Type  weight;
-    node_id_type id;
+    Node_Id_Type id;
 
-    dijkstra_helper_struct(Weight_Type w, node_id_type i)
+    Dijkstra_Helper(Weight_Type w, Node_Id_Type i)
       : weight(w)
       , id(i)
     {}
 
     bool
-    operator<(const dijkstra_helper_struct &rhs) const
+    operator<(const Dijkstra_Helper &rhs) const
     {
       return weight < rhs.weight || (weight == rhs.weight && id < rhs.id);
     }
   };
 
   /// The output type of the Dijkstra algorithm
-  template <typename Weight_Type = weight_type>
-  using dijkstra_result_type = std::pair<std::vector<node_id_type>, std::vector<Weight_Type>>;
+  template <typename Weight_Type = Time_Type>
+  using Dijkstra_Result_Type = std::pair<std::vector<Node_Id_Type>, std::vector<Weight_Type>>;
 
   namespace utilities
   {
@@ -46,7 +46,7 @@ namespace network_butcher::kfinder::Shortest_path_finder
     /// \return The corresponding weight
     template <Valid_Weighted_Graph v_Weighted_Graph>
     v_Weighted_Graph::Weight_Type
-    get_weight(v_Weighted_Graph const &graph, node_id_type tail, node_id_type head)
+    get_weight(v_Weighted_Graph const &graph, Node_Id_Type tail, Node_Id_Type head)
     {
       auto const &weight_container = graph.get_weight(std::make_pair(tail, head));
 
@@ -60,12 +60,12 @@ namespace network_butcher::kfinder::Shortest_path_finder
   /// \param root The starting vertex
   /// \return The struct dijkstra_result_type<v_Weighted_Graph::Weight_Type>
   template <Valid_Weighted_Graph v_Weighted_Graph>
-  [[nodiscard]] dijkstra_result_type<typename v_Weighted_Graph::Weight_Type>
+  [[nodiscard]] Dijkstra_Result_Type<typename v_Weighted_Graph::Weight_Type>
   dijkstra(v_Weighted_Graph const &graph,
-           node_id_type            root) // time: ((N+E)log(N)), space: O(N)
+           Node_Id_Type            root) // time: ((N+E)log(N)), space: O(N)
   {
-    using dijkstra_result_type   = dijkstra_result_type<typename v_Weighted_Graph::Weight_Type>;
-    using dijkstra_helper_struct = dijkstra_helper_struct<typename v_Weighted_Graph::Weight_Type>;
+    using dijkstra_result_type   = Dijkstra_Result_Type<typename v_Weighted_Graph::Weight_Type>;
+    using dijkstra_helper_struct = Dijkstra_Helper<typename v_Weighted_Graph::Weight_Type>;
 
     if (graph.empty())
       {
@@ -77,7 +77,7 @@ namespace network_butcher::kfinder::Shortest_path_finder
     total_distance[root] = 0;
 
 
-    std::vector<node_id_type> predecessors(graph.size(), std::numeric_limits<node_id_type>::max());
+    std::vector<Node_Id_Type> predecessors(graph.size(), std::numeric_limits<Node_Id_Type>::max());
     predecessors[root] = root;
 
     Heap<dijkstra_helper_struct, std::greater<>> to_visit;
@@ -146,13 +146,13 @@ namespace network_butcher::kfinder::Shortest_path_finder
   /// \param sink The ending node
   /// \return The shortest path
   template <Valid_Weighted_Graph v_Weighted_Graph>
-  t_path_info<typename v_Weighted_Graph::Weight_Type>
+  Path_Info<typename v_Weighted_Graph::Weight_Type>
   shortest_path_finder(v_Weighted_Graph const                                             &graph,
-                       dijkstra_result_type<typename v_Weighted_Graph::Weight_Type> const &dij_res,
-                       node_id_type                                                        root,
-                       node_id_type                                                        sink)
+                       Dijkstra_Result_Type<typename v_Weighted_Graph::Weight_Type> const &dij_res,
+                       Node_Id_Type                                                        root,
+                       Node_Id_Type                                                        sink)
   {
-    t_path_info<typename v_Weighted_Graph::Weight_Type> info;
+    Path_Info<typename v_Weighted_Graph::Weight_Type> info;
     info.length = dij_res.second[root];
     info.path.reserve(graph.size());
 

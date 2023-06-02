@@ -9,7 +9,7 @@ namespace network_butcher::io::IO_Manager
   void
   export_network_partitions(const network_butcher::parameters::Parameters                 &params,
                             onnx::ModelProto const                                        &model,
-                            std::map<node_id_type, node_id_type> const                    &link_id_nodeproto,
+                            std::map<Node_Id_Type, Node_Id_Type> const                    &link_id_nodeproto,
                             const std::vector<network_butcher::types::Weighted_Real_Path> &paths)
   {
     if (network_butcher::Utilities::directory_exists(params.model_params.export_directory))
@@ -63,7 +63,7 @@ namespace network_butcher::io::IO_Manager
   void
   utilities::reconstruct_model_and_export(network_butcher::types::Weighted_Real_Path const &weighted_path,
                                           const onnx::ModelProto                           &original_model,
-                                          const std::map<node_id_type, node_id_type>       &link_id_nodeproto,
+                                          const std::map<Node_Id_Type, Node_Id_Type>       &link_id_nodeproto,
                                           preprocessed_ios_nodes_type const                &preprocessed_ios_nodes,
                                           const std::string                                &export_base_path)
   {
@@ -104,7 +104,7 @@ namespace network_butcher::io::IO_Manager
   std::pair<bool, onnx::ModelProto>
   reconstruct_model_from_partition(const network_butcher::types::Real_Partition &partition,
                                    const onnx::ModelProto                       &original_model,
-                                   const std::map<node_id_type, node_id_type>   &link_id_nodeproto,
+                                   const std::map<Node_Id_Type, Node_Id_Type>   &link_id_nodeproto,
                                    const preprocessed_ios_nodes_type            &preprocessed_ios_nodes,
                                    const onnx::GraphProto                       &model_graph)
   {
@@ -147,7 +147,7 @@ namespace network_butcher::io::IO_Manager
   }
 
 
-  std::tuple<graph_type, onnx::ModelProto, std::map<node_id_type, node_id_type>>
+  std::tuple<Converted_Onnx_Graph_Type, onnx::ModelProto, std::map<Node_Id_Type, Node_Id_Type>>
   import_from_onnx(std::string const &path, bool add_input_padding, bool add_output_padding, std::size_t num_devices)
   {
     using namespace network_butcher::io::Onnx_importer_helpers;
@@ -162,10 +162,10 @@ namespace network_butcher::io::IO_Manager
     // Prepare for the import
     auto const basic_data = prepare_import_from_onnx(onnx_graph);
 
-    std::vector<graph_type::Node_Type> nodes;
+    std::vector<Converted_Onnx_Graph_Type::Node_Type> nodes;
     nodes.reserve(onnx_nodes.size() + 2);
 
-    std::set<type_info_pointer> graph_inputs, graph_outputs;
+    std::set<Type_Info_Pointer> graph_inputs, graph_outputs;
 
     for (auto const &onnx_node : onnx_nodes)
       {
@@ -186,7 +186,7 @@ namespace network_butcher::io::IO_Manager
     // If add_input_padding, then we will add a "fake" input node
     if (add_input_padding)
       {
-        io_collection_type<type_info_pointer> tt;
+        Io_Collection_Type<Type_Info_Pointer> tt;
 
         for (auto const &in : graph_inputs)
           tt.emplace(in->get_name(), in);
@@ -194,28 +194,28 @@ namespace network_butcher::io::IO_Manager
 
         nodes.emplace(
           nodes.begin(),
-          std::move(network_butcher::types::Content_Builder<type_info_pointer>().set_output(std::move(tt))).build());
+          std::move(network_butcher::types::Content_Builder<Type_Info_Pointer>().set_output(std::move(tt))).build());
         nodes.front().name = "__fake__input__";
       }
 
-    std::map<node_id_type, node_id_type> link_id_nodeproto;
+    std::map<Node_Id_Type, Node_Id_Type> link_id_nodeproto;
     for (std::size_t i = add_input_padding ? 1 : 0, onnx_node_id = 0; i < nodes.size(); ++i, ++onnx_node_id)
       link_id_nodeproto.emplace_hint(link_id_nodeproto.end(), i, onnx_node_id);
 
     // If add_output_padding, then we will add a "fake" output node
     if (add_output_padding)
       {
-        io_collection_type<type_info_pointer> tt;
+        Io_Collection_Type<Type_Info_Pointer> tt;
 
         for (auto const &out : graph_outputs)
           tt.emplace(out->get_name(), out);
 
         nodes.emplace_back(
-          std::move(network_butcher::types::Content_Builder<type_info_pointer>().set_input(std::move(tt))).build());
+          std::move(network_butcher::types::Content_Builder<Type_Info_Pointer>().set_input(std::move(tt))).build());
         nodes.back().name = "__fake__output__";
       }
 
-    return {graph_type(num_devices, nodes), onnx_model, link_id_nodeproto};
+    return {Converted_Onnx_Graph_Type(num_devices, nodes), onnx_model, link_id_nodeproto};
   }
 
 
@@ -277,9 +277,9 @@ namespace network_butcher::io::IO_Manager
       using g_type = parameters::Parameters::Weights::connection_type::element_type;
 
       g_type::Dependencies_Type                                         connections(num_devices);
-      std::map<edge_type, std::pair<bandwidth_type, access_delay_type>> weights;
+      std::map<Edge_Type, std::pair<Bandwidth_Value_Type, Access_Delay_Value_Type>> weights;
 
-      auto const error_msg = [](const std::string &name, node_id_type i, node_id_type j) {
+      auto const error_msg = [](const std::string &name, Node_Id_Type i, Node_Id_Type j) {
         return "Parameters: the provided " + name + " for " + Utilities::custom_to_string(i) + " to " +
                Utilities::custom_to_string(j) + " was invalid. Please, check the configuration file!";
       };
@@ -292,8 +292,8 @@ namespace network_butcher::io::IO_Manager
               throw std::invalid_argument(error_msg("bandwidth", i, j));
             }
 
-          bandwidth_type    band;
-          access_delay_type acc;
+          Bandwidth_Value_Type band;
+          Access_Delay_Value_Type acc;
 
           // Check if the option is set
           if (len != 0)
@@ -303,7 +303,7 @@ namespace network_butcher::io::IO_Manager
               // If it's empty, this means it was not provided. But that's not possible! We will default to unset.
               if (tmp.empty())
                 {
-                  band = std::numeric_limits<access_delay_type>::min();
+                  band = std::numeric_limits<Access_Delay_Value_Type>::min();
                 }
               else
                 {
@@ -318,7 +318,7 @@ namespace network_butcher::io::IO_Manager
 
                   if (tmp.empty())
                     {
-                      acc = std::numeric_limits<access_delay_type>::min();
+                      acc = std::numeric_limits<Access_Delay_Value_Type>::min();
                     }
                   else
                     {
@@ -333,13 +333,13 @@ namespace network_butcher::io::IO_Manager
                 }
 
               // If bandwidth was set negative, we will throw.
-              if (band < 0 && band != std::numeric_limits<bandwidth_type>::min())
+              if (band < 0 && band != std::numeric_limits<Bandwidth_Value_Type>::min())
                 {
                   throw std::invalid_argument(error_msg("bandwidth", i, j));
                 }
 
               // If access_time was set negative, we will throw.
-              if (acc < 0 && acc != std::numeric_limits<access_delay_type>::min())
+              if (acc < 0 && acc != std::numeric_limits<Access_Delay_Value_Type>::min())
                 {
                   throw std::invalid_argument(error_msg("access delay", i, j));
                 }
@@ -369,7 +369,7 @@ namespace network_butcher::io::IO_Manager
                 }
               else if (i == j)
                 {
-                  weights[std::make_pair(i, j)] = std::make_pair(std::numeric_limits<weight_type>::infinity(), 0.);
+                  weights[std::make_pair(i, j)] = std::make_pair(std::numeric_limits<Time_Type>::infinity(), 0.);
 
                   connections[i].second.insert(j);
                   connections[j].first.insert(i);
@@ -550,7 +550,7 @@ namespace network_butcher::io::IO_Manager
   }
 
   std::unique_ptr<Weight_Importer>
-  generate_weight_importer(graph_type &graph, network_butcher::parameters::Parameters const &params)
+  generate_weight_importer(Converted_Onnx_Graph_Type &graph, network_butcher::parameters::Parameters const &params)
   {
     switch (params.weights_params.weight_import_mode)
       {
@@ -559,7 +559,7 @@ namespace network_butcher::io::IO_Manager
               original_aMLLibrary_Weight_Importer(graph, params));
           }
           case network_butcher::parameters::Weight_Import_Mode::single_direct_read: {
-            return std::make_unique<Csv_Weight_Importer<graph_type>>(
+            return std::make_unique<Csv_Weight_Importer<Converted_Onnx_Graph_Type>>(
               Csv_Weight_Importer(graph,
                                   {params.weights_params.single_weight_import_path},
                                   params.weights_params.single_csv_columns_weights,
@@ -567,7 +567,7 @@ namespace network_butcher::io::IO_Manager
                                   params.weights_params.separator));
           }
           case network_butcher::parameters::Weight_Import_Mode::multiple_direct_read: {
-            return std::make_unique<Csv_Weight_Importer<graph_type>>(
+            return std::make_unique<Csv_Weight_Importer<Converted_Onnx_Graph_Type>>(
               Csv_Weight_Importer(graph, params.devices, params.weights_params.separator));
           }
         default:
@@ -579,7 +579,7 @@ namespace network_butcher::io::IO_Manager
 
 
   void
-  import_weights(graph_type &graph, const network_butcher::parameters::Parameters &params)
+  import_weights(Converted_Onnx_Graph_Type &graph, const network_butcher::parameters::Parameters &params)
   {
     using namespace network_butcher::parameters;
 

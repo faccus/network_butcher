@@ -171,7 +171,7 @@ namespace network_butcher::io
 
   void
   block_aMLLibrary_Weight_Importer::import_weights(
-    std::function<bool(block_graph_type::Node_Type const &)> const &extra_condition)
+    std::function<bool(Block_Graph_Type::Node_Type const &)> const &extra_condition)
   {
     pybind11::initialize_interpreter();
 

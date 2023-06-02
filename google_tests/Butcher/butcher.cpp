@@ -16,7 +16,7 @@ namespace
   using namespace network_butcher::types;
 
   using type_weight             = double;
-  using type_collection_weights = std::map<std::pair<node_id_type, node_id_type>, type_weight>;
+  using type_collection_weights = std::map<std::pair<Node_Id_Type, Node_Id_Type>, type_weight>;
 
   using basic_type   = int;
   using Input        = Test_Class<int>;
@@ -51,7 +51,7 @@ namespace
     auto const  num_nodes    = graph.get_nodes().size();
     auto const &dependencies = graph.get_neighbors();
 
-    for (node_id_type tail = 0; tail < num_nodes; ++tail)
+    for (Node_Id_Type tail = 0; tail < num_nodes; ++tail)
       for (auto const &head : dependencies[tail].second)
         {
           for (std::size_t k = 0; k < graph.get_num_devices(); ++k)
@@ -63,7 +63,7 @@ namespace
   };
 
 
-  std::function<type_weight(edge_type const &, std::size_t, std::size_t)> basic_transmission(std::size_t, std::size_t);
+  std::function<type_weight(Edge_Type const &, std::size_t, std::size_t)> basic_transmission(std::size_t, std::size_t);
 
   TEST(ButcherTest, compute_k_shortest_paths_eppstein_linear)
   {
@@ -172,10 +172,10 @@ namespace
     return Butcher(std::move(graph));
   }
 
-  std::function<type_weight(edge_type const &, std::size_t, std::size_t)>
+  std::function<type_weight(Edge_Type const &, std::size_t, std::size_t)>
   basic_transmission(std::size_t devices, std::size_t size)
   {
-    return [devices, size](edge_type const &t_input, std::size_t first, std::size_t second) {
+    return [devices, size](Edge_Type const &t_input, std::size_t first, std::size_t second) {
       auto const &[input, _tmp] = t_input;
       if (0 <= input && input < size && first < devices && second < devices)
         {

@@ -32,7 +32,7 @@ namespace network_butcher
   {
   public:
     using network     = GraphType;
-    using new_network = block_graph_type;
+    using new_network = Block_Graph_Type;
 
   private:
     network graph;
@@ -84,7 +84,7 @@ namespace network_butcher
     /// that the K-shortest path algorithm managed to find given the specified constraints
     std::vector<network_butcher::types::Weighted_Real_Path>
     compute_k_shortest_path(
-      std::function<weight_type(edge_type const &, std::size_t, std::size_t)> const &transmission_weights,
+      std::function<Time_Type(Edge_Type const &, std::size_t, std::size_t)> const &transmission_weights,
       network_butcher::parameters::Parameters const                                    &params,
       std::vector<std::unique_ptr<constraints::Graph_Constraint>> const                &extra_constraints = {}) const;
   };
@@ -93,7 +93,7 @@ namespace network_butcher
   template <class GraphType>
   std::vector<network_butcher::types::Weighted_Real_Path>
   Butcher<GraphType>::compute_k_shortest_path(
-    const std::function<weight_type(const edge_type &, std::size_t, std::size_t)> &transmission_weights,
+    const std::function<Time_Type(const Edge_Type &, std::size_t, std::size_t)> &transmission_weights,
     const network_butcher::parameters::Parameters                                    &params,
     std::vector<std::unique_ptr<constraints::Graph_Constraint>> const                &extra_constraints) const
   {

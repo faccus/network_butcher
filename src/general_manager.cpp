@@ -5,19 +5,19 @@
 
 namespace network_butcher::io
 {
-  std::function<weight_type(const edge_type &, size_t, size_t)>
+  std::function<Time_Type(const Edge_Type &, size_t, size_t)>
   General_Manager::Helper_Functions::generate_bandwidth_transmission_function(
     const network_butcher::parameters::Parameters::Weights &weights_params,
-    const graph_type                                       &graph)
+    const Converted_Onnx_Graph_Type                        &graph)
   {
-    std::function<weight_type(edge_type const &, std::size_t, std::size_t)> transmission_weights =
-      [&weights_params, &graph](edge_type const &edge, std::size_t first_device, std::size_t second_device) {
+    std::function<Time_Type(Edge_Type const &, std::size_t, std::size_t)> transmission_weights =
+      [&weights_params, &graph](Edge_Type const &edge, std::size_t first_device, std::size_t second_device) {
         auto const device_pair = std::make_pair(first_device, second_device);
 
         auto const &bandwidth = weights_params.bandwidth;
 
-        bandwidth_type    bdw;
-        access_delay_type acc;
+        Bandwidth_Value_Type bdw;
+        Access_Delay_Value_Type acc;
 
         auto const &[tail, head] = edge;
 
@@ -55,13 +55,13 @@ namespace network_butcher::io
         if (mem > 0)
           {
             // Conversion from MBit to Bytes
-            constexpr auto MBit_to_Bytes = static_cast<weight_type>(1000000.) / 8;
+            constexpr auto MBit_to_Bytes = static_cast<Time_Type>(1000000.) / 8;
 
             return (mem / MBit_to_Bytes) / bdw + acc;
           }
         else
           {
-            return static_cast<weight_type>(acc);
+            return static_cast<Time_Type>(acc);
           }
       };
     return transmission_weights;

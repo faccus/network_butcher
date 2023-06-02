@@ -43,7 +43,7 @@ namespace
     for (std::size_t i = 0; i < params.devices.size(); ++i)
       ASSERT_EQ(params.devices[i].id, i);
 
-    memory_type gb = 1024 * 1024 * 1024;
+    Memory_Type gb = 1024 * 1024 * 1024;
 
     ASSERT_EQ(params.devices[0].name, "RPI");
     ASSERT_EQ(params.devices[0].maximum_memory, gb);
@@ -84,7 +84,7 @@ namespace
 
   TEST(IOManagerTest, ImportOnnx)
   {
-    using Input = graph_input_type;
+    using Input = Onnx_Converted_Node_Type;
 
     const std::string model_path   = graph_path;
     auto const [graph, model, map] = io::IO_Manager::import_from_onnx(model_path);
@@ -101,7 +101,7 @@ namespace
 
   TEST(IOManagerTest, ImportOnnxTestNoPadding)
   {
-    using Input = graph_input_type;
+    using Input = Onnx_Converted_Node_Type;
 
     const std::string model_path   = graph_path;
     auto const [graph, model, map] = io::IO_Manager::import_from_onnx(model_path, false, false);
@@ -119,7 +119,7 @@ namespace
 
   TEST(IOManagerTest, ImportOnnxTestInputPadding)
   {
-    using Input = graph_input_type;
+    using Input = Onnx_Converted_Node_Type;
 
     const std::string model_path   = graph_path;
     auto const [graph, model, map] = io::IO_Manager::import_from_onnx(model_path, true, false);
@@ -139,7 +139,7 @@ namespace
 
   TEST(IOManagerTest, ImportOnnxTestOutputPadding)
   {
-    using Input = graph_input_type;
+    using Input = Onnx_Converted_Node_Type;
 
     const std::string model_path   = graph_path;
     auto const [graph, model, map] = io::IO_Manager::import_from_onnx(model_path, false, true);

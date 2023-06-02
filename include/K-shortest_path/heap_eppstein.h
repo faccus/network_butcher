@@ -18,13 +18,13 @@ namespace network_butcher::kfinder
 {
   /// Simple struct used to store some edge information
   /// \tparam Weight_Type The weight type
-  template <typename Weight_Type = weight_type>
-  struct t_edge_info : crtp_greater<t_edge_info<Weight_Type>>
+  template <typename Weight_Type = Time_Type>
+  struct t_edge_info : Crtp_Greater<t_edge_info<Weight_Type>>
   {
-    edge_type   edge;
+    Edge_Type   edge;
     Weight_Type delta_weight;
 
-    t_edge_info(edge_type const &in_edge, Weight_Type const &in_delta_weight)
+    t_edge_info(Edge_Type const &in_edge, Weight_Type const &in_delta_weight)
       : edge(in_edge)
       , delta_weight(in_delta_weight)
     {}
@@ -41,7 +41,7 @@ namespace network_butcher::kfinder
   /// \tparam heap_comparison The comparison function used to construct the max heap (std::less -> Max Heap,
   /// std::greater -> Min Heap)
   template <typename T, typename heap_comparison = std::less<T>>
-  class basic_Heap
+  class Basic_Heap
   {
   public:
     using container_type = std::vector<T>;
@@ -54,7 +54,7 @@ namespace network_butcher::kfinder
     heapify() = 0;
 
   public:
-    basic_Heap() = default;
+    Basic_Heap() = default;
 
     virtual void
     push(T const &value) = 0;
@@ -74,7 +74,7 @@ namespace network_butcher::kfinder
     }
 
     void
-    overwrite_children(basic_Heap<T, heap_comparison> const &other_heap)
+    overwrite_children(Basic_Heap<T, heap_comparison> const &other_heap)
     {
       overwrite_children(other_heap.children, false);
     }
@@ -114,7 +114,7 @@ namespace network_butcher::kfinder
     [[nodiscard]] virtual std::set<std::size_t>
     find_children_indices(std::size_t index) const = 0;
 
-    virtual ~basic_Heap() = default;
+    virtual ~Basic_Heap() = default;
   };
 
 
@@ -123,10 +123,10 @@ namespace network_butcher::kfinder
   /// \tparam comparison The comparison function used to construct the max heap (std::less -> Max Heap, std::greater ->
   /// Min Heap)
   template <typename T, typename heap_comparison = std::less<T>>
-  class Heap : public basic_Heap<T, heap_comparison>
+  class Heap : public Basic_Heap<T, heap_comparison>
   {
   public:
-    using base           = basic_Heap<T, heap_comparison>;
+    using base           = Basic_Heap<T, heap_comparison>;
     using container_type = base::container_type;
 
   protected:
@@ -140,14 +140,14 @@ namespace network_butcher::kfinder
     }
 
   public:
-    node_id_type id;
+    Node_Id_Type id;
 
     explicit Heap()
       : base()
-      , id{std::numeric_limits<node_id_type>::max()}
+      , id{std::numeric_limits<Node_Id_Type>::max()}
     {}
 
-    explicit Heap(node_id_type id)
+    explicit Heap(Node_Id_Type id)
       : base()
       , id(id)
     {}
@@ -189,7 +189,7 @@ namespace network_butcher::kfinder
     [[nodiscard]] bool
     is_id_set() const
     {
-      return id != std::numeric_limits<node_id_type>::max();
+      return id != std::numeric_limits<Node_Id_Type>::max();
     }
 
 
@@ -222,10 +222,10 @@ namespace network_butcher::kfinder
   /// an heap. The nodes are ordered with the same criteria as in the heap.
   /// \tparam T The stored type
   template <class T, typename heap_comparison = std::less<T>, typename element_less = std::less<T>>
-  class H_out : public basic_Heap<T, heap_comparison>
+  class H_out : public Basic_Heap<T, heap_comparison>
   {
   public:
-    using base           = basic_Heap<T, heap_comparison>;
+    using base           = Basic_Heap<T, heap_comparison>;
     using container_type = base::container_type;
 
   protected:
@@ -249,14 +249,14 @@ namespace network_butcher::kfinder
     }
 
   public:
-    node_id_type id;
+    Node_Id_Type id;
 
     explicit H_out()
       : base()
-      , id{std::numeric_limits<node_id_type>::max()}
+      , id{std::numeric_limits<Node_Id_Type>::max()}
     {}
 
-    explicit H_out(node_id_type id)
+    explicit H_out(Node_Id_Type id)
       : base()
       , id(id)
     {}
@@ -292,10 +292,10 @@ namespace network_butcher::kfinder
     }
 
 
-    [[nodiscard]] std::set<node_id_type>
+    [[nodiscard]] std::set<Node_Id_Type>
     find_children_indices(std::size_t index) const override
     {
-      std::set<node_id_type> result;
+      std::set<Node_Id_Type> result;
 
       if (index < children.size())
         {
@@ -306,8 +306,8 @@ namespace network_butcher::kfinder
             }
           else
             {
-              node_id_type left  = 2 * (index - 1) + 1 + 1;
-              node_id_type right = 2 * (index - 1) + 2 + 1;
+              Node_Id_Type left  = 2 * (index - 1) + 1 + 1;
+              Node_Id_Type right = 2 * (index - 1) + 2 + 1;
               if (left < children.size())
                 {
                   result.insert(left);

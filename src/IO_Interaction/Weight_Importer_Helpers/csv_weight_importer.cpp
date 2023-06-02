@@ -7,8 +7,8 @@ namespace network_butcher::io
 {
   template <>
   void
-  Csv_Weight_Importer<graph_type>::import_weights(
-    std::function<bool(graph_type::Node_Type const &)> const &extra_condition)
+  Csv_Weight_Importer<Converted_Onnx_Graph_Type>::import_weights(
+    std::function<bool(Converted_Onnx_Graph_Type::Node_Type const &)> const &extra_condition)
   {
     // Are we dealing with a single .csv file?
     bool       single_call = check_paths();
@@ -53,8 +53,8 @@ namespace network_butcher::io
 
   template <>
   void
-  Csv_Weight_Importer<block_graph_type>::import_weights(
-    const std::function<bool(const block_graph_type::Node_Type &)> &extra_condition)
+  Csv_Weight_Importer<Block_Graph_Type>::import_weights(
+    const std::function<bool(const Block_Graph_Type::Node_Type &)> &extra_condition)
   {
     // Are we dealing with a single .csv file?
     bool       single_call = check_paths();

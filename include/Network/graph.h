@@ -26,7 +26,7 @@ namespace network_butcher::types
   class Graph
   {
   public:
-    using Neighbours_Type      = std::vector<std::pair<node_id_collection_type, node_id_collection_type>>;
+    using Neighbours_Type      = std::vector<std::pair<Node_Id_Collection_Type, Node_Id_Collection_Type>>;
     using Node_Type            = t_Node_Type;
     using Node_Collection_Type = std::vector<Node_Type>;
 
@@ -41,7 +41,7 @@ namespace network_butcher::types
       : nodes(std::forward<A>(v))
       , neighbours(std::forward<B>(dep))
     {
-      for (node_id_type i = 0; i < nodes.size(); ++i)
+      for (Node_Id_Type i = 0; i < nodes.size(); ++i)
         {
           nodes[i].set_id(i);
         }
@@ -67,14 +67,14 @@ namespace network_butcher::types
 
     /// Get input nodes
     [[nodiscard]] Neighbours_Type::value_type::first_type const &
-    get_input_nodes(node_id_type id) const
+    get_input_nodes(Node_Id_Type id) const
     {
       return neighbours[id].first;
     }
 
     /// Get input nodes
     [[nodiscard]] Neighbours_Type::value_type::second_type const &
-    get_output_nodes(node_id_type id) const
+    get_output_nodes(Node_Id_Type id) const
     {
       return neighbours[id].second;
     }
@@ -83,7 +83,7 @@ namespace network_butcher::types
     /// \param edge The edge
     /// \return True if the edge exists, false otherwise
     [[nodiscard]] bool
-    check_edge(edge_type const &edge) const
+    check_edge(Edge_Type const &edge) const
     {
       return get_output_nodes(edge.first).contains(edge.second);
     }
@@ -197,7 +197,7 @@ namespace network_butcher::types
   class Graph<CNode<Content<T>>>
   {
   public:
-    using Neighbours_Type      = std::vector<std::pair<node_id_collection_type, node_id_collection_type>>;
+    using Neighbours_Type      = std::vector<std::pair<Node_Id_Collection_Type, Node_Id_Collection_Type>>;
     using Node_Type            = CNode<Content<T>>;
     using Node_Collection_Type = std::vector<Node_Type>;
 
@@ -212,7 +212,7 @@ namespace network_butcher::types
       : nodes(std::forward<A>(v))
       , neighbours(std::forward<B>(dep))
     {
-      for (node_id_type i = 0; i < nodes.size(); ++i)
+      for (Node_Id_Type i = 0; i < nodes.size(); ++i)
         {
           nodes[i].set_id(i);
         }
@@ -221,7 +221,7 @@ namespace network_butcher::types
     explicit Graph(Node_Collection_Type const &v)
       : nodes(v)
     {
-      for (node_id_type i = 0; i < nodes.size(); ++i)
+      for (Node_Id_Type i = 0; i < nodes.size(); ++i)
         {
           nodes[i].set_id(i);
         }
@@ -232,7 +232,7 @@ namespace network_butcher::types
     explicit Graph(Node_Collection_Type &&v)
       : nodes(std::move(v))
     {
-      for (node_id_type i = 0; i < this->nodes.size(); ++i)
+      for (Node_Id_Type i = 0; i < this->nodes.size(); ++i)
         {
           this->nodes[i].set_id(i);
         }
@@ -260,14 +260,14 @@ namespace network_butcher::types
 
     /// Get input nodes
     [[nodiscard]] Neighbours_Type::value_type::first_type const &
-    get_input_nodes(node_id_type id) const
+    get_input_nodes(Node_Id_Type id) const
     {
       return neighbours[id].first;
     }
 
     /// Get input nodes
     [[nodiscard]] Neighbours_Type::value_type::second_type const &
-    get_output_nodes(node_id_type id) const
+    get_output_nodes(Node_Id_Type id) const
     {
       return neighbours[id].second;
     }
@@ -276,7 +276,7 @@ namespace network_butcher::types
     /// \param edge The edge
     /// \return True if the edge exists, false otherwise
     [[nodiscard]] bool
-    check_edge(edge_type const &edge) const
+    check_edge(Edge_Type const &edge) const
     {
       return get_output_nodes(edge.first).contains(edge.second);
     }
@@ -395,8 +395,8 @@ namespace network_butcher::types
     neighbours.resize(nodes.size());
 
     // Compute appearances of inputs/outputs for a node
-    std::unordered_map<std::string, node_id_collection_type> input_appearances;
-    std::unordered_map<std::string, node_id_collection_type> output_appearances;
+    std::unordered_map<std::string, Node_Id_Collection_Type> input_appearances;
+    std::unordered_map<std::string, Node_Id_Collection_Type> output_appearances;
 
     // Check which node has which input/output
     for (auto const &node : nodes)

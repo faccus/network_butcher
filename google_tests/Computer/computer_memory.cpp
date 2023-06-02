@@ -16,7 +16,7 @@ namespace
   using Input         = Test_Class<basic_type>;
   using Content_type  = Content<Input>;
   using Node_type     = CNode<Content_type>;
-  using IO_collection = io_collection_type<Input>;
+  using IO_collection = Io_Collection_Type<Input>;
   using Graph_type    = WGraph<false, Node_type>;
 
   Graph_type
@@ -29,14 +29,14 @@ namespace
     ASSERT_EQ(res, 4 * sizeof(int64_t));
 
     {
-      std::shared_ptr<Type_info> pointer = std::make_shared<Dense_tensor>(d);
+      std::shared_ptr<Type_Info> pointer = std::make_shared<Dense_tensor>(d);
 
       res = Computer_memory::compute_memory_usage(pointer);
       ASSERT_EQ(res, 4 * sizeof(int64_t));
     }
 
     {
-      std::unique_ptr<Type_info> pointer = std::make_unique<Dense_tensor>(d);
+      std::unique_ptr<Type_Info> pointer = std::make_unique<Dense_tensor>(d);
 
       res = Computer_memory::compute_memory_usage(pointer);
       ASSERT_EQ(res, 4 * sizeof(int64_t));
