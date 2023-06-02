@@ -1,25 +1,24 @@
 set(
         TESTS_SOURCE
-        google_tests/TestClass.h google_tests/TestClass.h
-        google_tests/Types/Dense_tensor.cpp
-        google_tests/Utilities.cpp
-        google_tests/IO_interaction/Onnx_importer_helpers.cpp
-        google_tests/Network/Node.cpp
-        google_tests/Computer/Computer_memory.cpp
-        google_tests/Network/Graph.cpp
-        google_tests/IO_Manager.cpp
-        google_tests/K-shortest_path/Shortest_path_finder.cpp
-        google_tests/K-shortest_path/KFinder.cpp
-        google_tests/Butcher/Butcher.cpp
-        google_tests/Butcher/Constrained_Block_Graph_Builder.cpp
-        google_tests/IO_interaction/Weight_importer_helpers.cpp
-        google_tests/General_Manager.cpp
+        google_tests/Types/dense_tensor.cpp
+        google_tests/utilities.cpp
+        google_tests/IO_interaction/onnx_importer_helpers.cpp
+        google_tests/Network/node.cpp
+        google_tests/Computer/computer_memory.cpp
+        google_tests/Network/graph.cpp
+        google_tests/io_manager.cpp
+        google_tests/K-shortest_path/shortest_path_finder.cpp
+        google_tests/K-shortest_path/kfinder.cpp
+        google_tests/Butcher/butcher.cpp
+        google_tests/Butcher/constrained_block_graph_builder.cpp
+        google_tests/IO_interaction/weight_importer_helpers.cpp
+        google_tests/general_manager.cpp
 )
 
 set(
         COMPLETE_TESTS_SOURCE
-        google_tests/Butcher/Butcher_complete.cpp
-        google_tests/K-shortest_path/KFinder_complete.cpp
+        google_tests/Butcher/butcher_complete.cpp
+        google_tests/K-shortest_path/kfinder_complete.cpp
 )
 
 file(GLOB TMP_KFINDER

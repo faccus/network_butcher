@@ -6,11 +6,11 @@
 #include <random>
 
 #include "GetPot"
-#include "TestClass.h"
 #include "chrono.h"
+#include "test_class.h"
 
-#include "Constrained_Block_Graph_Builder.h"
-#include "Graph_traits.h"
+#include "constrained_block_graph_builder.h"
+#include "graph_traits.h"
 
 using namespace network_butcher;
 using namespace network_butcher::types;

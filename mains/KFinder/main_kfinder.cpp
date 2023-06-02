@@ -1,13 +1,13 @@
 //
 // Created by faccus on 30/05/23.
 //
-#include "Graph_traits.h"
-#include "KFinder_Factory.h"
-#include "Weighted_Graph_Graph_Specialization.h"
+#include "graph_traits.h"
+#include "kfinder_factory.h"
+#include "weighted_graph_specialization.h"
 
-#include "TestClass.h"
-#include "TestGraph.h"
 #include "chrono.h"
+#include "test_class.h"
+#include "test_graph.h"
 
 #include "GetPot"
 

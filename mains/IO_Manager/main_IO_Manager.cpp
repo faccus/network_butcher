@@ -2,13 +2,13 @@
 // Created by faccus on 30/05/23.
 //
 
-#include "Butcher.h"
-#include "IO_Manager.h"
-#include "TestClass.h"
+#include "butcher.h"
 #include "chrono.h"
+#include "io_manager.h"
+#include "test_class.h"
 
-#include "Starting_traits.h"
-#include "Utilities.h"
+#include "starting_traits.h"
+#include "utilities.h"
 
 #include "GetPot"
 
