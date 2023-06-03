@@ -12,9 +12,10 @@
 
 namespace network_butcher
 {
-  /// This block graph builder class is used when extra constraints have to be applied during the construction of block
-  /// graph. It will take the input graph and the parameters as constant reference and, based on the graph structure,
-  /// it will generate the block graph. The constraints are applied after the block graph is generated.
+  /// This class will be used to generate a block graph from a graph, applying the provided constraints. It will take
+  /// the input graph and the parameters as constant reference and, based on the graph structure, it will generate the
+  /// block graph. The constraints are applied after the block graph is generated. Weight importers can be used to
+  /// import weights from external sources directly in the block graph.
   /// \tparam GraphType The original graph type
   template <typename GraphType>
   class Constrained_Block_Graph_Builder
@@ -22,23 +23,28 @@ namespace network_butcher
   protected:
     GraphType const &original_graph;
 
+    /// Alias for a transmission function
     using transmission_func_type = std::function<Time_Type(const Edge_Type &, std::size_t, std::size_t)>;
 
+    /// The collection of constraints
     std::vector<std::unique_ptr<constraints::Graph_Constraint>> constraints;
 
+    /// The collection of parameters
     parameters::Parameters::Block_Graph_Generation const &block_graph_generation_params;
     parameters::Parameters::aMLLibrary const             &aMLLibrary_params;
     parameters::Parameters::Weights const                &weights_params;
     parameters::Parameters::Model const                  &model_params;
     parameters::Parameters::Devices const                &devices;
 
+
     bool                   weights;
     transmission_func_type transmission_weights;
 
+
     /// The actual construction of the block graph is performed when this function is called
     /// \return The block graph
-    [[nodiscard]] Block_Graph_Type
-    build_block_graph() const;
+    [[nodiscard]] auto
+    build_block_graph() const -> Block_Graph_Type;
 
     /// Apply to the input block graph the weights from the original graph
     /// \param new_graph The block graph
@@ -58,8 +64,8 @@ namespace network_butcher
     /// Import weights using an importer
     /// \param new_graph The block graph
     /// \return True if the import was successful, false if it was not performed
-    bool
-    apply_weights_from_importer(Block_Graph_Type &new_graph) const;
+    auto
+    apply_weights_from_importer(Block_Graph_Type &new_graph) const -> bool;
 
 
   public:
@@ -68,6 +74,7 @@ namespace network_butcher
     /// \param block_graph_generation_params Block Graph Generation parameters
     /// \param aMLLibrary_params aMLLibrary parameters
     /// \param weights_params Weights parameters
+    /// \param model_params Model parameters
     /// \param devices The collection of devices
     /// \param initial_constraint_gen A function that should generate the initial constraints for the builder
     explicit Constrained_Block_Graph_Builder(
@@ -145,8 +152,8 @@ namespace network_butcher
 
     /// The basic construct method. It will produce the block graph using the specified options.
     /// \return The resulting block graph
-    [[nodiscard]] Block_Graph_Type
-    construct_block_graph() const;
+    [[nodiscard]] auto
+    construct_block_graph() const -> Block_Graph_Type;
 
 
     ~Constrained_Block_Graph_Builder() = default;
@@ -154,8 +161,8 @@ namespace network_butcher
 
 
   template <typename GraphType>
-  bool
-  Constrained_Block_Graph_Builder<GraphType>::apply_weights_from_importer(Block_Graph_Type &new_graph) const
+  auto
+  Constrained_Block_Graph_Builder<GraphType>::apply_weights_from_importer(Block_Graph_Type &new_graph) const -> bool
   {
     using namespace network_butcher::parameters;
 
@@ -255,8 +262,8 @@ namespace network_butcher
 
 
   template <typename GraphType>
-  Block_Graph_Type
-  Constrained_Block_Graph_Builder<GraphType>::build_block_graph() const
+  auto
+  Constrained_Block_Graph_Builder<GraphType>::build_block_graph() const -> Block_Graph_Type
   {
     // It will construct the linearized version of the original graph
     auto const linearize_graph = [](GraphType const                                                &old_graph,
@@ -741,8 +748,8 @@ namespace network_butcher
 
 
   template <typename GraphType>
-  Block_Graph_Type
-  Constrained_Block_Graph_Builder<GraphType>::construct_block_graph() const
+  auto
+  Constrained_Block_Graph_Builder<GraphType>::construct_block_graph() const -> Block_Graph_Type
   {
     // Construct the "naked" block graph
     auto new_graph = build_block_graph();

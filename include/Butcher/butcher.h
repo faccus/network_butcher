@@ -25,7 +25,7 @@
 namespace network_butcher
 {
 
-  /// Butcher butchers a given graph into slices
+  /// Butcher generates the partitioning for the given input graph.
   /// \tparam GraphType The type of the graph
   template <typename GraphType>
   class Butcher
@@ -46,21 +46,21 @@ namespace network_butcher
     explicit Butcher(network const &g)
       : graph(g){};
 
-    Butcher(Butcher const &) = delete;
-
+    // Delete copy constructors and assignment operators (graphs may be big!)
     Butcher
     operator=(Butcher const &) = delete;
+    Butcher(Butcher const &)   = delete;
 
-    Butcher(Butcher &&d) noexcept = default;
-
+    // Default move constructors and assignment operators
     Butcher &
     operator=(Butcher &&d) noexcept = default;
+    Butcher(Butcher &&d) noexcept   = default;
 
 
     /// Basic getter for graph
     /// \return The graph (const reference)
-    network const &
-    get_graph() const
+    auto
+    get_graph() const -> network const &
     {
       return graph;
     }
@@ -68,34 +68,37 @@ namespace network_butcher
 
     /// Basic getter (though simple reference) for graph
     /// \return Reference to the graph
-    network &
-    get_graph_ref()
+    auto
+    get_graph_ref() -> network &
     {
       return graph;
     }
 
+
     /// This function performs the construction and the butchering of the block graph
     /// \param transmission_weights The transmission weights (i.e. the weight associated to the information transfer
-    /// between two different devices
+    /// between two different devices)
     /// \param params The program parameters
     /// \param extra_constraints A collection of "extra" constraints that can be applied to the block graph after its
     /// construction
-    /// \return The optimal partitions
-    /// that the K-shortest path algorithm managed to find given the specified constraints
-    std::vector<network_butcher::types::Weighted_Real_Path>
+    /// \return The optimal partitions that the K-shortest path algorithm managed to find given the specified
+    /// constraints
+    auto
     compute_k_shortest_path(
       std::function<Time_Type(Edge_Type const &, std::size_t, std::size_t)> const &transmission_weights,
-      network_butcher::parameters::Parameters const                                    &params,
-      std::vector<std::unique_ptr<constraints::Graph_Constraint>> const                &extra_constraints = {}) const;
+      network_butcher::parameters::Parameters const                               &params,
+      std::vector<std::unique_ptr<constraints::Graph_Constraint>> const           &extra_constraints = {}) const
+      -> std::vector<network_butcher::types::Weighted_Real_Path>;
   };
 
 
   template <class GraphType>
-  std::vector<network_butcher::types::Weighted_Real_Path>
+  auto
   Butcher<GraphType>::compute_k_shortest_path(
     const std::function<Time_Type(const Edge_Type &, std::size_t, std::size_t)> &transmission_weights,
-    const network_butcher::parameters::Parameters                                    &params,
-    std::vector<std::unique_ptr<constraints::Graph_Constraint>> const                &extra_constraints) const
+    const network_butcher::parameters::Parameters                               &params,
+    std::vector<std::unique_ptr<constraints::Graph_Constraint>> const           &extra_constraints) const
+    -> std::vector<network_butcher::types::Weighted_Real_Path>
   {
     using namespace network_butcher::kfinder;
 

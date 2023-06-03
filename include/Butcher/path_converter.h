@@ -11,7 +11,7 @@
 
 namespace network_butcher::Utilities
 {
-  /// Simple class used to convert the output of the K-shortest path algorithms to a Weighted_Real_Paths
+  /// Simple class used to convert the output of the K-shortest path algorithms to std::vector<Weighted_Real_Path>
   template <typename Weight_Type = Time_Type>
   class Path_Converter
   {
@@ -27,27 +27,31 @@ namespace network_butcher::Utilities
     /// It will convert a collection of paths of the block graph to a partitioning
     /// \param paths The collection of paths
     /// \return The different partitioning
-    [[nodiscard]] std::vector<network_butcher::types::Weighted_Real_Path>
-    convert_to_weighted_real_path(std::vector<network_butcher::kfinder::Path_Info<Weight_Type>> const &paths) const;
+    [[nodiscard]] auto
+    convert_to_weighted_real_path(std::vector<network_butcher::kfinder::Path_Info<Weight_Type>> const &paths) const
+      -> std::vector<network_butcher::types::Weighted_Real_Path>;
 
     /// It will convert a path of the block graph to a partitioning
     /// \param path The path
     /// \return The related partitioning
-    [[nodiscard]] network_butcher::types::Weighted_Real_Path
-    convert_to_weighted_real_path(network_butcher::kfinder::Path_Info<Weight_Type> const &path) const;
+    [[nodiscard]] auto
+    convert_to_weighted_real_path(network_butcher::kfinder::Path_Info<Weight_Type> const &path) const
+      -> network_butcher::types::Weighted_Real_Path;
   };
 
   template <typename Weight_Type>
-  network_butcher::types::Weighted_Real_Path
+  auto
   Path_Converter<Weight_Type>::convert_to_weighted_real_path(const kfinder::Path_Info<Weight_Type> &path) const
+    -> network_butcher::types::Weighted_Real_Path
   {
     return convert_to_weighted_real_path({path});
   }
 
   template <typename Weight_Type>
-  std::vector<network_butcher::types::Weighted_Real_Path>
+  auto
   Path_Converter<Weight_Type>::convert_to_weighted_real_path(
     const std::vector<network_butcher::kfinder::Path_Info<Weight_Type>> &paths) const
+    -> std::vector<network_butcher::types::Weighted_Real_Path>
   {
     std::vector<network_butcher::types::Weighted_Real_Path> final_res(paths.size());
 
@@ -82,9 +86,9 @@ namespace network_butcher::Utilities
         return network_butcher::types::Weighted_Real_Path{path.length, res};
       });
 #else
-    #pragma omp parallel default(none) shared(final_res, paths)
+#  pragma omp parallel default(none) shared(final_res, paths)
     {
-      #pragma omp for
+#  pragma omp for
       for (std::size_t i = 0; i < paths.size(); ++i)
         {
           auto const &path     = paths[i];

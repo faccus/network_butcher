@@ -24,9 +24,10 @@
 namespace network_butcher::io
 {
   /// This (pure virtual) class will be used to define common utilities required to import weights with aMLLibrary
-  class basic_aMLLibrary_Weight_Importer : public Weight_Importer
+  class Abstract_aMLLibrary_Weight_Importer : public Weight_Importer
   {
   protected:
+    /// Collection of parameters
     network_butcher::parameters::Parameters::Block_Graph_Generation const &block_graph_generation_params;
     network_butcher::parameters::Parameters::aMLLibrary const             &aMLLibrary_params;
     parameters::Parameters::Weights const                                 &weights_params;
@@ -64,21 +65,22 @@ namespace network_butcher::io
 
     /// It will execute onnx_tool in order to obtain the network information
     /// \return The path of the .csv file containing the network information
-    [[nodiscard]] std::string
-    network_info_onnx_tool() const;
+    [[nodiscard]] auto
+    network_info_onnx_tool() const -> std::string;
 
     /// It will read the network information from the .csv file
     /// \param path The path of the .csv file
     /// \return A map containing the network information
-    [[nodiscard]] static std::map<std::string, Weight_importer_helpers::onnx_tool_output>
-    read_network_info_onnx_tool(const std::string &path);
+    [[nodiscard]] static auto
+    read_network_info_onnx_tool(const std::string &path)
+      -> std::map<std::string, Weight_importer_helpers::onnx_tool_output>;
 
     /// It will prepare the .csv file to be fed to aMLLibrary
     static void
     csv_assembler(const std::vector<std::vector<std::string>> &content, const std::string &path);
 
   public:
-    explicit basic_aMLLibrary_Weight_Importer(network_butcher::parameters::Parameters const &params)
+    explicit Abstract_aMLLibrary_Weight_Importer(network_butcher::parameters::Parameters const &params)
       : Weight_Importer()
       , block_graph_generation_params{params.block_graph_generation_params}
       , aMLLibrary_params{params.aMLLibrary_params}
@@ -89,7 +91,7 @@ namespace network_butcher::io
       check_aMLLibrary();
     };
 
-    explicit basic_aMLLibrary_Weight_Importer(
+    explicit Abstract_aMLLibrary_Weight_Importer(
       parameters::Parameters::Block_Graph_Generation const &block_graph_generation_params,
       parameters::Parameters::aMLLibrary const             &aMLLibrary_params,
       parameters::Parameters::Weights const                &weights_params,
@@ -105,7 +107,7 @@ namespace network_butcher::io
       check_aMLLibrary();
     };
 
-    ~basic_aMLLibrary_Weight_Importer() override = default;
+    ~Abstract_aMLLibrary_Weight_Importer() override = default;
   };
 } // namespace network_butcher::io
 

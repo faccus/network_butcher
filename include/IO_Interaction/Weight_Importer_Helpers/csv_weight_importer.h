@@ -11,12 +11,12 @@
 namespace network_butcher::io
 {
   /// This class will be used to import weights from a .csv file into a graph
-  /// \tparam T The graph type
-  template <typename T>
+  /// \tparam GraphType The graph type
+  template <typename GraphType>
   class Csv_Weight_Importer : public Weight_Importer
   {
   protected:
-    T &graph;
+    GraphType &graph;
 
     std::vector<std::string> paths;
     std::vector<std::size_t> devices;
@@ -27,14 +27,14 @@ namespace network_butcher::io
 
     /// Checks if the provided paths are compatible with the Importer. It will throw if not compatible
     /// \return True if a single path was provided, false otherwise
-    [[nodiscard]] bool
-    check_paths() const;
+    [[nodiscard]] auto
+    check_paths() const -> bool;
 
     /// Reads the data from the .csv file(s)
     /// \param single_call True if a single path was provided, false otherwise
     /// \return A map with the data read from the .csv file(s)
-    [[nodiscard]] Weight_importer_helpers::Csv_Result_Type<Time_Type>
-    get_data(bool single_call) const;
+    [[nodiscard]] auto
+    get_data(bool single_call) const -> Weight_importer_helpers::Csv_Result_Type<Time_Type>;
 
     /// Checks if the columns in the .csv file(s) coincide with relevant_entries. If not, it will throw an exception
     /// \param data The data read from the .csv file(s)
@@ -44,7 +44,14 @@ namespace network_butcher::io
 
 
   public:
-    Csv_Weight_Importer(T                              &graph,
+    /// It will prepare a Csv_Weight_Importer
+    /// \param graph A reference to a graph
+    /// \param paths The path(s) to the .csv file(s)
+    /// \param relevant_entries The relevant entries in the .csv file(s)
+    /// \param devices The ids of the devices to be considered
+    /// \param separator The separator used in the .csv file(s)
+    /// \param only_non_negative True if negative weights should be defaulted to 0.
+    Csv_Weight_Importer(GraphType                      &graph,
                         std::vector<std::string> const &paths,
                         std::vector<std::string> const &relevant_entries,
                         std::vector<std::size_t> const &devices,
@@ -59,7 +66,14 @@ namespace network_butcher::io
       , only_non_negative{only_non_negative} {};
 
 
-    Csv_Weight_Importer(T                                                      &graph,
+    /// It will prepare a Csv_Weight_Importer
+    /// \param graph A reference to a graph
+    /// \param paths The path(s) to the .csv file(s)
+    /// \param relevant_entries The relevant entries in the .csv file(s)
+    /// \param devices The devices to be considered
+    /// \param separator The separator used in the .csv file(s)
+    /// \param only_non_negative True if negative weights should be defaulted to 0.
+    Csv_Weight_Importer(GraphType                                              &graph,
                         std::vector<std::string> const                         &paths,
                         std::vector<std::string> const                         &relevant_entries,
                         std::vector<network_butcher::parameters::Device> const &devices,
@@ -80,7 +94,12 @@ namespace network_butcher::io
     };
 
 
-    Csv_Weight_Importer(T                                                      &graph,
+    /// It will prepare a Csv_Weight_Importer
+    /// \param graph A reference to a graph
+    /// \param devices The devices to be considered
+    /// \param separator The separator used in the .csv file(s)
+    /// \param only_non_negative True if negative weights should be defaulted to 0.
+    Csv_Weight_Importer(GraphType                                              &graph,
                         std::vector<network_butcher::parameters::Device> const &devices,
                         char                                                    separator         = ',',
                         bool                                                    only_non_negative = false)
@@ -101,9 +120,13 @@ namespace network_butcher::io
         }
     };
 
+    /// It will import the weights into the graph
+    /// \param extra_condition A function that will be called for each node. If it returns true, the node will be
+    /// considered. If it returns false, the node will be ignored
     void
-    import_weights(std::function<bool(typename T::Node_Type const &)> const &extra_condition);
+    import_weights(std::function<bool(typename GraphType::Node_Type const &)> const &extra_condition);
 
+    /// It will import the weights into the graph
     virtual void
     import_weights() override
     {
@@ -113,11 +136,11 @@ namespace network_butcher::io
     virtual ~Csv_Weight_Importer() override = default;
   };
 
-  template <typename T>
+  template <typename GraphType>
   void
-  Csv_Weight_Importer<T>::check_entries(
+  Csv_Weight_Importer<GraphType>::check_entries(
     const Weight_importer_helpers::Csv_Result_Type<network_butcher::Time_Type> &data,
-    bool                                                                          single_call) const
+    bool                                                                        single_call) const
   {
     // Check if there are missing entries
     for (std::size_t i = 0; i < relevant_entries.size(); ++i)
@@ -131,9 +154,10 @@ namespace network_butcher::io
       }
   }
 
-  template <typename T>
-  Weight_importer_helpers::Csv_Result_Type<Time_Type>
-  Csv_Weight_Importer<T>::get_data(bool single_call) const
+  template <typename GraphType>
+  auto
+  Csv_Weight_Importer<GraphType>::get_data(bool single_call) const
+    -> Weight_importer_helpers::Csv_Result_Type<Time_Type>
   {
     Weight_importer_helpers::Csv_Result_Type<Time_Type> data;
 
@@ -155,9 +179,9 @@ namespace network_butcher::io
     return data;
   }
 
-  template <typename T>
-  bool
-  Csv_Weight_Importer<T>::check_paths() const
+  template <typename GraphType>
+  auto
+  Csv_Weight_Importer<GraphType>::check_paths() const -> bool
   {
     if (paths.empty())
       throw std::runtime_error("Csv_Weight_Importer: No paths were provided to import the weights");

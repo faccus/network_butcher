@@ -5,16 +5,17 @@
 #ifndef NETWORK_BUTCHER_ORIGINAL_AMLLIBRARY_WEIGHT_IMPORTER_H
 #define NETWORK_BUTCHER_ORIGINAL_AMLLIBRARY_WEIGHT_IMPORTER_H
 
-#include "basic_aMLLibrary_weight_importer.h"
+#include "abstract_aMLLibrary_weight_importer.h"
 
 namespace network_butcher::io
 {
   /// This class will be used to generate and import weights with aMLLibrary into a graph
-  class original_aMLLibrary_Weight_Importer : public basic_aMLLibrary_Weight_Importer
+  class original_aMLLibrary_Weight_Importer : public Abstract_aMLLibrary_Weight_Importer
   {
   protected:
-    using base = basic_aMLLibrary_Weight_Importer;
+    using base = Abstract_aMLLibrary_Weight_Importer;
 
+    /// The graph
     Converted_Onnx_Graph_Type &graph;
 
     /// It will generate the relevant entry given its name and the node
@@ -36,7 +37,7 @@ namespace network_butcher::io
 
   public:
     original_aMLLibrary_Weight_Importer(Converted_Onnx_Graph_Type                     &graph, network_butcher::parameters::Parameters const &params)
-      : basic_aMLLibrary_Weight_Importer{params}
+      : Abstract_aMLLibrary_Weight_Importer{params}
       , graph{graph} {};
 
     explicit original_aMLLibrary_Weight_Importer(
@@ -46,7 +47,7 @@ namespace network_butcher::io
       parameters::Parameters::Weights const                                 &weights_params,
       network_butcher::parameters::Parameters::Model const                  &model_params,
       parameters::Parameters::Devices const                                 &devices)
-      : basic_aMLLibrary_Weight_Importer(block_graph_generation_params,
+      : Abstract_aMLLibrary_Weight_Importer(block_graph_generation_params,
                                          aMLLibrary_params,
                                          weights_params,
                                          model_params,

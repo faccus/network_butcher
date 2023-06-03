@@ -22,10 +22,11 @@ namespace network_butcher::constraints
     virtual void
     apply_constraint(Block_Graph_Type &graph) const = 0;
 
-    /// Create a copy of the current constraint
+    /// Create a copy of the current constraint (it must be specialized by children classes)
     /// \return A unique pointer to the constructed copy
-    [[nodiscard]] virtual std::unique_ptr<Graph_Constraint>
-    copy() const {
+    [[nodiscard]] virtual auto
+    copy() const -> std::unique_ptr<Graph_Constraint>
+    {
       return nullptr;
     }
 
@@ -34,7 +35,7 @@ namespace network_butcher::constraints
 
 
   /// Simple class used to represent a memory constraint
-  /// \tparam GraphType
+  /// \tparam GraphType The original graph type
   template <typename GraphType>
   class Memory_Constraint : public Graph_Constraint
   {
@@ -50,37 +51,41 @@ namespace network_butcher::constraints
     /// \param output_memory The memory usage of all output nodes
     /// \param params_memory The memory usage of all parameters nodes
     /// \return The pair of maximum memory of ios and of memory of parameters
-    [[nodiscard]] std::tuple<Memory_Type, Memory_Type>
+    [[nodiscard]] auto
     estimate_maximum_memory_usage(const std::vector<network_butcher::parameters::Device> &devices,
                                   network_butcher::parameters::Memory_Constraint_Type     constraint_type,
                                   const std::set<Node_Id_Type>                           &ids,
                                   const std::vector<Memory_Type>                         &input_memory,
                                   const std::vector<Memory_Type>                         &output_memory,
-                                  const std::vector<Memory_Type>                         &params_memory) const;
+                                  const std::vector<Memory_Type>                         &params_memory) const
+      -> std::tuple<Memory_Type, Memory_Type>;
 
   public:
+    /// Constructor
+    /// \param params The parameters
+    /// \param graph The original graph
     explicit Memory_Constraint(parameters::Parameters const &params, GraphType const &graph)
       : Graph_Constraint()
       , params{params}
       , graph{graph} {};
 
-    /// Removes the "unfeasible" paths due to memory constraints
+    /// Removes the "unfeasible" paths due to memory constraints from the block graph
     /// \param graph The block graph
     void
     apply_constraint(Block_Graph_Type &graph) const override;
 
     /// Create a copy of the current constraint
     /// \return A unique pointer to the constructed copy
-    [[nodiscard]] std::unique_ptr<Graph_Constraint>
-    copy() const override;
+    [[nodiscard]] auto
+    copy() const -> std::unique_ptr<Graph_Constraint> override;
 
 
     ~Memory_Constraint() override = default;
   };
 
   template <typename GraphType>
-  std::unique_ptr<Graph_Constraint>
-  Memory_Constraint<GraphType>::copy() const
+  auto
+  Memory_Constraint<GraphType>::copy() const -> std::unique_ptr<Graph_Constraint>
   {
     return std::make_unique<Memory_Constraint<GraphType>>(*this);
   }
@@ -192,14 +197,14 @@ namespace network_butcher::constraints
   }
 
   template <typename GraphType>
-  std::tuple<Memory_Type, Memory_Type>
+  auto
   Memory_Constraint<GraphType>::estimate_maximum_memory_usage(
     const std::vector<network_butcher::parameters::Device> &devices,
     network_butcher::parameters::Memory_Constraint_Type     constraint_type,
     const std::set<Node_Id_Type>                           &ids,
     const std::vector<Memory_Type>                         &input_memory,
     const std::vector<Memory_Type>                         &output_memory,
-    const std::vector<Memory_Type>                         &params_memory) const
+    const std::vector<Memory_Type>                         &params_memory) const -> std::tuple<Memory_Type, Memory_Type>
   {
     Memory_Type result_memory = 0, fixed_memory = 0;
 
@@ -248,8 +253,9 @@ namespace network_butcher::constraints
   /// \param graph The original graph
   /// \return The generator function
   template <typename GraphType>
-  std::function<std::vector<std::unique_ptr<constraints::Graph_Constraint>>()>
+  auto
   generate_constraint_function(parameters::Parameters const &params, GraphType const &graph)
+    -> std::function<std::vector<std::unique_ptr<constraints::Graph_Constraint>>()>
   {
     return [&params, &graph]() {
       std::vector<std::unique_ptr<Graph_Constraint>> res;

@@ -1,12 +1,12 @@
 //
 // Created by faccus on 13/04/23.
 //
-#include "basic_aMLLibrary_weight_importer.h"
+#include "abstract_aMLLibrary_weight_importer.h"
 
 namespace network_butcher::io
 {
   void
-  basic_aMLLibrary_Weight_Importer::check_aMLLibrary() const
+  Abstract_aMLLibrary_Weight_Importer::check_aMLLibrary() const
   {
 #if PYBIND_ACTIVE
     if(weights_params.bandwidth->size() != 2)
@@ -21,7 +21,7 @@ namespace network_butcher::io
 
 
   void
-  basic_aMLLibrary_Weight_Importer::add_python_packages() const
+  Abstract_aMLLibrary_Weight_Importer::add_python_packages() const
   {
 #if PYBIND_ACTIVE
     using namespace pybind11::literals;
@@ -47,7 +47,7 @@ namespace network_butcher::io
 
 
   void
-  basic_aMLLibrary_Weight_Importer::csv_assembler(std::vector<std::vector<std::string>> const &content,
+  Abstract_aMLLibrary_Weight_Importer::csv_assembler(std::vector<std::vector<std::string>> const &content,
                                                   std::string const                           &path)
   {
     std::fstream file_out;
@@ -69,7 +69,7 @@ namespace network_butcher::io
 
 
   void
-  basic_aMLLibrary_Weight_Importer::execute_weight_generator(const std::string &regressor_file,
+  Abstract_aMLLibrary_Weight_Importer::execute_weight_generator(const std::string &regressor_file,
                                                              const std::string &config_file,
                                                              const std::string &output_path)
   {
@@ -88,7 +88,7 @@ namespace network_butcher::io
 
 
   std::string
-  basic_aMLLibrary_Weight_Importer::network_info_onnx_tool() const
+  Abstract_aMLLibrary_Weight_Importer::network_info_onnx_tool() const
   {
 #if PYBIND_ACTIVE
     using namespace pybind11::literals;
@@ -114,7 +114,7 @@ namespace network_butcher::io
 
 
   std::map<std::string, Weight_importer_helpers::onnx_tool_output>
-  basic_aMLLibrary_Weight_Importer::read_network_info_onnx_tool(const std::string &path)
+  Abstract_aMLLibrary_Weight_Importer::read_network_info_onnx_tool(const std::string &path)
   {
     using namespace Weight_importer_helpers;
     std::map<std::string, onnx_tool_output> res;
@@ -144,7 +144,7 @@ namespace network_butcher::io
 
 
   void
-  basic_aMLLibrary_Weight_Importer::prepare_predict_file(std::string const &inference_variable,
+  Abstract_aMLLibrary_Weight_Importer::prepare_predict_file(std::string const &inference_variable,
                                                          std::string const &input_path,
                                                          std::string        output_path)
   {
