@@ -13,11 +13,11 @@ namespace network_butcher::types
   /// A custom graph class. It contains a single graph and multiple weight maps. Technically, it can be viewed
   /// as a collection of graphs with the same structure, but different weight maps.
   /// \tparam T Type of the content of the nodes
-  template <bool Parallel_Edges, typename t_Node_Type = Node, typename t_weight_type = Time_Type>
-  class MWGraph : public Graph<t_Node_Type>
+  template <bool Parallel_Edges, typename Template_Node_Type = Node, typename t_weight_type = Time_Type>
+  class MWGraph : public Graph<Template_Node_Type>
   {
   protected:
-    using Parent_Type = Graph<t_Node_Type>;
+    using Parent_Type = Graph<Template_Node_Type>;
 
 
   public:
@@ -29,7 +29,7 @@ namespace network_butcher::types
 
   private:
     using single_edge_weight_container = std::vector<std::map<Node_Id_Type, Weight_Type>>;
-    using multi_edge_weight_container = std::vector<std::multimap<Node_Id_Type, Weight_Type>>;
+    using multi_edge_weight_container  = std::vector<std::multimap<Node_Id_Type, Weight_Type>>;
 
   public:
     using Edge_Weight_Type = std::conditional_t<Parallel_Edges, std::multiset<Weight_Type>, Weight_Type>;
@@ -62,8 +62,8 @@ namespace network_butcher::types
     /// \param device The device id
     /// \param edge The edge
     /// \return True if the edge has a weight on the given device, false otherwise
-    [[nodiscard]] bool
-    check_weight(std::size_t device, Edge_Type const &edge) const
+    [[nodiscard]] auto
+    check_weight(std::size_t device, Edge_Type const &edge) const -> bool
     {
       return weigth_map[device][edge.first].contains(edge.second);
     }
@@ -135,10 +135,10 @@ namespace network_butcher::types
         }
     }
 
-    /// Sets the weight for the given edge on the given device
+    /// Sets the weights for the given edge on the given device
     /// \param device The device id
     /// \param edge The edge
-    /// \param weights The weight
+    /// \param weights The weights
     void
     set_weight(std::size_t device, Edge_Type const &edge, Edge_Weight_Type weights)
       requires Parallel_Edges
@@ -157,7 +157,7 @@ namespace network_butcher::types
 
     /// Gets the number of devices
     /// \return Number of devices
-    [[nodiscard]] std::size_t
+    [[nodiscard]] auto
     get_num_devices() const
     {
       return weigth_map.size();
@@ -165,8 +165,8 @@ namespace network_butcher::types
 
     /// Simple helper function that will print the graph
     /// \return The graph description
-    [[nodiscard]] virtual std::string
-    print_graph() const
+    [[nodiscard]] virtual auto
+    print_graph() const -> std::string
     {
       std::stringstream builder;
       builder << "In Out Weight_Map_Id Weight" << std::endl;
@@ -245,9 +245,7 @@ namespace network_butcher::types
 
   private:
     using single_edge_weight_container = std::vector<std::map<Node_Id_Type, Weight_Type>>;
-    // std::map<edge_type, Weight_Type>;      // std::unordered_map<edge_type, Weight_Type, hash_pair>;
-    using multi_edge_weight_container = std::vector<std::multimap<Node_Id_Type, Weight_Type>>;
-    // std::multimap<edge_type, Weight_Type>; // std::unordered_multimap<edge_type, Weight_Type, hash_pair>;
+    using multi_edge_weight_container  = std::vector<std::multimap<Node_Id_Type, Weight_Type>>;
 
   public:
     using Edge_Weight_Type = std::conditional_t<Parallel_Edges, std::multiset<Weight_Type>, Weight_Type>;
@@ -295,8 +293,8 @@ namespace network_butcher::types
     /// \param device The device id
     /// \param edge The edge
     /// \return True if the edge has a weight on the given device, false otherwise
-    [[nodiscard]] bool
-    check_weight(std::size_t device, Edge_Type const &edge) const
+    [[nodiscard]] auto
+    check_weight(std::size_t device, Edge_Type const &edge) const -> bool
     {
       return weigth_map[device][edge.first].contains(edge.second);
     }
@@ -306,8 +304,8 @@ namespace network_butcher::types
     /// \param device The device id
     /// \param edge The edge
     /// \return The weight
-    [[nodiscard]] Edge_Weight_Type
-    get_weight(std::size_t device, Edge_Type const &edge) const
+    [[nodiscard]] auto
+    get_weight(std::size_t device, Edge_Type const &edge) const -> Edge_Weight_Type
     {
       if (device >= weigth_map.size())
         {
@@ -390,7 +388,7 @@ namespace network_butcher::types
 
     /// Gets the number of devices
     /// \return Number of devices
-    [[nodiscard]] std::size_t
+    [[nodiscard]] auto
     get_num_devices() const
     {
       return weigth_map.size();
@@ -398,8 +396,8 @@ namespace network_butcher::types
 
     /// Simple helper function that will print the graph
     /// \return The graph description
-    [[nodiscard]] virtual std::string
-    print_graph() const
+    [[nodiscard]] virtual auto
+    print_graph() const -> std::string
     {
       std::stringstream builder;
       builder << "In Out Weight_Map_Id Weight" << std::endl;

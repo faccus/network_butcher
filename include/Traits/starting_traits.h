@@ -7,9 +7,6 @@
 
 namespace network_butcher
 {
-  using Type_Info_Id_Type       = int;
-  using Onnx_Element_Shape_Type = unsigned long;
-
   using Memory_Type = unsigned long long;
   using Time_Type   = long double;
 
@@ -18,5 +15,12 @@ namespace network_butcher
 
   using Node_Id_Type = long unsigned int;
 } // namespace network_butcher
+
+
+// Do not edit. It's just the shape element of an onnx tensor
+namespace network_butcher
+{
+  using Onnx_Element_Shape_Type = unsigned long;
+}
 
 #endif // NETWORK_BUTCHER_STARTING_TRAITS_H

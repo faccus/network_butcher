@@ -28,8 +28,8 @@ namespace network_butcher::Utilities
   /// \return The string
   template <typename T>
     requires requires(T const &a) { std::to_string(a); }
-  std::string
-  custom_to_string(T const &obj)
+  auto
+  custom_to_string(T const &obj) -> std::string
   {
     return std::to_string(obj);
   }
@@ -39,8 +39,8 @@ namespace network_butcher::Utilities
   /// \param obj The object of type T to be converted to a string
   /// \return The string
   template <typename T>
-  std::string
-  custom_to_string(T const &obj)
+  auto
+  custom_to_string(T const &obj) -> std::string
   {
     return "";
   }
@@ -50,8 +50,8 @@ namespace network_butcher::Utilities
   /// \param obj The object of type T to be converted to a string
   /// \return The string
   template <typename T>
-  std::string
-  custom_to_string(std::pair<T, T> const &obj)
+  auto
+  custom_to_string(std::pair<T, T> const &obj) -> std::string
   {
     return custom_to_string(obj.first) + " " + custom_to_string(obj.second);
   }
@@ -60,8 +60,8 @@ namespace network_butcher::Utilities
   /// From onnx::TensorProto_DataType_*, it will return the size of the respective type in bytes
   /// \param input The onnx_type
   /// \return The memory usage of the type
-  Memory_Type
-  compute_memory_usage_from_enum(Type_Info_Id_Type input);
+  auto
+  compute_memory_usage_from_enum(int input) -> Memory_Type;
 
 
   /// Construct a ModelProto from an onnx file
@@ -74,8 +74,8 @@ namespace network_butcher::Utilities
   /// Construct a ModelProto from an onnx file
   /// \param model_path Path to the .onnx file
   /// \return The constructed model
-  onnx::ModelProto
-  parse_onnx_file(const std::string &model_path);
+  auto
+  parse_onnx_file(const std::string &model_path) -> onnx::ModelProto;
 
 
   /// Outputs an onnx file from the given model
@@ -84,22 +84,26 @@ namespace network_butcher::Utilities
   void
   output_onnx_file(onnx::ModelProto const &m, const std::string &path);
 
-  bool
-  file_copy(std::string const &from, std::string const &to);
+  /// IT will copy the file from the source to the destination
+  /// \param from The source path
+  /// \param to The destination path
+  /// \return True if the copy was successful, false otherwise
+  auto
+  file_copy(std::string const &from, std::string const &to) -> bool;
 
 
   /// Check if a file exists
   /// \param name Path to the file
   /// \return True if it exists, false otherwise
-  bool
-  file_exists(const std::string &name);
+  auto
+  file_exists(const std::string &name) -> bool;
 
 
   /// Check if a directory exists
   /// \param name Path to the directory
   /// \return True if it exists, false otherwise
-  bool
-  directory_exists(const std::string &name);
+  auto
+  directory_exists(const std::string &name) -> bool;
 
 
   /// Deletes the file at the specified location
@@ -171,107 +175,59 @@ namespace network_butcher::Utilities
   /// Left trim for the input string (returns the modified string)
   /// \param s The input string
   /// \return The modified string
-  std::string
-  ltrim_copy(std::string s);
+  auto
+  ltrim_copy(std::string s) -> std::string;
 
 
   /// Right trim for the input string (returns the modified string)
   /// \param s The input string
   /// \return The modified string
-  std::string
-  rtrim_copy(std::string s);
+  auto
+  rtrim_copy(std::string s) -> std::string;
 
 
   /// Left trim for the input string (returns the modified string)
   /// \param s The input string
   /// \return The modified string
-  std::string
-  trim_copy(std::string s);
+  auto
+  trim_copy(std::string s) -> std::string;
 
 
   /// Trim for the input string vector (returns the modified string vector)
   /// \param s The input string vector
   /// \return The modified string vector
-  std::vector<std::string>
-  trim_copy(std::vector<std::string> s);
+  auto
+  trim_copy(std::vector<std::string> s) -> std::vector<std::string>;
 
 
   /// It returns in lowercase the input string
   /// \param s The input string
   /// \return The modified string
-  std::string
-  to_lowercase_copy(std::string s);
+  auto
+  to_lowercase_copy(std::string s) -> std::string;
 
 
   /// It returns in lowercase the input string vector
   /// \param s The input string vector
   /// \return The modified string vector
-  std::vector<std::string>
-  to_lowercase_copy(std::vector<std::string> s);
+  auto
+  to_lowercase_copy(std::vector<std::string> s) -> std::vector<std::string>;
 
 
   /// It splits the input string in a vector (https://stackoverflow.com/a/46931770)
   /// \param s Input string vector
   /// \param delimiter The delimiter string
   /// \return The "splitted" string vector
-  std::vector<std::string>
-  split(std::string s, std::string delimiter);
+  auto
+  split(const std::string& s, const std::string& delimiter) -> std::vector<std::string>;
 
 
   /// It concatenates the two input paths
   /// \param first first path
   /// \param second second path
   /// \return Concatenated path
-  std::string
-  combine_path(std::string const &first, std::string const &second);
-
-  /*
-
-  /// Based on the compiler pre-processor PARALLEL (associated to the same setting in the CMakeList file), it will
-  /// apply the std::transform function to the given arguments with either a parallel policy or with
-  /// sequential policy
-  template <typename... Args>
-  void
-  potentially_par_transform(Args &&...args)
-  {
-#if PARALLEL
-
-    std::transform(std::execution::par, std::forward<Args>(args)...);
-#else
-    std::transform(args...);
-#endif
-  };
-
-  /// Based on the compiler pre-processor PARALLEL (associated to the same setting in the CMakeList file), it will
-  /// apply the std::reduce function to the given arguments with either a parallel policy or with
-  /// sequential policy
-  template <typename... Args>
   auto
-  potentially_par_reduce(Args &&...args)
-  {
-#if PARALLEL
-    return std::reduce(std::execution::par, std::forward<Args>(args)...);
-#else
-    return std::reduce(args...);
-#endif
-  };
-
-  /// Based on the compiler pre-processor PARALLEL (associated to the same setting in the CMakeList file), it will
-  /// apply the std::for_each function to the given arguments with either a parallel policy or with
-  /// sequential policy
-  template <typename... Args>
-  auto
-  potentially_par_for_each(Args &&...args)
-  {
-#if PARALLEL
-    std::for_each(std::execution::par, std::forward<Args>(args)...);
-#else
-    std::for_each(std::forward<Args>(args)...);
-#endif
-  };
-
-  */
-
+  combine_path(std::string const &first, std::string const &second) -> std::string;
 
 } // namespace network_butcher::Utilities
 #endif // NETWORK_BUTCHER_UTILITIES_H

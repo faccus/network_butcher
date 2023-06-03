@@ -21,13 +21,13 @@ namespace network_butcher::types
 {
   /// Just another graph class...
   /// \tparam T Type of the content of the nodes
-  template <typename t_Node_Type = Node>
-    requires std::is_base_of_v<Node, t_Node_Type> || std::is_same_v<Node, t_Node_Type>
+  template <typename Template_Node_Type = Node>
+    requires std::is_base_of_v<Node, Template_Node_Type> || std::is_same_v<Node, Template_Node_Type>
   class Graph
   {
   public:
     using Neighbours_Type      = std::vector<std::pair<Node_Id_Collection_Type, Node_Id_Collection_Type>>;
-    using Node_Type            = t_Node_Type;
+    using Node_Type            = Template_Node_Type;
     using Node_Collection_Type = std::vector<Node_Type>;
 
     Graph() = default;
@@ -50,8 +50,8 @@ namespace network_butcher::types
 
     /// Get the nodes collection
     /// \return The vector of nodes
-    Node_Collection_Type const &
-    get_nodes() const
+    auto
+    get_nodes() const -> Node_Collection_Type const &
     {
       return nodes;
     }
@@ -59,22 +59,22 @@ namespace network_butcher::types
 
     /// Get the dependencies (reference)
     /// \return The dependencies (reference)
-    [[nodiscard]] Neighbours_Type &
-    get_neighbors_ref()
+    [[nodiscard]] auto
+    get_neighbors_ref() -> Neighbours_Type &
     {
       return neighbours;
     }
 
     /// Get input nodes
-    [[nodiscard]] Neighbours_Type::value_type::first_type const &
-    get_input_nodes(Node_Id_Type id) const
+    [[nodiscard]] auto
+    get_input_nodes(Node_Id_Type id) const -> Neighbours_Type::value_type::first_type const &
     {
       return neighbours[id].first;
     }
 
     /// Get input nodes
-    [[nodiscard]] Neighbours_Type::value_type::second_type const &
-    get_output_nodes(Node_Id_Type id) const
+    [[nodiscard]] auto
+    get_output_nodes(Node_Id_Type id) const -> Neighbours_Type::value_type::second_type const &
     {
       return neighbours[id].second;
     }
@@ -82,8 +82,8 @@ namespace network_butcher::types
     /// Checks if the given edge exists
     /// \param edge The edge
     /// \return True if the edge exists, false otherwise
-    [[nodiscard]] bool
-    check_edge(Edge_Type const &edge) const
+    [[nodiscard]] auto
+    check_edge(Edge_Type const &edge) const -> bool
     {
       return get_output_nodes(edge.first).contains(edge.second);
     }
@@ -91,8 +91,8 @@ namespace network_butcher::types
 
     /// Get the number of nodes
     /// \return The number of nodes
-    [[nodiscard]] std::size_t
-    size() const
+    [[nodiscard]] auto
+    size() const -> std::size_t
     {
       return nodes.size();
     }
@@ -100,8 +100,8 @@ namespace network_butcher::types
 
     /// Checks if the graph is empty
     /// \return True if there are no stored nodes
-    [[nodiscard]] std::size_t
-    empty() const
+    [[nodiscard]] auto
+    empty() const -> bool
     {
       return nodes.empty();
     }
@@ -110,8 +110,8 @@ namespace network_butcher::types
     /// Get the node with the given id
     /// \param id The id of the node
     /// \return The node
-    Node_Type const &
-    operator[](std::size_t const &id) const
+    auto
+    operator[](std::size_t const &id) const -> Node_Type const &
     {
       return nodes[id];
     }
@@ -243,8 +243,8 @@ namespace network_butcher::types
 
     /// Get the nodes collection
     /// \return The vector of nodes
-    Node_Collection_Type const &
-    get_nodes() const
+    auto
+    get_nodes() const -> Node_Collection_Type const &
     {
       return nodes;
     }
@@ -252,22 +252,22 @@ namespace network_butcher::types
 
     /// Get the dependencies (reference)
     /// \return The dependencies (reference)
-    [[nodiscard]] Neighbours_Type &
-    get_neighbors_ref()
+    [[nodiscard]] auto
+    get_neighbors_ref() -> Neighbours_Type &
     {
       return neighbours;
     }
 
     /// Get input nodes
-    [[nodiscard]] Neighbours_Type::value_type::first_type const &
-    get_input_nodes(Node_Id_Type id) const
+    [[nodiscard]] auto
+    get_input_nodes(Node_Id_Type id) const -> Neighbours_Type::value_type::first_type const &
     {
       return neighbours[id].first;
     }
 
     /// Get input nodes
-    [[nodiscard]] Neighbours_Type::value_type::second_type const &
-    get_output_nodes(Node_Id_Type id) const
+    [[nodiscard]] auto
+    get_output_nodes(Node_Id_Type id) const -> Neighbours_Type::value_type::second_type const &
     {
       return neighbours[id].second;
     }
@@ -275,8 +275,8 @@ namespace network_butcher::types
     /// Checks if the given edge exists
     /// \param edge The edge
     /// \return True if the edge exists, false otherwise
-    [[nodiscard]] bool
-    check_edge(Edge_Type const &edge) const
+    [[nodiscard]] auto
+    check_edge(Edge_Type const &edge) const -> bool
     {
       return get_output_nodes(edge.first).contains(edge.second);
     }
@@ -284,8 +284,8 @@ namespace network_butcher::types
 
     /// Get the number of nodes
     /// \return The number of nodes
-    [[nodiscard]] std::size_t
-    size() const
+    [[nodiscard]] auto
+    size() const -> std::size_t
     {
       return nodes.size();
     }
@@ -293,8 +293,8 @@ namespace network_butcher::types
 
     /// Checks if the graph is empty
     /// \return True if there are no stored nodes
-    [[nodiscard]] std::size_t
-    empty() const
+    [[nodiscard]] auto
+    empty() const -> bool
     {
       return nodes.empty();
     }
@@ -303,8 +303,8 @@ namespace network_butcher::types
     /// Get the node with the given id
     /// \param id The id of the node
     /// \return The node
-    Node_Type const &
-    operator[](std::size_t const &id) const
+    auto
+    operator[](std::size_t const &id) const -> Node_Type const &
     {
       return nodes[id];
     }

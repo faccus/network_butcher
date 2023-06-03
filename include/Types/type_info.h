@@ -12,7 +12,7 @@
 
 namespace network_butcher::types
 {
-  /// Generic type contained in a onnx model (only type info, no values are actually stored)
+  /// Generic type contained in a onnx model (only type information, no values are actually stored)
   class Type_Info
   {
   protected:
@@ -37,8 +37,8 @@ namespace network_butcher::types
 
     /// Get the name of the type
     /// \return The name
-    [[nodiscard]] std::string
-    get_name() const
+    [[nodiscard]] auto
+    get_name() const -> std::string const &
     {
       return name;
     }
@@ -46,8 +46,8 @@ namespace network_butcher::types
 
     /// Get if the value of this type is given by the network
     /// \return True if it has been already initialized
-    [[nodiscard]] bool
-    is_initialized() const
+    [[nodiscard]] auto
+    is_initialized() const -> bool
     {
       return initialized;
     }
@@ -55,20 +55,20 @@ namespace network_butcher::types
 
     /// Virtual method to compute the total memory of the type
     /// \return Memory usage of the associated type
-    [[nodiscard]] virtual Memory_Type
-    compute_memory_usage() const = 0;
+    [[nodiscard]] virtual auto
+    compute_memory_usage() const -> Memory_Type = 0;
 
 
     /// Basic getter for shape
     /// \return The shape
-    [[nodiscard]] virtual std::vector<Onnx_Element_Shape_Type> const &
-    get_shape() const = 0;
+    [[nodiscard]] virtual auto
+    get_shape() const -> std::vector<Onnx_Element_Shape_Type> const & = 0;
 
 
     /// Compute the number of elements in the tensor
     /// \return The number of elements in the tensor
-    [[nodiscard]] virtual Onnx_Element_Shape_Type
-    compute_shape_volume() const = 0;
+    [[nodiscard]] virtual auto
+    compute_shape_volume() const -> Onnx_Element_Shape_Type = 0;
 
 
     /// Default deconstructor

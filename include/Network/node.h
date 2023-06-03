@@ -32,8 +32,8 @@ namespace network_butcher::types
 
 
     /// Getter for the node id
-    [[nodiscard]] inline Node_Id_Type
-    get_id() const
+    [[nodiscard]] inline auto
+    get_id() const -> Node_Id_Type
     {
       return id;
     }

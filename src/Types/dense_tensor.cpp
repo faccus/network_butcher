@@ -6,7 +6,7 @@
 
 namespace network_butcher::types
 {
-  Dense_tensor::Dense_tensor(Type_Info_Id_Type in_type_id, std::vector<Onnx_Element_Shape_Type> in_shape, bool given, bool constant)
+  Dense_tensor::Dense_tensor(int in_type_id, std::vector<Onnx_Element_Shape_Type> in_shape, bool given, bool constant)
     : Type_Info(given, constant)
     , type_tensor_memory(Utilities::compute_memory_usage_from_enum(in_type_id))
     , shape(std::move(in_shape))
@@ -50,8 +50,8 @@ namespace network_butcher::types
   }
 
 
-  Memory_Type
-  Dense_tensor::compute_memory_usage() const
+  auto
+  Dense_tensor::compute_memory_usage() const -> Memory_Type
   {
     Memory_Type num_entries = 1;
     for (auto const &e : shape)
@@ -61,8 +61,8 @@ namespace network_butcher::types
   }
 
 
-  Onnx_Element_Shape_Type
-  Dense_tensor::compute_shape_volume() const
+  auto
+  Dense_tensor::compute_shape_volume() const -> Onnx_Element_Shape_Type
   {
     if (shape.empty())
       return 0;

@@ -5,8 +5,8 @@
 
 namespace network_butcher::Utilities
 {
-  Memory_Type
-  compute_memory_usage_from_enum(Type_Info_Id_Type input)
+  auto
+  compute_memory_usage_from_enum(int input) -> Memory_Type
   {
     if (onnx::TensorProto_DataType_IsValid(input))
       {
@@ -74,8 +74,8 @@ namespace network_butcher::Utilities
   }
 
 
-  onnx::ModelProto
-  parse_onnx_file(const std::string &model_path)
+  auto
+  parse_onnx_file(const std::string &model_path) -> onnx::ModelProto
   {
     if (!file_exists(model_path))
       throw std::runtime_error("The model in the specified path " + model_path + " doesn't exist");
@@ -87,8 +87,8 @@ namespace network_butcher::Utilities
   }
 
 
-  std::vector<std::string>
-  split(std::string s, std::string delimiter)
+  auto
+  split(const std::string &s, const std::string &delimiter) -> std::vector<std::string>
   {
     size_t                   pos_start = 0, pos_end, delim_len = delimiter.length();
     std::string              token;
@@ -109,8 +109,8 @@ namespace network_butcher::Utilities
   }
 
 
-  std::string
-  combine_path(const std::string &first, const std::string &second)
+  auto
+  combine_path(const std::string &first, const std::string &second) -> std::string
   {
     if (first.back() != '/' && second.front() != '/')
       return first + "/" + second;
@@ -119,28 +119,33 @@ namespace network_butcher::Utilities
     else
       return first + second;
   }
-  bool
-  file_exists(const std::string &name)
+
+  auto
+  file_exists(const std::string &name) -> bool
   {
     const std::filesystem::path p = name;
     return std::filesystem::exists(p);
   }
-  bool
-  directory_exists(const std::string &name)
+
+  auto
+  directory_exists(const std::string &name) -> bool
   {
     const std::filesystem::path p = name;
     return std::filesystem::exists(p);
   }
+
   void
   file_delete(const std::string &path)
   {
     std::filesystem::remove_all(path);
   }
+
   void
   directory_delete(const std::string &path)
   {
     std::filesystem::remove_all(path);
   }
+
   void
   create_directory(const std::string &path)
   {
@@ -149,90 +154,104 @@ namespace network_butcher::Utilities
         std::filesystem::create_directory(path);
       }
   }
+
   void
   ltrim(std::string &s)
   {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) { return !std::isspace(ch); }));
   }
+
   void
   rtrim(std::string &s)
   {
     s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), s.end());
   }
+
   void
   ltrim(std::vector<std::string> &vect)
   {
     for (auto &s : vect)
       s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) { return !std::isspace(ch); }));
   }
+
   void
   rtrim(std::vector<std::string> &vect)
   {
     for (auto &s : vect)
       s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), s.end());
   }
+
   void
   trim(std::string &s)
   {
     ltrim(s);
     rtrim(s);
   }
+
   void
   trim(std::vector<std::string> &s)
   {
     ltrim(s);
     rtrim(s);
   }
+
   void
   to_lowercase(std::string &s)
   {
     std::transform(s.begin(), s.end(), s.begin(), ::tolower);
   }
+
   void
   to_lowercase(std::vector<std::string> &vect)
   {
     for (auto &s : vect)
       std::transform(s.begin(), s.end(), s.begin(), ::tolower);
   }
-  std::string
-  ltrim_copy(std::string s)
+
+  auto
+  ltrim_copy(std::string s) -> std::string
   {
     ltrim(s);
     return s;
   }
-  std::string
-  rtrim_copy(std::string s)
+
+  auto
+  rtrim_copy(std::string s) -> std::string
   {
     rtrim(s);
     return s;
   }
-  std::string
-  trim_copy(std::string s)
+
+  auto
+  trim_copy(std::string s) -> std::string
   {
     trim(s);
     return s;
   }
-  std::vector<std::string>
-  trim_copy(std::vector<std::string> s)
+
+  auto
+  trim_copy(std::vector<std::string> s) -> std::vector<std::string>
   {
     trim(s);
     return s;
   }
-  std::string
-  to_lowercase_copy(std::string s)
-  {
-    to_lowercase(s);
-    return s;
-  }
-  std::vector<std::string>
-  to_lowercase_copy(std::vector<std::string> s)
+
+  auto
+  to_lowercase_copy(std::string s) -> std::string
   {
     to_lowercase(s);
     return s;
   }
 
-  bool
-  file_copy(std::string const &from, std::string const &to)
+  auto
+  to_lowercase_copy(std::vector<std::string> s) -> std::vector<std::string>
+  {
+    to_lowercase(s);
+    return s;
+  }
+
+  auto
+  file_copy(std::string const &from, std::string const &to) -> bool
   {
     if (Utilities::file_exists(from))
       {

@@ -10,22 +10,22 @@
 
 namespace network_butcher::io
 {
-  /// General_Manager is the main namespace of the program. In fact, here the starting methods of the program are
+  /// General_Manager is the main namespace of the program. Indeed, here the starting methods of the program are
   /// contained. The boot method reads the parameter file and performs the butchering (import of the network,
   /// butchering and model reconstruction)
   namespace General_Manager
   {
     namespace Helper_Functions
     {
-
       /// Based on the information related to the bandwidth between devices, it will produce a "transmission"
       /// function for the given case
       /// \param params The collection of parameters
       /// \param graph The graph
       /// \return  The transmission function
-      std::function<Time_Type(const Edge_Type &, size_t, size_t)>
+      auto
       generate_bandwidth_transmission_function(const network_butcher::parameters::Parameters::Weights &weights_params,
-                                               const Converted_Onnx_Graph_Type                        &graph);
+                                               const Converted_Onnx_Graph_Type                        &graph)
+        -> std::function<Time_Type(const Edge_Type &, size_t, size_t)>;
 
 
       /// It prints the help/usage message in the console

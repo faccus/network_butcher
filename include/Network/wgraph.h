@@ -13,13 +13,13 @@ namespace network_butcher::types
 {
   /// Just another weighted graph class...
   /// \tparam Parallel_Edges If true, the graph will support parallel edges
-  /// \tparam t_Node_Type Type of nodes
+  /// \tparam Template_Node_Type Type of nodes
   /// \tparam t_weight_type Type of the weight
-  template <bool Parallel_Edges, typename t_Node_Type = Node, typename t_weight_type = Time_Type>
-  class WGraph : public MWGraph<Parallel_Edges, t_Node_Type, t_weight_type>
+  template <bool Parallel_Edges, typename Template_Node_Type = Node, typename t_weight_type = Time_Type>
+  class WGraph : public MWGraph<Parallel_Edges, Template_Node_Type, t_weight_type>
   {
   private:
-    using Parent_Type = MWGraph<Parallel_Edges, t_Node_Type, t_weight_type>;
+    using Parent_Type = MWGraph<Parallel_Edges, Template_Node_Type, t_weight_type>;
 
     using Parent_Type::check_weight;
     using Parent_Type::get_num_devices;
@@ -45,7 +45,7 @@ namespace network_butcher::types
     /// Checks if the given edge has a weight
     /// \param device The device id
     /// \return True if the edge has a weight on the given device, false otherwise
-    [[nodiscard]] bool
+    [[nodiscard]] auto
     check_weight(Edge_Type const &edge) const
     {
       return Parent_Type::check_weight(0, edge);
@@ -85,8 +85,8 @@ namespace network_butcher::types
 
     /// Simple helper function that will print the graph
     /// \return The graph description
-    [[nodiscard]] std::string
-    print_graph() const override
+    [[nodiscard]] auto
+    print_graph() const -> std::string override
     {
       std::stringstream builder;
       builder << "In Out Weight" << std::endl;
@@ -120,7 +120,6 @@ namespace network_butcher::types
         }
       return builder.str();
     }
-
 
     ~WGraph() override = default;
   };
@@ -168,7 +167,7 @@ namespace network_butcher::types
     /// Checks if the given edge has a weight
     /// \param device The device id
     /// \return True if the edge has a weight on the given device, false otherwise
-    [[nodiscard]] bool
+    [[nodiscard]] auto
     check_weight(Edge_Type const &edge) const
     {
       return Parent_Type::check_weight(0, edge);
@@ -208,8 +207,8 @@ namespace network_butcher::types
 
     /// Simple helper function that will print the graph
     /// \return The graph description
-    [[nodiscard]] std::string
-    print_graph() const override
+    [[nodiscard]] auto
+    print_graph() const -> std::string override
     {
       std::stringstream builder;
       builder << "In Out Weight" << std::endl;
@@ -272,8 +271,8 @@ namespace network_butcher::kfinder
     using Node_Collection_Type = std::vector<Node_Type>;
 
 
-    [[nodiscard]] Weight_Edge_Type
-    get_weight(Edge_Type const &edge) const
+    [[nodiscard]] auto
+    get_weight(Edge_Type const &edge) const -> Weight_Edge_Type
     {
       if constexpr (t_Reversed && Parallel_Edges)
         {
@@ -293,20 +292,20 @@ namespace network_butcher::kfinder
         }
     }
 
-    [[nodiscard]] Node_Id_Type
-    size() const
+    [[nodiscard]] auto
+    size() const -> std::size_t
     {
       return graph.size();
     };
 
-    [[nodiscard]] bool
-    empty() const
+    [[nodiscard]] auto
+    empty() const -> bool
     {
       return graph.empty();
     };
 
-    [[nodiscard]] std::set<Node_Id_Type> const &
-    get_output_nodes(Node_Id_Type const &id) const
+    [[nodiscard]] auto
+    get_output_nodes(Node_Id_Type const &id) const -> std::set<Node_Id_Type> const &
     {
       if constexpr (t_Reversed)
         {
@@ -319,39 +318,39 @@ namespace network_butcher::kfinder
     };
 
 
-    Node_Type const &
-    operator[](Node_Id_Type const &id) const
+    auto
+    operator[](Node_Id_Type const &id) const -> Node_Type const &
     {
       return graph[id];
     };
 
-    [[nodiscard]] typename Node_Collection_Type::const_iterator
-    cbegin() const
+    [[nodiscard]] auto
+    cbegin() const -> typename Node_Collection_Type::const_iterator
     {
       return graph.cbegin();
     }
 
-    [[nodiscard]] typename Node_Collection_Type::const_iterator
-    cend() const
+    [[nodiscard]] auto
+    cend() const -> typename Node_Collection_Type::const_iterator
     {
       return graph.cend();
     }
 
-    [[nodiscard]] typename Node_Collection_Type::const_iterator
-    begin() const
+    [[nodiscard]] auto
+    begin() const -> typename Node_Collection_Type::const_iterator
     {
       return cbegin();
     }
 
-    [[nodiscard]] typename Node_Collection_Type::const_iterator
-    end() const
+    [[nodiscard]] auto
+    end() const -> typename Node_Collection_Type::const_iterator
     {
       return cend();
     }
 
 
-    Weighted_Graph<Graph_Type, !t_Reversed, Node_Type, Node_Collection_Type, Weight_Type>
-    reverse() const
+    auto
+    reverse() const -> Weighted_Graph<Graph_Type, !t_Reversed, Node_Type, Node_Collection_Type, Weight_Type>
     {
       return Weighted_Graph<Graph_Type, !t_Reversed, Node_Type, Node_Collection_Type, Weight_Type>(graph);
     }
