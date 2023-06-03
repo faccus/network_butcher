@@ -42,9 +42,9 @@ namespace network_butcher::io::IO_Manager
 
     std::for_each(std::execution::par, v.cbegin(), v.cend(), process_partitioning);
 #else
-    #pragma omp parallel default(none) shared(params, model, link_id_nodeproto, preprocessed_node_ios, paths)
+#  pragma omp parallel default(none) shared(params, model, link_id_nodeproto, preprocessed_node_ios, paths)
     {
-      #pragma omp for
+#  pragma omp for
       for (std::size_t j = 0; j < paths.size(); ++j)
         {
           auto const dir_path =
@@ -169,9 +169,7 @@ namespace network_butcher::io::IO_Manager
 
     for (auto const &onnx_node : onnx_nodes)
       {
-        auto        res  = Onnx_importer_helpers::process_node(onnx_node, basic_data);
-        auto const &ins  = std::get<1>(res);
-        auto const &outs = std::get<2>(res);
+        auto [node, ins, outs] = Onnx_importer_helpers::process_node(onnx_node, basic_data);
 
         if (add_input_padding)
           graph_inputs.insert(ins.cbegin(), ins.cend());
@@ -179,7 +177,7 @@ namespace network_butcher::io::IO_Manager
         if (add_output_padding)
           graph_outputs.insert(outs.cbegin(), outs.cend());
 
-        nodes.push_back(std::move(std::get<0>(res)));
+        nodes.push_back(std::move(node));
       }
 
 
@@ -276,7 +274,7 @@ namespace network_butcher::io::IO_Manager
     auto const read_bandwidth = [](auto &file, std::size_t num_devices, parameters::Parameters::Weights &res) {
       using g_type = parameters::Parameters::Weights::connection_type::element_type;
 
-      g_type::Dependencies_Type                                         connections(num_devices);
+      g_type::Dependencies_Type                                                     connections(num_devices);
       std::map<Edge_Type, std::pair<Bandwidth_Value_Type, Access_Delay_Value_Type>> weights;
 
       auto const error_msg = [](const std::string &name, Node_Id_Type i, Node_Id_Type j) {
@@ -292,7 +290,7 @@ namespace network_butcher::io::IO_Manager
               throw std::invalid_argument(error_msg("bandwidth", i, j));
             }
 
-          Bandwidth_Value_Type band;
+          Bandwidth_Value_Type    band;
           Access_Delay_Value_Type acc;
 
           // Check if the option is set

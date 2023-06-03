@@ -5,8 +5,9 @@
 
 namespace network_butcher::io
 {
-  std::unordered_map<std::string, network_butcher::types::Variant_Attribute>
+  auto
   Onnx_importer_helpers::process_node_attributes(onnx::NodeProto const &node)
+    -> std::unordered_map<std::string, network_butcher::types::Variant_Attribute>
   {
     using DynamicType = network_butcher::types::Variant_Attribute;
     using namespace Utilities;
@@ -49,12 +50,12 @@ namespace network_butcher::io
   }
 
 
-  std::tuple<Onnx_importer_helpers::Map_IO, std::set<std::string>, std::set<std::string>>
-  Onnx_importer_helpers::compute_value_infos(
-    const google::protobuf::RepeatedPtrField<::onnx::ValueInfoProto> &onnx_input,
-    const google::protobuf::RepeatedPtrField<::onnx::ValueInfoProto> &onnx_output,
-    const google::protobuf::RepeatedPtrField<::onnx::ValueInfoProto> &onnx_value_info,
-    const google::protobuf::RepeatedPtrField<::onnx::TensorProto>    &onnx_initializer)
+  auto
+  Onnx_importer_helpers::compute_value_infos(const Repeatable_field<::onnx::ValueInfoProto> &onnx_input,
+                                             const Repeatable_field<::onnx::ValueInfoProto> &onnx_output,
+                                             const Repeatable_field<::onnx::ValueInfoProto> &onnx_value_info,
+                                             const Repeatable_field<::onnx::TensorProto>    &onnx_initializer)
+    -> helpers_structures::Processed_Value_Infos_Type
   {
     std::set<std::string> onnx_inputs_ids;
     std::set<std::string> onnx_outputs_ids;
@@ -96,13 +97,16 @@ namespace network_butcher::io
 
     read_ios(value_infos, onnx_initializer, initialized);
 
-    return {value_infos, onnx_inputs_ids, onnx_outputs_ids};
+    return helpers_structures::Processed_Value_Infos_Type{.value_infos      = std::move(value_infos),
+                                                          .onnx_inputs_ids  = std::move(onnx_inputs_ids),
+                                                          .onnx_outputs_ids = std::move(onnx_outputs_ids)};
   }
 
 
-  std::vector<Type_Info_Pointer>
+  auto
   Onnx_importer_helpers::get_common_elements(const std::set<std::string>           &onnx_io_ids,
                                              Io_Collection_Type<Type_Info_Pointer> &io_collection)
+    -> std::vector<Type_Info_Pointer>
   {
     std::set<std::string>    in_keys;
     std::vector<std::string> tmp;
@@ -129,9 +133,8 @@ namespace network_butcher::io
 
 
   void
-  Onnx_importer_helpers::populate_id_collection(
-    const google::protobuf::RepeatedPtrField<::onnx::ValueInfoProto> &onnx_io,
-    std::set<std::string>                                            &onnx_io_ids)
+  Onnx_importer_helpers::populate_id_collection(const Repeatable_field<::onnx::ValueInfoProto> &onnx_io,
+                                                std::set<std::string>                          &onnx_io_ids)
   {
     std::transform(onnx_io.begin(), onnx_io.end(), std::inserter(onnx_io_ids, onnx_io_ids.end()), [](auto const &el) {
       return el.name();
@@ -140,9 +143,9 @@ namespace network_butcher::io
 
 
   void
-  Onnx_importer_helpers::read_ios(Onnx_importer_helpers::Map_IO                                  &input_map,
-                                  const google::protobuf::RepeatedPtrField<onnx::ValueInfoProto> &collection,
-                                  const std::set<std::string>                                    &initialized)
+  Onnx_importer_helpers::read_ios(Onnx_importer_helpers::Map_IO                &input_map,
+                                  const Repeatable_field<onnx::ValueInfoProto> &collection,
+                                  const std::set<std::string>                  &initialized)
   {
     for (const auto &value_info : collection)
       {
@@ -159,9 +162,9 @@ namespace network_butcher::io
 
 
   void
-  Onnx_importer_helpers::read_ios(Onnx_importer_helpers::Map_IO                               &input_map,
-                                  const google::protobuf::RepeatedPtrField<onnx::TensorProto> &collection,
-                                  const std::set<std::string>                                 &initialized)
+  Onnx_importer_helpers::read_ios(Onnx_importer_helpers::Map_IO             &input_map,
+                                  const Repeatable_field<onnx::TensorProto> &collection,
+                                  const std::set<std::string>               &initialized)
   {
     for (const auto &tensor : collection)
       {
@@ -176,10 +179,10 @@ namespace network_butcher::io
   }
 
 
-  Io_Collection_Type<Type_Info_Pointer>
-  Onnx_importer_helpers::process_node_ios(const google::protobuf::RepeatedPtrField<std::basic_string<char>> &io_names,
-                                          Io_Collection_Type<Type_Info_Pointer> &parameters_collection,
-                                          Map_IO const                          &value_infos)
+  auto
+  Onnx_importer_helpers::process_node_ios(const Repeatable_field<std::basic_string<char>> &io_names,
+                                          Io_Collection_Type<Type_Info_Pointer>           &parameters_collection,
+                                          Map_IO const &value_infos) -> Io_Collection_Type<Type_Info_Pointer>
   {
     Io_Collection_Type<Type_Info_Pointer> res;
     for (auto const &io_name : io_names)
@@ -199,27 +202,29 @@ namespace network_butcher::io
   }
 
 
-  Onnx_importer_helpers::Prepared_Import_Onnx
+  auto
   Onnx_importer_helpers::prepare_import_from_onnx(const onnx::GraphProto &onnx_graph)
+    -> helpers_structures::Prepared_Import_Onnx_Type
   {
-    Prepared_Import_Onnx res;
-
-    auto const &[value_infos, onnx_inputs_ids, onnx_outputs_ids] =
+    auto [value_infos, onnx_inputs_ids, onnx_outputs_ids] =
       compute_value_infos(onnx_graph.input(), onnx_graph.output(), onnx_graph.value_info(), onnx_graph.initializer());
 
-    res.value_infos      = value_infos;
-    res.onnx_inputs_ids  = onnx_inputs_ids;
-    res.onnx_outputs_ids = onnx_outputs_ids;
-
-    res.pointer_output = std::make_shared<network_butcher::types::Dense_tensor>(0, std::vector<Onnx_Element_Shape_Type>{});
-    res.pointer_input  = std::make_shared<network_butcher::types::Dense_tensor>(0, std::vector<Onnx_Element_Shape_Type>{});
-    return res;
+    return helpers_structures::Prepared_Import_Onnx_Type{
+      .value_infos = std::move(value_infos),
+      .pointer_input =
+        std::make_shared<network_butcher::types::Dense_tensor>(0, std::vector<Onnx_Element_Shape_Type>{}),
+      .pointer_output =
+        std::make_shared<network_butcher::types::Dense_tensor>(0, std::vector<Onnx_Element_Shape_Type>{}),
+      .onnx_inputs_ids  = std::move(onnx_inputs_ids),
+      .onnx_outputs_ids = std::move(onnx_outputs_ids)};
   }
 
 
-  std::tuple<Converted_Onnx_Graph_Type::Node_Type, std::vector<Type_Info_Pointer>, std::vector<Type_Info_Pointer>>
-  Onnx_importer_helpers::process_node(const onnx::NodeProto                             &node,
-                                      const Onnx_importer_helpers::Prepared_Import_Onnx &prepared_data)
+  auto
+  Onnx_importer_helpers::process_node(
+    const onnx::NodeProto                                                      &node,
+    const Onnx_importer_helpers::helpers_structures::Prepared_Import_Onnx_Type &prepared_data)
+    -> helpers_structures::Process_Node_Output_Type
   {
     auto const &value_infos = prepared_data.value_infos;
 
@@ -229,17 +234,20 @@ namespace network_butcher::io
     auto                                  inputs  = process_node_ios(node.input(), parameters, value_infos);
     auto                                  outputs = process_node_ios(node.output(), parameters, value_infos);
 
-    auto const graph_inputs  = get_common_elements(prepared_data.onnx_inputs_ids, inputs);
-    auto const graph_outputs = get_common_elements(prepared_data.onnx_outputs_ids, outputs);
+    auto graph_inputs  = get_common_elements(prepared_data.onnx_inputs_ids, inputs);
+    auto graph_outputs = get_common_elements(prepared_data.onnx_outputs_ids, outputs);
 
-    auto res = Converted_Onnx_Graph_Type::Node_Type(network_butcher::types::Content<Type_Info_Pointer>(std::move(inputs),
-                                                                                        std::move(outputs),
-                                                                                        std::move(parameters),
-                                                                                        process_node_attributes(node),
-                                                                                        std::move(operation_type)));
+    auto res = Converted_Onnx_Graph_Type::Node_Type(
+      network_butcher::types::Content<Type_Info_Pointer>(std::move(inputs),
+                                                         std::move(outputs),
+                                                         std::move(parameters),
+                                                         process_node_attributes(node),
+                                                         std::move(operation_type)));
     res.name = node.name();
 
-    return {res, graph_inputs, graph_outputs};
+    return helpers_structures::Process_Node_Output_Type{.node   = res,
+                                                        .input  = std::move(graph_inputs),
+                                                        .output = std::move(graph_outputs)};
   }
 
 
