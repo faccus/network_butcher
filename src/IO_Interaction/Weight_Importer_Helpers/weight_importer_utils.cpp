@@ -6,12 +6,12 @@
 
 namespace network_butcher::io::Weight_importer_helpers
 {
-  Csv_Result_Type<Time_Type>
+  auto
   read_csv_numerics(std::string const              &path,
                     char                            separator,
                     std::vector<std::string> const &columns_to_read,
                     std::string const              &column_suffix,
-                    bool                            only_non_negative)
+                    bool                            only_non_negative) -> Csv_Result_Type<Time_Type>
   {
     Csv_Result_Type<Time_Type> res;
 
@@ -53,11 +53,11 @@ namespace network_butcher::io::Weight_importer_helpers
   }
 
 
-  Csv_Result_Type<std::string>
+  auto
   read_csv(std::string const       &path,
            char                     separator,
            std::vector<std::string> columns_to_read,
-           std::string const       &column_suffix)
+           std::string const       &column_suffix) -> Csv_Result_Type<std::string>
   {
     std::ifstream file(path);
 

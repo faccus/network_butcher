@@ -5,14 +5,14 @@
 
 namespace network_butcher::io
 {
-  std::string
+  auto
   block_aMLLibrary_Weight_Importer::generate_entry(
     std::string const                                                      &lower_case,
     std::size_t                                                             id,
-    std::map<std::string, Weight_importer_helpers::onnx_tool_output> const &map_onnx_tool,
+    std::map<std::string, Weight_importer_helpers::Onnx_Tool_Output_Type> const &map_onnx_tool,
     std::map<std::string, std::size_t>                                     &previous_entries_info,
     Node_Id_Collection_Type const                                          &original_ids,
-    Node_Id_Collection_Type const                                          &node_output_ids) const
+    Node_Id_Collection_Type const                                          &node_output_ids) const -> std::string
   {
     if (lower_case == "layer")
       {
@@ -157,7 +157,7 @@ namespace network_butcher::io
   block_aMLLibrary_Weight_Importer::generate_entries(
     const std::vector<std::string>                                         &entries,
     std::size_t                                                             id,
-    const std::map<std::string, Weight_importer_helpers::onnx_tool_output> &map_onnx_tool) const
+    const std::map<std::string, Weight_importer_helpers::Onnx_Tool_Output_Type> &map_onnx_tool) const
     -> std::vector<std::string>
   {
     auto const lower_case_entries = Utilities::to_lowercase_copy(entries);
@@ -194,6 +194,7 @@ namespace network_butcher::io
     // Prepare the .csv file to be fed to aMLLibrary
     std::vector<std::vector<std::string>> aMLLibrary_input;
     aMLLibrary_input.reserve(new_graph.size() + 1);
+
     aMLLibrary_input.push_back(Utilities::trim_copy(aMLLibrary_params.aMLLibrary_csv_features));
     aMLLibrary_input.front().insert(aMLLibrary_input.front().cend(),
                                     aMLLibrary_params.aMLLibrary_inference_variables.cbegin(),
@@ -213,24 +214,8 @@ namespace network_butcher::io
     // Assemble the .csv file
     csv_assembler(aMLLibrary_input, csv_path);
 
-    std::vector<std::string> paths;
-    std::vector<std::string> relevant_entries;
-
-    // Predict and import the weights
-    for (std::size_t i = 0; i < devices.size(); ++i)
-      {
-        std::string tmp_dir_path =
-          Utilities::combine_path(aMLLibrary_params.temporary_directory, "predict_" + std::to_string(i));
-
-        Utilities::directory_delete(tmp_dir_path);
-
-        prepare_predict_file(aMLLibrary_params.aMLLibrary_inference_variables[i], csv_path, tmp_dir_path + ".ini");
-
-        execute_weight_generator(devices[i].weights_path, tmp_dir_path + ".ini", tmp_dir_path);
-
-        paths.emplace_back(Utilities::combine_path(tmp_dir_path, "prediction.csv"));
-        relevant_entries.emplace_back("pred");
-      }
+    // Construct the weights through aMMLibrary
+    auto [paths, relevant_entries] = perform_predictions(csv_path);
 
     pybind11::finalize_interpreter();
 

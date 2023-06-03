@@ -9,10 +9,10 @@ namespace network_butcher::io
   Abstract_aMLLibrary_Weight_Importer::check_aMLLibrary() const
   {
 #if PYBIND_ACTIVE
-    if(weights_params.bandwidth->size() != 2)
+    if (weights_params.bandwidth->size() != 2)
       throw std::logic_error("aMLLibrary only supports graphs with two devices");
 
-    if(weights_params.bandwidth->check_weight(std::make_pair(1, 0)))
+    if (weights_params.bandwidth->check_weight(std::make_pair(1, 0)))
       throw std::logic_error("aMLLibrary doesn't support backward connections");
 #else
     throw std::logic_error("aMLLibrary not supported. Please compile with PYBIND_ACTIVE"); //
@@ -48,7 +48,7 @@ namespace network_butcher::io
 
   void
   Abstract_aMLLibrary_Weight_Importer::csv_assembler(std::vector<std::vector<std::string>> const &content,
-                                                  std::string const                           &path)
+                                                     std::string const                           &path)
   {
     std::fstream file_out;
     file_out.open(path, std::ios_base::out);
@@ -70,8 +70,8 @@ namespace network_butcher::io
 
   void
   Abstract_aMLLibrary_Weight_Importer::execute_weight_generator(const std::string &regressor_file,
-                                                             const std::string &config_file,
-                                                             const std::string &output_path)
+                                                                const std::string &config_file,
+                                                                const std::string &output_path)
   {
 #if PYBIND_ACTIVE
     using namespace pybind11::literals;
@@ -87,8 +87,8 @@ namespace network_butcher::io
   }
 
 
-  std::string
-  Abstract_aMLLibrary_Weight_Importer::network_info_onnx_tool() const
+  auto
+  Abstract_aMLLibrary_Weight_Importer::network_info_onnx_tool() const -> std::string
   {
 #if PYBIND_ACTIVE
     using namespace pybind11::literals;
@@ -113,11 +113,12 @@ namespace network_butcher::io
   }
 
 
-  std::map<std::string, Weight_importer_helpers::onnx_tool_output>
+  auto
   Abstract_aMLLibrary_Weight_Importer::read_network_info_onnx_tool(const std::string &path)
+    -> std::map<std::string, Weight_importer_helpers::Onnx_Tool_Output_Type>
   {
     using namespace Weight_importer_helpers;
-    std::map<std::string, onnx_tool_output> res;
+    std::map<std::string, Onnx_Tool_Output_Type> res;
 
     auto data = read_csv(path, ',', {"name", "macs", "memory", "params"});
 
@@ -129,7 +130,7 @@ namespace network_butcher::io
 
     for (std::size_t i = 0; i < names.size(); ++i)
       {
-        onnx_tool_output info;
+        Onnx_Tool_Output_Type info;
 
         info.name   = Utilities::to_lowercase_copy(names[i]);
         info.macs   = std::stoul(macs[i]);
@@ -145,8 +146,8 @@ namespace network_butcher::io
 
   void
   Abstract_aMLLibrary_Weight_Importer::prepare_predict_file(std::string const &inference_variable,
-                                                         std::string const &input_path,
-                                                         std::string        output_path)
+                                                            std::string const &input_path,
+                                                            std::string        output_path)
   {
     if (output_path.back() == '/' || output_path.back() == '\\')
       {
@@ -166,5 +167,32 @@ namespace network_butcher::io
         out_file.close();
       }
   }
+
+
+  auto
+  Abstract_aMLLibrary_Weight_Importer::perform_predictions(std::string const &csv_path) const
+    -> std::pair<std::vector<std::string>, std::vector<std::string>>
+  {
+    std::vector<std::string> paths;
+    std::vector<std::string> relevant_entries;
+
+    for (std::size_t i = 0; i < devices.size(); ++i)
+      {
+        std::string tmp_dir_path =
+          Utilities::combine_path(aMLLibrary_params.temporary_directory, "predict_" + std::to_string(i));
+
+        Utilities::directory_delete(tmp_dir_path);
+
+        prepare_predict_file(aMLLibrary_params.aMLLibrary_inference_variables[i], csv_path, tmp_dir_path + ".ini");
+
+        execute_weight_generator(devices[i].weights_path, tmp_dir_path + ".ini", tmp_dir_path);
+
+        paths.emplace_back(Utilities::combine_path(tmp_dir_path, "prediction.csv"));
+        relevant_entries.emplace_back("pred");
+      }
+
+    return std::make_pair(paths, relevant_entries);
+  }
+
 
 } // namespace network_butcher::io

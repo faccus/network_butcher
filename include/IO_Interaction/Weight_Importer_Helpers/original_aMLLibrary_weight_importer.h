@@ -22,21 +22,35 @@ namespace network_butcher::io
     /// \param entry The entry name
     /// \param node The node
     /// \return The resulting entry value
-    [[nodiscard]] std::string
-    generate_entry(std::string const &entry, Converted_Onnx_Graph_Type::Node_Type const &node) const;
+    [[nodiscard]] auto
+    generate_entry(std::string const &entry, Converted_Onnx_Graph_Type::Node_Type const &node) const -> std::string;
 
     /// It will generate the relevant entry given its name and the node
     /// \param entry The entry name
     /// \param basic_info The relevant info from onnx_tool
     /// \param node The node
     /// \return The resulting entry value
-    [[nodiscard]] std::string
+    [[nodiscard]] auto
     generate_entry(std::string const                               &entry,
-                   Weight_importer_helpers::onnx_tool_output const &basic_info,
-                   Converted_Onnx_Graph_Type::Node_Type const                     &node) const;
+                   Weight_importer_helpers::Onnx_Tool_Output_Type const &basic_info,
+                   Converted_Onnx_Graph_Type::Node_Type const      &node) const -> std::string;
+
+
+    /// It will produce a row of the aMLLibrary_prediction.csv file
+    /// \param entries The entries to insert
+    /// \param node The node
+    /// \param map_onnx_tool The output of onnx_tool
+    /// \return The row to insert
+    [[nodiscard]] auto
+    generete_entries(std::vector<std::string> const                                         &entries,
+                     Converted_Onnx_Graph_Type::Node_Type const                             &node,
+                     std::map<std::string, Weight_importer_helpers::Onnx_Tool_Output_Type> const &map_onnx_tool) const
+      -> std::vector<std::string>;
+
 
   public:
-    original_aMLLibrary_Weight_Importer(Converted_Onnx_Graph_Type                     &graph, network_butcher::parameters::Parameters const &params)
+    original_aMLLibrary_Weight_Importer(Converted_Onnx_Graph_Type                     &graph,
+                                        network_butcher::parameters::Parameters const &params)
       : Abstract_aMLLibrary_Weight_Importer{params}
       , graph{graph} {};
 
@@ -48,10 +62,10 @@ namespace network_butcher::io
       network_butcher::parameters::Parameters::Model const                  &model_params,
       parameters::Parameters::Devices const                                 &devices)
       : Abstract_aMLLibrary_Weight_Importer(block_graph_generation_params,
-                                         aMLLibrary_params,
-                                         weights_params,
-                                         model_params,
-                                         devices)
+                                            aMLLibrary_params,
+                                            weights_params,
+                                            model_params,
+                                            devices)
       , graph{graph} {};
 
 

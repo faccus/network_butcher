@@ -18,17 +18,6 @@ namespace network_butcher::io
     Converted_Onnx_Graph_Type const &graph;
     Block_Graph_Type                &new_graph;
 
-    /// It will produce a row of the aMLLibrary_prediction.csv file
-    /// \param entries The entries to insert
-    /// \param id The node id in the block graph
-    /// \param map_onnx_tool The output of onnx_tool
-    /// \return The relevant row in the .csv file
-    [[nodiscard]] auto
-    generate_entries(std::vector<std::string> const                                         &entries,
-                     std::size_t                                                             id,
-                     std::map<std::string, Weight_importer_helpers::onnx_tool_output> const &map_onnx_tool) const
-      -> std::vector<std::string>;
-
     /// It will generate the relevant entry given its name and the node
     /// \param lower_case The entry name in lower case
     /// \param id The node id in the block graph
@@ -38,10 +27,21 @@ namespace network_butcher::io
     [[nodiscard]] auto
     generate_entry(std::string const                                                      &lower_case,
                    std::size_t                                                             id,
-                   std::map<std::string, Weight_importer_helpers::onnx_tool_output> const &map_onnx_tool,
+                   std::map<std::string, Weight_importer_helpers::Onnx_Tool_Output_Type> const &map_onnx_tool,
                    std::map<std::string, std::size_t>                                     &previous_entries_info,
                    Node_Id_Collection_Type const                                          &original_ids,
                    Node_Id_Collection_Type const &node_output_ids) const -> std::string;
+
+    /// It will produce a row of the aMLLibrary_prediction.csv file
+    /// \param entries The entries to insert
+    /// \param id The node id in the block graph
+    /// \param map_onnx_tool The output of onnx_tool
+    /// \return The relevant row in the .csv file
+    [[nodiscard]] auto
+    generate_entries(std::vector<std::string> const                                         &entries,
+                     std::size_t                                                             id,
+                     std::map<std::string, Weight_importer_helpers::Onnx_Tool_Output_Type> const &map_onnx_tool) const
+    -> std::vector<std::string>;
 
   public:
     block_aMLLibrary_Weight_Importer(Converted_Onnx_Graph_Type const               &graph,

@@ -5,9 +5,10 @@
 
 namespace network_butcher::io
 {
-  std::string
+  auto
   original_aMLLibrary_Weight_Importer::generate_entry(const std::string                          &entry,
                                                       const Converted_Onnx_Graph_Type::Node_Type &node) const
+    -> std::string
   {
     auto const lower_case = Utilities::to_lowercase_copy(entry);
     if (lower_case == "nrparameters")
@@ -26,10 +27,11 @@ namespace network_butcher::io
   }
 
 
-  std::string
+  auto
   original_aMLLibrary_Weight_Importer::generate_entry(const std::string                               &entry,
-                                                      const Weight_importer_helpers::onnx_tool_output &basic_info,
+                                                      const Weight_importer_helpers::Onnx_Tool_Output_Type &basic_info,
                                                       const Converted_Onnx_Graph_Type::Node_Type      &node) const
+    -> std::string
   {
     auto const lower_case = Utilities::to_lowercase_copy(entry);
 
@@ -71,6 +73,35 @@ namespace network_butcher::io
     import_weights(nullptr);
   }
 
+  auto
+  original_aMLLibrary_Weight_Importer::generete_entries(
+    std::vector<std::string> const                                         &entries,
+    Converted_Onnx_Graph_Type::Node_Type const                             &node,
+    std::map<std::string, Weight_importer_helpers::Onnx_Tool_Output_Type> const &map_onnx_tool) const
+    -> std::vector<std::string>
+  {
+    auto                     info_it = map_onnx_tool.find(node.name);
+    std::vector<std::string> row;
+    row.reserve(entries.size());
+
+    if (info_it != map_onnx_tool.cend())
+      {
+        for (auto const &entry : entries)
+          {
+            row.emplace_back(generate_entry(entry, info_it->second, node));
+          }
+      }
+    else
+      {
+        for (auto const &entry : entries)
+          {
+            row.emplace_back(generate_entry(entry, node));
+          }
+      }
+
+    return row;
+  }
+
 
   void
   original_aMLLibrary_Weight_Importer::import_weights(
@@ -98,49 +129,14 @@ namespace network_butcher::io
     // For every node generate the relevant entry in the .csv file
     for (auto const &node : graph.get_nodes())
       {
-        auto                     info_it = macs.find(node.name);
-        std::vector<std::string> row;
-        row.reserve(aMLLibrary_input.front().size());
-
-        if (info_it != macs.cend())
-          {
-            for (auto const &entry : aMLLibrary_input.front())
-              {
-                row.emplace_back(generate_entry(entry, info_it->second, node));
-              }
-          }
-        else
-          {
-            for (auto const &entry : aMLLibrary_input.front())
-              {
-                row.emplace_back(generate_entry(entry, node));
-              }
-          }
-
-        aMLLibrary_input.push_back(std::move(row));
+        aMLLibrary_input.push_back(generete_entries(aMLLibrary_input.front(), node, macs));
       }
 
     // Assemble the .csv file
     csv_assembler(aMLLibrary_input, csv_path);
 
-    std::vector<std::string> paths;
-    std::vector<std::string> relevant_entries;
-
-    // Perform the predictions
-    for (std::size_t i = 0; i < devices.size(); ++i)
-      {
-        std::string tmp_dir_path =
-          Utilities::combine_path(aMLLibrary_params.temporary_directory, "predict_" + std::to_string(i));
-
-        Utilities::directory_delete(tmp_dir_path);
-
-        prepare_predict_file(aMLLibrary_params.aMLLibrary_inference_variables[i], csv_path, tmp_dir_path + ".ini");
-
-        execute_weight_generator(devices[i].weights_path, tmp_dir_path + ".ini", tmp_dir_path);
-
-        paths.emplace_back(Utilities::combine_path(tmp_dir_path, "prediction.csv"));
-        relevant_entries.emplace_back("pred");
-      }
+    // Construct the weights through aMMLibrary
+    auto [paths, relevant_entries] = perform_predictions(csv_path);
 
     pybind11::finalize_interpreter();
 

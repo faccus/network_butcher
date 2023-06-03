@@ -73,11 +73,17 @@ namespace network_butcher::io
     /// \return A map containing the network information
     [[nodiscard]] static auto
     read_network_info_onnx_tool(const std::string &path)
-      -> std::map<std::string, Weight_importer_helpers::onnx_tool_output>;
+      -> std::map<std::string, Weight_importer_helpers::Onnx_Tool_Output_Type>;
 
     /// It will prepare the .csv file to be fed to aMLLibrary
     static void
     csv_assembler(const std::vector<std::vector<std::string>> &content, const std::string &path);
+
+    /// It will start aMMLibrary to produce the .csv files for the various devices
+    /// \param csv_path The path containing the .csv file used as an input of aMMLibrary
+    /// \return The pair containing the paths and the relevant entries
+    [[nodiscard]] auto
+    perform_predictions(std::string const &csv_path) const -> std::pair<std::vector<std::string>, std::vector<std::string>>;
 
   public:
     explicit Abstract_aMLLibrary_Weight_Importer(network_butcher::parameters::Parameters const &params)
