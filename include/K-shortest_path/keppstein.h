@@ -13,28 +13,27 @@
 namespace network_butcher::kfinder
 {
   /// This class implements the Eppstein K-shortest path algorithm
-  /// \tparam Graph_type The graph type
-  template <typename Graph_type,
+  /// \tparam GraphType The graph type
+  template <typename GraphType,
             bool                 Only_Distance                  = false,
-            Valid_Weighted_Graph t_Weighted_Graph_Complete_Type = Weighted_Graph<Graph_type>>
-  class KFinder_Eppstein final : public Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>
+            Valid_Weighted_Graph t_Weighted_Graph_Complete_Type = Weighted_Graph<GraphType>>
+  class KFinder_Eppstein final : public Basic_KEppstein<GraphType, Only_Distance, t_Weighted_Graph_Complete_Type>
   {
   private:
-    using base = Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>;
+    using Parent_Type = Basic_KEppstein<GraphType, Only_Distance, t_Weighted_Graph_Complete_Type>;
 
   public:
-    using Output_Type = typename base::Output_Type;
+    using Output_Type = Parent_Type::Output_Type;
 
   private:
-    using Weight_Type = base::Weight_Type;
+    using Edge_Info   = Parent_Type::Edge_Info;
+    using Weight_Type = Parent_Type::Weight_Type;
 
-    using edge_info = base::edge_info;
+    using Dijkstra_Result_Type            = Parent_Type::Dijkstra_Result_Type;
+    using Internal_Weight_Collection_Type = Parent_Type::Internal_Weight_Collection_Type;
 
-    using internal_weight_collection = base::internal_weight_collection;
-    using dijkstra_result_type       = base::dijkstra_result_type;
-
-    using H_g_collection   = base::H_g_collection;
-    using H_out_collection = base::H_out_collection;
+    using H_g_collection   = Parent_Type::H_g_collection;
+    using H_out_collection = Parent_Type::H_out_collection;
 
 
     /// Given the successors collection and the sidetrack distances, it will construct the h_out map
@@ -42,61 +41,62 @@ namespace network_butcher::kfinder
     /// shortest path)
     /// \param sidetrack_distances The collection of the sidetrack distances for all the sidetrack edges
     /// \return H_out map
-    [[nodiscard]] H_out_collection
-    construct_h_out(std::vector<Node_Id_Type> const  &successors,
-                    internal_weight_collection const &sidetrack_distances) const;
+    [[nodiscard]] auto
+    construct_h_out(std::vector<Node_Id_Type> const       &successors,
+                    Internal_Weight_Collection_Type const &sidetrack_distances) const -> H_out_collection;
 
 
     /// It will produce the map associating every node to its corresponding H_g map
     /// \param h_out_collection The collection of h_outs
     /// \param successors The successors list
     /// \return The map associating every node to its corresponding H_g map
-    [[nodiscard]] H_g_collection
-    construct_h_g(H_out_collection const &h_out_collection, std::vector<Node_Id_Type> const &successors) const;
+    [[nodiscard]] auto
+    construct_h_g(H_out_collection const &h_out_collection, std::vector<Node_Id_Type> const &successors) const
+      -> H_g_collection;
 
 
     /// The basic function for the Eppstein algorithm
     /// \param K The number of shortest paths
     /// \param dij_res The result of dijkstra
-    /// \return The (implicit) k shortest paths
-    [[nodiscard]] Output_Type
-    start(std::size_t K, dijkstra_result_type const &dij_res) const override;
+    /// \return The k shortest paths
+    [[nodiscard]] auto
+    start(std::size_t K, Parent_Type::Dijkstra_Result_Type const &dij_res) const -> Output_Type override;
 
   public:
-    explicit KFinder_Eppstein(Graph_type const &g, std::size_t root, std::size_t sink)
-      : base(g, root, sink){};
+    explicit KFinder_Eppstein(GraphType const &g, std::size_t root, std::size_t sink)
+      : Parent_Type(g, root, sink){};
 
-    explicit KFinder_Eppstein(Weighted_Graph<Graph_type> const &g, std::size_t root, std::size_t sink)
-      : base(g, root, sink){};
+    explicit KFinder_Eppstein(Weighted_Graph<GraphType> const &g, std::size_t root, std::size_t sink)
+      : Parent_Type(g, root, sink){};
 
     ~KFinder_Eppstein() override = default;
   };
 
 
   template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  KFinder_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::Output_Type
+  auto
   KFinder_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::start(
-    std::size_t                                   K,
-    const KFinder_Eppstein::dijkstra_result_type &dij_res) const
+    std::size_t                 K,
+    Dijkstra_Result_Type const &dij_res) const -> Output_Type
   {
-    auto const  sidetrack_distances_res = base::sidetrack_distances(dij_res); // O(E)
+    auto const  sidetrack_distances_res = Parent_Type::sidetrack_distances(dij_res); // O(E)
     auto const &successors              = dij_res.first;
 
     auto h_out = construct_h_out(successors, sidetrack_distances_res); // O(N+E)
     auto h_g   = construct_h_g(h_out, successors);                     // O(N*log(N))
 
-    return base::general_algo_eppstein(K, dij_res, sidetrack_distances_res, h_g, h_out);
+    return Parent_Type::general_algo_eppstein(K, dij_res, sidetrack_distances_res, h_g, h_out);
   }
 
 
   template <class Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  KFinder_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::H_out_collection
+  auto
   KFinder_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::construct_h_out(
-    const std::vector<Node_Id_Type>  &successors,
-    const internal_weight_collection &sidetrack_distances) const
+    std::vector<Node_Id_Type> const       &successors,
+    Internal_Weight_Collection_Type const &sidetrack_distances) const -> H_out_collection
   {
     H_out_collection h_out_collection;
-    auto const      &graph = base::graph;
+    auto const      &graph = Parent_Type::graph;
 
     for (auto const &tail_node : graph)
       {
@@ -119,7 +119,7 @@ namespace network_butcher::kfinder
 
             for (; begin != end; ++begin)
               {
-                h_out.push(edge_info{begin->first, begin->second});
+                h_out.push(Edge_Info{begin->first, begin->second});
               }
           }
       }
@@ -129,16 +129,16 @@ namespace network_butcher::kfinder
 
 
   template <class Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  KFinder_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::H_g_collection
+  auto
   KFinder_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::construct_h_g(
     const H_out_collection          &h_out_collection,
-    const std::vector<Node_Id_Type> &successors) const // O(N*log(N))
+    const std::vector<Node_Id_Type> &successors) const -> H_g_collection // O(N^2)
   {
     H_g_collection h_g_collection;
 
-    auto const &graph     = base::graph;
+    auto const &graph     = Parent_Type::graph;
     auto const &num_nodes = graph.size();
-    auto const &sink      = base::sink;
+    auto const &sink      = Parent_Type::sink;
 
     // sp_dependencies contains the predecessors of every node in the shortest path. Notice
     // that the sum of the sizes of all the stored sets is at most N
@@ -191,7 +191,7 @@ namespace network_butcher::kfinder
 
         // the H_g of the successor along the shortest path
         if (!successor_h_g.empty())
-          h_g.overwrite_children(successor_h_g); // O(1)
+          h_g.overwrite_children(successor_h_g); // O(N)
 
         h_out_iterator = h_out_collection.find(front_element);
 

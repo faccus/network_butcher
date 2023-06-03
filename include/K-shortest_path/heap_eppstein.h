@@ -19,18 +19,18 @@ namespace network_butcher::kfinder
   /// Simple struct used to store some edge information
   /// \tparam Weight_Type The weight type
   template <typename Weight_Type = Time_Type>
-  struct t_edge_info : Crtp_Greater<t_edge_info<Weight_Type>>
+  struct Templated_Edge_Info : Crtp_Greater<Templated_Edge_Info<Weight_Type>>
   {
     Edge_Type   edge;
     Weight_Type delta_weight;
 
-    t_edge_info(Edge_Type const &in_edge, Weight_Type const &in_delta_weight)
+    Templated_Edge_Info(Edge_Type const &in_edge, Weight_Type const &in_delta_weight)
       : edge(in_edge)
       , delta_weight(in_delta_weight)
     {}
 
     bool
-    operator<(const t_edge_info &rhs) const
+    operator<(const Templated_Edge_Info &rhs) const
     {
       return delta_weight < rhs.delta_weight || (delta_weight == rhs.delta_weight && edge < rhs.edge);
     }

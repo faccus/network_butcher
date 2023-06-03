@@ -18,43 +18,43 @@
 namespace network_butcher::kfinder
 {
   /// A (pure virtual) class that provides the common methods that are used by the different Eppstein algorithms
-  template <typename Graph_type,
+  template <typename GraphType,
             bool                 Only_Distance,
-            Valid_Weighted_Graph t_Weighted_Graph_Complete_Type = Weighted_Graph<Graph_type>>
-  class Basic_KEppstein : public KFinder<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>
+            Valid_Weighted_Graph t_Weighted_Graph_Complete_Type = Weighted_Graph<GraphType>>
+  class Basic_KEppstein : public KFinder<GraphType, Only_Distance, t_Weighted_Graph_Complete_Type>
   {
+  private:
+    using Parent_Type = KFinder<GraphType, Only_Distance, t_Weighted_Graph_Complete_Type>;
+
   protected:
-    using base = KFinder<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>;
+    using Parent_Type::graph;
 
     using Weight_Type = typename t_Weighted_Graph_Complete_Type::Weight_Type;
 
-    using base::graph;
 
-    using edge_info = t_edge_info<Weight_Type>;
-    using path_info = Path_Info<Weight_Type>;
+    using Edge_Info = Templated_Edge_Info<Weight_Type>;
+    using Path_Info = Templated_Path_Info<Weight_Type>;
 
-    using H_g_collection   = H_G_Collection_Template<Weight_Type>;
-    using H_out_collection = H_out_Collection_Template<Weight_Type>;
+    using H_g_collection   = Templated_H_g_Collection<Weight_Type>;
+    using H_out_collection = Templated_H_out_Collection<Weight_Type>;
 
 
-    // (Position of H_out in H_g, Position of sidetrack in H_out)
-    using location_dg_type = std::pair<std::size_t, std::size_t>;
-    using element_dg_type  = std::pair<edge_info, location_dg_type>;
-    using elements_dg_type = std::vector<element_dg_type>;
-
-    using internal_weight_collection = std::multimap<Edge_Type, Weight_Type>;
-    using dijkstra_result_type = network_butcher::kfinder::Shortest_path_finder::Dijkstra_Result_Type<Weight_Type>;
+    /// (Position of H_out in H_g, Position of sidetrack in H_out)
+    using Location_DG_Type                = std::pair<std::size_t, std::size_t>;
+    using Internal_Weight_Collection_Type = std::multimap<Edge_Type, Weight_Type>;
+    using Dijkstra_Result_Type =
+      network_butcher::kfinder::Shortest_path_finder::Templated_Dijkstra_Result_Type<Weight_Type>;
 
     /// Sidetrack edge can be represented as two elements: the relevant H_g and the position of the edge in H_g as two
     /// integers, one for the position in H_g and one for the position in H_out
-    struct sidetrack
+    struct Sidetrack
     {
       H_g_collection::const_iterator current_h_g;
-      location_dg_type               location;
+      Location_DG_Type               location;
       Weight_Type                    delta_weight;
 
       bool
-      operator<(sidetrack const &rhs) const
+      operator<(Sidetrack const &rhs) const
       {
         return current_h_g->first < rhs.current_h_g->first ||
                (current_h_g->first == rhs.current_h_g->first && location < rhs.location);
@@ -62,20 +62,20 @@ namespace network_butcher::kfinder
     };
 
     /// Simple struct to represent an implicit path
-    struct implicit_path_info : Crtp_Greater<implicit_path_info>
+    struct Implicit_Path_Info : Crtp_Greater<Implicit_Path_Info>
     {
-      std::optional<sidetrack> current_sidetrack;
-      implicit_path_info      *previous_sidetracks;
+      std::optional<Sidetrack> current_sidetrack;
+      Implicit_Path_Info      *previous_sidetracks; // Previous Implicit_Path_Info in the chain
       Weight_Type              length;
 
       bool
-      operator<(const implicit_path_info &rhs) const
+      operator<(const Implicit_Path_Info &rhs) const
       {
         return length < rhs.length;
       }
 
       void
-      compute_sidetracks(std::list<sidetrack const *> &sidetracks) const
+      compute_sidetracks(std::list<Sidetrack const *> &sidetracks) const
       {
         if (!current_sidetrack)
           {
@@ -90,7 +90,7 @@ namespace network_butcher::kfinder
         sidetracks.push_back(&current_sidetrack.value());
       }
 
-      std::list<sidetrack const *>
+      std::list<Sidetrack const *>
       compute_sidetracks() const
       {
         if (!current_sidetrack)
@@ -98,7 +98,7 @@ namespace network_butcher::kfinder
             return {};
           }
 
-        std::list<sidetrack const *> sidetracks;
+        std::list<Sidetrack const *> sidetracks;
         if (previous_sidetracks != nullptr)
           {
             previous_sidetracks->compute_sidetracks(sidetracks);
@@ -111,36 +111,37 @@ namespace network_butcher::kfinder
     };
 
   public:
-    using Output_Type = std::conditional_t<Only_Distance, std::vector<Weight_Type>, std::vector<path_info>>;
+    using Output_Type = Parent_Type::Output_Type;
 
   protected:
-    using callback_function =
+    using Callback_Function =
       std::function<typename H_g_collection::const_iterator(H_g_collection &,
                                                             H_out_collection &,
-                                                            internal_weight_collection const &,
-                                                            typename dijkstra_result_type::first_type const &,
+                                                            Internal_Weight_Collection_Type const &,
+                                                            typename Dijkstra_Result_Type::first_type const &,
                                                             Node_Id_Type)>;
 
 
     /// It extracts the first sidetrack associated to the given node
     /// \param h_g_it The h_g map iterator
     /// \return The corresponding sidetrack edge
-    [[nodiscard]] sidetrack
-    extract_first_sidetrack_edge(typename H_g_collection::const_iterator const &h_g_it) const;
+    [[nodiscard]] auto
+    extract_first_sidetrack_edge(typename H_g_collection::const_iterator const &h_g_it) const -> Sidetrack;
 
     /// Computes the sidetrack distances for all the different sidetrack edges
     /// \param dij_res The result of the Dijkstra algorithm
     /// \return The collection of sidetrack distances for the different edges
-    [[nodiscard]] internal_weight_collection
-    sidetrack_distances(dijkstra_result_type const &dij_res) const;
+    [[nodiscard]] auto
+    sidetrack_distances(Dijkstra_Result_Type const &dij_res) const -> Internal_Weight_Collection_Type;
 
 
     /// It contains the children of the given edge in the D(G) graph
     /// \param h_g_it H_g iterator
     /// \param position The location of the sidetrack edge in the H_g
     /// \return The children of the given edge in D(G)
-    [[nodiscard]] std::vector<sidetrack>
-    get_alternatives(typename H_g_collection::const_iterator const &h_g_it, location_dg_type const &position) const;
+    [[nodiscard]] auto
+    get_alternatives(typename H_g_collection::const_iterator const &h_g_it, Location_DG_Type const &position) const
+      -> std::vector<Sidetrack>;
 
 
     /// Helper function for the Eppstein algorithm. It converts a vector of implicit paths to a vector of explicit
@@ -148,12 +149,19 @@ namespace network_butcher::kfinder
     /// \param dij_res The result of the Dijkstra result
     /// \param epp_res The collection of implicit paths
     /// \return The shortest paths
-    [[nodiscard]] std::vector<path_info>
-    helper_eppstein(dijkstra_result_type const &dij_res, std::vector<implicit_path_info> const &epp_res) const;
+    [[nodiscard]] auto
+    helper_eppstein(Dijkstra_Result_Type const &dij_res, std::vector<Implicit_Path_Info> const &epp_res) const
+      -> std::vector<Path_Info>;
 
 
-    [[nodiscard]] virtual Output_Type
-    start(std::size_t K, dijkstra_result_type const &dij_res) const = 0;
+    /// This function must be specialized by the different algorithms. It should prepare the required H_outs and H_gs
+    /// and call the general_algo_eppstein function
+    /// \param K The number of shortest paths to compute
+    /// \param dij_res The result of the Dijkstra algorithm
+    /// \return The shortest paths (in explicit form)
+    [[nodiscard]] virtual auto
+    start(std::size_t K, Dijkstra_Result_Type const &dij_res) const -> Output_Type = 0;
+
 
     /// The "general" structure of the Eppstein algorithms. It will construct the shortest paths
     /// \param K The number of shortest paths
@@ -163,39 +171,39 @@ namespace network_butcher::kfinder
     /// \param h_out The h_out map
     /// \param callback_fun A callback function called during the loop used to find the shortest paths
     /// \return The (implicit) shortest paths
-    Output_Type
-    general_algo_eppstein(std::size_t                       K,
-                          dijkstra_result_type const       &dij_res,
-                          internal_weight_collection const &sidetrack_distances,
-                          H_g_collection                   &h_g,
-                          H_out_collection                 &h_out,
-                          callback_function const          &callback_fun = nullptr) const;
+    auto
+    general_algo_eppstein(std::size_t                            K,
+                          Dijkstra_Result_Type const            &dij_res,
+                          Internal_Weight_Collection_Type const &sidetrack_distances,
+                          H_g_collection                        &h_g,
+                          H_out_collection                      &h_out,
+                          Callback_Function const               &callback_fun = nullptr) const -> Output_Type;
 
   public:
-    /// Applies a K-shortest path algorithm to find the k-shortest paths on the given graph (from the first node to
-    /// the last one)
+    /// Applies a K-shortest path algorithm to find the k-shortest paths on the given graph (from the root to the sink)
     /// \param K The number of shortest paths to find
     /// \return The shortest paths
-    [[nodiscard]] Output_Type
-    compute(std::size_t K) const override;
+    [[nodiscard]] auto
+    compute(std::size_t K) const -> Output_Type override;
 
-    explicit Basic_KEppstein(Weighted_Graph<Graph_type> const &g, std::size_t root, std::size_t sink)
-      : base(g, root, sink){};
+    explicit Basic_KEppstein(Weighted_Graph<GraphType> const &g, std::size_t root, std::size_t sink)
+      : Parent_Type(g, root, sink){};
 
-    explicit Basic_KEppstein(Graph_type const &g, std::size_t root, std::size_t sink)
-      : base(g, root, sink){};
+    explicit Basic_KEppstein(GraphType const &g, std::size_t root, std::size_t sink)
+      : Parent_Type(g, root, sink){};
 
     virtual ~Basic_KEppstein() = default;
   };
 
 
   template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::Output_Type
+  auto
   Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::compute(std::size_t K) const
+    -> Output_Type
   {
-    auto const &graph = base::graph;
-    auto const &root  = base::root;
-    auto const &sink  = base::sink;
+    auto const &graph = Parent_Type::graph;
+    auto const &root  = Parent_Type::root;
+    auto const &sink  = Parent_Type::sink;
 
     if (graph.empty() || K == 0)
       return {};
@@ -219,16 +227,16 @@ namespace network_butcher::kfinder
 
 
   template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::Output_Type
+  auto
   Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::general_algo_eppstein(
-    std::size_t                                        K,
-    const Basic_KEppstein::dijkstra_result_type       &dij_res,
-    const Basic_KEppstein::internal_weight_collection &sidetrack_distances,
-    Basic_KEppstein::H_g_collection                   &h_g,
-    Basic_KEppstein::H_out_collection                 &h_out,
-    const Basic_KEppstein::callback_function          &callback_fun) const
+    std::size_t                               K,
+    Dijkstra_Result_Type const               &dij_res,
+    Internal_Weight_Collection_Type const    &sidetrack_distances,
+    H_g_collection                           &h_g,
+    H_out_collection                         &h_out,
+    const Basic_KEppstein::Callback_Function &callback_fun) const -> Output_Type
   {
-    auto const &root   = base::root;
+    auto const &root   = Parent_Type::root;
     auto constexpr inf = std::numeric_limits<Node_Id_Type>::max();
 
     auto const &[successors, shortest_distance] = dij_res;
@@ -238,9 +246,9 @@ namespace network_butcher::kfinder
       return {};
 
     // Start with the shortest path
-    std::vector<implicit_path_info> res;
+    std::vector<Implicit_Path_Info> res;
 
-    res.push_back(implicit_path_info{.current_sidetrack   = std::optional<sidetrack>(),
+    res.push_back(Implicit_Path_Info{.current_sidetrack   = std::optional<Sidetrack>(),
                                      .previous_sidetracks = nullptr,
                                      .length              = shortest_distance[root]});
 
@@ -255,7 +263,7 @@ namespace network_butcher::kfinder
           }
         else
           {
-            return {Shortest_path_finder::shortest_path_finder(base::graph, dij_res, root, base::sink)};
+            return {Shortest_path_finder::shortest_path_finder(Parent_Type::graph, dij_res, root, Parent_Type::sink)};
           }
       }
 
@@ -264,11 +272,11 @@ namespace network_butcher::kfinder
     res.reserve(K);
 
     // Collection of "final" implicit paths to be added to res
-    Heap<implicit_path_info, std::greater<>> Q;
+    Heap<Implicit_Path_Info, std::greater<>> Q;
     Q.reserve(K);
 
     // First deviatory path
-    Q.push(implicit_path_info{.current_sidetrack   = first_side_track,
+    Q.push(Implicit_Path_Info{.current_sidetrack   = first_side_track,
                               .previous_sidetracks = nullptr,
                               .length              = first_side_track.delta_weight + shortest_distance[root]});
 
@@ -301,7 +309,7 @@ namespace network_butcher::kfinder
             // Extract the first sidetrack edge, if it exists
             auto const &f = extract_first_sidetrack_edge(h_g_it);
 
-            Q.push(implicit_path_info{.current_sidetrack   = f,
+            Q.push(Implicit_Path_Info{.current_sidetrack   = f,
                                       .previous_sidetracks = &res.back(),
                                       .length              = SK.length + f.delta_weight});
           }
@@ -312,7 +320,7 @@ namespace network_butcher::kfinder
           {
             for (auto const &sidetrack_edge : alternatives)
               {
-                Q.push(implicit_path_info{.current_sidetrack   = sidetrack_edge,
+                Q.push(Implicit_Path_Info{.current_sidetrack   = sidetrack_edge,
                                           .previous_sidetracks = SK.previous_sidetracks,
                                           .length              = SK.length + sidetrack_edge.delta_weight - e_weight});
               }
@@ -337,18 +345,18 @@ namespace network_butcher::kfinder
 
 
   template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  std::vector<typename Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::path_info>
+  auto
   Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::helper_eppstein(
-    const Basic_KEppstein::dijkstra_result_type &dij_res,
-    const std::vector<implicit_path_info>       &epp_res) const
+    Dijkstra_Result_Type const            &dij_res,
+    std::vector<Implicit_Path_Info> const &epp_res) const -> std::vector<Path_Info>
   {
-    auto const &root = base::root;
-    auto const &sink = base::sink;
+    auto const &root = Parent_Type::root;
+    auto const &sink = Parent_Type::sink;
 
     auto const &successors = dij_res.first;
     auto const &distances  = dij_res.second;
 
-    std::vector<path_info> res(epp_res.size());
+    std::vector<Path_Info> res(epp_res.size());
 
     auto const go_shortest = [&successors, sink](Node_Id_Type node) {
       std::vector<Node_Id_Type> final_steps;
@@ -362,7 +370,7 @@ namespace network_butcher::kfinder
       return final_steps;
     };
 
-    auto const extract_edge = [](H_out_collection::const_iterator h_out, location_dg_type const &loc) {
+    auto const extract_edge = [](H_out_collection::const_iterator h_out, Location_DG_Type const &loc) {
       return h_out->second.get_elem(loc.second).edge;
     };
 
@@ -427,9 +435,9 @@ namespace network_butcher::kfinder
     std::for_each(std::execution::par, view.begin(), view.end(), process_path);
 #else
 
-    #pragma omp parallel default(none) shared(epp_res, res, go_shortest, extract_edge, root, sink, dij_res)
+#  pragma omp parallel default(none) shared(epp_res, res, go_shortest, extract_edge, root, sink, dij_res)
     {
-      #pragma omp for
+#  pragma omp for
       for (std::size_t i = 0; i < epp_res.size(); ++i)
         {
           auto const &implicit_path = epp_res[i];
@@ -491,12 +499,12 @@ namespace network_butcher::kfinder
 
 
   template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  std::vector<typename Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::sidetrack>
+  auto
   Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::get_alternatives(
-    const H_g_collection::const_iterator    &h_g_it,
-    const Basic_KEppstein::location_dg_type &position) const
+    H_g_collection::const_iterator const &h_g_it,
+    Location_DG_Type const               &position) const -> std::vector<Sidetrack>
   {
-    std::vector<typename Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::sidetrack> res;
+    std::vector<Sidetrack> res;
     auto constexpr inf = std::numeric_limits<Node_Id_Type>::max();
 
     auto [h_out_index, index] = position;
@@ -530,11 +538,11 @@ namespace network_butcher::kfinder
 
 
   template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::internal_weight_collection
+  auto
   Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::sidetrack_distances(
-    const Basic_KEppstein::dijkstra_result_type &dij_res) const
+    Dijkstra_Result_Type const &dij_res) const -> Internal_Weight_Collection_Type
   {
-    internal_weight_collection res;
+    Internal_Weight_Collection_Type res;
     auto const &[successors, distances_from_sink] = dij_res;
 
     for (auto const &tail_node : graph)
@@ -586,13 +594,13 @@ namespace network_butcher::kfinder
 
 
   template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::sidetrack
+  auto
   Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::extract_first_sidetrack_edge(
-    const H_g_collection::const_iterator &h_g_it) const
+    H_g_collection::const_iterator const &h_g_it) const -> Sidetrack
   {
     auto const &edge = h_g_it->second.get_elem(0)->second.get_elem(0);
 
-    return sidetrack{.current_h_g = h_g_it, .location = std::make_pair(0, 0), .delta_weight = edge.delta_weight};
+    return Sidetrack{.current_h_g = h_g_it, .location = std::make_pair(0, 0), .delta_weight = edge.delta_weight};
   }
 } // namespace network_butcher::kfinder
 

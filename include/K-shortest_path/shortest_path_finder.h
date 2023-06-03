@@ -14,7 +14,7 @@
 
 namespace network_butcher::kfinder::Shortest_path_finder
 {
-  /// A helper struct for the dijkstra algo
+  /// A helper struct for the Dijkstra algorithm
   template <typename Weight_Type = Time_Type>
   struct Dijkstra_Helper : Crtp_Greater<Dijkstra_Helper<Weight_Type>>
   {
@@ -35,7 +35,7 @@ namespace network_butcher::kfinder::Shortest_path_finder
 
   /// The output type of the Dijkstra algorithm
   template <typename Weight_Type = Time_Type>
-  using Dijkstra_Result_Type = std::pair<std::vector<Node_Id_Type>, std::vector<Weight_Type>>;
+  using Templated_Dijkstra_Result_Type = std::pair<std::vector<Node_Id_Type>, std::vector<Weight_Type>>;
 
   namespace utilities
   {
@@ -45,8 +45,8 @@ namespace network_butcher::kfinder::Shortest_path_finder
     /// \param head The head node id
     /// \return The corresponding weight
     template <Valid_Weighted_Graph v_Weighted_Graph>
-    v_Weighted_Graph::Weight_Type
-    get_weight(v_Weighted_Graph const &graph, Node_Id_Type tail, Node_Id_Type head)
+    auto
+    get_weight(v_Weighted_Graph const &graph, Node_Id_Type tail, Node_Id_Type head) -> v_Weighted_Graph::Weight_Type
     {
       auto const &weight_container = graph.get_weight(std::make_pair(tail, head));
 
@@ -55,27 +55,27 @@ namespace network_butcher::kfinder::Shortest_path_finder
   } // namespace utilities
 
 
-  /// Executes dijkstra algorithm to compute the shortest paths from the root to every node of the input graph
+  /// Executes Dijkstra algorithm to compute the shortest paths from the root to every node of the graph
   /// \param graph The graph
   /// \param root The starting vertex
-  /// \return The struct dijkstra_result_type<v_Weighted_Graph::Weight_Type>
+  /// \return The collection of successor and shortest distances
   template <Valid_Weighted_Graph v_Weighted_Graph>
-  [[nodiscard]] Dijkstra_Result_Type<typename v_Weighted_Graph::Weight_Type>
+  [[nodiscard]] auto
   dijkstra(v_Weighted_Graph const &graph,
-           Node_Id_Type            root) // time: ((N+E)log(N)), space: O(N)
+           Node_Id_Type            root)
+    -> Templated_Dijkstra_Result_Type<typename v_Weighted_Graph::Weight_Type> // time: ((N+E)log(N)), space: O(N)
   {
-    using dijkstra_result_type   = Dijkstra_Result_Type<typename v_Weighted_Graph::Weight_Type>;
-    using dijkstra_helper_struct = Dijkstra_Helper<typename v_Weighted_Graph::Weight_Type>;
+    using Weight_Type            = typename v_Weighted_Graph::Weight_Type;
+    using dijkstra_result_type   = Templated_Dijkstra_Result_Type<Weight_Type>;
+    using dijkstra_helper_struct = Dijkstra_Helper<Weight_Type>;
 
     if (graph.empty())
       {
         return dijkstra_result_type{};
       }
 
-    std::vector<typename v_Weighted_Graph::Weight_Type> total_distance(
-      graph.size(), std::numeric_limits<typename v_Weighted_Graph::Weight_Type>::max());
+    std::vector<Weight_Type> total_distance(graph.size(), std::numeric_limits<Weight_Type>::max());
     total_distance[root] = 0;
-
 
     std::vector<Node_Id_Type> predecessors(graph.size(), std::numeric_limits<Node_Id_Type>::max());
     predecessors[root] = root;
@@ -101,7 +101,7 @@ namespace network_butcher::kfinder::Shortest_path_finder
         auto current_node = to_visit.pop_head(); // O(log(N))
 
         auto const &start_distance = total_distance[current_node.id];
-        if (start_distance == std::numeric_limits<typename v_Weighted_Graph::Weight_Type>::max())
+        if (start_distance == std::numeric_limits<Weight_Type>::max())
           {
             throw std::logic_error("Dijkstra error: the node current distance is +inf");
           }
@@ -139,20 +139,20 @@ namespace network_butcher::kfinder::Shortest_path_finder
   }
 
 
-  /// Given the result of the dijkstra algorithm, it will return the shortest path from the root to the final node
+  /// Given the result of the Dijkstra algorithm, it will return the shortest path from the root to the final node
   /// \param graph The graph
   /// \param dij_res The result of the dijkstra algorithm
   /// \param root The starting node
   /// \param sink The ending node
   /// \return The shortest path
   template <Valid_Weighted_Graph v_Weighted_Graph>
-  Path_Info<typename v_Weighted_Graph::Weight_Type>
-  shortest_path_finder(v_Weighted_Graph const                                             &graph,
-                       Dijkstra_Result_Type<typename v_Weighted_Graph::Weight_Type> const &dij_res,
-                       Node_Id_Type                                                        root,
-                       Node_Id_Type                                                        sink)
+  auto
+  shortest_path_finder(v_Weighted_Graph const                                                       &graph,
+                       Templated_Dijkstra_Result_Type<typename v_Weighted_Graph::Weight_Type> const &dij_res,
+                       Node_Id_Type                                                                  root,
+                       Node_Id_Type sink) -> Templated_Path_Info<typename v_Weighted_Graph::Weight_Type>
   {
-    Path_Info<typename v_Weighted_Graph::Weight_Type> info;
+    Templated_Path_Info<typename v_Weighted_Graph::Weight_Type> info;
     info.length = dij_res.second[root];
     info.path.reserve(graph.size());
 
