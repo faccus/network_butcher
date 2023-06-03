@@ -13,9 +13,6 @@ namespace network_butcher::io::Onnx_importer_helpers
 {
   using Map_IO = std::unordered_map<std::string, Type_Info_Pointer>;
 
-  template <typename T>
-  using Repeatable_field = google::protobuf::RepeatedPtrField<T>;
-
   /// Collection of helper structs (used instead of tuples to improve readability)
   namespace helpers_structures {
     /// Simple helper struct used as an output of process_node. It contains the node to be added to the graph

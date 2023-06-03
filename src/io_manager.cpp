@@ -61,11 +61,12 @@ namespace network_butcher::io::IO_Manager
 
 
   void
-  utilities::reconstruct_model_and_export(network_butcher::types::Weighted_Real_Path const &weighted_path,
-                                          const onnx::ModelProto                           &original_model,
-                                          const std::map<Node_Id_Type, Node_Id_Type>       &link_id_nodeproto,
-                                          preprocessed_ios_nodes_type const                &preprocessed_ios_nodes,
-                                          const std::string                                &export_base_path)
+  utilities::reconstruct_model_and_export(
+    network_butcher::types::Weighted_Real_Path const                                 &weighted_path,
+    const onnx::ModelProto                                                           &original_model,
+    const std::map<Node_Id_Type, Node_Id_Type>                                       &link_id_nodeproto,
+    Onnx_model_reconstructor_helpers::helper_structures::Preprocessed_Ios_Type const &preprocessed_ios_nodes,
+    const std::string                                                                &export_base_path)
   {
     auto const &model_graph = original_model.graph();
 
@@ -101,12 +102,13 @@ namespace network_butcher::io::IO_Manager
   }
 
 
-  std::pair<bool, onnx::ModelProto>
-  reconstruct_model_from_partition(const network_butcher::types::Real_Partition &partition,
-                                   const onnx::ModelProto                       &original_model,
-                                   const std::map<Node_Id_Type, Node_Id_Type>   &link_id_nodeproto,
-                                   const preprocessed_ios_nodes_type            &preprocessed_ios_nodes,
-                                   const onnx::GraphProto                       &model_graph)
+  auto
+  reconstruct_model_from_partition(
+    const network_butcher::types::Real_Partition                                     &partition,
+    const onnx::ModelProto                                                           &original_model,
+    const std::map<Node_Id_Type, Node_Id_Type>                                       &link_id_nodeproto,
+    const Onnx_model_reconstructor_helpers::helper_structures::Preprocessed_Ios_Type &preprocessed_ios_nodes,
+    const onnx::GraphProto &model_graph) -> std::pair<bool, onnx::ModelProto>
   {
     onnx::ModelProto new_model;
     auto const      &node_ids = partition.second;
@@ -141,14 +143,15 @@ namespace network_butcher::io::IO_Manager
 
 
   void
-  export_to_onnx(const onnx::ModelProto &model, std::string path)
+  export_to_onnx(const onnx::ModelProto &model, std::string const &path)
   {
     network_butcher::Utilities::output_onnx_file(model, path);
   }
 
 
-  std::tuple<Converted_Onnx_Graph_Type, onnx::ModelProto, std::map<Node_Id_Type, Node_Id_Type>>
+  auto
   import_from_onnx(std::string const &path, bool add_input_padding, bool add_output_padding, std::size_t num_devices)
+    -> std::tuple<Converted_Onnx_Graph_Type, onnx::ModelProto, std::map<Node_Id_Type, Node_Id_Type>>
   {
     using namespace network_butcher::io::Onnx_importer_helpers;
 
@@ -217,8 +220,8 @@ namespace network_butcher::io::IO_Manager
   }
 
 
-  network_butcher::parameters::Parameters
-  read_parameters(const std::string &path)
+  auto
+  read_parameters(const std::string &path) -> network_butcher::parameters::Parameters
   {
     GetPot file(path);
 
@@ -547,8 +550,10 @@ namespace network_butcher::io::IO_Manager
     return res;
   }
 
-  std::unique_ptr<Weight_Importer>
-  generate_weight_importer(Converted_Onnx_Graph_Type &graph, network_butcher::parameters::Parameters const &params)
+  auto
+  utilities::generate_weight_importer(Converted_Onnx_Graph_Type                     &graph,
+                                      network_butcher::parameters::Parameters const &params)
+    -> std::unique_ptr<Weight_Importer>
   {
     switch (params.weights_params.weight_import_mode)
       {
@@ -588,7 +593,7 @@ namespace network_butcher::io::IO_Manager
         return;
       }
 
-    generate_weight_importer(graph, params)->import_weights();
+    utilities::generate_weight_importer(graph, params)->import_weights();
   }
 
 

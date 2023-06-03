@@ -17,15 +17,15 @@
 
 namespace network_butcher::io::IO_Manager
 {
-  using value_proto_collection_it  = google::protobuf::RepeatedPtrField<onnx::ValueInfoProto>::const_iterator;
-  using tensor_proto_collection_it = google::protobuf::RepeatedPtrField<onnx::TensorProto>::const_iterator;
-  using preprocessed_ios_nodes_type =
-    std::unordered_map<std::string,
-                       std::pair<network_butcher::io::Onnx_model_reconstructor_helpers::IO_Type,
-                                 std::pair<value_proto_collection_it, tensor_proto_collection_it>>>;
-
   namespace utilities
   {
+    /// It will generate the Weight_Importer for the given graph
+    /// \param graph The graph
+    /// \param params The parameters
+    /// \return The Weight_Importer
+    auto
+    generate_weight_importer(Converted_Onnx_Graph_Type &graph, network_butcher::parameters::Parameters const &params)
+      -> std::unique_ptr<Weight_Importer>;
 
     /// Based on the original graph and the partitions device/nodes, it will produce the "butchered" models and
     /// export them to the specified path (directory / name)
@@ -35,20 +35,20 @@ namespace network_butcher::io::IO_Manager
     /// \param preprocessed_ios_nodes The extracted input, output and parameter tensors of every layer in the Model
     /// \param export_base_path The export path (+ the name of the final file)
     void
-    reconstruct_model_and_export(network_butcher::types::Weighted_Real_Path const &weighted_path,
-                                 onnx::ModelProto const                           &original_model,
-                                 std::map<Node_Id_Type, Node_Id_Type> const       &link_id_nodeproto,
-                                 preprocessed_ios_nodes_type const                &preprocessed_ios_nodes,
-                                 const std::string                                &export_base_path);
+    reconstruct_model_and_export(
+      network_butcher::types::Weighted_Real_Path const                                 &weighted_path,
+      onnx::ModelProto const                                                           &original_model,
+      std::map<Node_Id_Type, Node_Id_Type> const                                       &link_id_nodeproto,
+      Onnx_model_reconstructor_helpers::helper_structures::Preprocessed_Ios_Type const &preprocessed_ios_nodes,
+      const std::string                                                                &export_base_path);
 
   } // namespace utilities
-
 
   /// It will return the parameters read from the given file
   /// \param path The configuration file path
   /// \return The collection of parameters
-  network_butcher::parameters::Parameters
-  read_parameters(std::string const &path);
+  auto
+  read_parameters(std::string const &path) -> network_butcher::parameters::Parameters;
 
 
   /// It will import a neural network as a graph from a given .onnx file
@@ -60,18 +60,19 @@ namespace network_butcher::io::IO_Manager
   /// \param num_devices The number of devices
   /// \return A tuple made by the graph, the onnx::ModelProto for the .onnx file and a map associating every node
   /// in the graph to every node in the model (through their ids)
-  std::tuple<Converted_Onnx_Graph_Type, onnx::ModelProto, std::map<Node_Id_Type, Node_Id_Type>>
+  auto
   import_from_onnx(std::string const &path,
                    bool               add_input_padding  = true,
                    bool               add_output_padding = true,
-                   std::size_t        num_devices        = 1);
+                   std::size_t        num_devices        = 1)
+    -> std::tuple<Converted_Onnx_Graph_Type, onnx::ModelProto, std::map<Node_Id_Type, Node_Id_Type>>;
 
 
   /// It will export a given onnx::ModelProto to a file
   /// \param model The onnx::ModelProto
   /// \param path The export file path
   void
-  export_to_onnx(onnx::ModelProto const &model, std::string path);
+  export_to_onnx(onnx::ModelProto const &model, const std::string& path);
 
 
   /// It will import the collection of weights for the given graph
@@ -79,14 +80,6 @@ namespace network_butcher::io::IO_Manager
   /// \param params The parameters
   void
   import_weights(Converted_Onnx_Graph_Type &graph, const network_butcher::parameters::Parameters &params);
-
-
-  /// It will generate the Weight_Importer for the given graph
-  /// \param graph The graph
-  /// \param params The parameters
-  /// \return The Weight_Importer
-  std::unique_ptr<Weight_Importer>
-  generate_weight_importer(Converted_Onnx_Graph_Type &graph, network_butcher::parameters::Parameters const &params);
 
 
   /// It will export the network partitions to multiple .onnx files
@@ -107,29 +100,14 @@ namespace network_butcher::io::IO_Manager
   /// \param link_id_nodeproto The map that associates to every node of the graph a node of the original model
   /// \param preprocessed_ios_nodes The input, output and parameter tensors of every layer in the Model
   /// \param model_graph The graph
-  /// \return A pair with a bool to represent if the operation was runned successfully and the reconstructed model
-  std::pair<bool, onnx::ModelProto>
-  reconstruct_model_from_partition(network_butcher::types::Real_Partition const &partition,
-                                   onnx::ModelProto const                       &original_model,
-                                   std::map<Node_Id_Type, Node_Id_Type> const   &link_id_nodeproto,
-                                   preprocessed_ios_nodes_type const            &preprocessed_ios_nodes,
-                                   onnx::GraphProto const                       &model_graph);
-
-
-#if YAML_CPP_ACTIVE
-
-  /// It will return the different Parameters read from the given .yaml files for the required models
-  /// \param candidate_resources_path The candidate_resources file path
-  /// \param candidate_deployments_path The candidate_deployments file path
-  /// \param annotations_path The annotation file path
-  /// \return The vector of Parameters
-  std::vector<network_butcher::parameters::Parameters>
-  read_parameters_yaml(std::string const &candidate_resources_path,
-                       std::string const &candidate_deployments_path,
-                       std::string const &annotations_path);
-
-#endif
-
+  /// \return A pair with a bool to represent if the operation was run successfully and the reconstructed model
+  auto
+  reconstruct_model_from_partition(
+    network_butcher::types::Real_Partition const                                     &partition,
+    onnx::ModelProto const                                                           &original_model,
+    std::map<Node_Id_Type, Node_Id_Type> const                                       &link_id_nodeproto,
+    Onnx_model_reconstructor_helpers::helper_structures::Preprocessed_Ios_Type const &preprocessed_ios_nodes,
+    onnx::GraphProto const &model_graph) -> std::pair<bool, onnx::ModelProto>;
 } // namespace network_butcher::io::IO_Manager
 
 #endif // NETWORK_BUTCHER_IO_MANAGER_H
