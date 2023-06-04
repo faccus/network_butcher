@@ -77,7 +77,7 @@ namespace network_butcher::types
       return neighbours[id].first;
     }
 
-    /// Get input nodes
+    /// Get output nodes
     [[nodiscard]] auto
     get_output_nodes(Node_Id_Type id) const -> Neighbours_Type::value_type::second_type const &
     {
@@ -269,13 +269,17 @@ namespace network_butcher::types
     }
 
     /// Get input nodes
+    /// \param id The id of the node
+    /// \return The input nodes
     [[nodiscard]] auto
     get_input_nodes(Node_Id_Type id) const -> Neighbours_Type::value_type::first_type const &
     {
       return neighbours[id].first;
     }
 
-    /// Get input nodes
+    /// Get output nodes
+    /// \param id The id of the node
+    /// \return The output nodes
     [[nodiscard]] auto
     get_output_nodes(Node_Id_Type id) const -> Neighbours_Type::value_type::second_type const &
     {

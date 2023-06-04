@@ -95,8 +95,11 @@ namespace network_butcher::kfinder
     std::vector<Node_Id_Type> const       &successors,
     Internal_Weight_Collection_Type const &sidetrack_distances) const -> H_out_collection
   {
-    H_out_collection h_out_collection;
     auto const      &graph = Parent_Type::graph;
+
+    H_out_collection h_out_collection;
+    h_out_collection.reserve(graph.size());
+
 
     for (auto const &tail_node : graph)
       {
@@ -105,9 +108,7 @@ namespace network_butcher::kfinder
         if (tail_successor == std::numeric_limits<Node_Id_Type>::max())
           continue;
 
-        auto &h_out =
-          h_out_collection.insert(h_out_collection.cend(), {tail, typename H_out_collection::mapped_type(tail)})
-            ->second;
+        auto &h_out = h_out_collection.emplace_hint(h_out_collection.end(), tail, typename H_out_collection::mapped_type(tail))->second;
 
         // The output neighbors of the current node
         auto const &head_nodes = graph.get_output_nodes(tail);
@@ -139,6 +140,8 @@ namespace network_butcher::kfinder
     auto const &graph     = Parent_Type::graph;
     auto const &num_nodes = graph.size();
     auto const &sink      = Parent_Type::sink;
+
+    h_g_collection.reserve(graph.size());
 
     // sp_dependencies contains the predecessors of every node in the shortest path. Notice
     // that the sum of the sizes of all the stored sets is at most N
