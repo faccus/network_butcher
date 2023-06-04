@@ -99,7 +99,7 @@ namespace network_butcher::Utilities
 
           std::size_t current_model_device = 0;
 
-          path_res.emplace_back(current_model_device, std::set<node_id_type>());
+          path_res.emplace_back(current_model_device, std::set<Node_Id_Type>());
 
           auto const &path_nodes = path.path;
 
@@ -113,7 +113,7 @@ namespace network_butcher::Utilities
                 {
                   // Add a new partition
                   current_model_device = node.content.first;
-                  path_res.emplace_back(current_model_device, std::set<node_id_type>());
+                  path_res.emplace_back(current_model_device, std::set<Node_Id_Type>());
                 }
 
               // Add the current node to the last partition

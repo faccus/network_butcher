@@ -7,7 +7,6 @@
 #include "io_manager.h"
 #include "test_class.h"
 
-#include "starting_traits.h"
 #include "utilities.h"
 
 #include "GetPot"

@@ -41,6 +41,11 @@ namespace network_butcher::types
       : nodes(std::forward<A>(v))
       , neighbours(std::forward<B>(dep))
     {
+      if (nodes.size() != neighbours.size())
+        {
+          throw std::runtime_error("Graph: Nodes and dependencies must have the same size");
+        }
+
       for (Node_Id_Type i = 0; i < nodes.size(); ++i)
         {
           nodes[i].set_id(i);
@@ -212,6 +217,11 @@ namespace network_butcher::types
       : nodes(std::forward<A>(v))
       , neighbours(std::forward<B>(dep))
     {
+      if (nodes.size() != neighbours.size())
+        {
+          throw std::runtime_error("Graph: Nodes and dependencies must have the same size");
+        }
+
       for (Node_Id_Type i = 0; i < nodes.size(); ++i)
         {
           nodes[i].set_id(i);

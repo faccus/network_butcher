@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD 20)
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_COMPLETE_TESTS "Build complete tests" OFF)
 
-option(ENABLE_PARALLEL "Enable parallel execution" ON)
+option(ENABLE_PARALLEL "Enable parallel execution" OFF)
 option(USE_OPENMP "Use OpenMP" OFF)
 
 
@@ -134,6 +134,11 @@ if (BUILD_EXTRA_MAINS)
     add_executable(main_Constrained_Builder mains/Butcher/main_Constrained_Builder.cpp ${BASE_SOURCE} ${PROTO_SRCS})
     target_include_directories(main_Constrained_Builder PUBLIC ${INCLUDES} google_tests)
     target_link_libraries(main_Constrained_Builder ${RUN_LIBRARIES_LOCATION})
+
+
+    add_executable(main_synthetic_graph mains/KFinder/main_synthetic_graph.cpp ${BASE_SOURCE} ${PROTO_SRCS})
+    target_include_directories(main_synthetic_graph PUBLIC ${INCLUDES} google_tests)
+    target_link_libraries(main_synthetic_graph ${RUN_LIBRARIES_LOCATION})
 
 endif ()
 

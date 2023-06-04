@@ -614,7 +614,7 @@ namespace network_butcher
             new_dependencies.resize(new_dependencies.size() + (supp_size - 2) * num_devices);
 
 #if PARALLEL_TBB
-            std::vector<std::size_t> v(supp_size - 2);
+            std::vector<Node_Id_Type> v(supp_size - 2);
             std::generate(v.begin(), v.end(), [n = 2]() mutable { return n++; });
 
             std::for_each(std::execution::par,
@@ -643,10 +643,10 @@ namespace network_butcher
 #  pragma omp parallel default(none) shared(supp_size, num_devices, bandwidth, new_dependencies)
             {
 #  pragma omp for
-              for (std::size_t i = 2; i < supp_size; ++i)
+              for (Node_Id_Type i = 2; i < supp_size; ++i)
                 {
                   auto const base_id = num_devices * (i - 1) + 1;
-                  for (node_id_type k = 0; k < num_devices; ++k)
+                  for (Device_Id_Type k = 0; k < num_devices; ++k)
                     {
                       auto const id = base_id + k;
 
@@ -672,7 +672,7 @@ namespace network_butcher
           auto const  base_id            = new_dependencies.size();
           auto const &device_inputs_sink = bandwidth->get_input_nodes(block_graph_generation_params.ending_device_id);
 
-          for (Node_Id_Type k = 0; k < num_devices; ++k)
+          for (Device_Id_Type k = 0; k < num_devices; ++k)
             {
               new_dependencies.emplace_back();
 
@@ -700,7 +700,7 @@ namespace network_butcher
           new_dependencies.emplace_back();
 
           auto &in = new_dependencies.back().first;
-          for (Node_Id_Type k = 0; k < num_devices; ++k)
+          for (Device_Id_Type k = 0; k < num_devices; ++k)
             {
               // Check if it is in the neighbour or if it's allowed by an output bandwidth
               if (device_inputs_sink.contains(k) ||
@@ -803,7 +803,7 @@ namespace network_butcher
         {
           auto const &out_node = new_graph[second];
 
-          Edge_Type const edge = {first, second};
+          Edge_Type const edge = std::make_pair(first, second);
           // The device id of the output node (=0 starting device, >0 other device)
           auto const out_device_id = out_node.content.first;
 
@@ -917,7 +917,7 @@ namespace network_butcher
             {
               auto const &out_node = new_graph[second];
 
-              edge_type const edge = {first, second};
+              Edge_Type const edge = std::make_pair(first, second);
               // The device id of the output node (=0 starting device, >0 other device)
               auto const out_device_id = out_node.content.first;
 
@@ -925,7 +925,7 @@ namespace network_butcher
               // linearized graph)
               auto const &outputs = *out_node.content.second;
 
-              weight_type weight_cost = 0.;
+              Time_Type weight_cost = 0.;
 
               // 1-1 correspondence
               if (outputs.size() == 1 && inputs.size() == 1)
@@ -1039,7 +1039,7 @@ namespace network_butcher
           {
             auto const &out_node = new_graph[second];
 
-            Edge_Type const edge = {first, second};
+            Edge_Type const edge = std::make_pair(first, second);
             // The device id of the output node (=0 starting device, >0 other device)
             auto const out_device_id = out_node.content.first;
 
@@ -1144,7 +1144,7 @@ namespace network_butcher
             {
               auto const &out_node = new_graph[second];
 
-              edge_type const edge = {first, second};
+              Edge_Type const edge = std::make_pair(first, second);
               // The device id of the output node (=0 starting device, >0 other device)
               auto const out_device_id = out_node.content.first;
 
@@ -1152,7 +1152,7 @@ namespace network_butcher
               // linearized graph)
               auto const &outputs = *out_node.content.second;
 
-              weight_type final_cost = 0.;
+              Time_Type final_cost = 0.;
 
               // 1-1 correspondence
               if (outputs.size() == 1 && inputs.size() == 1)
@@ -1202,7 +1202,7 @@ namespace network_butcher
                   else
                     {
                       // This is the collection of the input nodes of every node contained in outputs
-                      std::set<node_id_type> output_node_inputs;
+                      std::set<Node_Id_Type> output_node_inputs;
 
                       for (auto const &node_id : outputs)
                         {
@@ -1211,7 +1211,7 @@ namespace network_butcher
                         }
 
                       // This is the collection of nodes in inputs whose output tensors are fed to outputs
-                      std::vector<node_id_type> frontier_input(std::max(inputs.size(), output_node_inputs.size()));
+                      std::vector<Node_Id_Type> frontier_input(std::max(inputs.size(), output_node_inputs.size()));
                       auto const                close_frontier = std::set_intersection(output_node_inputs.cbegin(),
                                                                         output_node_inputs.cend(),
                                                                         inputs.cbegin(),
