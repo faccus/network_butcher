@@ -528,7 +528,7 @@ namespace network_butcher::kfinder
             auto const &h_g_child        = h_g.get_elem(el);
 
             if (!h_g_child->second.empty())
-              res.emplace_back(h_g_it, location_dg_type, h_g_child->second.get_head().delta_weight);
+              res.emplace_back(h_g_it, location_dg_type, h_g_child->second.get_content().delta_weight);
           }
 
         index = 0;
