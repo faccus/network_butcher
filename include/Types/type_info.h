@@ -71,7 +71,7 @@ namespace network_butcher::types
     compute_shape_volume() const -> Onnx_Element_Shape_Type = 0;
 
 
-    /// Default deconstructor
+    /// Default destructor
     virtual ~Type_Info() = default;
   };
 } // namespace network_butcher::types

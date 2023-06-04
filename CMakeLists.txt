@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD 20)
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_COMPLETE_TESTS "Build complete tests" OFF)
 
-option(ENABLE_PARALLEL "Enable parallel execution" ON)
+option(ENABLE_PARALLEL "Enable parallel execution" OFF)
 option(USE_OPENMP "Use OpenMP" ON)
 
 

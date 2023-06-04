@@ -276,8 +276,8 @@ namespace network_butcher::kfinder
 
     // First deviatory path
     Q.insert(Implicit_Path_Info{.current_sidetrack   = first_side_track,
-                              .previous_sidetracks = nullptr,
-                              .length              = first_side_track.delta_weight + shortest_distance[root]});
+                                .previous_sidetracks = nullptr,
+                                .length              = first_side_track.delta_weight + shortest_distance[root]});
 
     std::size_t k = 2;
     // Loop through Q until either Q is empty or the number of paths found is K
@@ -290,10 +290,10 @@ namespace network_butcher::kfinder
 
         auto const &[current_h_g, current_location, _e_weight] = *SK.current_sidetrack;
 
-        auto const &e_h_out            = current_h_g->second.get_elem(current_location.first);
+        auto const &e_h_out            = current_h_g->second.get_elem(current_location.first); // O(1)
         auto const &[e_edge, e_weight] = current_location.second == std::numeric_limits<Node_Id_Type>::max() ?
                                            e_h_out->second.get_elem(0) :
-                                           e_h_out->second.get_elem(current_location.second);
+                                           e_h_out->second.get_elem(current_location.second); // O(1)
 
         // "Helper" function that can be called if needed
         if (callback_fun != nullptr)
@@ -302,7 +302,7 @@ namespace network_butcher::kfinder
           }
         else
           {
-            h_g_it = h_g.find(e_edge.second);
+            h_g_it = h_g.find(e_edge.second); // O(1), the element should always exist!
           }
 
         if (h_g_it != h_g.end() && !h_g_it->second.empty())
@@ -315,11 +315,11 @@ namespace network_butcher::kfinder
                                         .length              = SK.length + f.delta_weight}); // O(log(K))
           }
 
-        auto const alternatives = get_alternatives(current_h_g, current_location);
+        auto const alternatives = get_alternatives(current_h_g, current_location); // O(1)
 
         if (!alternatives.empty())
           {
-            for (auto const &sidetrack_edge : alternatives)
+            for (auto const &sidetrack_edge : alternatives) // O(1), there are up tp 3 elements in this collection
               {
                 // O(log(K))
                 Q.insert(Implicit_Path_Info{.current_sidetrack   = sidetrack_edge,
@@ -340,8 +340,8 @@ namespace network_butcher::kfinder
         std::vector<Weight_Type> final_res;
         final_res.reserve(res.size());
 
-        for (auto const &path : res) // O(K)
-          final_res.push_back(path.length);
+        for (auto &path : res) // O(K)
+          final_res.emplace_back(std::move(path.length));
 
         return final_res;
       }
@@ -443,9 +443,9 @@ namespace network_butcher::kfinder
     std::for_each(std::execution::par, view.begin(), view.end(), process_path);
 #else
 
-#  pragma omp parallel default(none) shared(epp_res, res, go_shortest, extract_edge, root, sink, dij_res)
+    #pragma omp parallel default(none) shared(epp_res, res, go_shortest, extract_edge, root, sink, dij_res)
     {
-#  pragma omp for
+      #pragma omp for
       for (std::size_t i = 0; i < epp_res.size(); ++i)
         {
           auto const &implicit_path = epp_res[i];

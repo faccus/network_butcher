@@ -25,14 +25,14 @@ namespace network_butcher::types
     /// Name of the node
     std::string name;
 
-    /// Basic move constructor for a node
+    /// Basic constructor
     Node()
       : id(std::numeric_limits<Node_Id_Type>::max())
     {}
 
 
     /// Getter for the node id
-    [[nodiscard]] inline auto
+    [[nodiscard]] auto
     get_id() const -> Node_Id_Type
     {
       return id;
@@ -67,7 +67,7 @@ namespace network_butcher::types
       , content(std::move(starting_content))
     {}
 
-    /// Basic move constructor for a node
+    /// Basic constructor for a node
     explicit CNode(Content_Type const &starting_content)
       : Node()
       , content(starting_content)
