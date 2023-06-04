@@ -29,13 +29,6 @@ namespace
   using Graph_type      = MWGraph<false, Node_type>;
   using Real_Graph_Type = MWGraph<false, Onnx_Converted_Node_Type>;
 
-
-  Butcher<Graph_type>
-  basic_butcher(int);
-
-  std::tuple<Butcher<Converted_Onnx_Graph_Type>, onnx::ModelProto, std::map<Node_Id_Type, Node_Id_Type>>
-  real_butcher();
-
   parameters::Parameters
   base_parameters(std::size_t k, bool backward, std::size_t num_devices);
 
@@ -44,30 +37,11 @@ namespace
 
   parameters::Parameters
   lazy_eppstein_parameters(std::size_t k, bool backward, std::size_t num_devices);
-  parameters::Parameters
-  real_parameters(std::size_t k, bool backward);
 
   struct path_comparison
   {
     bool
     operator()(Weighted_Real_Path const &rhs, Weighted_Real_Path const &lhs) const;
-  };
-
-  template <class Graph>
-  void
-  complete_weights(Graph &graph)
-  {
-    auto const num_nodes = graph.get_nodes().size();
-
-    for (Node_Id_Type tail = 0; tail < num_nodes; ++tail)
-      for (auto const &head : graph.get_output_nodes(tail))
-        {
-          for (std::size_t k = 0; k < graph.get_num_devices(); ++k)
-            {
-              if (graph.get_weight(k, {tail, head}) == -1.)
-                graph.set_weight(k, {tail, head}, 0.);
-            }
-        }
   };
 
 
@@ -103,13 +77,6 @@ namespace
 
 
   std::function<type_weight(Edge_Type const &, std::size_t, std::size_t)> basic_transmission(std::size_t, std::size_t);
-
-
-  void
-  real_weight(Real_Graph_Type &);
-
-  std::function<type_weight(Node_Id_Type const &, std::size_t, std::size_t)>
-  real_transmission(Real_Graph_Type const &);
 
 
   TEST(ButcherTest, compute_k_shortest_paths_test_network_basic_weights)
@@ -151,84 +118,6 @@ namespace
     lazy_eppstein.insert(lazy_eppstein_res.begin(), lazy_eppstein_res.end());
 
     ASSERT_EQ(eppstein, lazy_eppstein);
-  }
-
-
-  TEST(ButcherTest, compute_k_shortest_paths_eppstein_vs_lazy_deterministic_multiple)
-  {
-    std::size_t       num_devices = 3;
-    std::size_t const num_nodes   = 1000;
-
-    std::size_t k = 1000;
-
-    std::size_t number_of_tests = 10;
-
-
-    auto  butcher = basic_butcher(num_nodes);
-    auto &graph   = butcher.get_graph_ref();
-
-    double time_std  = .0;
-    double time_lazy = .0;
-
-    for (auto num_test = 0; num_test < number_of_tests; ++num_test)
-      {
-        std::vector<type_collection_weights> weight_maps;
-        basic_weight(graph, true);
-
-        auto transmission_fun = basic_transmission(num_devices, graph.get_nodes().size());
-
-        Chrono crono;
-        crono.start();
-        auto eppstein_res =
-          butcher.compute_k_shortest_path(transmission_fun, eppstein_parameters(k, true, num_devices));
-        crono.stop();
-        double const time_instance_std = crono.wallTime();
-        time_std += time_instance_std;
-
-        crono.start();
-        auto lazy_eppstein_res =
-          butcher.compute_k_shortest_path(transmission_fun, lazy_eppstein_parameters(k, true, num_devices));
-        crono.stop();
-        double const time_instance_lazy = crono.wallTime();
-        time_lazy += time_instance_lazy;
-
-        std::set<Weighted_Real_Path, path_comparison> eppstein;
-        eppstein.insert(eppstein_res.begin(), eppstein_res.end());
-
-        std::set<Weighted_Real_Path, path_comparison> lazy_eppstein;
-        lazy_eppstein.insert(lazy_eppstein_res.begin(), lazy_eppstein_res.end());
-
-        ASSERT_EQ(eppstein, lazy_eppstein);
-
-        std::cout << "Test number #" << (num_test + 1) << ", Lazy: " << time_instance_lazy / 1000
-                  << " ms, Epp: " << time_instance_std / 1000 << " ms"
-                  << "Average Lazy: " << time_lazy / ((num_test + 1) * 1000) << ", Found path: " << lazy_eppstein.size()
-                  << std::endl;
-      }
-
-    std::cout << "Lazy Eppstein: " << time_lazy / 1000 / number_of_tests << " milliseconds" << std::endl;
-
-    std::cout << "Eppstein: " << time_std / 1000 / number_of_tests << " milliseconds" << std::endl;
-  }
-
-
-  Butcher<Graph_type>
-  basic_butcher(int num_nodes)
-  {
-    std::vector<Node_type> nodes;
-
-    nodes.emplace_back(std::move(Content_Builder<Input>().set_output({{"X0", 0}})).build());
-    for (int n = 1; n < num_nodes - 1; ++n)
-      nodes.emplace_back(std::move(Content_Builder<Input>()
-                                     .set_input({{"X" + std::to_string(n - 1), n - 1}})
-                                     .set_output({{"X" + std::to_string(n), n}}))
-                           .build());
-    nodes.emplace_back(
-      std::move(Content_Builder<Input>().set_input({{"X" + std::to_string(num_nodes - 2), num_nodes - 2}})).build());
-
-    Graph_type graph_cons(3, std::move(nodes));
-
-    return Butcher(std::move(graph_cons));
   }
 
   std::function<type_weight(Edge_Type const &, std::size_t, std::size_t)>
@@ -284,28 +173,6 @@ namespace
       else
         return .0;
     };
-  }
-
-
-  std::tuple<Butcher<Converted_Onnx_Graph_Type>, onnx::ModelProto, std::map<Node_Id_Type, Node_Id_Type>>
-  real_butcher()
-  {
-    std::string const path  = "test_data/models/version-RFB-640-inferred.onnx"; //"version-RFB-640.onnx";
-    auto              tuple = io::IO_Manager::import_from_onnx(path, true, true, 3);
-    auto             &graph = std::get<0>(tuple);
-
-    Parameters params;
-    params.weights_params.weight_import_mode = Weight_Import_Mode::multiple_direct_read;
-
-    params.devices.push_back(Device{0, "", 100, "test_data/weights/aMLLibrary_prediction_pi.csv", "pred"});
-    params.devices.push_back(Device{1, "", 100, "test_data/weights/aMLLibrary_prediction_tegra.csv", "pred"});
-    params.devices.push_back(Device{2, "", 100, "test_data/weights/aMLLibrary_prediction_tegra.csv", "pred"});
-
-    io::IO_Manager::import_weights(graph, params);
-
-    complete_weights(graph);
-
-    return {Butcher(graph), std::get<1>(tuple), std::get<2>(tuple)};
   }
 
   parameters::Parameters

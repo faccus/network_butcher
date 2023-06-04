@@ -12,11 +12,8 @@ set(CMAKE_CXX_STANDARD 20)
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_COMPLETE_TESTS "Build complete tests" OFF)
 
-option(ENABLE_PARALLEL "Enable parallel execution" OFF)
-option(USE_OPENMP "Use OpenMP" OFF)
-
-
-option(BUILD_EXTRA_MAINS "Build extra main executables" ON)
+option(ENABLE_PARALLEL "Enable parallel execution" ON)
+option(USE_OPENMP "Use OpenMP" ON)
 
 
 option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
@@ -114,8 +111,6 @@ if (BUILD_TESTS)
 
 endif ()
 
-if (BUILD_EXTRA_MAINS)
-
     add_executable(main_kfinder mains/KFinder/main_kfinder.cpp ${BASE_SOURCE} ${PROTO_SRCS})
     target_include_directories(main_kfinder PUBLIC ${INCLUDES} google_tests)
     target_link_libraries(main_kfinder ${RUN_LIBRARIES_LOCATION})
@@ -139,8 +134,6 @@ if (BUILD_EXTRA_MAINS)
     add_executable(main_synthetic_graph mains/KFinder/main_synthetic_graph.cpp ${BASE_SOURCE} ${PROTO_SRCS})
     target_include_directories(main_synthetic_graph PUBLIC ${INCLUDES} google_tests)
     target_link_libraries(main_synthetic_graph ${RUN_LIBRARIES_LOCATION})
-
-endif ()
 
 
 if (BUILD_DOC)
