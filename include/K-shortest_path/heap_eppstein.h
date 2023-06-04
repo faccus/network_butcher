@@ -36,306 +36,82 @@ namespace network_butcher::kfinder
     }
   };
 
-  /// Pure virtual generic class used to represent an Heap
-  /// \tparam T The stored type
-  /// \tparam heap_comparison The comparison function used to construct the max heap (std::less -> Max Heap,
-  /// std::greater -> Min Heap)
-  template <typename T, typename heap_comparison = std::less<T>>
-  class Basic_Heap
+
+  template <typename T, typename Comparison, std::size_t Max_Children = 2>
+  class Heap_Node
   {
-  public:
-    using container_type = std::vector<T>;
-
   protected:
-    container_type  children;
-    heap_comparison comp{};
+    static inline Comparison              comp{};
+    std::array<std::size_t, Max_Children> depth;
+    std::vector<Heap_Node *>              children;
 
-    virtual void
-    heapify() = 0;
+    T content;
+
+    void
+    internal_push(Heap_Node *new_heap)
+    {
+      if (children.size() < Max_Children)
+        {
+          depth[children.size()] = 0;
+          children.push_back(new_heap);
+        }
+
+
+    }
 
   public:
-    Basic_Heap() = default;
-
-    virtual void
-    push(T const &value) = 0;
-
-    virtual void
-    push(T &&value) = 0;
-
-    void
-    overwrite_children(container_type const &new_children, bool check_heap = true)
+    Heap_Node(T const &initial_content)
+      : content(initial_content)
     {
-      children = new_children;
+      children.reserve(Max_Children);
+    };
 
-      if (check_heap)
-        {
-          heapify();
-        }
+    virtual auto
+    get_children() const -> std::vector<Heap_Node *> const &
+    {
+      return children;
     }
 
+    template <typename CollectionType>
     void
-    overwrite_children(Basic_Heap<T, heap_comparison> const &other_heap)
+    set_children(CollectionType const &collection)
     {
-      overwrite_children(other_heap.children, false);
+      children.insert(collection.begin(), collection.end());
     }
 
     void
-    reserve(std::size_t val)
+    add_child(Heap_Node *child)
     {
-      children.reserve(val);
+      children.insert(child);
+    }
+
+    virtual auto
+    get_head() const -> T const &
+    {
+      return content;
+    };
+
+    void
+    push(Heap_Node *new_heap)
+    {
+      internal_push(new_heap);
     }
 
 
-    [[nodiscard]] bool
-    empty() const
-    {
-      return children.empty();
-    }
-
-    [[nodiscard]] std::size_t
-    size() const
-    {
-      return children.size();
-    }
-
-
-    [[nodiscard]] T const &
-    get_head() const
-    {
-      return children.front();
-    }
-
-    [[nodiscard]] T const &
-    get_elem(std::size_t index) const
-    {
-      return children[index];
-    }
-
-    [[nodiscard]] virtual std::set<std::size_t>
-    find_children_indices(std::size_t index) const = 0;
-
-    virtual ~Basic_Heap() = default;
+    virtual ~Heap_Node() = default;
   };
 
 
-  /// Generic class to represent a (binary) Heap. It's implemented through a std::vector
-  /// \tparam T The stored type
-  /// \tparam comparison The comparison function used to construct the max heap (std::less -> Max Heap, std::greater ->
-  /// Min Heap)
-  template <typename T, typename heap_comparison = std::less<T>>
-  class Heap : public Basic_Heap<T, heap_comparison>
+  template <typename T, typename Comparison>
+  class H_out
   {
-  public:
-    using base           = Basic_Heap<T, heap_comparison>;
-    using container_type = base::container_type;
-
-  protected:
-    using base::children;
-    using base::comp;
-
-    void
-    heapify() override
-    {
-      std::make_heap(children.begin(), children.end(), comp);
-    }
+  private:
+    std::list<Heap_Node<T, Comparison>> internal_children;
 
   public:
-    Node_Id_Type id;
-
-    explicit Heap()
-      : base()
-      , id{std::numeric_limits<Node_Id_Type>::max()}
-    {}
-
-    explicit Heap(Node_Id_Type id)
-      : base()
-      , id(id)
-    {}
-
-    void
-    push(T const &value) override
-    {
-      children.push_back(value);
-      std::push_heap(children.begin(), children.end(), comp);
-    }
-
-    void
-    push(T &&value) override
-    {
-      children.push_back(std::move(value));
-      std::push_heap(children.begin(), children.end(), comp);
-    }
-
-    template <typename... Args>
-    void
-    emplace(Args &&...args)
-    {
-      children.emplace_back(std::forward<Args>(args)...);
-      std::push_heap(children.begin(), children.end(), comp);
-    }
-
-    T
-    pop_head()
-    {
-      std::pop_heap(children.begin(), children.end(), comp);
-
-      T result = std::move(children.back());
-      children.pop_back();
-
-      return result;
-    }
-
-
-    [[nodiscard]] bool
-    is_id_set() const
-    {
-      return id != std::numeric_limits<Node_Id_Type>::max();
-    }
-
-
-    [[nodiscard]] std::set<std::size_t>
-    find_children_indices(std::size_t index) const override
-    {
-      std::set<std::size_t> result;
-      if (index < children.size())
-        {
-          std::size_t left  = 2 * index + 1;
-          std::size_t right = 2 * index + 2;
-          if (left < children.size())
-            {
-              result.insert(left);
-            }
-          if (right < children.size())
-            {
-              result.insert(right);
-            }
-        }
-
-      return result;
-    }
-
-    ~Heap() override = default;
+    H_out() = default;
   };
 
-
-  /// Generic class used to represent an H_out, a data structure similar to an heap: it's made by a node followed by
-  /// an heap. The nodes are ordered with the same criteria as in the heap.
-  /// \tparam T The stored type
-  template <class T, typename heap_comparison = std::less<T>, typename element_less = std::less<T>>
-  class H_out : public Basic_Heap<T, heap_comparison>
-  {
-  public:
-    using base           = Basic_Heap<T, heap_comparison>;
-    using container_type = base::container_type;
-
-  protected:
-    using base::children;
-    using base::comp;
-
-    void
-    heapify() override
-    {
-      if (children.size() > 1)
-        {
-          auto it = std::max_element(children.begin(), children.end(), comp);
-
-          if (it != children.begin())
-            {
-              std::swap(*it, *children.begin());
-            }
-
-          std::make_heap(++children.begin(), children.end(), comp);
-        }
-    }
-
-  public:
-    Node_Id_Type id;
-
-    explicit H_out()
-      : base()
-      , id{std::numeric_limits<Node_Id_Type>::max()}
-    {}
-
-    explicit H_out(Node_Id_Type id)
-      : base()
-      , id(id)
-    {}
-
-    void
-    push(T &&value) override
-    {
-      children.push_back(std::move(value));
-      if (children.size() > 1)
-        {
-          if (comp(children.front(), children.back()))
-            {
-              std::swap(children.front(), children.back());
-            }
-
-          std::push_heap(++children.begin(), children.end(), comp);
-        }
-    }
-
-    void
-    push(T const &value) override
-    {
-      children.push_back(value);
-      if (children.size() > 1)
-        {
-          if (comp(children.front(), children.back()))
-            {
-              std::swap(children.front(), children.back());
-            }
-
-          std::push_heap(++children.begin(), children.end(), comp);
-        }
-    }
-
-
-    [[nodiscard]] std::set<Node_Id_Type>
-    find_children_indices(std::size_t index) const override
-    {
-      std::set<Node_Id_Type> result;
-
-      if (index < children.size())
-        {
-          if (index == 0)
-            {
-              if (children.size() > 1)
-                result.insert(1);
-            }
-          else
-            {
-              Node_Id_Type left  = 2 * (index - 1) + 1 + 1;
-              Node_Id_Type right = 2 * (index - 1) + 2 + 1;
-              if (left < children.size())
-                {
-                  result.insert(left);
-                }
-              if (right < children.size())
-                {
-                  result.insert(right);
-                }
-            }
-        }
-
-      return result;
-    }
-
-    bool
-    operator<(const H_out &rhs) const
-    {
-      static element_less local_comp{};
-
-      if (children.empty())
-        return true;
-      if (rhs.children.empty())
-        return false;
-      return local_comp(*children.begin(), *rhs.children.begin());
-    }
-
-    ~H_out() override = default;
-  };
 } // namespace network_butcher::kfinder
 
 
