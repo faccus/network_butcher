@@ -52,13 +52,6 @@ namespace network_butcher::kfinder
       H_g_collection::const_iterator current_h_g;
       Location_DG_Type               location;
       Weight_Type                    delta_weight;
-
-      bool
-      operator<(Sidetrack const &rhs) const
-      {
-        return current_h_g->first < rhs.current_h_g->first ||
-               (current_h_g->first == rhs.current_h_g->first && location < rhs.location);
-      }
     };
 
     /// Simple struct to represent an implicit path
@@ -443,9 +436,9 @@ namespace network_butcher::kfinder
     std::for_each(std::execution::par, view.begin(), view.end(), process_path);
 #else
 
-    #pragma omp parallel default(none) shared(epp_res, res, go_shortest, extract_edge, root, sink, dij_res)
+#  pragma omp parallel default(none) shared(epp_res, res, go_shortest, extract_edge, root, sink, dij_res)
     {
-      #pragma omp for
+#  pragma omp for
       for (std::size_t i = 0; i < epp_res.size(); ++i)
         {
           auto const &implicit_path = epp_res[i];
