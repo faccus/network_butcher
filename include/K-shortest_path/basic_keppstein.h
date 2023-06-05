@@ -26,6 +26,9 @@ namespace network_butcher::kfinder
   private:
     using Parent_Type = KFinder<GraphType, Only_Distance, t_Weighted_Graph_Complete_Type>;
 
+  public:
+    using Output_Type = Parent_Type::Output_Type;
+
   protected:
     using Parent_Type::graph;
 
@@ -45,6 +48,49 @@ namespace network_butcher::kfinder
     using Dijkstra_Result_Type =
       network_butcher::kfinder::Shortest_path_finder::Templated_Dijkstra_Result_Type<Weight_Type>;
 
+    using Callback_Function =
+      std::function<typename H_g_collection::const_iterator(H_g_collection &,
+                                                            H_out_collection &,
+                                                            Internal_Weight_Collection_Type const &,
+                                                            typename Dijkstra_Result_Type::first_type const &,
+                                                            Node_Id_Type,
+                                                            t_Weighted_Graph_Complete_Type const &)>;
+
+    class SubSidetrack
+    {
+    private:
+      H_g_collection::mapped_type ::Node_Type    *h_g_node;
+      H_out_collection ::mapped_type ::Node_Type *h_out_node;
+
+    public:
+      explicit SubSidetrack(H_g_collection::mapped_type ::Node_Type *node)
+        : h_g_node{node}
+        , h_out_node{nullptr} {};
+
+      explicit SubSidetrack(H_out_collection::mapped_type ::Node_Type *node)
+        : h_g_node{nullptr}
+        , h_out_node{node} {};
+
+      auto
+      get_node() -> std::variant<typename H_g_collection::mapped_type ::Node_Type *,
+                                 typename H_out_collection ::mapped_type ::Node_Type *>
+      {
+        if (h_g_node)
+          {
+            return h_g_node;
+          }
+        else if (h_out_node)
+          {
+            return h_out_node;
+          }
+        else
+          {
+            h_g_node = nullptr;
+            return h_g_node;
+          }
+      }
+    };
+
     /// Sidetrack edge can be represented as two elements: the relevant H_g and the position of the edge in H_g as two
     /// integers, one for the position in H_g and one for the position in H_out
     struct Sidetrack
@@ -52,13 +98,6 @@ namespace network_butcher::kfinder
       H_g_collection::const_iterator current_h_g;
       Location_DG_Type               location;
       Weight_Type                    delta_weight;
-
-      bool
-      operator<(Sidetrack const &rhs) const
-      {
-        return current_h_g->first < rhs.current_h_g->first ||
-               (current_h_g->first == rhs.current_h_g->first && location < rhs.location);
-      }
     };
 
     /// Simple struct to represent an implicit path
@@ -109,17 +148,6 @@ namespace network_butcher::kfinder
         return sidetracks;
       }
     };
-
-  public:
-    using Output_Type = Parent_Type::Output_Type;
-
-  protected:
-    using Callback_Function =
-      std::function<typename H_g_collection::const_iterator(H_g_collection &,
-                                                            H_out_collection &,
-                                                            Internal_Weight_Collection_Type const &,
-                                                            typename Dijkstra_Result_Type::first_type const &,
-                                                            Node_Id_Type)>;
 
 
     /// It extracts the first sidetrack associated to the given node
@@ -255,7 +283,7 @@ namespace network_butcher::kfinder
     // Find the first sidetrack edge
     typename H_g_collection::const_iterator h_g_it = h_g.find(root);
 
-    if (h_g_it == h_g.end() || h_g_it->second.empty())
+    if (h_g_it->second.empty())
       {
         if constexpr (Only_Distance)
           {
@@ -298,7 +326,7 @@ namespace network_butcher::kfinder
         // "Helper" function that can be called if needed
         if (callback_fun != nullptr)
           {
-            h_g_it = callback_fun(h_g, h_out, sidetrack_distances, successors, e_edge.second);
+            h_g_it = callback_fun(h_g, h_out, sidetrack_distances, successors, e_edge.second, graph);
           }
         else
           {
@@ -349,6 +377,45 @@ namespace network_butcher::kfinder
       {
         return helper_eppstein(dij_res, res);
       }
+  }
+
+
+  template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
+  auto
+  Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::get_alternatives(
+    H_g_collection::const_iterator const &h_g_it,
+    Location_DG_Type const               &position) const -> std::vector<Sidetrack>
+  {
+    std::vector<Sidetrack> res;
+    auto constexpr inf = std::numeric_limits<Node_Id_Type>::max();
+
+    auto [h_out_index, index] = position;
+    auto const &h_g           = h_g_it->second;
+
+    // In this case, edge is a head element of an H_out in H_g. Thus, I have to find its children in H_g and its child
+    // in H_out (since it's the head of an H_out, index can be set to 0).
+    if (index == 0)
+      {
+        for (auto const &el : h_g.find_children_indices(h_out_index))
+          {
+            auto const  location_dg_type = std::make_pair(el, 0);
+            auto const &h_g_child        = h_g.get_elem(el);
+
+            if (!h_g_child->second.empty())
+              res.emplace_back(h_g_it, location_dg_type, h_g_child->second.get_head().delta_weight);
+          }
+
+        index = 0;
+      }
+
+    auto const &h_out = h_g.get_elem(h_out_index);
+    for (auto const &el : h_out->second.find_children_indices(index))
+      {
+        auto const location_dg_type = std::make_pair(h_out_index, el);
+        res.emplace_back(h_g_it, location_dg_type, h_out->second.get_elem(el).delta_weight);
+      }
+
+    return res;
   }
 
 
@@ -443,9 +510,9 @@ namespace network_butcher::kfinder
     std::for_each(std::execution::par, view.begin(), view.end(), process_path);
 #else
 
-    #pragma omp parallel default(none) shared(epp_res, res, go_shortest, extract_edge, root, sink, dij_res)
+#  pragma omp parallel default(none) shared(epp_res, res, go_shortest, extract_edge, root, sink, dij_res)
     {
-      #pragma omp for
+#  pragma omp for
       for (std::size_t i = 0; i < epp_res.size(); ++i)
         {
           auto const &implicit_path = epp_res[i];
@@ -501,45 +568,6 @@ namespace network_butcher::kfinder
 
 
 #endif
-
-    return res;
-  }
-
-
-  template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  auto
-  Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::get_alternatives(
-    H_g_collection::const_iterator const &h_g_it,
-    Location_DG_Type const               &position) const -> std::vector<Sidetrack>
-  {
-    std::vector<Sidetrack> res;
-    auto constexpr inf = std::numeric_limits<Node_Id_Type>::max();
-
-    auto [h_out_index, index] = position;
-    auto const &h_g           = h_g_it->second;
-
-    // In this case, edge is a head element of an H_out in H_g. Thus, I have to find its children in H_g and its child
-    // in H_out (since it's the head of an H_out, index can be set to 0).
-    if (index == 0)
-      {
-        for (auto const &el : h_g.find_children_indices(h_out_index))
-          {
-            auto const  location_dg_type = std::make_pair(el, 0);
-            auto const &h_g_child        = h_g.get_elem(el);
-
-            if (!h_g_child->second.empty())
-              res.emplace_back(h_g_it, location_dg_type, h_g_child->second.get_content().delta_weight);
-          }
-
-        index = 0;
-      }
-
-    auto const &h_out = h_g.get_elem(h_out_index);
-    for (auto const &el : h_out->second.find_children_indices(index))
-      {
-        auto const location_dg_type = std::make_pair(h_out_index, el);
-        res.emplace_back(h_g_it, location_dg_type, h_out->second.get_elem(el).delta_weight);
-      }
 
     return res;
   }

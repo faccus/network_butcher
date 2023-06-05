@@ -95,7 +95,7 @@ namespace network_butcher::kfinder
     std::vector<Node_Id_Type> const       &successors,
     Internal_Weight_Collection_Type const &sidetrack_distances) const -> H_out_collection
   {
-    auto const      &graph = Parent_Type::graph;
+    auto const &graph = Parent_Type::graph;
 
     H_out_collection h_out_collection;
     h_out_collection.reserve(graph.size());
@@ -108,21 +108,28 @@ namespace network_butcher::kfinder
         if (tail_successor == std::numeric_limits<Node_Id_Type>::max())
           continue;
 
-        auto &h_out = h_out_collection.emplace_hint(h_out_collection.end(), tail, typename H_out_collection::mapped_type(tail))->second;
-
         // The output neighbors of the current node
         auto const &head_nodes = graph.get_output_nodes(tail);
+
+        std::vector<Edge_Info> sidetrack_edges;
+        // We may need to reserve more space than this if Parallel_Edges are allowed.
+        sidetrack_edges.reserve(head_nodes.size());
 
         // Loop through the output neighbors of the current node
         for (auto const &head : head_nodes)
           {
             auto [begin, end] = sidetrack_distances.equal_range(Edge_Type{tail, head});
 
-            for (; begin != end; ++begin)
+            for (; begin != end && begin->first.first == tail && begin->first.second == head; ++begin)
               {
-                h_out.push(Edge_Info{begin->first, begin->second});
+                sidetrack_edges.emplace_back(begin->first, begin->second);
               }
           }
+
+        // Add to the collection of H_outs
+        h_out_collection.emplace_hint(h_out_collection.end(),
+                                      tail,
+                                      typename H_out_collection::mapped_type(std::move(sidetrack_edges)));
       }
 
     return h_out_collection;
@@ -155,10 +162,6 @@ namespace network_butcher::kfinder
 
         if (successor == std::numeric_limits<Node_Id_Type>::max())
           continue;
-
-        // Prepare the H_g map
-        auto it =
-          h_g_collection.emplace_hint(h_g_collection.cend(), node_id, typename H_g_collection::mapped_type(node_id));
 
         if (sink != node_id)
           sp_dependencies[successor].insert(node_id); // O(log(N))

@@ -35,40 +35,11 @@ namespace network_butcher::kfinder
     using H_g_collection   = Parent_Type::H_g_collection;
     using H_out_collection = Parent_Type::H_out_collection;
 
-    /// Simple function that will look for the H_g corresponding to the given node
-    /// \param h_g The H_g collections
-    /// \param node The node
-    /// \return The iterator to the found H_g (or to the end of the collection if not found)
-    [[nodiscard]] auto
-    find_h_g(H_g_collection &h_g, Node_Id_Type node) const -> H_g_collection::iterator;
 
-
-    /// It will add to the h_out map the h_out associated to the current node
-    /// \param h_out_collection The h_out map
-    /// \param sidetrack_distances The sidetrack distances
-    /// \param successors The successor collection
-    /// \param tail The node associated to the h_out to construct
-    /// \return The iterator of the added h_out
+    /// It will generate a function to add to the h_g map the h_g associated to the current node.
+    /// \return The function
     auto
-    construct_partial_h_out(H_out_collection                      &h_out_collection,
-                            Internal_Weight_Collection_Type const &sidetrack_distances,
-                            std::vector<Node_Id_Type> const       &successors,
-                            Node_Id_Type                           tail) const -> H_out_collection::const_iterator;
-
-
-    /// It will add to the h_g map the h_g associated to the current node.
-    /// \param h_g The h_g map
-    /// \param h_out The h_out map
-    /// \param sidetrack_distances The sidetrack distances
-    /// \param successors The successor collection
-    /// \param node The node associated to the h_out to construct
-    /// \return The iterator to the added element
-    auto
-    construct_partial_h_g(H_g_collection                        &h_g,
-                          H_out_collection                      &h_out,
-                          Internal_Weight_Collection_Type const &sidetrack_distances,
-                          std::vector<Node_Id_Type> const       &successors,
-                          Node_Id_Type                           node) const -> H_g_collection::const_iterator;
+    construct_h_g_builder() const;
 
 
     /// The basic function for the lazy Eppstein algorithm
@@ -100,18 +71,13 @@ namespace network_butcher::kfinder
     H_out_collection h_out;
     H_g_collection   h_g;
 
+    h_out.reserve(this->graph.size()); // Reserve space for the h_out collection (O(V)
+    h_g.reserve(this->graph.size());   // Reserve space for the h_g collection (O(V)
+
     auto const &[successors, distances] = dij_res;
 
     if (distances[Parent_Type::root] == std::numeric_limits<Weight_Type>::max())
       return {};
-
-    for (auto const &node : this->graph)
-      {
-        if (successors[node.get_id()] != std::numeric_limits<Node_Id_Type>::max())
-          {
-            h_g.emplace_hint(h_g.end(), node.get_id(), typename H_g_collection::mapped_type());
-          }
-      }
 
     std::list<Node_Id_Type> to_compute;
     to_compute.push_back(Parent_Type::root);
@@ -119,20 +85,13 @@ namespace network_butcher::kfinder
     while (to_compute.back() != Parent_Type::sink)
       to_compute.push_back(successors[to_compute.back()]);
 
+    auto fun = construct_h_g_builder();
+
     while (!to_compute.empty())
       {
-        construct_partial_h_g(h_g, h_out, sidetrack_distances_res, successors, to_compute.back());
+        fun(h_g, h_out, sidetrack_distances_res, successors, to_compute.back(), Parent_Type::graph);
         to_compute.pop_back();
       }
-
-    // Prepare the callback function to be called in the Eppstein algorithm
-    auto fun = [this](H_g_collection                                  &h_g_,
-                      H_out_collection                                &h_out_,
-                      Internal_Weight_Collection_Type const           &sidetrack_distances_,
-                      typename Dijkstra_Result_Type::first_type const &successors_,
-                      Node_Id_Type                                     node_) {
-      return construct_partial_h_g(h_g_, h_out_, sidetrack_distances_, successors_, node_);
-    };
 
     // Execute the Eppstein algorithm
     return Parent_Type::general_algo_eppstein(K, dij_res, sidetrack_distances_res, h_g, h_out, fun);
@@ -141,85 +100,82 @@ namespace network_butcher::kfinder
 
   template <class Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
   auto
-  KFinder_Lazy_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::find_h_g(H_g_collection &h_g,
-                                                                                             Node_Id_Type    node) const
-    -> H_g_collection::iterator
+  KFinder_Lazy_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::construct_h_g_builder() const
   {
-    return h_g.find(node);
-  }
+    auto const construct_h_out = [](auto       &h_out_collection,
+                                    auto const &sidetrack_distances,
+                                    auto const &successors,
+                                    auto        tail,
+                                    auto const &graph) -> auto {
+      // If we can find the required H_out, return it
+      auto h_out_it = h_out_collection.find(tail);
+      if (h_out_it != h_out_collection.cend())
+        return h_out_it;
 
+      std::vector<Edge_Info> to_insert;
+      auto const            &out_nodes = graph.get_output_nodes(tail);
 
-  template <class Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  auto
-  KFinder_Lazy_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::construct_partial_h_out(
-    H_out_collection                      &h_out_collection,
-    Internal_Weight_Collection_Type const &sidetrack_distances,
-    std::vector<Node_Id_Type> const       &successors,
-    Node_Id_Type                           tail) const -> H_out_collection::const_iterator
-  {
-    // If we can find the required H_out, return it
-    auto h_out_it = h_out_collection.find(tail);
-    if (h_out_it != h_out_collection.cend() || successors[tail] == std::numeric_limits<Node_Id_Type>::max())
-      return h_out_it;
+      to_insert.reserve(out_nodes.size());
 
-    auto const &graph = Parent_Type::graph;
+      // For every "sidetrack" node in the outer start of node
+      for (auto const &exit : out_nodes)
+        {
+          auto [begin, end] = sidetrack_distances.equal_range(Edge_Type{tail, exit});
+          for (; begin != end && begin->first.first == tail && begin->first.second == exit; ++begin)
+            {
+              // Add the sidetrack edges to the H_out
+              to_insert.emplace_back(begin->first, begin->second);
+            }
+        }
 
-    // Prepare the new H_out
-    h_out_it = h_out_collection.emplace(tail, typename H_out_collection::mapped_type(tail)).first;
+      return h_out_collection.emplace(tail, typename H_out_collection::mapped_type(std::move(to_insert))).first;
+    };
 
-    // For every "sidetrack" node in the outer start of node
-    for (auto const &exit : graph.get_output_nodes(tail))
-      {
-        auto [begin, end] = sidetrack_distances.equal_range(Edge_Type{tail, exit});
-        for (; begin != end; ++begin)
+    auto const &sink = Parent_Type::sink;
+
+    return [construct_h_out, sink](H_g_collection                        &h_g,
+                                   H_out_collection                      &h_out,
+                                   Internal_Weight_Collection_Type const &sidetrack_distances,
+                                   std::vector<Node_Id_Type> const       &successors,
+                                   Node_Id_Type                           node,
+                                   auto const                            &graph) {
+      auto const internal_builder = [&construct_h_out,
+                                     &sink](H_g_collection                        &h_g,
+                                            H_out_collection                      &h_out,
+                                            Internal_Weight_Collection_Type const &sidetrack_distances,
+                                            std::vector<Node_Id_Type> const       &successors,
+                                            Node_Id_Type                           node,
+                                            auto                                  &func,
+                                            auto const                            &graph) {
+        // If H_g has been already computed, return it
+        auto iterator = h_g.find(node);
+
+        if (iterator != h_g.cend())
+          return iterator;
+
+        // Construct and/or retrieve the associated H_out
+        auto to_insert_h_out = construct_h_out(h_out, sidetrack_distances, successors, node, graph);
+
+        // If node is not the last node in the graph
+        if (node != sink)
           {
-            // Add the sidetrack edges to the H_out
-            h_out_it->second.push(Edge_Info{begin->first, begin->second});
+            // Construct the H_g of the successor of node in the shortest path
+            auto previous_inserted_h_g =
+              func(h_g, h_out, sidetrack_distances, successors, successors[node], func, graph);
+
+            // Insert in the successor H_g the current H_out, obtaining the H_g of the current node
+            return h_g.emplace(node,
+                               typename H_g_collection::mapped_type(&(to_insert_h_out->second),
+                                                                    previous_inserted_h_g->second)).first;
           }
-      }
+        else
+          {
+            return h_g.emplace(node, typename H_g_collection::mapped_type(&(to_insert_h_out->second))).first;
+          }
+      };
 
-    return h_out_it;
-  }
-
-
-  template <class Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  auto
-  KFinder_Lazy_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::construct_partial_h_g(
-    H_g_collection                        &h_g,
-    H_out_collection                      &h_out,
-    Internal_Weight_Collection_Type const &sidetrack_distances,
-    std::vector<Node_Id_Type> const       &successors,
-    Node_Id_Type                           node) const -> H_g_collection::const_iterator
-  {
-    // If H_g has been already computed, return it
-    auto iterator = find_h_g(h_g, node);
-
-    if (iterator == h_g.cend() || iterator->second.is_id_set())
-      return iterator;
-
-    iterator->second.id = node;
-
-    // If node is the last node in the graph
-    if (node != Parent_Type::sink)
-      {
-        // Construct the H_g of the successor of node in the shortest path
-        auto previous_inserted_h_g =
-          construct_partial_h_g(h_g, h_out, sidetrack_distances, successors, successors[node]);
-
-        // Prepare a new H_g
-        if (previous_inserted_h_g != h_g.end() && !previous_inserted_h_g->second.empty())
-          iterator->second.overwrite_children(previous_inserted_h_g->second);
-      }
-
-    // Construct and/or retrieve the associated H_out
-    auto to_insert_h_out = construct_partial_h_out(h_out, sidetrack_distances, successors, node);
-
-    if (to_insert_h_out != h_out.cend() && !to_insert_h_out->second.empty())
-      {
-        iterator->second.push(to_insert_h_out);
-      }
-
-    return iterator;
+      return internal_builder(h_g, h_out, sidetrack_distances, successors, node, internal_builder, graph);
+    };
   }
 } // namespace network_butcher::kfinder
 

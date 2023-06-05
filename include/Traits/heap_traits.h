@@ -13,31 +13,13 @@
 
 namespace network_butcher::kfinder
 {
-  template<typename T>
-  using Templated_Heap_Node_List = std::list<Heap_Node<T>>;
-
   template <typename Weight_Type = Time_Type>
-  using Templated_H_out_Collection = std::unordered_map<Node_Id_Type, H_out_Node<Templated_Edge_Info<Weight_Type>>>;
-
-  template <typename Weight_Type = Time_Type>
-  using H_out_Template_Iterator = Templated_H_out_Collection<Weight_Type>::const_iterator;
-
-  template <typename Weight_Type = Time_Type>
-  struct Pointer_Greater
-  {
-    std::less<> comp{};
-
-    bool
-    operator()(Templated_H_out_Collection<Weight_Type>::const_iterator const &lhs,
-               Templated_H_out_Collection<Weight_Type>::const_iterator const &rhs) const
-    {
-      return comp(rhs->second, lhs->second);
-    }
-  };
+  using Templated_H_out_Collection =
+    std::unordered_map<Node_Id_Type, H_out_test<Templated_Edge_Info<Weight_Type>, std::less<>>>;
 
   template <typename Weight_Type = Time_Type>
   using Templated_H_g_Collection =
-    std::unordered_map<Node_Id_Type, Heap<H_out_Template_Iterator<Weight_Type>, Pointer_Greater<Weight_Type>>>;
+    std::unordered_map<Node_Id_Type, H_g_test<Templated_Edge_Info<Weight_Type>, std::less<>>>;
 } // namespace network_butcher::kfinder
 
 
