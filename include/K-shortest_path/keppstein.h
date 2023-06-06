@@ -58,9 +58,12 @@ namespace network_butcher::kfinder
     /// The basic function for the Eppstein algorithm
     /// \param K The number of shortest paths
     /// \param dij_res The result of dijkstra
+    /// \param sidetrack_distances The collection of the sidetrack distances for all the sidetrack edges
     /// \return The k shortest paths
     [[nodiscard]] auto
-    start(std::size_t K, Parent_Type::Dijkstra_Result_Type const &dij_res) const -> Output_Type override;
+    start(std::size_t                              K,
+          Parent_Type::Dijkstra_Result_Type const &dij_res,
+          Internal_Weight_Collection_Type const   &sidetrack_distances) const -> Output_Type override;
 
   public:
     explicit KFinder_Eppstein(GraphType const &g, std::size_t root, std::size_t sink)
@@ -77,15 +80,32 @@ namespace network_butcher::kfinder
   auto
   KFinder_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::start(
     std::size_t                 K,
-    Dijkstra_Result_Type const &dij_res) const -> Output_Type
+    Dijkstra_Result_Type const &dij_res,
+    Internal_Weight_Collection_Type const &sidetrack_distances) const -> Output_Type
   {
-    auto const  sidetrack_distances_res = Parent_Type::sidetrack_distances(dij_res); // O(E)
-    auto const &successors              = dij_res.first;
+    auto const &successors = dij_res.first;
 
-    auto h_out = construct_h_out(successors, sidetrack_distances_res); // O(N+E)
-    auto h_g   = construct_h_g(h_out, successors);                     // O(N*log(N))
+#if PRINT_DEBUG_STATEMENTS
+    Chrono dd_crono;
+    dd_crono.start();
+#endif
 
-    return Parent_Type::general_algo_eppstein(K, dij_res, sidetrack_distances_res, h_g, h_out);
+    auto h_out = construct_h_out(successors, sidetrack_distances); // O(N+E)
+
+#if PRINT_DEBUG_STATEMENTS
+    dd_crono.stop();
+    std::cout << "Eppstein, H_out: " << dd_crono.wallTime() / 1000. << " ms" << std::endl;
+    dd_crono.start();
+#endif
+
+    auto h_g = construct_h_g(h_out, successors); // O(N*log(N))
+
+#if PRINT_DEBUG_STATEMENTS
+    dd_crono.stop();
+    std::cout << "Eppstein, H_G: " << dd_crono.wallTime() / 1000. << " ms" << std::endl;
+#endif
+
+    return Parent_Type::general_algo_eppstein(K, dij_res, sidetrack_distances, h_g, h_out);
   }
 
 
@@ -112,16 +132,16 @@ namespace network_butcher::kfinder
         // The output neighbors of the current node
         auto const            &head_nodes = graph.get_output_nodes(tail);
         std::vector<Edge_Info> sidetrack_edges;
-        sidetrack_edges.reserve(head_nodes.size());
+        sidetrack_edges.reserve(sidetrack_distances[tail].size());
 
         // Loop through the output neighbors of the current node
         for (auto const &head : head_nodes)
           {
-            auto [begin, end] = sidetrack_distances.equal_range(Edge_Type{tail, head});
+            auto [begin, end] = sidetrack_distances[tail].equal_range(head);
 
-            for (; begin != end && begin->first.first == tail && begin->first.second == head; ++begin)
+            for (; begin != end && begin->first == head; ++begin)
               {
-                sidetrack_edges.emplace_back(begin->first, begin->second);
+                sidetrack_edges.emplace_back(std::make_pair(tail, begin->first), begin->second);
               }
           }
 

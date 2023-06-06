@@ -2,9 +2,6 @@ cmake_minimum_required(VERSION 3.21)
 project("Network Butcher" DESCRIPTION "Just a normal butcher. A network butcher")
 set(CMAKE_CXX_STANDARD 20)
 
-#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
-
 # #######################################################################################################################
 # ############ USER OPTIONS #############################################################################################
 # #######################################################################################################################
@@ -14,6 +11,9 @@ option(BUILD_COMPLETE_TESTS "Build complete tests" OFF)
 
 option(ENABLE_PARALLEL "Enable parallel execution" OFF)
 option(USE_OPENMP "Use OpenMP" ON)
+
+
+option(PRINT_DEBUG_STATEMENTS "Print debug statements" ON)
 
 
 option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
@@ -29,9 +29,13 @@ option(BUILD_DOC "Build documentation" ON)
 
 message(STATUS "Build tests: ${BUILD_TESTS}")
 message(STATUS "Build complete tests: ${BUILD_COMPLETE_TESTS}")
-message(STATUS "Enable parallel execution: ${ENABLE_PARALLEL}")
 
+message(STATUS "Enable parallel execution: ${ENABLE_PARALLEL}")
 message(STATUS "Enable OpenMP: ${USE_OPENMP}")
+
+
+message(STATUS "Print debug statements: ${PRINT_DEBUG_STATEMENTS}")
+
 
 message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
 
@@ -52,6 +56,10 @@ include(cmake/CMakeLists.txt)
 
 if (USE_PYBIND)
     add_compile_definitions(PYBIND_ACTIVE)
+endif ()
+
+if (PRINT_DEBUG_STATEMENTS)
+    add_compile_definitions(PRINT_DEBUG_STATEMENTS)
 endif ()
 
 if (ENABLE_PARALLEL)

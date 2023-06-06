@@ -13,6 +13,7 @@
 #include "heap_traits.h"
 #include "shortest_path_finder.h"
 
+#include "chrono.h"
 #include "kfinder.h"
 
 namespace network_butcher::kfinder
@@ -42,7 +43,7 @@ namespace network_butcher::kfinder
     using H_out_collection = Templated_H_out_Collection<Weight_Type>;
 
 
-    using Internal_Weight_Collection_Type = std::multimap<Edge_Type, Weight_Type>;
+    using Internal_Weight_Collection_Type = std::vector<std::multimap<Node_Id_Type, Weight_Type>>;
     using Dijkstra_Result_Type =
       network_butcher::kfinder::Shortest_path_finder::Templated_Dijkstra_Result_Type<Weight_Type>;
 
@@ -198,7 +199,9 @@ namespace network_butcher::kfinder
     /// \param dij_res The result of the Dijkstra algorithm
     /// \return The shortest paths (in explicit form)
     [[nodiscard]] virtual auto
-    start(std::size_t K, Dijkstra_Result_Type const &dij_res) const -> Output_Type = 0;
+    start(std::size_t                            K,
+          Dijkstra_Result_Type const            &dij_res,
+          Internal_Weight_Collection_Type const &sidetrack_distances) const -> Output_Type = 0;
 
 
     /// The "general" structure of the Eppstein algorithms. It will construct the shortest paths
@@ -246,7 +249,17 @@ namespace network_butcher::kfinder
     if (graph.empty() || K == 0)
       return {};
 
+#if PRINT_DEBUG_STATEMENTS
+    Chrono dd_crono;
+    dd_crono.start();
+#endif
+
     auto const dij_res = Shortest_path_finder::dijkstra(this->graph.reverse(), sink); // time:
+
+#if PRINT_DEBUG_STATEMENTS
+    dd_crono.stop();
+    std::cout << "basic_KEppstein, dijkstra: " << dd_crono.wallTime() / 1000. << " ms" << std::endl;
+#endif
 
     if (K == 1)
       {
@@ -260,7 +273,19 @@ namespace network_butcher::kfinder
           }
       }
 
-    return start(K, dij_res);
+#if PRINT_DEBUG_STATEMENTS
+    dd_crono.start();
+#endif
+
+    auto const sidetrack_distances_res = sidetrack_distances(dij_res); // O(E)
+
+#if PRINT_DEBUG_STATEMENTS
+    dd_crono.stop();
+    std::cout << "basic_KEppstein, sidetrack_distances_computation: " << dd_crono.wallTime() / 1000. << " ms"
+              << std::endl;
+#endif
+
+    return start(K, dij_res, sidetrack_distances_res);
   }
 
 
@@ -274,6 +299,13 @@ namespace network_butcher::kfinder
     H_out_collection                         &h_out,
     const Basic_KEppstein::Callback_Function &callback_fun) const -> Output_Type
   {
+#if PRINT_DEBUG_STATEMENTS
+    double h_g_it_time = 0., Q_insert_time = 0., sidetrack_edges_time = 0., res_time = 0.;
+
+    Chrono dd_crono, dd_res;
+    dd_crono.start();
+#endif
+
     auto const &root   = Parent_Type::root;
     auto constexpr inf = std::numeric_limits<Node_Id_Type>::max();
 
@@ -283,11 +315,19 @@ namespace network_butcher::kfinder
     if (shortest_distance[root] == std::numeric_limits<Weight_Type>::max())
       return {};
 
+#if PRINT_DEBUG_STATEMENTS
+    dd_res.start();
+#endif
+
     // Start with the shortest path
     std::vector<Implicit_Path_Info> res;
     res.push_back(Implicit_Path_Info{.current_sidetrack   = std::optional<Sidetrack>(),
                                      .previous_sidetracks = nullptr,
                                      .length              = shortest_distance[root]});
+#if PRINT_DEBUG_STATEMENTS
+    dd_res.stop();
+    res_time += dd_res.wallTime();
+#endif
 
     // Find the first sidetrack edge
     typename H_g_collection::const_iterator h_g_it = h_g.find(root);
@@ -304,24 +344,52 @@ namespace network_butcher::kfinder
           }
       }
 
-    auto const &first_side_track = extract_first_sidetrack_edge(h_g_it);
-
     res.reserve(K);
 
     // Collection of "final" implicit paths to be added to res
     std::multiset<Implicit_Path_Info> Q;
 
     // First deviatory path
+    auto const &first_side_track = extract_first_sidetrack_edge(h_g_it);
+
+#if PRINT_DEBUG_STATEMENTS
+    dd_res.start();
+#endif
+
     Q.insert(Implicit_Path_Info{.current_sidetrack   = first_side_track,
                                 .previous_sidetracks = nullptr,
                                 .length = first_side_track.get_head_content().delta_weight + shortest_distance[root]});
 
+#if PRINT_DEBUG_STATEMENTS
+    dd_res.stop();
+    Q_insert_time += dd_res.wallTime();
+#endif
+
     std::size_t k = 2;
+
     // Loop through Q until either Q is empty or the number of paths found is K
     for (; k <= K && !Q.empty(); ++k) // O(K)
       {
+#if PRINT_DEBUG_STATEMENTS
+        dd_res.start();
+#endif
+
         res.emplace_back(*Q.cbegin());
+
+#if PRINT_DEBUG_STATEMENTS
+        dd_res.stop();
+        res_time += dd_res.wallTime();
+#endif
+
+#if PRINT_DEBUG_STATEMENTS
+        dd_res.start();
+#endif
         Q.erase(Q.begin());
+
+#if PRINT_DEBUG_STATEMENTS
+        dd_res.stop();
+        Q_insert_time += dd_res.wallTime();
+#endif
 
         auto const &SK                 = res.back();
         auto const &current_sidetrack  = SK.current_sidetrack.value();
@@ -330,43 +398,101 @@ namespace network_butcher::kfinder
         // "Helper" function that can be called if needed
         if (callback_fun != nullptr)
           {
+#if PRINT_DEBUG_STATEMENTS
+            dd_res.start();
+#endif
             h_g_it = callback_fun(h_g, h_out, sidetrack_distances, successors, e_edge.second, graph);
+
+#if PRINT_DEBUG_STATEMENTS
+            dd_res.stop();
+            h_g_it_time += dd_res.wallTime();
+#endif
           }
         else
           {
+#if PRINT_DEBUG_STATEMENTS
+            dd_res.start();
+#endif
+
             h_g_it = h_g.find(e_edge.second); // O(1), the element should always exist!
+
+#if PRINT_DEBUG_STATEMENTS
+            dd_res.stop();
+            h_g_it_time += dd_res.wallTime();
+#endif
           }
 
-        if (h_g_it != h_g.end() && !h_g_it->second.empty())
+        if (!h_g_it->second.empty())
           {
             // Extract the first sidetrack edge, if it exists
             auto const &f = extract_first_sidetrack_edge(h_g_it);
 
+#if PRINT_DEBUG_STATEMENTS
+            dd_res.start();
+#endif
+
             Q.insert(Implicit_Path_Info{.current_sidetrack   = f,
                                         .previous_sidetracks = &res.back(),
-                                        .length = SK.length + f.get_head_content().delta_weight}); // O(log(K))
+                                        .length = SK.length + f.get_head_content().delta_weight}); // O(log(K)
+
+#if PRINT_DEBUG_STATEMENTS
+            dd_res.stop();
+            Q_insert_time += dd_res.wallTime();
+#endif
           }
 
-        auto const alternatives = get_alternatives(current_sidetrack); // O(1)
+#if PRINT_DEBUG_STATEMENTS
+        dd_res.start();
+#endif
+        auto const &sidetrack_edges = get_alternatives(current_sidetrack);
 
-        if (!alternatives.empty())
+#if PRINT_DEBUG_STATEMENTS
+        dd_res.stop();
+        sidetrack_edges_time += dd_res.wallTime();
+#endif
+
+        // O(1), there are up tp 3 elements in this collection
+        for (auto const &sidetrack_edge : sidetrack_edges)
           {
-            for (auto const &sidetrack_edge : alternatives) // O(1), there are up tp 3 elements in this collection
-              {
-                // O(log(K))
-                Q.insert(
-                  Implicit_Path_Info{.current_sidetrack   = sidetrack_edge,
-                                     .previous_sidetracks = SK.previous_sidetracks,
-                                     .length = SK.length + sidetrack_edge.get_head_content().delta_weight - e_weight});
-              }
+#if PRINT_DEBUG_STATEMENTS
+            dd_res.start();
+#endif
+
+            Q.insert(Implicit_Path_Info{.current_sidetrack   = sidetrack_edge,
+                                        .previous_sidetracks = SK.previous_sidetracks,
+                                        .length = SK.length + sidetrack_edge.get_head_content().delta_weight -
+                                                  e_weight}); // O(log(K))
+
+#if PRINT_DEBUG_STATEMENTS
+            dd_res.stop();
+            Q_insert_time += dd_res.wallTime();
+#endif
           }
 
         // O(1), since every time up to 4 paths may be inserted. Thus, the loop can run up to 3 times
         while (Q.size() > K)
           {
+#if PRINT_DEBUG_STATEMENTS
+            dd_res.start();
+#endif
+
             Q.erase((++Q.rbegin()).base());
+
+#if PRINT_DEBUG_STATEMENTS
+            dd_res.stop();
+            Q_insert_time += dd_res.wallTime();
+#endif
           }
       }
+
+#if PRINT_DEBUG_STATEMENTS
+    dd_crono.stop();
+    std::cout << "basic_KEppstein, general_algo: " << dd_crono.wallTime() / 1000. << " ms" << std::endl;
+
+    std::cout << "basic_KEppstein, build / retrieve H_g: " << h_g_it_time / 1000. << " ms" << std::endl;
+    std::cout << "basic_KEppstein, Q_manipulation: " << Q_insert_time / 1000. << " ms" << std::endl;
+    std::cout << "basic_KEppstein, sidetrack_edges: " << sidetrack_edges_time / 1000. << " ms" << std::endl;
+#endif
 
     if constexpr (Only_Distance)
       {
@@ -578,6 +704,8 @@ namespace network_butcher::kfinder
     Dijkstra_Result_Type const &dij_res) const -> Internal_Weight_Collection_Type
   {
     Internal_Weight_Collection_Type res;
+    res.resize(graph.size());
+
     auto const &[successors, distances_from_sink] = dij_res;
 
     for (auto const &tail_node : graph)
@@ -608,8 +736,7 @@ namespace network_butcher::kfinder
                         auto const &weight    = *it;
                         auto        to_insert = weight + distances_from_sink[head] - distances_from_sink[tail];
 
-                        res.insert(res.cend(),
-                                   {edge, weight + distances_from_sink[head] - distances_from_sink[tail]}); // O(1)}
+                        res[edge.first].emplace(edge.second, std::move(to_insert)); // O(1)}
                       }
                   }
               }
@@ -617,8 +744,8 @@ namespace network_butcher::kfinder
               {
                 for (auto const &weight : weights)
                   {
-                    res.insert(res.cend(),
-                               {edge, weight + distances_from_sink[head] - distances_from_sink[tail]}); // O(1)}
+                    auto to_insert = weight + distances_from_sink[head] - distances_from_sink[tail];
+                    res[edge.first].emplace(edge.second, std::move(to_insert)); // O(1)
                   }
               }
           }

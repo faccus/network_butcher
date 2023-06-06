@@ -36,17 +36,20 @@ namespace network_butcher::kfinder
     using H_out_collection = Parent_Type::H_out_collection;
 
 
-    /// It will generate the callback function using during the Eppstein main loop to construct the required H_gs (and H_outs)
-    /// \return The generator function
+    /// It will generate the callback function using during the Eppstein main loop to construct the required H_gs (and
+    /// H_outs) \return The generator function
     auto
     construct_h_g_builder() const;
 
     /// The basic function for the lazy Eppstein algorithm
     /// \param K The number of shortest paths
     /// \param dij_res The result of dijkstra
+    /// \param sidetrack_distances The collection of the sidetrack distances for all the sidetrack edges
     /// \return The (implicit) k shortest paths
     [[nodiscard]] auto
-    start(std::size_t K, Dijkstra_Result_Type const &dij_res) const -> Output_Type override;
+    start(std::size_t                            K,
+          Dijkstra_Result_Type const            &dij_res,
+          Internal_Weight_Collection_Type const &sidetrack_distances) const -> Output_Type override;
 
   public:
     explicit KFinder_Lazy_Eppstein(GraphType const &g, std::size_t root, std::size_t sink)
@@ -62,11 +65,10 @@ namespace network_butcher::kfinder
   template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
   auto
   KFinder_Lazy_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::start(
-    std::size_t                 K,
-    Dijkstra_Result_Type const &dij_res) const -> Output_Type
+    std::size_t                            K,
+    Dijkstra_Result_Type const            &dij_res,
+    Internal_Weight_Collection_Type const &sidetrack_distances) const -> Output_Type
   {
-    auto const sidetrack_distances_res = Parent_Type::sidetrack_distances(dij_res); // O(E)
-
     H_out_collection h_out;
     H_g_collection   h_g;
 
@@ -78,6 +80,11 @@ namespace network_butcher::kfinder
     if (distances[Parent_Type::root] == std::numeric_limits<Weight_Type>::max())
       return {};
 
+#if PRINT_DEBUG_STATEMENTS
+    Chrono dd_crono;
+    dd_crono.start();
+#endif
+
     std::list<Node_Id_Type> to_compute;
     to_compute.push_back(Parent_Type::root);
 
@@ -88,12 +95,18 @@ namespace network_butcher::kfinder
 
     while (!to_compute.empty())
       {
-        fun(h_g, h_out, sidetrack_distances_res, successors, to_compute.back(), Parent_Type::graph);
+        fun(h_g, h_out, sidetrack_distances, successors, to_compute.back(), Parent_Type::graph);
         to_compute.pop_back();
       }
 
+#if PRINT_DEBUG_STATEMENTS
+    dd_crono.stop();
+    std::cout << "Lazy_Eppstein, initial_h_g_build: " << dd_crono.wallTime() / 1000. << " ms" << std::endl;
+    dd_crono.start();
+#endif
+
     // Execute the Eppstein algorithm
-    return Parent_Type::general_algo_eppstein(K, dij_res, sidetrack_distances_res, h_g, h_out, fun);
+    return Parent_Type::general_algo_eppstein(K, dij_res, sidetrack_distances, h_g, h_out, fun);
   }
 
 
@@ -114,16 +127,16 @@ namespace network_butcher::kfinder
       std::vector<Edge_Info> to_insert;
       auto const            &out_nodes = graph.get_output_nodes(tail);
 
-      to_insert.reserve(out_nodes.size());
+      to_insert.reserve(sidetrack_distances[tail].size());
 
       // For every "sidetrack" node in the outer start of node
       for (auto const &exit : out_nodes)
         {
-          auto [begin, end] = sidetrack_distances.equal_range(Edge_Type{tail, exit});
-          for (; begin != end && begin->first.first == tail && begin->first.second == exit; ++begin)
+          auto [begin, end] = sidetrack_distances[tail].equal_range(exit);
+          for (; begin != end && begin->first == exit; ++begin)
             {
               // Add the sidetrack edges to the H_out
-              to_insert.emplace_back(begin->first, begin->second);
+              to_insert.emplace_back(std::make_pair(tail, begin->first), begin->second);
             }
         }
 
@@ -163,9 +176,10 @@ namespace network_butcher::kfinder
               func(h_g, h_out, sidetrack_distances, successors, successors[node], func, graph);
 
             // Insert in the successor H_g the current H_out, obtaining the H_g of the current node
-            return h_g.emplace(node,
-                               typename H_g_collection::mapped_type(&(to_insert_h_out->second),
-                                                                    previous_inserted_h_g->second)).first;
+            return h_g
+              .emplace(node,
+                       typename H_g_collection::mapped_type(&(to_insert_h_out->second), previous_inserted_h_g->second))
+              .first;
           }
         else
           {

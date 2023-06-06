@@ -32,7 +32,7 @@ jobs:
 
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory.
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_TESTS=ON -DBUILD_COMPLETE_TESTS=ON -DENABLE_PARALLEL=ON -DBUILD_PROTOBUF_SOURCE=ON -DUSE_YAML_CPP=OFF -DUSE_PYBIND=ON -DBUILD_DOC=ON -DBUILD_EXTRA_MAINS=OFF
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_TESTS=ON -DPRINT_DEBUG_STATEMENTS=OFF -DBUILD_COMPLETE_TESTS=ON -DENABLE_PARALLEL=ON -DBUILD_PROTOBUF_SOURCE=ON -DUSE_YAML_CPP=OFF -DUSE_PYBIND=ON -DBUILD_DOC=ON -DBUILD_EXTRA_MAINS=OFF
 
       - name: Build
         # Build your program with the given configuration
