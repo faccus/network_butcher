@@ -42,8 +42,6 @@ namespace network_butcher::kfinder
     using H_out_collection = Templated_H_out_Collection<Weight_Type>;
 
 
-    /// (Position of H_out in H_g, Position of sidetrack in H_out)
-    using Location_DG_Type                = std::pair<std::size_t, std::size_t>;
     using Internal_Weight_Collection_Type = std::multimap<Edge_Type, Weight_Type>;
     using Dijkstra_Result_Type =
       network_butcher::kfinder::Shortest_path_finder::Templated_Dijkstra_Result_Type<Weight_Type>;
@@ -56,6 +54,7 @@ namespace network_butcher::kfinder
                                                             Node_Id_Type,
                                                             t_Weighted_Graph_Complete_Type const &)>;
 
+    /// A struct that contains the information about a sidetrack
     class Sidetrack
     {
     private:
@@ -176,6 +175,9 @@ namespace network_butcher::kfinder
     sidetrack_distances(Dijkstra_Result_Type const &dij_res) const -> Internal_Weight_Collection_Type;
 
 
+    /// Given the input sidetrack, it will return the vector of next alternative sidetracks
+    /// \param current_sidetrack The current sidetrack
+    /// \return The vector of next alternative sidetracks
     [[nodiscard]] auto
     get_alternatives(Sidetrack const &current_sidetrack) const -> std::vector<Sidetrack>;
 

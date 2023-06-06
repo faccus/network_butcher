@@ -105,14 +105,13 @@ namespace network_butcher::kfinder
       {
         auto const &tail           = tail_node.get_id();
         auto const &tail_successor = successors[tail];
+
         if (tail_successor == std::numeric_limits<Node_Id_Type>::max())
           continue;
 
         // The output neighbors of the current node
-        auto const &head_nodes = graph.get_output_nodes(tail);
-
+        auto const            &head_nodes = graph.get_output_nodes(tail);
         std::vector<Edge_Info> sidetrack_edges;
-        // We may need to reserve more space than this if Parallel_Edges are allowed.
         sidetrack_edges.reserve(head_nodes.size());
 
         // Loop through the output neighbors of the current node

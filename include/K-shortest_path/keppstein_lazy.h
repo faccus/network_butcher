@@ -36,11 +36,10 @@ namespace network_butcher::kfinder
     using H_out_collection = Parent_Type::H_out_collection;
 
 
-    /// It will generate a function to add to the h_g map the h_g associated to the current node.
-    /// \return The function
+    /// It will generate the callback function using during the Eppstein main loop to construct the required H_gs (and H_outs)
+    /// \return The generator function
     auto
     construct_h_g_builder() const;
-
 
     /// The basic function for the lazy Eppstein algorithm
     /// \param K The number of shortest paths
