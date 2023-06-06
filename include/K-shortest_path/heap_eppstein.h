@@ -240,28 +240,73 @@ namespace network_butcher::kfinder
     {
       if (!initial_collection.empty())
         {
-          std::make_heap(initial_collection.begin(), initial_collection.end(), Node_Type::comp); // O(N)
+          auto const reversed_comparison = [](auto const &lhs, auto const &rhs) { return Node_Type::comp(rhs, lhs); };
+
+          std::make_heap(initial_collection.begin(), initial_collection.end(), reversed_comparison); // O(N)
+          std::pop_heap(initial_collection.begin(), initial_collection.end(), reversed_comparison);  // O(log(N))
 
           std::vector<typename std::list<Node_Type>::iterator> iterators;
-          iterators.reserve(initial_collection.size());                           // O(N)
+          iterators.reserve(initial_collection.size());                         // O(N)
 
-          initial_collection.emplace_back(std::move(initial_collection.front())); // O(1)
+          internal_children.emplace_back(std::move(initial_collection.back())); // O(1)
+          iterators.push_back(internal_children.begin());                       // O(1)
+          initial_collection.pop_back();
 
-          iterators.push_back(internal_children.begin());                         // O(1)
-
-          for (std::size_t i = 1; i < initial_collection.size(); ++i)             // O(N)
+          for (std::size_t i = 0; i < initial_collection.size(); ++i) // O(N)
             {
               internal_children.emplace_back(std::move(initial_collection[i]));
               iterators.push_back((++internal_children.rbegin()).base());
 
-              iterators[(i - 1) / 2]->add_child(&internal_children.back());
+              iterators[(i + 1) / 2]->add_child(&internal_children.back());
             }
         }
     };
 
+    H_out_test(H_out_test const &rhs)
+      : internal_children(rhs.internal_children)
+    {
+      if (!internal_children.empty())
+        {
+          std::vector<typename std::list<Node_Type>::iterator> iterators;
+          iterators.reserve(internal_children.size());
+          auto it = internal_children.begin();
+
+          iterators.push_back(it);
+          it->clear_children();
+          ++it;
+
+          for (std::size_t i = 1; i < internal_children.size(); ++i, ++it) // O(N)
+            {
+              it->clear_children();
+              iterators.push_back(it);
+              iterators[i / 2]->add_child(&(*it));
+            }
+        }
+    }
+
     auto
-    operator=(H_out_test const &) -> H_out_test & = default;
-    H_out_test(H_out_test const &)                = default;
+    operator=(H_out_test const &rhs) -> H_out_test &
+    {
+      internal_children = rhs.internal_children;
+
+      if (!internal_children.empty())
+        {
+          std::vector<typename std::list<Node_Type>::iterator> iterators;
+          iterators.reserve(internal_children.size());
+          auto it = internal_children.begin();
+
+          iterators.push_back(it);
+          it->clear_children();
+          ++it;
+
+          for (std::size_t i = 1; i < internal_children.size(); ++i, ++it) // O(N)
+            {
+              it->clear_children();
+              iterators.push_back(it);
+              iterators[i / 2]->add_child(&(*it));
+            }
+        }
+    }
 
 
     auto
@@ -332,10 +377,22 @@ namespace network_butcher::kfinder
       return get_head_node()->get_content();
     }
 
+    [[nodiscard]] auto
+    empty() const -> bool
+    {
+      return internal_children.empty();
+    }
+
     auto
     operator<(H_out_test const &rhs) -> bool
     {
       return Heap_Node<T, Comparison, 2>::comp(get_head_node(), rhs.get_head_node());
+    }
+
+    auto
+    get_internal_children() const -> std::list<Node_Type> const &
+    {
+      return internal_children;
     }
 
     virtual ~H_out_test() = default;
@@ -369,19 +426,31 @@ namespace network_butcher::kfinder
     explicit H_g_test(H_out_test<T, Comparison> const *const &starting_content)
       : internal_children()
     {
-      internal_children.emplace_back(starting_content);
+      if (!starting_content->empty())
+        internal_children.emplace_back(starting_content);
     };
 
     H_g_test(H_out_test<T, Comparison> const *const &starting_content, H_g_test const &to_copy)
       : internal_children()
     {
-      if (to_copy.internal_children.empty())
+      if (starting_content->empty() && to_copy.empty())
+        {
+          return;
+        }
+      else if (starting_content->empty())
+        {
+          internal_children.push_back(to_copy.internal_children.front());
+          return;
+        }
+      else if (to_copy.empty())
         {
           internal_children.emplace_back(starting_content);
           return;
         }
-
-      construction_from_other_h_g(starting_content, to_copy.get_head_node(), nullptr);
+      else
+        {
+          construction_from_other_h_g(starting_content, to_copy.get_head_node(), nullptr);
+        }
     }
 
     [[nodiscard]] auto

@@ -56,24 +56,24 @@ namespace network_butcher::kfinder
                                                             Node_Id_Type,
                                                             t_Weighted_Graph_Complete_Type const &)>;
 
-    class SubSidetrack
+    class Sidetrack
     {
     private:
-      H_g_collection::mapped_type ::Node_Type    *h_g_node;
-      H_out_collection ::mapped_type ::Node_Type *h_out_node;
+      H_g_collection::mapped_type ::Node_Type const    *h_g_node;
+      H_out_collection ::mapped_type ::Node_Type const *h_out_node;
 
     public:
-      explicit SubSidetrack(H_g_collection::mapped_type ::Node_Type *node)
+      explicit Sidetrack(H_g_collection::mapped_type ::Node_Type const *node)
         : h_g_node{node}
         , h_out_node{nullptr} {};
 
-      explicit SubSidetrack(H_out_collection::mapped_type ::Node_Type *node)
+      explicit Sidetrack(H_out_collection::mapped_type ::Node_Type const *node)
         : h_g_node{nullptr}
         , h_out_node{node} {};
 
-      auto
-      get_node() -> std::variant<typename H_g_collection::mapped_type ::Node_Type *,
-                                 typename H_out_collection ::mapped_type ::Node_Type *>
+      [[nodiscard]] auto
+      get_node() const -> std::variant<typename H_g_collection::mapped_type ::Node_Type const *,
+                                       typename H_out_collection ::mapped_type ::Node_Type const *>
       {
         if (h_g_node)
           {
@@ -85,19 +85,32 @@ namespace network_butcher::kfinder
           }
         else
           {
-            h_g_node = nullptr;
-            return h_g_node;
+            throw std::runtime_error("Sidetrack: No valid pointer was provided");
           }
       }
-    };
 
-    /// Sidetrack edge can be represented as two elements: the relevant H_g and the position of the edge in H_g as two
-    /// integers, one for the position in H_g and one for the position in H_out
-    struct Sidetrack
-    {
-      H_g_collection::const_iterator current_h_g;
-      Location_DG_Type               location;
-      Weight_Type                    delta_weight;
+      [[nodiscard]] auto
+      valid() const -> bool
+      {
+        return h_g_node || h_out_node;
+      }
+
+      auto
+      get_head_content() const -> Edge_Info const &
+      {
+        if (h_g_node)
+          {
+            return h_g_node->get_content()->get_head_content();
+          }
+        else if (h_out_node)
+          {
+            return h_out_node->get_content();
+          }
+        else
+          {
+            throw std::runtime_error("Sidetrack: No valid pointer was provided");
+          }
+      }
     };
 
     /// Simple struct to represent an implicit path
@@ -114,7 +127,7 @@ namespace network_butcher::kfinder
       }
 
       void
-      compute_sidetracks(std::list<Sidetrack const *> &sidetracks) const
+      compute_sidetracks(std::list<Edge_Info const *> &sidetracks) const
       {
         if (!current_sidetrack)
           {
@@ -126,10 +139,10 @@ namespace network_butcher::kfinder
             previous_sidetracks->compute_sidetracks(sidetracks);
           }
 
-        sidetracks.push_back(&current_sidetrack.value());
+        sidetracks.push_back(&(current_sidetrack.value().get_head_content()));
       }
 
-      std::list<Sidetrack const *>
+      std::list<Edge_Info const *>
       compute_sidetracks() const
       {
         if (!current_sidetrack)
@@ -137,13 +150,13 @@ namespace network_butcher::kfinder
             return {};
           }
 
-        std::list<Sidetrack const *> sidetracks;
+        std::list<Edge_Info const *> sidetracks;
         if (previous_sidetracks != nullptr)
           {
             previous_sidetracks->compute_sidetracks(sidetracks);
           }
 
-        sidetracks.push_back(&current_sidetrack.value());
+        sidetracks.push_back(&(current_sidetrack.value().get_head_content()));
 
         return sidetracks;
       }
@@ -163,13 +176,8 @@ namespace network_butcher::kfinder
     sidetrack_distances(Dijkstra_Result_Type const &dij_res) const -> Internal_Weight_Collection_Type;
 
 
-    /// It contains the children of the given edge in the D(G) graph
-    /// \param h_g_it H_g iterator
-    /// \param position The location of the sidetrack edge in the H_g
-    /// \return The children of the given edge in D(G)
     [[nodiscard]] auto
-    get_alternatives(typename H_g_collection::const_iterator const &h_g_it, Location_DG_Type const &position) const
-      -> std::vector<Sidetrack>;
+    get_alternatives(Sidetrack const &current_sidetrack) const -> std::vector<Sidetrack>;
 
 
     /// Helper function for the Eppstein algorithm. It converts a vector of implicit paths to a vector of explicit
@@ -275,7 +283,6 @@ namespace network_butcher::kfinder
 
     // Start with the shortest path
     std::vector<Implicit_Path_Info> res;
-
     res.push_back(Implicit_Path_Info{.current_sidetrack   = std::optional<Sidetrack>(),
                                      .previous_sidetracks = nullptr,
                                      .length              = shortest_distance[root]});
@@ -305,7 +312,7 @@ namespace network_butcher::kfinder
     // First deviatory path
     Q.insert(Implicit_Path_Info{.current_sidetrack   = first_side_track,
                                 .previous_sidetracks = nullptr,
-                                .length              = first_side_track.delta_weight + shortest_distance[root]});
+                                .length = first_side_track.get_head_content().delta_weight + shortest_distance[root]});
 
     std::size_t k = 2;
     // Loop through Q until either Q is empty or the number of paths found is K
@@ -314,14 +321,9 @@ namespace network_butcher::kfinder
         res.emplace_back(*Q.cbegin());
         Q.erase(Q.begin());
 
-        auto const &SK = res.back();
-
-        auto const &[current_h_g, current_location, _e_weight] = *SK.current_sidetrack;
-
-        auto const &e_h_out            = current_h_g->second.get_elem(current_location.first); // O(1)
-        auto const &[e_edge, e_weight] = current_location.second == std::numeric_limits<Node_Id_Type>::max() ?
-                                           e_h_out->second.get_elem(0) :
-                                           e_h_out->second.get_elem(current_location.second); // O(1)
+        auto const &SK                 = res.back();
+        auto const &current_sidetrack  = SK.current_sidetrack.value();
+        auto const &[e_edge, e_weight] = current_sidetrack.get_head_content();
 
         // "Helper" function that can be called if needed
         if (callback_fun != nullptr)
@@ -340,19 +342,20 @@ namespace network_butcher::kfinder
 
             Q.insert(Implicit_Path_Info{.current_sidetrack   = f,
                                         .previous_sidetracks = &res.back(),
-                                        .length              = SK.length + f.delta_weight}); // O(log(K))
+                                        .length = SK.length + f.get_head_content().delta_weight}); // O(log(K))
           }
 
-        auto const alternatives = get_alternatives(current_h_g, current_location); // O(1)
+        auto const alternatives = get_alternatives(current_sidetrack); // O(1)
 
         if (!alternatives.empty())
           {
             for (auto const &sidetrack_edge : alternatives) // O(1), there are up tp 3 elements in this collection
               {
                 // O(log(K))
-                Q.insert(Implicit_Path_Info{.current_sidetrack   = sidetrack_edge,
-                                            .previous_sidetracks = SK.previous_sidetracks,
-                                            .length              = SK.length + sidetrack_edge.delta_weight - e_weight});
+                Q.insert(
+                  Implicit_Path_Info{.current_sidetrack   = sidetrack_edge,
+                                     .previous_sidetracks = SK.previous_sidetracks,
+                                     .length = SK.length + sidetrack_edge.get_head_content().delta_weight - e_weight});
               }
           }
 
@@ -383,36 +386,38 @@ namespace network_butcher::kfinder
   template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
   auto
   Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::get_alternatives(
-    H_g_collection::const_iterator const &h_g_it,
-    Location_DG_Type const               &position) const -> std::vector<Sidetrack>
+    Sidetrack const &current_sidetrack) const -> std::vector<Sidetrack>
   {
+    using H_out_ptr = typename H_out_collection::mapped_type::Node_Type const *;
+    using H_g_ptr   = typename H_g_collection::mapped_type::Node_Type const *;
+
     std::vector<Sidetrack> res;
-    auto constexpr inf = std::numeric_limits<Node_Id_Type>::max();
+    if (!current_sidetrack.valid())
+      return res;
 
-    auto [h_out_index, index] = position;
-    auto const &h_g           = h_g_it->second;
-
-    // In this case, edge is a head element of an H_out in H_g. Thus, I have to find its children in H_g and its child
-    // in H_out (since it's the head of an H_out, index can be set to 0).
-    if (index == 0)
+    auto const &variant_node = current_sidetrack.get_node();
+    if (std::holds_alternative<H_out_ptr>(variant_node))
       {
-        for (auto const &el : h_g.find_children_indices(h_out_index))
-          {
-            auto const  location_dg_type = std::make_pair(el, 0);
-            auto const &h_g_child        = h_g.get_elem(el);
+        auto const &node = std::get<H_out_ptr>(variant_node);
 
-            if (!h_g_child->second.empty())
-              res.emplace_back(h_g_it, location_dg_type, h_g_child->second.get_head().delta_weight);
-          }
-
-        index = 0;
+        // Add all the H_out related children
+        for (auto const &child : node->get_children())
+          res.emplace_back(child);
       }
-
-    auto const &h_out = h_g.get_elem(h_out_index);
-    for (auto const &el : h_out->second.find_children_indices(index))
+    else
       {
-        auto const location_dg_type = std::make_pair(h_out_index, el);
-        res.emplace_back(h_g_it, location_dg_type, h_out->second.get_elem(el).delta_weight);
+        auto const &node = std::get<H_g_ptr>(variant_node);
+
+
+        // It should be a single child of the head of H_out
+        auto const &children = node->get_content()->get_head_node()->get_children();
+
+        if (!children.empty())
+          res.emplace_back(children.front());
+
+        // Add all the H_g related children
+        for (auto const &child : node->get_children())
+          res.emplace_back(child);
       }
 
     return res;
@@ -443,10 +448,6 @@ namespace network_butcher::kfinder
 
       final_steps.push_back(sink);
       return final_steps;
-    };
-
-    auto const extract_edge = [](H_out_collection::const_iterator h_out, Location_DG_Type const &loc) {
-      return h_out->second.get_elem(loc.second).edge;
     };
 
     // Basically, we start from the specified node and go along the shortest path until we meet a sidetrack edge
@@ -528,12 +529,10 @@ namespace network_butcher::kfinder
             }
           else
             {
-              auto        it             = sidetracks.cbegin();
+              auto sidetrack_edge_it = sidetracks.cbegin();
+
+              auto [first, second]       = (*sidetrack_edge_it)->edge;
               std::size_t node_to_insert = root;
-
-
-              auto h_out_pos       = (*it)->current_h_g->second.get_elem((*it)->location.first);
-              auto [first, second] = extract_edge(h_out_pos, (*it)->location);
 
               while (node_to_insert != sink)
                 {
@@ -541,9 +540,9 @@ namespace network_butcher::kfinder
                   if (first == node_to_insert)
                     {
                       node_to_insert = second;
-                      ++it;
+                      ++sidetrack_edge_it;
 
-                      if (it == sidetracks.cend())
+                      if (sidetrack_edge_it == sidetracks.cend())
                         {
                           auto to_insert = go_shortest(node_to_insert);
                           info.path.insert(info.path.end(),
@@ -553,9 +552,7 @@ namespace network_butcher::kfinder
                           break;
                         }
 
-                      h_out_pos = (*it)->current_h_g->second.get_elem((*it)->location.first);
-
-                      auto tmp = extract_edge(h_out_pos, (*it)->location);
+                      auto tmp = (*sidetrack_edge_it)->edge;
                       first    = tmp.first;
                       second   = tmp.second;
                     }
@@ -634,9 +631,7 @@ namespace network_butcher::kfinder
   Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::extract_first_sidetrack_edge(
     H_g_collection::const_iterator const &h_g_it) const -> Sidetrack
   {
-    auto const &edge = h_g_it->second.get_elem(0)->second.get_elem(0);
-
-    return Sidetrack{.current_h_g = h_g_it, .location = std::make_pair(0, 0), .delta_weight = edge.delta_weight};
+    return Sidetrack(h_g_it->second.get_head_node());
   }
 } // namespace network_butcher::kfinder
 

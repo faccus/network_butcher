@@ -123,14 +123,14 @@ namespace
   std::tuple<Graph_type_Parallel, Node_Id_Type, Node_Id_Type, Node_Id_Type>
   import_graph(std::string file_path)
   {
-    std::size_t                  N, M, s, t, k, u, v;
-    network_butcher::Time_Type   tmp_weight;
+    std::size_t                N, M, s, t, k, u, v;
+    network_butcher::Time_Type tmp_weight;
 
     std::ifstream in_file(file_path);
     in_file >> N >> M >> s >> t >> k;
 
-    std::vector<network_butcher::types::Node> nodes(N);
-    Converted_Onnx_Graph_Type::Dependencies_Type             deps(N);
+    std::vector<network_butcher::types::Node>    nodes(N);
+    Converted_Onnx_Graph_Type::Dependencies_Type deps(N);
     std::vector<
       std::pair<std::pair<network_butcher::Node_Id_Type, network_butcher::Node_Id_Type>, network_butcher::Time_Type>>
       edges;
@@ -156,11 +156,11 @@ namespace
   std::vector<std::string>
   get_test_names()
   {
-    return {"almost_path_00",
+    return {"dense_00",
+            "dense_01",
+            "almost_path_00",
             "almost_path_01",
             "almost_path_02",
-            "dense_00",
-            "dense_01",
             "example_00",
             "loop_00",
             "max_random_00",

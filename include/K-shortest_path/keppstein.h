@@ -171,10 +171,8 @@ namespace network_butcher::kfinder
     auto h_out_iterator = h_out_collection.find(sink); // O(1)
 
     // Prepare the last H_g
-    if (h_out_iterator != h_out_collection.cend() && !h_out_iterator->second.empty())
-      {
-        h_g_collection.find(sink)->second.push(h_out_iterator); // O(log(N))
-      }
+
+    h_g_collection.emplace(sink, typename H_g_collection::mapped_type(&h_out_iterator->second)); // O(1)
 
     // Now, we have to find the nodes whose successor is the sink itself
     std::queue<Node_Id_Type> queue;
@@ -192,18 +190,11 @@ namespace network_butcher::kfinder
 
         // Find the "new" nodes that must be added to the queue. At the end this iteration, their H_g can be computed
         auto       &deps          = sp_dependencies[front_element];                         // O(1)
-        auto       &h_g           = h_g_collection.find(front_element)->second;             // O(1)
         auto const &successor_h_g = h_g_collection.find(successors[front_element])->second; // O(1)
 
-        // the H_g of the successor along the shortest path
-        if (!successor_h_g.empty())
-          h_g.overwrite_children(successor_h_g); // O(N)
-
-        h_out_iterator = h_out_collection.find(front_element);
-
-        // Add H_out and...
-        if (h_out_iterator != h_out_collection.cend() && !h_out_iterator->second.empty())
-          h_g.push(h_out_iterator); // O(1)
+        h_g_collection.emplace(front_element,
+                               typename H_g_collection::mapped_type(&(h_out_collection.find(front_element)->second),
+                                                                    successor_h_g)); // O(log(N))
 
 
         // Among the different iterations, this loop is performed at most N times. Moreover, every iteration of the
