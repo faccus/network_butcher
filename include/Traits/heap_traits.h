@@ -15,11 +15,11 @@ namespace network_butcher::kfinder
 {
   template <typename Weight_Type = Time_Type>
   using Templated_H_out_Collection =
-    std::unordered_map<Node_Id_Type, H_out_test<Templated_Edge_Info<Weight_Type>, std::less<>>>;
+    std::unordered_map<Node_Id_Type, H_out_Type<Templated_Edge_Info<Weight_Type>, std::less<>>>;
 
   template <typename Weight_Type = Time_Type>
   using Templated_H_g_Collection =
-    std::unordered_map<Node_Id_Type, H_g_test<Templated_Edge_Info<Weight_Type>, std::less<>>>;
+    std::unordered_map<Node_Id_Type, H_g_Type<Templated_Edge_Info<Weight_Type>, std::less<>>>;
 } // namespace network_butcher::kfinder
 
 

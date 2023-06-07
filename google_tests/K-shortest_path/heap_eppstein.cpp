@@ -53,7 +53,7 @@ namespace
     std::vector<int> vect{4, 7, 2, 3, 6, 8, 1, 9, 0}, content_vect, content_vect_2 = vect;
     content_vect.reserve(vect.size());
 
-    H_out_test<int, std::less<>> h_out;
+    H_out_Type<int, std::less<>> h_out;
     for (auto const &el : vect)
       {
         h_out.add_elem(el);
@@ -78,7 +78,7 @@ namespace
     content_heap.reserve(vect.size());
     content_heap_2.reserve(vect.size());
 
-    H_out_test<int, std::less<>> h_out_2(std::move(vect));
+    H_out_Type<int, std::less<>> h_out_2(std::move(vect));
 
     std::list<std::pair<std::size_t, Heap_Node<int, std::less<>> const *>> to_visit{
       std::make_pair(0, h_out.get_head_node())};
@@ -141,7 +141,7 @@ namespace
 
   TEST(HeapEppsteinTest, H_g)
   {
-    using H_out_container_type = std::vector<H_out_test<int, std::less<>>>;
+    using H_out_container_type = std::vector<H_out_Type<int, std::less<>>>;
     std::vector<int> vect{0, 1, 1, 2, 3, -1, -2, 4};
 
     H_out_container_type h_outs;
@@ -152,7 +152,7 @@ namespace
         h_outs.back().add_elem(val);
       }
 
-    std::vector<H_g_test<int, std::less<>>> h_gs;
+    std::vector<H_g_Type<int, std::less<>>> h_gs;
     h_gs.emplace_back(&h_outs.front());
 
     for (std::size_t i = 1; i < h_outs.size(); ++i)
@@ -161,7 +161,7 @@ namespace
       }
 
     std::vector<int>                                         content_heap;
-    std::list<H_g_test<int, std::less<>>::Node_Type const *> to_visit{h_gs.back().get_head_node()};
+    std::list<H_g_Type<int, std::less<>>::Node_Type const *> to_visit{h_gs.back().get_head_node()};
     while (!to_visit.empty())
       {
         auto const &node = to_visit.front();

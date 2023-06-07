@@ -57,14 +57,12 @@ namespace network_butcher::kfinder
       : content(initial_content)
     {
       children.reserve(Max_Children);
-      edit_children.reserve(Max_Children);
     };
 
     explicit Heap_Node(T &&initial_content)
       : content(std::move(initial_content))
     {
       children.reserve(Max_Children);
-      edit_children.reserve(Max_Children);
     };
 
     auto
@@ -79,7 +77,7 @@ namespace network_butcher::kfinder
     /// Get the children of the current node
     /// \return The children nodes
     [[nodiscard]] auto
-    get_children() const -> std::vector<Heap_Node const *> const &
+    get_children() const -> std::vector<Heap_Node *> const &
     {
       return children;
     }
@@ -89,7 +87,6 @@ namespace network_butcher::kfinder
     clear_children()
     {
       children.clear();
-      edit_children.clear();
     }
 
     /// Add a child to the current node. It will throw if the number of children is already at the maximum
@@ -102,9 +99,8 @@ namespace network_butcher::kfinder
           throw std::runtime_error("Heap_Node::copy_child: children.size() >= Max_Children");
         }
 
-      depth[edit_children.size()] = 0;
+      depth[children.size()] = 0;
 
-      edit_children.push_back(child);
       children.push_back(child);
     }
 
@@ -120,9 +116,8 @@ namespace network_butcher::kfinder
           throw std::runtime_error("Heap_Node::copy_child: children.size() >= Max_Children");
         }
 
-      depth[edit_children.size()] = 0;
+      depth[children.size()] = 0;
 
-      edit_children.push_back(node->edit_children[id]);
       children.push_back(node->children[id]);
     }
 
@@ -171,8 +166,7 @@ namespace network_butcher::kfinder
 
   protected:
     std::array<std::size_t, Max_Children> depth;
-    std::vector<Heap_Node const *>        children;
-    std::vector<Heap_Node *>              edit_children;
+    std::vector<Heap_Node *>        children;
 
     T content;
 
@@ -199,17 +193,15 @@ namespace network_butcher::kfinder
     void
     internal_push(Heap_Node *new_heap)
     {
-      if (edit_children.size() < Max_Children)
+      if (children.size() < Max_Children)
         {
-          depth[edit_children.size()] = 0;
-          edit_children.push_back(new_heap);
-
-          if (comp(edit_children.back()->content, content))
-            {
-              safe_swap(edit_children.back()->content);
-            }
-
+          depth[children.size()] = 0;
           children.push_back(new_heap);
+
+          if (comp(children.back()->content, content))
+            {
+              safe_swap(children.back()->content);
+            }
         }
       else
         {
@@ -225,12 +217,12 @@ namespace network_butcher::kfinder
               index = std::min_element(depth.cbegin(), depth.cend()) - depth.cbegin();
             }
 
-          edit_children[index]->internal_push(new_heap);
+          children[index]->internal_push(new_heap);
           ++depth[index];
 
-          if (comp(edit_children[index]->content, content))
+          if (comp(children[index]->content, content))
             {
-              safe_swap(edit_children[index]->content);
+              safe_swap(children[index]->content);
             }
         }
     }
@@ -241,19 +233,19 @@ namespace network_butcher::kfinder
   /// single child \tparam T The type of the content of the nodes \tparam Comparison The comparison function to use to
   /// compare the content of the nodes
   template <typename T, typename Comparison>
-  class H_out_test
+  class H_out_Type
   {
   public:
     using Node_Type                = Heap_Node<T, Comparison, 2>;
     using Internal_Collection_Type = std::list<Node_Type>;
 
-    H_out_test()
+    H_out_Type()
       : internal_children(std::make_unique<Internal_Collection_Type>()){};
 
     /// Builds an H_out from a collection of elements. The provided collection will be moved. It is equivalent to an
     /// heapify operation
     /// \param input_collection The input collection
-    explicit H_out_test(std::vector<T> &&input_collection)
+    explicit H_out_Type(std::vector<T> &&input_collection)
       : internal_children(std::make_unique<Internal_Collection_Type>())
     {
       build_internal_children(std::move(input_collection));
@@ -262,7 +254,7 @@ namespace network_butcher::kfinder
     /// Builds an H_out from a collection of elements. The provided collection will be moved. It is equivalent to an
     /// heapify operation
     /// \param input_collection The input collection
-    explicit H_out_test(std::list<T> &&input_collection)
+    explicit H_out_Type(std::list<T> &&input_collection)
       : internal_children(std::make_unique<Internal_Collection_Type>())
     {
       std::vector<T> initial_collection{std::make_move_iterator(input_collection.begin()),
@@ -272,12 +264,12 @@ namespace network_butcher::kfinder
     };
 
     auto
-    operator=(H_out_test const &) -> H_out_test & = delete;
-    H_out_test(H_out_test const &)                = delete;
+    operator=(H_out_Type const &) -> H_out_Type & = delete;
+    H_out_Type(H_out_Type const &)                = delete;
 
     auto
-    operator=(H_out_test &&) -> H_out_test & = default;
-    H_out_test(H_out_test &&)                = default;
+    operator=(H_out_Type &&) -> H_out_Type & = default;
+    H_out_Type(H_out_Type &&)                = default;
 
     /// Adds a new element to the heap
     /// \param elem The content to add to the new heap node
@@ -358,7 +350,7 @@ namespace network_butcher::kfinder
     }
 
     auto
-    operator<(H_out_test const &rhs) -> bool
+    operator<(H_out_Type const &rhs) -> bool
     {
       return Node_Type::comp(get_head_node(), rhs.get_head_node());
     }
@@ -371,7 +363,7 @@ namespace network_butcher::kfinder
       return *internal_children;
     }
 
-    virtual ~H_out_test() = default;
+    virtual ~H_out_Type() = default;
 
   private:
     /// Helper function to build the internal collection of nodes from a collection of elements
@@ -408,10 +400,10 @@ namespace network_butcher::kfinder
 
 
   template <typename T, typename Comparison>
-  class H_g_test
+  class H_g_Type
   {
   public:
-    using Elem_Type = H_out_test<T, Comparison>;
+    using Elem_Type = H_out_Type<T, Comparison>;
 
     struct Pointer_Less
     {
@@ -429,7 +421,7 @@ namespace network_butcher::kfinder
 
     /// It will construct H_g from the given H_out
     /// \param starting_content
-    explicit H_g_test(H_out_test<T, Comparison> const *const &starting_content)
+    explicit H_g_Type(H_out_Type<T, Comparison> const *const &starting_content)
       : internal_children(std::make_unique<Internal_Collection_Type>())
     {
       if (!starting_content->empty())
@@ -440,7 +432,7 @@ namespace network_butcher::kfinder
     /// build the new H_g
     /// \param starting_content The H_out to use to build the new H_g
     /// \param to_copy The H_g to use to build the new H_g
-    explicit H_g_test(H_out_test<T, Comparison> const *const &starting_content, H_g_test const &to_copy)
+    explicit H_g_Type(H_out_Type<T, Comparison> const *const &starting_content, H_g_Type const &to_copy)
       : internal_children(std::make_unique<Internal_Collection_Type>())
     {
       if (starting_content->empty() && to_copy.empty())
@@ -449,27 +441,30 @@ namespace network_butcher::kfinder
         }
       else if (starting_content->empty())
         {
+          // Copy the first node and its connections
           internal_children->push_back(to_copy.internal_children->front());
           return;
         }
       else if (to_copy.empty())
         {
+          // Add the initial content
           internal_children->emplace_back(starting_content);
           return;
         }
       else
         {
+          // We have to go through the whole process
           construction_from_other_h_g(starting_content, to_copy.get_head_node(), nullptr);
         }
     }
 
     auto
-    operator=(H_g_test const &) -> H_g_test & = delete;
-    H_g_test(H_g_test const &)                = delete;
+    operator=(H_g_Type const &) -> H_g_Type & = delete;
+    H_g_Type(H_g_Type const &)                = delete;
 
     auto
-    operator=(H_g_test &&) noexcept -> H_g_test & = default;
-    H_g_test(H_g_test &&) noexcept                = default;
+    operator=(H_g_Type &&) noexcept -> H_g_Type & = default;
+    H_g_Type(H_g_Type &&) noexcept                = default;
 
 
     /// It will return the head node of the heap
@@ -496,13 +491,13 @@ namespace network_butcher::kfinder
       return internal_children->empty();
     }
 
-    ~H_g_test() = default;
+    ~H_g_Type() = default;
 
   private:
     std::unique_ptr<Internal_Collection_Type> internal_children;
 
     /// Helper function to perform a (deep) copy of the provided heap
-    /// \param to_copy
+    /// \param to_copy The heap from which we will copy the children
     /// \return The pointer to the head node of the copied heap
     auto
     recursion_copy(Node_Type const *const &to_copy) -> Node_Type *
@@ -529,8 +524,8 @@ namespace network_butcher::kfinder
     /// \param parent The parent of the current heap
     void
     construction_from_other_h_g(Node_Type::Content_Type const &starting_content,
-                                H_g_test::Node_Type const     *other_h_g,
-                                H_g_test::Node_Type           *parent)
+                                H_g_Type::Node_Type const     *other_h_g,
+                                H_g_Type::Node_Type           *parent)
     {
       static auto const &comp = Node_Type::comp;
 
