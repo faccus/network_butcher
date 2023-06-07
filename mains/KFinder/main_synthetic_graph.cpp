@@ -101,7 +101,7 @@ main(int argc, char **argv)
   std::vector<std::tuple<std::string, Time_Type>> results;
   std::size_t                                     num_tests       = command_line("num_tests", 10);
   std::size_t                                     max_power_nodes = command_line("max_power_nodes", 13);
-  std::size_t                                     max_power_K     = command_line("max_power_K", 12);
+  std::size_t                                     max_power_K     = command_line("max_power_K", 14);
   std::size_t                                     num_devices     = command_line("num_devices", 3);
 
 #if PARALLEL_OPENMP
@@ -143,7 +143,7 @@ main(int argc, char **argv)
 
       std::cout << "Nodes: " << graph.size() << std::endl << std::endl;
 
-      for (std::size_t power_k = 0; power_k <= max_power_K; ++power_k)
+      for (std::size_t power_k = 6; power_k <= max_power_K; ++power_k)
         {
           std::size_t K = simple_pow(2, power_k);
 
