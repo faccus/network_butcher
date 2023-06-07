@@ -230,9 +230,8 @@ namespace network_butcher::kfinder
     }
 
   public:
-
     explicit H_out()
-      : base() {};
+      : base(){};
 
     void
     push(T &&value) override

@@ -57,6 +57,7 @@ namespace network_butcher::kfinder
       Implicit_Path_Info      *previous_sidetracks; // Previous Implicit_Path_Info in the chain
       Weight_Type              length;
 
+
       bool
       operator<(const Implicit_Path_Info &rhs) const
       {
@@ -265,37 +266,36 @@ namespace network_butcher::kfinder
     res.reserve(K);
 
     // Collection of "final" implicit paths to be added to res
-    std::multiset<Implicit_Path_Info> Q;
+    Heap<Implicit_Path_Info, std::greater<>> Q;
+    Q.reserve(K);
 
     // First deviatory path
-    Q.insert(Implicit_Path_Info{.current_sidetrack   = first_side_track,
-                                .previous_sidetracks = nullptr,
-                                .length              = first_side_track.delta_weight + shortest_distance[root]});
+    Q.push(Implicit_Path_Info{.current_sidetrack   = first_side_track,
+                              .previous_sidetracks = nullptr,
+                              .length              = first_side_track.delta_weight + shortest_distance[root]});
 
     std::size_t k = 2;
     // Loop through Q until either Q is empty or the number of paths found is K
-    for (; k <= K && !Q.empty(); ++k) // O(K)
+    for (; k <= K && !Q.empty(); ++k)
       {
-        res.emplace_back(*Q.cbegin());
-        Q.erase(Q.begin());
-
+        res.emplace_back(Q.pop_head());
         auto const &SK = res.back();
 
         auto const &[current_h_g, current_location, _e_weight] = *SK.current_sidetrack;
 
-        auto const &e_h_out            = current_h_g->second.get_elem(current_location.first); // O(1)
+        auto const &e_h_out            = current_h_g->second.get_elem(current_location.first);
         auto const &[e_edge, e_weight] = current_location.second == std::numeric_limits<Node_Id_Type>::max() ?
                                            e_h_out->second.get_elem(0) :
-                                           e_h_out->second.get_elem(current_location.second); // O(1)
+                                           e_h_out->second.get_elem(current_location.second);
 
         // "Helper" function that can be called if needed
         if (callback_fun != nullptr)
           {
-            h_g_it = callback_fun(h_g, h_out, sidetrack_distances, successors, e_edge.second, graph);
+            h_g_it = callback_fun(h_g, h_out, sidetrack_distances, successors, e_edge.second, this->graph);
           }
         else
           {
-            h_g_it = h_g.find(e_edge.second); // O(1), the element should always exist!
+            h_g_it = h_g.find(e_edge.second);
           }
 
         if (h_g_it != h_g.end() && !h_g_it->second.empty())
@@ -303,28 +303,21 @@ namespace network_butcher::kfinder
             // Extract the first sidetrack edge, if it exists
             auto const &f = extract_first_sidetrack_edge(h_g_it);
 
-            Q.insert(Implicit_Path_Info{.current_sidetrack   = f,
-                                        .previous_sidetracks = &res.back(),
-                                        .length              = SK.length + f.delta_weight}); // O(log(K))
+            Q.push(Implicit_Path_Info{.current_sidetrack   = f,
+                                      .previous_sidetracks = &res.back(),
+                                      .length              = SK.length + f.delta_weight});
           }
 
-        auto const alternatives = get_alternatives(current_h_g, current_location); // O(1)
+        auto const alternatives = get_alternatives(current_h_g, current_location);
 
         if (!alternatives.empty())
           {
-            for (auto const &sidetrack_edge : alternatives) // O(1), there are up tp 3 elements in this collection
+            for (auto const &sidetrack_edge : alternatives)
               {
-                // O(log(K))
-                Q.insert(Implicit_Path_Info{.current_sidetrack   = sidetrack_edge,
-                                            .previous_sidetracks = SK.previous_sidetracks,
-                                            .length              = SK.length + sidetrack_edge.delta_weight - e_weight});
+                Q.push(Implicit_Path_Info{.current_sidetrack   = sidetrack_edge,
+                                          .previous_sidetracks = SK.previous_sidetracks,
+                                          .length              = SK.length + sidetrack_edge.delta_weight - e_weight});
               }
-          }
-
-        // O(1), since every time up to 4 paths may be inserted. Thus, the loop can run up to 3 times
-        while (Q.size() > K)
-          {
-            Q.erase((++Q.rbegin()).base());
           }
       }
 
@@ -333,8 +326,8 @@ namespace network_butcher::kfinder
         std::vector<Weight_Type> final_res;
         final_res.reserve(res.size());
 
-        for (auto &path : res) // O(K)
-          final_res.emplace_back(std::move(path.length));
+        for (auto const &path : res)
+          final_res.push_back(path.length);
 
         return final_res;
       }
