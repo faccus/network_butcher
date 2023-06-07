@@ -94,7 +94,7 @@ base_parameters(std::size_t k, std::size_t num_devices)
     }
 
 
-  res.block_graph_generation_params.memory_constraint_type = Memory_Constraint_Type::None;
+  res.block_graph_generation_params.memory_constraint = false;
   res.block_graph_generation_params.starting_device_id     = 0;
   res.block_graph_generation_params.ending_device_id       = 1;
   res.block_graph_generation_params.block_graph_mode       = parameters::Block_Graph_Generation_Mode::output;
