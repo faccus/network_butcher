@@ -53,7 +53,7 @@ namespace network_butcher::types
 
     /// Read-only getter for input
     /// \return Const reference to input
-    inline auto
+    auto
     get_input() const -> Io_Collection_Type<T> const &
     {
       return input;
@@ -62,7 +62,7 @@ namespace network_butcher::types
 
     /// Read-only getter for output
     /// \return Const reference to output
-    inline auto
+    auto
     get_output() const -> Io_Collection_Type<T> const &
     {
       return output;
@@ -71,7 +71,7 @@ namespace network_butcher::types
 
     /// Read-only getter for parameters
     /// \return Const reference to parameters
-    inline auto
+    auto
     get_parameters() const -> Io_Collection_Type<T> const &
     {
       return parameters;
@@ -80,7 +80,7 @@ namespace network_butcher::types
 
     /// Read-only getter for attributes
     /// \return Const reference to attributes
-    inline auto
+    auto
     get_attributes() const -> std::unordered_map<std::string, Variant_Attribute> const &
     {
       return attributes;
@@ -89,7 +89,7 @@ namespace network_butcher::types
 
     /// Read-only getter for operation id
     /// \return Const reference to operation id
-    inline auto
+    auto
     get_operation_id() const -> std::string const &
     {
       return operation_id;
@@ -116,7 +116,7 @@ namespace network_butcher::types
       return *this;
     }
 
-    /// Add the specified input to Content (using perfect forwarding)
+    /// Add the specified output to Content (using perfect forwarding)
     /// \param out The output field of Content
     /// \return Reference to the builder
     template <typename A = decltype(Content_Type::output)>
@@ -128,7 +128,7 @@ namespace network_butcher::types
     }
 
 
-    /// Add the specified input to Content (using perfect forwarding)
+    /// Add the specified parameters to Content (using perfect forwarding)
     /// \param params The parameters field of Content
     /// \return Reference to the builder
     template <typename A = decltype(Content_Type::parameters)>
@@ -140,7 +140,7 @@ namespace network_butcher::types
     }
 
 
-    /// Add the specified input to Content (using perfect forwarding)
+    /// Add the specified attributes to Content (using perfect forwarding)
     /// \param attributes The attributes field of Content
     /// \return Reference to the builder
     template <typename A = decltype(Content_Type::attributes)>
@@ -152,7 +152,7 @@ namespace network_butcher::types
     }
 
 
-    /// Add the specified input to Content (using perfect forwarding)
+    /// Add the specified operation_id to Content (using perfect forwarding)
     /// \param operation_id The operation_id field of Content
     /// \return Reference to the builder
     template <typename A = decltype(Content_Type::operation_id)>

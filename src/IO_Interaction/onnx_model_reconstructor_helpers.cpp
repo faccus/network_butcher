@@ -6,7 +6,7 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
 {
   auto
   get_type(const onnx::ModelProto &original_model, const std::string &communication_node_name)
-    -> std::optional<Repeatable_field<onnx::ValueInfoProto>::const_iterator>
+    -> std::optional<RepeatablePtr_field<onnx::ValueInfoProto>::const_iterator>
   {
     auto const &graph = original_model.graph();
 
@@ -239,8 +239,8 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
                              bool                                                          found_value_info,
                              bool                                                          found_initializer,
                              bool                                                          fake_initializer,
-                             Repeatable_field<onnx::ValueInfoProto>::const_iterator const &it,
-                             Repeatable_field<onnx::TensorProto>::const_iterator const    &init)
+                             RepeatablePtr_field<onnx::ValueInfoProto>::const_iterator const &it,
+                             RepeatablePtr_field<onnx::TensorProto>::const_iterator const    &init)
     -> helper_structures::Preprocessed_Ios_Type::mapped_type
   {
     IO_Type elem_type;

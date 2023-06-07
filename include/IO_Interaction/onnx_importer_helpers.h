@@ -66,13 +66,13 @@ namespace network_butcher::io::Onnx_importer_helpers
       return res;
     };
 
-    /// It converts from a RepeatedField<T> to a vector<T>
+    /// It converts from a RepeatablePtr_field<T> to a vector<T>
     /// \tparam T The content type
     /// \param cont The RepeatedPtrField<T>
     /// \return The vector
     template <class T>
     auto
-    converter(Repeatable_field<T> const &cont) -> std::vector<T>
+    converter(RepeatablePtr_field<T> const &cont) -> std::vector<T>
     {
       std::vector<T> res;
       res.reserve(cont.size());
@@ -89,7 +89,7 @@ namespace network_butcher::io::Onnx_importer_helpers
   /// \param initialized The collection of names of the initialized IO elements
   void
   read_ios(Map_IO                                       &input_map,
-           Repeatable_field<onnx::ValueInfoProto> const &collection,
+           RepeatablePtr_field<onnx::ValueInfoProto> const &collection,
            std::set<std::string> const                  &initialized);
 
 
@@ -100,7 +100,7 @@ namespace network_butcher::io::Onnx_importer_helpers
   /// \param initialized The collection of names of the initialized IO elements
   void
   read_ios(Map_IO                                    &input_map,
-           Repeatable_field<onnx::TensorProto> const &collection,
+           RepeatablePtr_field<onnx::TensorProto> const &collection,
            std::set<std::string> const               &initialized);
 
 
@@ -112,7 +112,7 @@ namespace network_butcher::io::Onnx_importer_helpers
   /// \param value_infos The collection of IO and parameters elements
   /// \return The collection of Type_info associated to the IO elements for the given node
   auto
-  process_node_ios(Repeatable_field<std::basic_string<char>> const &io_names,
+  process_node_ios(RepeatablePtr_field<std::basic_string<char>> const &io_names,
                    Io_Collection_Type<Type_Info_Pointer>           &parameters_collection,
                    Map_IO const &value_infos) -> Io_Collection_Type<Type_Info_Pointer>;
 
@@ -120,7 +120,7 @@ namespace network_butcher::io::Onnx_importer_helpers
   /// \param onnx_io A collection of onnx::ValueInfoProto
   /// \param onnx_io_ids The collection of names
   void
-  populate_id_collection(Repeatable_field<::onnx::ValueInfoProto> const &onnx_io, std::set<std::string> &onnx_io_ids);
+  populate_id_collection(RepeatablePtr_field<::onnx::ValueInfoProto> const &onnx_io, std::set<std::string> &onnx_io_ids);
 
   /// It will produce the collection of strings that are contained in onnx_io_ids and that have an element with the
   /// same name in io_collection
@@ -141,10 +141,10 @@ namespace network_butcher::io::Onnx_importer_helpers
   /// \param onnx_initializer The collection of already "known" parameters
   /// \return The map of value infos, the set of input names and the set of output names
   auto
-  compute_value_infos(Repeatable_field<::onnx::ValueInfoProto> const &onnx_input,
-                      Repeatable_field<::onnx::ValueInfoProto> const &onnx_output,
-                      Repeatable_field<::onnx::ValueInfoProto> const &onnx_value_info,
-                      Repeatable_field<::onnx::TensorProto> const    &onnx_initializer)
+  compute_value_infos(RepeatablePtr_field<::onnx::ValueInfoProto> const &onnx_input,
+                      RepeatablePtr_field<::onnx::ValueInfoProto> const &onnx_output,
+                      RepeatablePtr_field<::onnx::ValueInfoProto> const &onnx_value_info,
+                      RepeatablePtr_field<::onnx::TensorProto> const    &onnx_initializer)
     -> helpers_structures::Processed_Value_Infos_Type;
 
 

@@ -62,6 +62,7 @@ namespace network_butcher::io
                              const std::string &config_file,
                              const std::string &output_path);
 
+
     /// It will execute onnx_tool in order to obtain the network information
     /// \return The path of the .csv file containing the network information
     [[nodiscard]] auto

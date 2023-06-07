@@ -49,9 +49,9 @@ namespace network_butcher::io::IO_Manager
 
   /// It will import a neural network as a graph from a given .onnx file
   /// \param path The file path of the .onnx file
-  /// \param add_input_padding  If true, a "fake" nodes will be added at the beginning of the network, so that
+  /// \param add_input_padding  If true, a padding node will be added at the beginning of the network, so that
   /// the resulting graph has a single input
-  /// \param add_output_padding If true, a "fake" nodes will be added at the at the end of the network, so that
+  /// \param add_output_padding If true, a padding nodes will be added at the at the end of the network, so that
   /// the resulting graph has a single output
   /// \param num_devices The number of devices
   /// \return A tuple made by the graph, the onnx::ModelProto for the .onnx file and a map associating every node
@@ -71,7 +71,8 @@ namespace network_butcher::io::IO_Manager
   export_to_onnx(onnx::ModelProto const &model, const std::string& path);
 
 
-  /// It will import the collection of weights for the given graph
+  /// It will import the collection of weights for the given graph (if the the proper method was chosen). Otherwise,
+  /// it will not do anything
   /// \param graph The graph
   /// \param params The parameters
   void

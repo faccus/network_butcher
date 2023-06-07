@@ -14,7 +14,7 @@ namespace network_butcher::constraints
     Graph_Constraint() = default;
 
     /// Apply the specified constraint to the graph
-    /// \param graph
+    /// \param graph The block graph onto which the constraint should be applied
     virtual void
     apply_constraint(Block_Graph_Type &graph) const = 0;
 
@@ -41,7 +41,6 @@ namespace network_butcher::constraints
 
     /// Helper function used to estimate the memory usage of a group of nodes
     /// \param devices The devices
-    /// \param constraint_type The type of the memory constraint
     /// \param ids The set of nodes to "analyze"
     /// \param input_memory The memory usage of all input nodes
     /// \param output_memory The memory usage of all output nodes

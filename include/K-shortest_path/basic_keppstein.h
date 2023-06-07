@@ -64,6 +64,8 @@ namespace network_butcher::kfinder
         return length < rhs.length;
       }
 
+      /// Recursive method to compute the sequence of sidetracks associated to the current path
+      /// \param sidetracks The list of sidetracks
       void
       compute_sidetracks(std::list<Sidetrack const *> &sidetracks) const
       {
@@ -80,6 +82,8 @@ namespace network_butcher::kfinder
         sidetracks.push_back(&current_sidetrack.value());
       }
 
+      /// This method will obtain the sequence of sidetrack edges associated to the current path
+      /// \return The list of sidetracks
       std::list<Sidetrack const *>
       compute_sidetracks() const
       {
@@ -164,7 +168,7 @@ namespace network_butcher::kfinder
     /// \param h_g The h_g map
     /// \param h_out The h_out map
     /// \param callback_fun A callback function called during the loop used to find the shortest paths
-    /// \return The (implicit) shortest paths
+    /// \return The (explicit) shortest paths
     auto
     general_algo_eppstein(std::size_t                            K,
                           Dijkstra_Result_Type const            &dij_res,
@@ -268,6 +272,7 @@ namespace network_butcher::kfinder
     // Collection of "final" implicit paths to be added to res
     Heap<Implicit_Path_Info, std::greater<>> Q;
     Q.reserve(K);
+
 
     // First deviatory path
     Q.push(Implicit_Path_Info{.current_sidetrack   = first_side_track,

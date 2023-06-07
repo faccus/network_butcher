@@ -48,10 +48,10 @@ namespace network_butcher::io
 
 
   auto
-  Onnx_importer_helpers::compute_value_infos(const Repeatable_field<::onnx::ValueInfoProto> &onnx_input,
-                                             const Repeatable_field<::onnx::ValueInfoProto> &onnx_output,
-                                             const Repeatable_field<::onnx::ValueInfoProto> &onnx_value_info,
-                                             const Repeatable_field<::onnx::TensorProto>    &onnx_initializer)
+  Onnx_importer_helpers::compute_value_infos(const RepeatablePtr_field<::onnx::ValueInfoProto> &onnx_input,
+                                             const RepeatablePtr_field<::onnx::ValueInfoProto> &onnx_output,
+                                             const RepeatablePtr_field<::onnx::ValueInfoProto> &onnx_value_info,
+                                             const RepeatablePtr_field<::onnx::TensorProto>    &onnx_initializer)
     -> helpers_structures::Processed_Value_Infos_Type
   {
     std::set<std::string> onnx_inputs_ids;
@@ -130,7 +130,7 @@ namespace network_butcher::io
 
 
   void
-  Onnx_importer_helpers::populate_id_collection(const Repeatable_field<::onnx::ValueInfoProto> &onnx_io,
+  Onnx_importer_helpers::populate_id_collection(const RepeatablePtr_field<::onnx::ValueInfoProto> &onnx_io,
                                                 std::set<std::string>                          &onnx_io_ids)
   {
     std::transform(onnx_io.begin(), onnx_io.end(), std::inserter(onnx_io_ids, onnx_io_ids.end()), [](auto const &el) {
@@ -141,7 +141,7 @@ namespace network_butcher::io
 
   void
   Onnx_importer_helpers::read_ios(Onnx_importer_helpers::Map_IO                &input_map,
-                                  const Repeatable_field<onnx::ValueInfoProto> &collection,
+                                  const RepeatablePtr_field<onnx::ValueInfoProto> &collection,
                                   const std::set<std::string>                  &initialized)
   {
     for (const auto &value_info : collection)
@@ -160,7 +160,7 @@ namespace network_butcher::io
 
   void
   Onnx_importer_helpers::read_ios(Onnx_importer_helpers::Map_IO             &input_map,
-                                  const Repeatable_field<onnx::TensorProto> &collection,
+                                  const RepeatablePtr_field<onnx::TensorProto> &collection,
                                   const std::set<std::string>               &initialized)
   {
     for (const auto &tensor : collection)
@@ -177,7 +177,7 @@ namespace network_butcher::io
 
 
   auto
-  Onnx_importer_helpers::process_node_ios(const Repeatable_field<std::basic_string<char>> &io_names,
+  Onnx_importer_helpers::process_node_ios(const RepeatablePtr_field<std::basic_string<char>> &io_names,
                                           Io_Collection_Type<Type_Info_Pointer>           &parameters_collection,
                                           Map_IO const &value_infos) -> Io_Collection_Type<Type_Info_Pointer>
   {

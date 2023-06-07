@@ -28,7 +28,7 @@ namespace network_butcher
   using Io_Collection_Type = std::map<std::string, T>;
 
   template <typename T>
-  using Repeatable_field = google::protobuf::RepeatedPtrField<T>;
+  using RepeatablePtr_field = google::protobuf::RepeatedPtrField<T>;
 } // namespace network_butcher
 
 
