@@ -13,7 +13,7 @@ option(ENABLE_PARALLEL "Enable parallel execution" OFF)
 option(USE_OPENMP "Use OpenMP" ON)
 
 
-option(PRINT_DEBUG_STATEMENTS "Print debug statements" ON)
+option(PRINT_DEBUG_STATEMENTS "Print debug statements" OFF)
 
 
 option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
