@@ -1,7 +1,3 @@
-//
-// Created by faccus on 8/8/22.
-//
-
 #include "onnx_importer_helpers.h"
 
 #include <gtest/gtest.h>

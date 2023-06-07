@@ -1,6 +1,3 @@
-//
-// Created by faccus on 13/04/23.
-//
 #include "block_aMLLibrary_weight_importer.h"
 
 namespace network_butcher::io

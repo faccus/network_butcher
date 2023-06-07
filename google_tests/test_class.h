@@ -1,7 +1,3 @@
-//
-// Created by faccus on 15/10/21.
-//
-
 #ifndef NETWORK_BUTCHER_TEST_CLASS_H
 #define NETWORK_BUTCHER_TEST_CLASS_H
 

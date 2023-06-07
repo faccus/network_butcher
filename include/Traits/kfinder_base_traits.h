@@ -1,7 +1,3 @@
-//
-// Created by faccus on 21/05/23.
-//
-
 #ifndef NETWORK_BUTCHER_KFINDER_BASE_TRAITS_H
 #define NETWORK_BUTCHER_KFINDER_BASE_TRAITS_H
 

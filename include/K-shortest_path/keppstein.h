@@ -1,7 +1,3 @@
-//
-// Created by faccus on 01/11/21.
-//
-
 #ifndef NETWORK_BUTCHER_KEPPSTEIN_H
 #define NETWORK_BUTCHER_KEPPSTEIN_H
 

@@ -1,6 +1,3 @@
-//
-// Created by faccus on 28/08/21.
-//
 #include "utilities.h"
 
 namespace network_butcher::Utilities

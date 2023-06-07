@@ -1,7 +1,3 @@
-//
-// Created by faccus on 30/10/21.
-//
-
 #ifndef NETWORK_BUTCHER_HEAP_EPPSTEIN_H
 #define NETWORK_BUTCHER_HEAP_EPPSTEIN_H
 

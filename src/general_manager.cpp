@@ -1,6 +1,3 @@
-//
-// Created by faccus on 7/12/22.
-//
 #include "general_manager.h"
 
 namespace network_butcher::io

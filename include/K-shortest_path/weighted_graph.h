@@ -1,7 +1,3 @@
-//
-// Created by faccus on 2/19/23.
-//
-
 #ifndef NETWORK_BUTCHER_WEIGHTED_GRAPH_H
 #define NETWORK_BUTCHER_WEIGHTED_GRAPH_H
 

@@ -1,7 +1,3 @@
-//
-// Created by root on 15/03/22.
-//
-
 #ifndef NETWORK_BUTCHER_MWGRAPH_H
 #define NETWORK_BUTCHER_MWGRAPH_H
 

@@ -1,7 +1,3 @@
-//
-// Created by faccus on 7/22/22.
-
-//
 #include <gtest/gtest.h>
 #include <iostream>
 

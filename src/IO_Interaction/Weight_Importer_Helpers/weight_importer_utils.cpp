@@ -1,7 +1,3 @@
-//
-// Created by faccus on 13/04/23.
-//
-
 #include "weight_importer_utils.h"
 
 namespace network_butcher::io::Weight_importer_helpers

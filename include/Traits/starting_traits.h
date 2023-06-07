@@ -1,7 +1,3 @@
-//
-// Created by faccus on 03/06/23.
-//
-
 #ifndef NETWORK_BUTCHER_STARTING_TRAITS_H
 #define NETWORK_BUTCHER_STARTING_TRAITS_H
 

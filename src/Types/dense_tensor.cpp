@@ -1,7 +1,3 @@
-//
-// Created by faccus on 28/08/21.
-//
-
 #include "dense_tensor.h"
 
 namespace network_butcher::types

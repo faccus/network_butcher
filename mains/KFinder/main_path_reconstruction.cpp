@@ -1,6 +1,3 @@
-//
-// Created by faccus on 30/05/23.
-//
 #include "graph_traits.h"
 #include "kfinder_factory.h"
 #include "weighted_graph_specialization.h"

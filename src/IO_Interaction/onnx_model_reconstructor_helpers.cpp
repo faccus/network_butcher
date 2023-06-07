@@ -1,6 +1,3 @@
-//
-// Created by faccus on 8/7/22.
-//
 #include "onnx_model_reconstructor_helpers.h"
 
 #include <ranges>

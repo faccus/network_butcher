@@ -1,7 +1,3 @@
-//
-// Created by faccus on 13/04/23.
-//
-
 #ifndef NETWORK_BUTCHER_WEIGHT_IMPORTER_UTILS_H
 #define NETWORK_BUTCHER_WEIGHT_IMPORTER_UTILS_H
 

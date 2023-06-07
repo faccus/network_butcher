@@ -1,7 +1,3 @@
-//
-// Created by faccus on 12/12/21.
-//
-
 #include <gtest/gtest.h>
 #include <iostream>
 #include <random>

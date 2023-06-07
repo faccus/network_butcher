@@ -1,7 +1,3 @@
-//
-// Created by faccus on 30/05/23.
-//
-
 #include "butcher.h"
 #include "chrono.h"
 #include "io_manager.h"

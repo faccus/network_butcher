@@ -1,6 +1,3 @@
-//
-// Created by faccus on 8/7/22.
-//
 #include "onnx_importer_helpers.h"
 
 namespace network_butcher::io

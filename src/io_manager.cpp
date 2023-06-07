@@ -1,7 +1,3 @@
-//
-// Created by faccus on 20/02/22.
-//
-
 #include "io_manager.h"
 
 namespace network_butcher::io::IO_Manager

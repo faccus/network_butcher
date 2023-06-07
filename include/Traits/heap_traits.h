@@ -1,7 +1,3 @@
-//
-// Created by root on 07/03/22.
-//
-
 #ifndef NETWORK_BUTCHER_HEAP_TRAITS_H
 #define NETWORK_BUTCHER_HEAP_TRAITS_H
 

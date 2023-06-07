@@ -1,7 +1,3 @@
-//
-// Created by faccus on 12/12/21.
-//
-
 #ifndef NETWORK_BUTCHER_PATH_INFO_H
 #define NETWORK_BUTCHER_PATH_INFO_H
 

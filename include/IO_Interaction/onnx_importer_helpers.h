@@ -1,7 +1,3 @@
-//
-// Created by faccus on 8/7/22.
-//
-
 #ifndef NETWORK_BUTCHER_ONNX_IMPORTER_HELPERS_H
 #define NETWORK_BUTCHER_ONNX_IMPORTER_HELPERS_H
 

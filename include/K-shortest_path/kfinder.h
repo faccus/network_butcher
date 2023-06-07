@@ -1,7 +1,3 @@
-//
-// Created by faccus on 21/11/21.
-//
-
 #ifndef NETWORK_BUTCHER_KFINDER_H
 #define NETWORK_BUTCHER_KFINDER_H
 

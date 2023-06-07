@@ -1,7 +1,3 @@
-//
-// Created by faccus on 26/10/21.
-//
-
 #include "graph_traits.h"
 #include "keppstein.h"
 #include "keppstein_lazy.h"

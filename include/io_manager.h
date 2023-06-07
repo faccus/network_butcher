@@ -1,7 +1,3 @@
-//
-// Created by faccus on 20/02/22.
-//
-
 #ifndef NETWORK_BUTCHER_IO_MANAGER_H
 #define NETWORK_BUTCHER_IO_MANAGER_H
 

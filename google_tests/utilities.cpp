@@ -1,6 +1,3 @@
-//
-// Created by faccus on 30/08/21.
-//
 #include "utilities.h"
 #include <gtest/gtest.h>
 

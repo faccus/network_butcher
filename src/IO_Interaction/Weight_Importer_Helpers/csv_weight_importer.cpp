@@ -1,6 +1,3 @@
-//
-// Created by faccus on 13/04/23.
-//
 #include "csv_weight_importer.h"
 
 namespace network_butcher::io

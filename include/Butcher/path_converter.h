@@ -1,7 +1,3 @@
-//
-// Created by faccus on 24/04/23.
-//
-
 #ifndef NETWORK_BUTCHER_PATH_CONVERTER_H
 #define NETWORK_BUTCHER_PATH_CONVERTER_H
 

@@ -1,7 +1,3 @@
-//
-// Created by faccus on 31/05/23.
-//
-
 #include <iostream>
 #include <random>
 

@@ -1,6 +1,3 @@
-//
-// Created by root on 12/04/22.
-//
 #include "io_manager.h"
 #include <gtest/gtest.h>
 

@@ -1,7 +1,3 @@
-//
-// Created by faccus on 28/08/21
-//
-
 #ifndef NETWORK_BUTCHER_DENSE_TENSOR_H
 #define NETWORK_BUTCHER_DENSE_TENSOR_H
 

@@ -1,7 +1,3 @@
-//
-// Created by faccus on 7/22/22.
-//
-
 #ifndef NETWORK_BUTCHER_VARIANT_ATTRIBUTE_H
 #define NETWORK_BUTCHER_VARIANT_ATTRIBUTE_H
 
