@@ -151,9 +151,12 @@ namespace network_butcher::kfinder
     /// and call the general_algo_eppstein function
     /// \param K The number of shortest paths to compute
     /// \param dij_res The result of the Dijkstra algorithm
+    /// \param sidetrack_distances The sidetrack distances of every sidetrack edge
     /// \return The shortest paths (in explicit form)
     [[nodiscard]] virtual auto
-    start(std::size_t K, Dijkstra_Result_Type const &dij_res) const -> Output_Type = 0;
+    start(std::size_t                            K,
+          Dijkstra_Result_Type const            &dij_res,
+          Internal_Weight_Collection_Type const &sidetrack_distances) const -> Output_Type = 0;
 
 
     /// The "general" structure of the Eppstein algorithms. It will construct the shortest paths
@@ -215,7 +218,7 @@ namespace network_butcher::kfinder
           }
       }
 
-    return start(K, dij_res);
+    return start(K, dij_res, sidetrack_distances(dij_res));
   }
 
 

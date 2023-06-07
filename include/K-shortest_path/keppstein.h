@@ -56,11 +56,13 @@ namespace network_butcher::kfinder
 
 
     /// The basic function for the Eppstein algorithm
-    /// \param K The number of shortest paths
-    /// \param dij_res The result of dijkstra
-    /// \return The k shortest paths
+    /// \param K The number of shortest paths to compute
+    /// \param dij_res The result of the Dijkstra algorithm
+    /// \param sidetrack_distances The sidetrack distances of every sidetrack edge
+    /// \return The shortest paths (in explicit form)
     [[nodiscard]] auto
-    start(std::size_t K, Parent_Type::Dijkstra_Result_Type const &dij_res) const -> Output_Type override;
+    start(std::size_t K, Parent_Type::Dijkstra_Result_Type const &dij_res,
+          Internal_Weight_Collection_Type const &sidetrack_distances) const -> Output_Type override;
 
   public:
     explicit KFinder_Eppstein(GraphType const &g, std::size_t root, std::size_t sink)
@@ -77,15 +79,15 @@ namespace network_butcher::kfinder
   auto
   KFinder_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::start(
     std::size_t                 K,
-    Dijkstra_Result_Type const &dij_res) const -> Output_Type
+    Dijkstra_Result_Type const &dij_res,
+    Internal_Weight_Collection_Type const &sidetrack_distances) const -> Output_Type
   {
-    auto const  sidetrack_distances_res = Parent_Type::sidetrack_distances(dij_res); // O(E)
     auto const &successors              = dij_res.first;
 
-    auto h_out = construct_h_out(successors, sidetrack_distances_res); // O(N+E)
+    auto h_out = construct_h_out(successors, sidetrack_distances); // O(N+E)
     auto h_g   = construct_h_g(h_out, successors);                     // O(N*log(N))
 
-    return Parent_Type::general_algo_eppstein(K, dij_res, sidetrack_distances_res, h_g, h_out);
+    return Parent_Type::general_algo_eppstein(K, dij_res, sidetrack_distances, h_g, h_out);
   }
 
 

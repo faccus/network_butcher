@@ -11,7 +11,5 @@ list(APPEND BASE_SOURCE
 
 if (USE_PYBIND)
     list(APPEND BASE_SOURCE
-            ${CMAKE_SOURCE_DIR}/src/IO_Interaction/Weight_Importer_Helpers/abstract_aMLLibrary_weight_importer.cpp
-            ${CMAKE_SOURCE_DIR}/src/IO_Interaction/Weight_Importer_Helpers/original_aMLLibrary_weight_importer.cpp
             ${CMAKE_SOURCE_DIR}/src/IO_Interaction/Weight_Importer_Helpers/block_aMLLibrary_weight_importer.cpp)
 endif ()

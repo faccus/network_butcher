@@ -72,11 +72,14 @@ namespace network_butcher::kfinder
 
 
     /// The basic function for the lazy Eppstein algorithm
-    /// \param K The number of shortest paths
-    /// \param dij_res The result of dijkstra
-    /// \return The (implicit) k shortest paths
+    /// \param K The number of shortest paths to compute
+    /// \param dij_res The result of the Dijkstra algorithm
+    /// \param sidetrack_distances The sidetrack distances of every sidetrack edge
+    /// \return The shortest paths (in explicit form)
     [[nodiscard]] auto
-    start(std::size_t K, Dijkstra_Result_Type const &dij_res) const -> Output_Type override;
+    start(std::size_t                            K,
+          Dijkstra_Result_Type const            &dij_res,
+          Internal_Weight_Collection_Type const &sidetrack_distances) const -> Output_Type override;
 
   public:
     explicit KFinder_Lazy_Eppstein(GraphType const &g, std::size_t root, std::size_t sink)
@@ -92,11 +95,10 @@ namespace network_butcher::kfinder
   template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
   auto
   KFinder_Lazy_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::start(
-    std::size_t                 K,
-    Dijkstra_Result_Type const &dij_res) const -> Output_Type
+    std::size_t                            K,
+    Dijkstra_Result_Type const            &dij_res,
+    Internal_Weight_Collection_Type const &sidetrack_distances) const -> Output_Type
   {
-    auto const sidetrack_distances_res = Parent_Type::sidetrack_distances(dij_res); // O(E)
-
     H_out_collection h_out;
     H_g_collection   h_g;
 
@@ -121,7 +123,7 @@ namespace network_butcher::kfinder
 
     while (!to_compute.empty())
       {
-        construct_partial_h_g(h_g, h_out, sidetrack_distances_res, successors, to_compute.back());
+        construct_partial_h_g(h_g, h_out, sidetrack_distances, successors, to_compute.back());
         to_compute.pop_back();
       }
 
@@ -135,7 +137,7 @@ namespace network_butcher::kfinder
     };
 
     // Execute the Eppstein algorithm
-    return Parent_Type::general_algo_eppstein(K, dij_res, sidetrack_distances_res, h_g, h_out, fun);
+    return Parent_Type::general_algo_eppstein(K, dij_res, sidetrack_distances, h_g, h_out, fun);
   }
 
 

@@ -219,7 +219,7 @@ namespace
     for (std::size_t i = 0; i < res.devices.size(); ++i)
       res.devices[i].id = i;
 
-    res.block_graph_generation_params.memory_constraint_type = parameters::Memory_Constraint_Type::None;
+    res.block_graph_generation_params.memory_constraint = false;
     res.block_graph_generation_params.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
     res.block_graph_generation_params.use_bandwidth_to_manage_connections = false;
 

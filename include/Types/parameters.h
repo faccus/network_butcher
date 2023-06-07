@@ -15,7 +15,6 @@ namespace network_butcher::parameters
   {
     single_direct_read,
     multiple_direct_read,
-    aMLLibrary_original,
 
     aMLLibrary_block,
     block_single_direct_read,
@@ -27,14 +26,6 @@ namespace network_butcher::parameters
     classic,
     output,
     input
-  };
-
-  /// The memory constraints possibilities
-  enum Memory_Constraint_Type
-  {
-    None,
-    Max,
-    Preload_Parameters
   };
 
   /// Collection of parameters for a device
@@ -141,9 +132,6 @@ namespace network_butcher::parameters
 
       /// Do we have to check for memory constraints?
       bool memory_constraint;
-
-      /// The type of memory constraint
-      Memory_Constraint_Type memory_constraint_type;
     };
 
     /// aMMLibrary parameters
