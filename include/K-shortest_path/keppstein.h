@@ -61,8 +61,9 @@ namespace network_butcher::kfinder
     /// \param sidetrack_distances The sidetrack distances of every sidetrack edge
     /// \return The shortest paths (in explicit form)
     [[nodiscard]] auto
-    start(std::size_t K, Parent_Type::Dijkstra_Result_Type const &dij_res,
-          Internal_Weight_Collection_Type const &sidetrack_distances) const -> Output_Type override;
+    start(std::size_t                              K,
+          Parent_Type::Dijkstra_Result_Type const &dij_res,
+          Internal_Weight_Collection_Type const   &sidetrack_distances) const -> Output_Type override;
 
   public:
     explicit KFinder_Eppstein(GraphType const &g, std::size_t root, std::size_t sink)
@@ -78,14 +79,14 @@ namespace network_butcher::kfinder
   template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
   auto
   KFinder_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::start(
-    std::size_t                 K,
-    Dijkstra_Result_Type const &dij_res,
+    std::size_t                            K,
+    Dijkstra_Result_Type const            &dij_res,
     Internal_Weight_Collection_Type const &sidetrack_distances) const -> Output_Type
   {
-    auto const &successors              = dij_res.first;
+    auto const &successors = dij_res.first;
 
-    auto h_out = construct_h_out(successors, sidetrack_distances); // O(N+E)
-    auto h_g   = construct_h_g(h_out, successors);                     // O(N*log(N))
+    auto h_out = construct_h_out(successors, sidetrack_distances); // O(E)
+    auto h_g   = construct_h_g(h_out, successors);     // O(N^2)
 
     return Parent_Type::general_algo_eppstein(K, dij_res, sidetrack_distances, h_g, h_out);
   }
@@ -97,11 +98,10 @@ namespace network_butcher::kfinder
     std::vector<Node_Id_Type> const       &successors,
     Internal_Weight_Collection_Type const &sidetrack_distances) const -> H_out_collection
   {
-    auto const      &graph = Parent_Type::graph;
+    auto const &graph = Parent_Type::graph;
 
     H_out_collection h_out_collection;
     h_out_collection.reserve(graph.size());
-
 
     for (auto const &tail_node : graph)
       {
@@ -110,7 +110,8 @@ namespace network_butcher::kfinder
         if (tail_successor == std::numeric_limits<Node_Id_Type>::max())
           continue;
 
-        auto &h_out = h_out_collection.emplace_hint(h_out_collection.end(), tail, typename H_out_collection::mapped_type(tail))->second;
+        auto &h_out =
+          h_out_collection.emplace_hint(h_out_collection.end(), tail, typename H_out_collection::mapped_type())->second;
 
         // The output neighbors of the current node
         auto const &head_nodes = graph.get_output_nodes(tail);
@@ -158,9 +159,6 @@ namespace network_butcher::kfinder
         if (successor == std::numeric_limits<Node_Id_Type>::max())
           continue;
 
-        // Prepare the H_g map
-        auto it =
-          h_g_collection.emplace_hint(h_g_collection.cend(), node_id, typename H_g_collection::mapped_type(node_id));
 
         if (sink != node_id)
           sp_dependencies[successor].insert(node_id); // O(log(N))
@@ -169,10 +167,13 @@ namespace network_butcher::kfinder
     // The actual generation of the H_g should now start from the sink node
     auto h_out_iterator = h_out_collection.find(sink); // O(1)
 
+    // Prepare the H_g map
+    auto it = h_g_collection.emplace_hint(h_g_collection.cend(), sink, typename H_g_collection::mapped_type());
+
     // Prepare the last H_g
     if (h_out_iterator != h_out_collection.cend() && !h_out_iterator->second.empty())
       {
-        h_g_collection.find(sink)->second.push(h_out_iterator); // O(log(N))
+        it->second.push(h_out_iterator); // O(log(N))
       }
 
     // Now, we have to find the nodes whose successor is the sink itself
@@ -190,9 +191,9 @@ namespace network_butcher::kfinder
         auto const &front_element = queue.front();
 
         // Find the "new" nodes that must be added to the queue. At the end this iteration, their H_g can be computed
-        auto       &deps          = sp_dependencies[front_element];                         // O(1)
-        auto       &h_g           = h_g_collection.find(front_element)->second;             // O(1)
-        auto const &successor_h_g = h_g_collection.find(successors[front_element])->second; // O(1)
+        auto       &deps          = sp_dependencies[front_element];                                              // O(1)
+        auto const &successor_h_g = h_g_collection.find(successors[front_element])->second;                      // O(1)
+        auto &h_g = h_g_collection.emplace(front_element, typename H_g_collection::mapped_type()).first->second; // O(1)
 
         // the H_g of the successor along the shortest path
         if (!successor_h_g.empty())

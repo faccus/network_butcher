@@ -112,7 +112,8 @@ namespace network_butcher::kfinder
                                                             H_out_collection &,
                                                             Internal_Weight_Collection_Type const &,
                                                             typename Dijkstra_Result_Type::first_type const &,
-                                                            Node_Id_Type)>;
+                                                            Node_Id_Type,
+                                                            t_Weighted_Graph_Complete_Type const &)>;
 
 
     /// It extracts the first sidetrack associated to the given node
@@ -294,7 +295,7 @@ namespace network_butcher::kfinder
         // "Helper" function that can be called if needed
         if (callback_fun != nullptr)
           {
-            h_g_it = callback_fun(h_g, h_out, sidetrack_distances, successors, e_edge.second);
+            h_g_it = callback_fun(h_g, h_out, sidetrack_distances, successors, e_edge.second, graph);
           }
         else
           {

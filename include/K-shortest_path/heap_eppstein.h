@@ -140,16 +140,8 @@ namespace network_butcher::kfinder
     }
 
   public:
-    Node_Id_Type id;
-
     explicit Heap()
       : base()
-      , id{std::numeric_limits<Node_Id_Type>::max()}
-    {}
-
-    explicit Heap(Node_Id_Type id)
-      : base()
-      , id(id)
     {}
 
     void
@@ -183,13 +175,6 @@ namespace network_butcher::kfinder
       children.pop_back();
 
       return result;
-    }
-
-
-    [[nodiscard]] bool
-    is_id_set() const
-    {
-      return id != std::numeric_limits<Node_Id_Type>::max();
     }
 
 
@@ -249,17 +234,9 @@ namespace network_butcher::kfinder
     }
 
   public:
-    Node_Id_Type id;
 
     explicit H_out()
-      : base()
-      , id{std::numeric_limits<Node_Id_Type>::max()}
-    {}
-
-    explicit H_out(Node_Id_Type id)
-      : base()
-      , id(id)
-    {}
+      : base() {};
 
     void
     push(T &&value) override
