@@ -72,27 +72,27 @@ Parallelism may be used with either:
 We here report a small collection of simple bash commands to install the required libraries on a Linux system:
 - Compiler, CMake and Doxygen (with its extra packages):
 ```bash
-printf 'Initial package refresh:'
+echo 'Initial package refresh:'
 sudo apt-get update
-printf 'Installing the compiler and CMake:'
+echo 'Installing the compiler and CMake:'
 sudo apt-get install build-essential cmake -y
-printf 'Installing Doxygen (and Graphviz, dia and mscgen):'
+echo 'Installing Doxygen (and Graphviz, dia and mscgen):'
 sudo apt-get install doxygen graphviz dia mscgen -y
 ```
 - Python, pip, aMLLibrary requirements and onnx-tool:
 ```bash
-printf 'Installing python and pip:'
+echo 'Installing python and pip:'
 sudo apt-get install python3-dev python3-pip --no-install-recommends -y
-printf 'Installing aMLLibrary requirements:'
+echo 'Installing aMLLibrary requirements:'
 python3 -m pip install -r requirements.txt
-printf 'Installing onnx-tool:'
+echo 'Installing onnx-tool:'
 python3 -m pip install onnx-tool==0.6.1
 ```
 - OpenMP and TBB:
 ```bash
-printf 'Installing OpenMP:'
+echo 'Installing OpenMP:'
 sudo apt-get install libomp-14-dev -y
-printf 'Installing TBB:'
+echo 'Installing TBB:'
 sudo apt-get install libtbb-dev -y
 ```
 
