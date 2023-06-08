@@ -299,13 +299,6 @@ namespace network_butcher::kfinder
     H_out_collection                         &h_out,
     const Basic_KEppstein::Callback_Function &callback_fun) const -> Output_Type
   {
-#if PRINT_DEBUG_STATEMENTS
-    double h_g_it_time = 0., Q_insert_time = 0., sidetrack_edges_time = 0., res_time = 0.;
-
-    Chrono dd_crono, dd_res;
-    dd_crono.start();
-#endif
-
     auto const &root   = Parent_Type::root;
     auto constexpr inf = std::numeric_limits<Node_Id_Type>::max();
 
@@ -315,19 +308,11 @@ namespace network_butcher::kfinder
     if (shortest_distance[root] == std::numeric_limits<Weight_Type>::max())
       return {};
 
-#if PRINT_DEBUG_STATEMENTS
-    dd_res.start();
-#endif
-
     // Start with the shortest path
     std::vector<Implicit_Path_Info> res;
     res.push_back(Implicit_Path_Info{.current_sidetrack   = std::optional<Sidetrack>(),
                                      .previous_sidetracks = nullptr,
                                      .length              = shortest_distance[root]});
-#if PRINT_DEBUG_STATEMENTS
-    dd_res.stop();
-    res_time += dd_res.wallTime();
-#endif
 
     // Find the first sidetrack edge
     typename H_g_collection::const_iterator h_g_it = h_g.find(root);
@@ -347,49 +332,28 @@ namespace network_butcher::kfinder
     res.reserve(K);
 
     // Collection of "final" implicit paths to be added to res
-    std::multiset<Implicit_Path_Info> Q;
+    std::vector<Implicit_Path_Info> tmp_vect_queue;
+    tmp_vect_queue.reserve(K);
+    std::priority_queue<Implicit_Path_Info, std::vector<Implicit_Path_Info>, std::greater<>> Q(
+      std::greater<>(), std::move(tmp_vect_queue));
+
 
     // First deviatory path
     auto const &first_side_track = extract_first_sidetrack_edge(h_g_it);
 
-#if PRINT_DEBUG_STATEMENTS
-    dd_res.start();
-#endif
 
-    Q.insert(Implicit_Path_Info{.current_sidetrack   = first_side_track,
-                                .previous_sidetracks = nullptr,
-                                .length = first_side_track.get_head_content().delta_weight + shortest_distance[root]});
+    Q.push(Implicit_Path_Info{.current_sidetrack   = first_side_track,
+                              .previous_sidetracks = nullptr,
+                              .length = first_side_track.get_head_content().delta_weight + shortest_distance[root]});
 
-#if PRINT_DEBUG_STATEMENTS
-    dd_res.stop();
-    Q_insert_time += dd_res.wallTime();
-#endif
 
     std::size_t k = 2;
 
     // Loop through Q until either Q is empty or the number of paths found is K
     for (; k <= K && !Q.empty(); ++k) // O(K)
       {
-#if PRINT_DEBUG_STATEMENTS
-        dd_res.start();
-#endif
-
-        res.emplace_back(*Q.cbegin());
-
-#if PRINT_DEBUG_STATEMENTS
-        dd_res.stop();
-        res_time += dd_res.wallTime();
-#endif
-
-#if PRINT_DEBUG_STATEMENTS
-        dd_res.start();
-#endif
-        Q.erase(Q.begin());
-
-#if PRINT_DEBUG_STATEMENTS
-        dd_res.stop();
-        Q_insert_time += dd_res.wallTime();
-#endif
+        res.emplace_back(Q.top());
+        Q.pop();
 
         auto const &SK                 = res.back();
         auto const &current_sidetrack  = SK.current_sidetrack.value();
@@ -398,101 +362,32 @@ namespace network_butcher::kfinder
         // "Helper" function that can be called if needed
         if (callback_fun != nullptr)
           {
-#if PRINT_DEBUG_STATEMENTS
-            dd_res.start();
-#endif
             h_g_it = callback_fun(h_g, h_out, sidetrack_distances, successors, e_edge.second, graph);
-
-#if PRINT_DEBUG_STATEMENTS
-            dd_res.stop();
-            h_g_it_time += dd_res.wallTime();
-#endif
           }
         else
           {
-#if PRINT_DEBUG_STATEMENTS
-            dd_res.start();
-#endif
-
             h_g_it = h_g.find(e_edge.second); // O(1), the element should always exist!
-
-#if PRINT_DEBUG_STATEMENTS
-            dd_res.stop();
-            h_g_it_time += dd_res.wallTime();
-#endif
           }
 
         if (!h_g_it->second.empty())
           {
             // Extract the first sidetrack edge, if it exists
             auto const &f = extract_first_sidetrack_edge(h_g_it);
-
-#if PRINT_DEBUG_STATEMENTS
-            dd_res.start();
-#endif
-
-            Q.insert(Implicit_Path_Info{.current_sidetrack   = f,
-                                        .previous_sidetracks = &res.back(),
-                                        .length = SK.length + f.get_head_content().delta_weight}); // O(log(K)
-
-#if PRINT_DEBUG_STATEMENTS
-            dd_res.stop();
-            Q_insert_time += dd_res.wallTime();
-#endif
+            Q.push(Implicit_Path_Info{.current_sidetrack   = f,
+                                      .previous_sidetracks = &res.back(),
+                                      .length = SK.length + f.get_head_content().delta_weight}); // O(log(K)
           }
-
-#if PRINT_DEBUG_STATEMENTS
-        dd_res.start();
-#endif
         auto const &sidetrack_edges = get_alternatives(current_sidetrack);
-
-#if PRINT_DEBUG_STATEMENTS
-        dd_res.stop();
-        sidetrack_edges_time += dd_res.wallTime();
-#endif
 
         // O(1), there are up tp 3 elements in this collection
         for (auto const &sidetrack_edge : sidetrack_edges)
           {
-#if PRINT_DEBUG_STATEMENTS
-            dd_res.start();
-#endif
-
-            Q.insert(Implicit_Path_Info{.current_sidetrack   = sidetrack_edge,
-                                        .previous_sidetracks = SK.previous_sidetracks,
-                                        .length = SK.length + sidetrack_edge.get_head_content().delta_weight -
-                                                  e_weight}); // O(log(K))
-
-#if PRINT_DEBUG_STATEMENTS
-            dd_res.stop();
-            Q_insert_time += dd_res.wallTime();
-#endif
-          }
-
-        // O(1), since every time up to 4 paths may be inserted. Thus, the loop can run up to 3 times
-        while (Q.size() > K)
-          {
-#if PRINT_DEBUG_STATEMENTS
-            dd_res.start();
-#endif
-
-            Q.erase((++Q.rbegin()).base());
-
-#if PRINT_DEBUG_STATEMENTS
-            dd_res.stop();
-            Q_insert_time += dd_res.wallTime();
-#endif
+            Q.push(Implicit_Path_Info{.current_sidetrack   = sidetrack_edge,
+                                      .previous_sidetracks = SK.previous_sidetracks,
+                                      .length = SK.length + sidetrack_edge.get_head_content().delta_weight -
+                                                e_weight}); // O(log(K))
           }
       }
-
-#if PRINT_DEBUG_STATEMENTS
-    dd_crono.stop();
-    std::cout << "basic_KEppstein, general_algo: " << dd_crono.wallTime() / 1000. << " ms" << std::endl;
-
-    std::cout << "basic_KEppstein, build / retrieve H_g: " << h_g_it_time / 1000. << " ms" << std::endl;
-    std::cout << "basic_KEppstein, Q_manipulation: " << Q_insert_time / 1000. << " ms" << std::endl;
-    std::cout << "basic_KEppstein, sidetrack_edges: " << sidetrack_edges_time / 1000. << " ms" << std::endl;
-#endif
 
     if constexpr (Only_Distance)
       {
@@ -583,8 +478,7 @@ namespace network_butcher::kfinder
     // path until either the "sink" node is reached or another sidetrack edge is met
 #if PARALLEL_TBB
     auto const process_path =
-      [&go_shortest, &dij_res = dij_res, &res = res, &epp_res = epp_res, &root, &sink](
-        std::size_t index) {
+      [&go_shortest, &dij_res = dij_res, &res = res, &epp_res = epp_res, &root, &sink](std::size_t index) {
         auto const &implicit_path = epp_res[i];
 
         auto       &info       = res[i];
@@ -630,10 +524,10 @@ namespace network_butcher::kfinder
               }
           }
       }
-      };
+  };
 
-    auto const &view = std::ranges::iota_view(std::size_t{0}, epp_res.size());
-    std::for_each(std::execution::par, view.begin(), view.end(), process_path);
+  auto const &view = std::ranges::iota_view(std::size_t{0}, epp_res.size());
+  std::for_each(std::execution::par, view.begin(), view.end(), process_path);
 #else
 
 #  pragma omp parallel default(none) shared(epp_res, res, go_shortest, root, sink, dij_res)
@@ -691,74 +585,74 @@ namespace network_butcher::kfinder
 
 #endif
 
-    return res;
-  }
+  return res;
+}
 
 
-  template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  auto
-  Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::sidetrack_distances(
-    Dijkstra_Result_Type const &dij_res) const -> Internal_Weight_Collection_Type
-  {
-    Internal_Weight_Collection_Type res;
-    res.resize(graph.size());
+template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
+auto
+Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::sidetrack_distances(
+  Dijkstra_Result_Type const &dij_res) const -> Internal_Weight_Collection_Type
+{
+  Internal_Weight_Collection_Type res;
+  res.resize(graph.size());
 
-    auto const &[successors, distances_from_sink] = dij_res;
+  auto const &[successors, distances_from_sink] = dij_res;
 
-    for (auto const &tail_node : graph)
-      {
-        auto const &tail = tail_node.get_id();
-        if (distances_from_sink[tail] == std::numeric_limits<Weight_Type>::max())
-          continue;
+  for (auto const &tail_node : graph)
+    {
+      auto const &tail = tail_node.get_id();
+      if (distances_from_sink[tail] == std::numeric_limits<Weight_Type>::max())
+        continue;
 
-        for (auto const &head : graph.get_output_nodes(tail))
-          {
-            if (distances_from_sink[head] == std::numeric_limits<Weight_Type>::max())
-              continue;
+      for (auto const &head : graph.get_output_nodes(tail))
+        {
+          if (distances_from_sink[head] == std::numeric_limits<Weight_Type>::max())
+            continue;
 
-            auto const  edge    = std::make_pair(tail, head);
-            auto const &weights = graph.get_weight(edge);
+          auto const  edge    = std::make_pair(tail, head);
+          auto const &weights = graph.get_weight(edge);
 
-            // If it is its successor...
-            if (successors[tail] == head)
-              {
-                // ...and it has more than one weight, then we have to consider the edge with the smallest weight as the
-                // edge in the shortest path tree, while the other ones will be sidetrack edges.
-                if (weights.size() > 1)
-                  {
-                    bool found = false;
+          // If it is its successor...
+          if (successors[tail] == head)
+            {
+              // ...and it has more than one weight, then we have to consider the edge with the smallest weight as the
+              // edge in the shortest path tree, while the other ones will be sidetrack edges.
+              if (weights.size() > 1)
+                {
+                  bool found = false;
 
-                    for (auto it = ++weights.cbegin(); it != weights.cend(); ++it)
-                      {
-                        auto const &weight    = *it;
-                        auto        to_insert = weight + distances_from_sink[head] - distances_from_sink[tail];
+                  for (auto it = ++weights.cbegin(); it != weights.cend(); ++it)
+                    {
+                      auto const &weight    = *it;
+                      auto        to_insert = weight + distances_from_sink[head] - distances_from_sink[tail];
 
-                        res[edge.first].emplace(edge.second, std::move(to_insert)); // O(1)}
-                      }
-                  }
-              }
-            else
-              {
-                for (auto const &weight : weights)
-                  {
-                    auto to_insert = weight + distances_from_sink[head] - distances_from_sink[tail];
-                    res[edge.first].emplace(edge.second, std::move(to_insert)); // O(1)
-                  }
-              }
-          }
-      }
+                      res[edge.first].emplace(edge.second, std::move(to_insert)); // O(1)}
+                    }
+                }
+            }
+          else
+            {
+              for (auto const &weight : weights)
+                {
+                  auto to_insert = weight + distances_from_sink[head] - distances_from_sink[tail];
+                  res[edge.first].emplace(edge.second, std::move(to_insert)); // O(1)
+                }
+            }
+        }
+    }
 
-    return res;
-  }
+  return res;
+}
 
 
-  template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  auto
-  Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::extract_first_sidetrack_edge(
-    H_g_collection::const_iterator const &h_g_it) const -> Sidetrack
-  {
-    return Sidetrack(h_g_it->second.get_head_node());
-  }
+template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
+auto
+Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::extract_first_sidetrack_edge(
+  H_g_collection::const_iterator const &h_g_it) const -> Sidetrack
+{
+  return Sidetrack(h_g_it->second.get_head_node());
+}
 } // namespace network_butcher::kfinder
 
 #endif // NETWORK_BUTCHER_BASIC_KEPPSTEIN_H

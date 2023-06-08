@@ -12,10 +12,6 @@ option(BUILD_COMPLETE_TESTS "Build complete tests" OFF)
 option(ENABLE_PARALLEL "Enable parallel execution" OFF)
 option(USE_OPENMP "Use OpenMP" ON)
 
-
-option(PRINT_DEBUG_STATEMENTS "Print debug statements" OFF)
-
-
 option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
 
 option(USE_PYBIND "Download and compile pybind11 from git:" ON)
@@ -32,9 +28,6 @@ message(STATUS "Build complete tests: ${BUILD_COMPLETE_TESTS}")
 
 message(STATUS "Enable parallel execution: ${ENABLE_PARALLEL}")
 message(STATUS "Enable OpenMP: ${USE_OPENMP}")
-
-
-message(STATUS "Print debug statements: ${PRINT_DEBUG_STATEMENTS}")
 
 
 message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
@@ -56,10 +49,6 @@ include(cmake/CMakeLists.txt)
 
 if (USE_PYBIND)
     add_compile_definitions(PYBIND_ACTIVE)
-endif ()
-
-if (PRINT_DEBUG_STATEMENTS)
-    add_compile_definitions(PRINT_DEBUG_STATEMENTS)
 endif ()
 
 if (ENABLE_PARALLEL)

@@ -97,7 +97,7 @@ main(int argc, char **argv)
 {
   GetPot command_line(argc, argv);
 
-  std::size_t num_tests = command_line("num_tests", 1);
+  std::size_t num_tests = command_line("num_tests", 10);
 
   Chrono crono;
 

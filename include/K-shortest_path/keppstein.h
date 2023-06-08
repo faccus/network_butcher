@@ -85,25 +85,8 @@ namespace network_butcher::kfinder
   {
     auto const &successors = dij_res.first;
 
-#if PRINT_DEBUG_STATEMENTS
-    Chrono dd_crono;
-    dd_crono.start();
-#endif
-
     auto h_out = construct_h_out(successors, sidetrack_distances); // O(N+E)
-
-#if PRINT_DEBUG_STATEMENTS
-    dd_crono.stop();
-    std::cout << "Eppstein, H_out: " << dd_crono.wallTime() / 1000. << " ms" << std::endl;
-    dd_crono.start();
-#endif
-
     auto h_g = construct_h_g(h_out, successors); // O(N*log(N))
-
-#if PRINT_DEBUG_STATEMENTS
-    dd_crono.stop();
-    std::cout << "Eppstein, H_G: " << dd_crono.wallTime() / 1000. << " ms" << std::endl;
-#endif
 
     return Parent_Type::general_algo_eppstein(K, dij_res, sidetrack_distances, h_g, h_out);
   }

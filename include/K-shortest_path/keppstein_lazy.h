@@ -80,11 +80,6 @@ namespace network_butcher::kfinder
     if (distances[Parent_Type::root] == std::numeric_limits<Weight_Type>::max())
       return {};
 
-#if PRINT_DEBUG_STATEMENTS
-    Chrono dd_crono;
-    dd_crono.start();
-#endif
-
     std::list<Node_Id_Type> to_compute;
     to_compute.push_back(Parent_Type::root);
 
@@ -98,12 +93,6 @@ namespace network_butcher::kfinder
         fun(h_g, h_out, sidetrack_distances, successors, to_compute.back(), Parent_Type::graph);
         to_compute.pop_back();
       }
-
-#if PRINT_DEBUG_STATEMENTS
-    dd_crono.stop();
-    std::cout << "Lazy_Eppstein, initial_h_g_build: " << dd_crono.wallTime() / 1000. << " ms" << std::endl;
-    dd_crono.start();
-#endif
 
     // Execute the Eppstein algorithm
     return Parent_Type::general_algo_eppstein(K, dij_res, sidetrack_distances, h_g, h_out, fun);
