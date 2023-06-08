@@ -120,11 +120,11 @@ namespace network_butcher::kfinder
       // For every "sidetrack" node in the outer start of node
       for (auto const &exit : graph.get_output_nodes(tail))
         {
-          auto [begin, end] = sidetrack_distances.equal_range(Edge_Type{tail, exit});
-          for (; begin != end; ++begin)
+          auto [begin, end] = sidetrack_distances[tail].equal_range(exit);
+          for (; begin != end && begin->first == exit; ++begin)
             {
               // Add the sidetrack edges to the H_out
-              h_out_it->second.push(Edge_Info{begin->first, begin->second});
+              h_out_it->second.push(Edge_Info{std::make_pair(tail, exit), begin->second});
             }
         }
 

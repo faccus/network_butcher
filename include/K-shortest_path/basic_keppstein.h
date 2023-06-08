@@ -37,7 +37,7 @@ namespace network_butcher::kfinder
 
     /// (Position of H_out in H_g, Position of sidetrack in H_out)
     using Location_DG_Type                = std::pair<std::size_t, std::size_t>;
-    using Internal_Weight_Collection_Type = std::multimap<Edge_Type, Weight_Type>;
+    using Internal_Weight_Collection_Type = std::vector<std::multimap<Node_Id_Type, Weight_Type>>;
     using Dijkstra_Result_Type =
       network_butcher::kfinder::Shortest_path_finder::Templated_Dijkstra_Result_Type<Weight_Type>;
 
@@ -541,7 +541,7 @@ namespace network_butcher::kfinder
   Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::sidetrack_distances(
     Dijkstra_Result_Type const &dij_res) const -> Internal_Weight_Collection_Type
   {
-    Internal_Weight_Collection_Type res;
+    Internal_Weight_Collection_Type res(graph.size());
     auto const &[successors, distances_from_sink] = dij_res;
 
     for (auto const &tail_node : graph)
@@ -572,8 +572,9 @@ namespace network_butcher::kfinder
                         auto const &weight    = *it;
                         auto        to_insert = weight + distances_from_sink[head] - distances_from_sink[tail];
 
-                        res.insert(res.cend(),
-                                   {edge, weight + distances_from_sink[head] - distances_from_sink[tail]}); // O(1)}
+                        res[tail].emplace_hint(res[tail].cend(),
+                                               head,
+                                               weight + distances_from_sink[head] - distances_from_sink[tail]); // O(1)}
                       }
                   }
               }
@@ -581,8 +582,9 @@ namespace network_butcher::kfinder
               {
                 for (auto const &weight : weights)
                   {
-                    res.insert(res.cend(),
-                               {edge, weight + distances_from_sink[head] - distances_from_sink[tail]}); // O(1)}
+                    res[tail].emplace_hint(res[tail].cend(),
+                                           head,
+                                           weight + distances_from_sink[head] - distances_from_sink[tail]); // O(1)}
                   }
               }
           }

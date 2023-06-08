@@ -82,7 +82,7 @@ namespace network_butcher::kfinder
     auto const &successors = dij_res.first;
 
     auto h_out = construct_h_out(successors, sidetrack_distances); // O(E)
-    auto h_g   = construct_h_g(h_out, successors);     // O(N^2)
+    auto h_g   = construct_h_g(h_out, successors);                 // O(N^2)
 
     return Parent_Type::general_algo_eppstein(K, dij_res, sidetrack_distances, h_g, h_out);
   }
@@ -115,11 +115,11 @@ namespace network_butcher::kfinder
         // Loop through the output neighbors of the current node
         for (auto const &head : head_nodes)
           {
-            auto [begin, end] = sidetrack_distances.equal_range(Edge_Type{tail, head});
+            auto [begin, end] = sidetrack_distances[tail].equal_range(head);
 
-            for (; begin != end; ++begin)
+            for (; begin != end && begin->first == head; ++begin)
               {
-                h_out.push(Edge_Info{begin->first, begin->second});
+                h_out.push(Edge_Info{std::make_pair(tail, head), begin->second});
               }
           }
       }
