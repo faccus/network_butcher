@@ -1,7 +1,7 @@
 #ifndef NETWORK_BUTCHER_TEST_CLASS_H
 #define NETWORK_BUTCHER_TEST_CLASS_H
 
-#include "basic_traits.h"
+#include "traits.h"
 
 template <class T>
 class Test_Class

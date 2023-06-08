@@ -6,6 +6,15 @@
 
 #include "starting_traits.h"
 
+namespace network_butcher
+{
+  // Do not edit. It's just the shape element of an onnx tensor
+  using Onnx_Element_Shape_Type = unsigned long;
+
+  // May be edited, but it must be convertable to Node_Id_Type without loss.
+  using Device_Id_Type = Node_Id_Type;
+} // namespace network_butcher
+
 namespace network_butcher::types
 {
   /// Generic type contained in a onnx model (only type information, no values are actually stored)

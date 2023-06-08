@@ -5,14 +5,12 @@
 #include <memory>
 #include <utility>
 
-#include "basic_traits.h"
-#include "kfinder_base_traits.h"
-
 #include "crtp_grater.h"
+#include "traits.h"
 
 namespace network_butcher::kfinder
 {
-  /// Simple struct used to store some edge information
+  /// Simple struct used to store some edge information (unfortunately, we lose the aggregate status)
   /// \tparam Weight_Type The weight type
   template <typename Weight_Type = Time_Type>
   struct Templated_Edge_Info : Crtp_Greater<Templated_Edge_Info<Weight_Type>>
@@ -20,9 +18,10 @@ namespace network_butcher::kfinder
     Edge_Type   edge;
     Weight_Type delta_weight;
 
-    Templated_Edge_Info(Edge_Type const &in_edge, Weight_Type const &in_delta_weight)
-      : edge(in_edge)
-      , delta_weight(in_delta_weight)
+    template <typename A, typename B>
+    Templated_Edge_Info(A &&in_edge, B &&in_delta_weight)
+      : edge(std::forward<A>(in_edge))
+      , delta_weight(std::forward<B>(in_delta_weight))
     {}
 
     bool
@@ -52,12 +51,9 @@ namespace network_butcher::kfinder
   public:
     Basic_Heap() = default;
 
-    virtual void
-    push(T const &value) = 0;
-
-    virtual void
-    push(T &&value) = 0;
-
+    /// It will overwrite the children of the provided container and, if check_heap is true, it will heapify the heap
+    /// \param new_children The new children
+    /// \param check_heap If true, it will heapify the heap
     void
     overwrite_children(container_type const &new_children, bool check_heap = true)
     {
@@ -69,46 +65,75 @@ namespace network_butcher::kfinder
         }
     }
 
+    /// It will overwrite the children of the provided container and, if check_heap is true, it will heapify the heap
+    /// \param new_children The new children
+    /// \param check_heap If true, it will heapify the heap
+    void
+    overwrite_children(container_type &&new_children, bool check_heap = true)
+    {
+      children = std::move(new_children);
+
+      if (check_heap)
+        {
+          heapify();
+        }
+    }
+
+
+    /// It will overwrite the children of the Heap
+    /// \param new_children The new children
     void
     overwrite_children(Basic_Heap<T, heap_comparison> const &other_heap)
     {
       overwrite_children(other_heap.children, false);
     }
 
+    /// It reserves space for the children
+    /// \param val The number of elements to reserve
     void
     reserve(std::size_t val)
     {
       children.reserve(val);
     }
 
-
-    [[nodiscard]] bool
-    empty() const
+    /// It checks if the heap is empty
+    /// \return True if the heap is empty, false otherwise
+    [[nodiscard]] auto
+    empty() const -> bool
     {
       return children.empty();
     }
 
-    [[nodiscard]] std::size_t
-    size() const
+    /// It returns the size of the heap
+    /// \return The size of the heap
+    [[nodiscard]] auto
+    size() const -> std::size_t
     {
       return children.size();
     }
 
-
-    [[nodiscard]] T const &
-    get_head() const
+    /// It returns the head of the heap
+    /// \return The head of the heap
+    [[nodiscard]] auto
+    get_head() const -> T const &
     {
       return children.front();
     }
 
-    [[nodiscard]] T const &
-    get_elem(std::size_t index) const
+    /// It returns the element at the specified index
+    /// \param index The index of the element
+    /// \return The element at the specified index
+    [[nodiscard]] auto
+    get_elem(std::size_t index) const -> T const &
     {
       return children[index];
     }
 
-    [[nodiscard]] virtual std::set<std::size_t>
-    find_children_indices(std::size_t index) const = 0;
+    /// It returns the children of the element at the specified index
+    /// \param index The index of the element
+    /// \return The children of the element at the specified index
+    [[nodiscard]] virtual auto
+    find_children_indices(std::size_t index) const -> std::set<std::size_t> = 0;
 
     virtual ~Basic_Heap() = default;
   };
@@ -129,6 +154,7 @@ namespace network_butcher::kfinder
     using base::children;
     using base::comp;
 
+    /// It will heapify the heap
     void
     heapify() override
     {
@@ -140,20 +166,20 @@ namespace network_butcher::kfinder
       : base()
     {}
 
+    /// Push the provided element in the heap
+    /// \tparam Args The type of the arguments
+    /// \param args The arguments
+    template <typename... Args>
     void
-    push(T const &value) override
+    push(Args &&...args)
     {
-      children.push_back(value);
+      children.push_back(std::forward<Args>(args)...);
       std::push_heap(children.begin(), children.end(), comp);
     }
 
-    void
-    push(T &&value) override
-    {
-      children.push_back(std::move(value));
-      std::push_heap(children.begin(), children.end(), comp);
-    }
-
+    /// Emplace the provided element in the heap
+    /// \tparam Args The type of the arguments
+    /// \param args The arguments
     template <typename... Args>
     void
     emplace(Args &&...args)
@@ -162,8 +188,10 @@ namespace network_butcher::kfinder
       std::push_heap(children.begin(), children.end(), comp);
     }
 
-    T
-    pop_head()
+    /// Pop the head of the heap
+    /// \return The head of the heap
+    [[nodiscard]] auto
+    pop_head() -> T
     {
       std::pop_heap(children.begin(), children.end(), comp);
 
@@ -173,9 +201,11 @@ namespace network_butcher::kfinder
       return result;
     }
 
-
-    [[nodiscard]] std::set<std::size_t>
-    find_children_indices(std::size_t index) const override
+    /// It returns the children of the element at the specified index
+    /// \param index The index of the element
+    /// \return The children of the element at the specified index
+    [[nodiscard]] auto
+    find_children_indices(std::size_t index) const -> std::set<std::size_t> override
     {
       std::set<std::size_t> result;
       if (index < children.size())
@@ -213,6 +243,7 @@ namespace network_butcher::kfinder
     using base::children;
     using base::comp;
 
+    /// It will heapify the heap
     void
     heapify() override
     {
@@ -229,43 +260,53 @@ namespace network_butcher::kfinder
         }
     }
 
+    /// It will end the push element phase by heapifing the heap (with the usual restriction)
+    void
+    internal_push_heap()
+    {
+      if (children.size() > 1)
+        {
+          if (comp(children.front(), children.back()))
+            {
+              std::swap(children.front(), children.back());
+            }
+
+          std::push_heap(++children.begin(), children.end(), comp);
+        }
+    }
+
+
   public:
     explicit H_out()
       : base(){};
 
+    /// Push the provided element in the heap
+    /// \tparam Args The type of the arguments
+    /// \param args The arguments
+    template <typename... Args>
     void
-    push(T &&value) override
+    push(Args &&...args)
     {
-      children.push_back(std::move(value));
-      if (children.size() > 1)
-        {
-          if (comp(children.front(), children.back()))
-            {
-              std::swap(children.front(), children.back());
-            }
-
-          std::push_heap(++children.begin(), children.end(), comp);
-        }
+      children.push_back(std::forward<Args>(args)...);
+      internal_push_heap();
     }
 
+    /// Emplace the provided element in the heap
+    /// \tparam Args The type of the arguments
+    /// \param args The arguments
+    template <typename... Args>
     void
-    push(T const &value) override
+    emplace(Args &&...args)
     {
-      children.push_back(value);
-      if (children.size() > 1)
-        {
-          if (comp(children.front(), children.back()))
-            {
-              std::swap(children.front(), children.back());
-            }
-
-          std::push_heap(++children.begin(), children.end(), comp);
-        }
+      children.emplace_back(std::forward<Args>(args)...);
+      internal_push_heap();
     }
 
-
-    [[nodiscard]] std::set<Node_Id_Type>
-    find_children_indices(std::size_t index) const override
+    /// It returns the children of the element at the specified index
+    /// \param index The index of the element
+    /// \return The children of the element at the specified index
+    [[nodiscard]] auto
+    find_children_indices(std::size_t index) const -> std::set<std::size_t> override
     {
       std::set<Node_Id_Type> result;
 

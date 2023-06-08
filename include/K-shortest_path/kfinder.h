@@ -1,7 +1,8 @@
 #ifndef NETWORK_BUTCHER_KFINDER_H
 #define NETWORK_BUTCHER_KFINDER_H
 
-#include "kfinder_base_traits.h"
+#include "traits.h"
+#include "weighted_graph.h"
 
 namespace network_butcher::kfinder
 {

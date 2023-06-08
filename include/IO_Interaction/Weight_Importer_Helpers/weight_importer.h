@@ -1,9 +1,9 @@
 #ifndef NETWORK_BUTCHER_WEIGHT_IMPORTER_H
 #define NETWORK_BUTCHER_WEIGHT_IMPORTER_H
 
-#include "basic_traits.h"
 #include "graph_traits.h"
 #include "parameters.h"
+#include "traits.h"
 
 namespace network_butcher::io
 {

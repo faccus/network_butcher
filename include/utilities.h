@@ -8,8 +8,8 @@
 #include <fstream>
 #include <ranges>
 
-#include "basic_traits.h"
 #include "onnx.pb.h"
+#include "traits.h"
 
 #include "dense_tensor.h"
 #include "type_info.h"

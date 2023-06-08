@@ -4,7 +4,8 @@
 #include <list>
 
 #include "basic_keppstein.h"
-#include "heap_traits.h"
+#include "traits.h"
+#include "weighted_graph.h"
 
 namespace network_butcher::kfinder
 {
@@ -32,7 +33,7 @@ namespace network_butcher::kfinder
     using H_out_collection = Parent_Type::H_out_collection;
 
 
-    /// Given the successors collection and the sidetrack distances, it will construct the h_out map
+    /// Given the successors collection and the sidetrack distances, it will construct the h_out map. O(M)
     /// \param successors The list of the successors of every node (the node following the current one in the
     /// shortest path)
     /// \param sidetrack_distances The collection of the sidetrack distances for all the sidetrack edges
@@ -42,7 +43,7 @@ namespace network_butcher::kfinder
                     Internal_Weight_Collection_Type const &sidetrack_distances) const -> H_out_collection;
 
 
-    /// It will produce the map associating every node to its corresponding H_g map
+    /// It will produce the map associating every node to its corresponding H_g map. O(N^2)
     /// \param h_out_collection The collection of h_outs
     /// \param successors The successors list
     /// \return The map associating every node to its corresponding H_g map
@@ -109,19 +110,28 @@ namespace network_butcher::kfinder
         auto &h_out =
           h_out_collection.emplace_hint(h_out_collection.end(), tail, typename H_out_collection::mapped_type())->second;
 
-        // The output neighbors of the current node
-        auto const &head_nodes = graph.get_output_nodes(tail);
+        std::vector<Edge_Info> edges_vec;
 
-        // Loop through the output neighbors of the current node
-        for (auto const &head : head_nodes)
-          {
-            auto [begin, end] = sidetrack_distances[tail].equal_range(head);
+        {
+          std::list<Edge_Info> edges;
 
-            for (; begin != end && begin->first == head; ++begin)
-              {
-                h_out.push(Edge_Info{std::make_pair(tail, head), begin->second});
-              }
-          }
+          // Loop through the output neighbors of the current node
+          for (auto const &head : graph.get_output_nodes(tail))
+            {
+              auto [begin, end] = sidetrack_distances[tail].equal_range(head);
+
+              for (; begin != end && begin->first == head; ++begin)
+                {
+                  edges.emplace_back(std::make_pair(tail, head), begin->second);
+                }
+            }
+
+          edges_vec.insert(edges_vec.begin(),
+                           std::make_move_iterator(edges.begin()),
+                           std::make_move_iterator(edges.end()));
+        }
+
+        h_out.overwrite_children(std::move(edges_vec), true);
       }
 
     return h_out_collection;
@@ -187,7 +197,7 @@ namespace network_butcher::kfinder
         auto const &front_element = queue.front();
 
         // Find the "new" nodes that must be added to the queue. At the end this iteration, their H_g can be computed
-        auto       &deps          = sp_dependencies[front_element];                                              // O(1)
+        auto       &deps          = sp_dependencies[front_element];                            // O(1)
         auto const &successor_h_g = h_g_collection.find(successors[front_element])->second;                      // O(1)
         auto &h_g = h_g_collection.emplace(front_element, typename H_g_collection::mapped_type()).first->second; // O(1)
 
@@ -199,7 +209,7 @@ namespace network_butcher::kfinder
 
         // Add H_out and...
         if (h_out_iterator != h_out_collection.cend() && !h_out_iterator->second.empty())
-          h_g.push(h_out_iterator); // O(1)
+          h_g.push(h_out_iterator); // O(log(N))
 
 
         // Among the different iterations, this loop is performed at most N times. Moreover, every iteration of the

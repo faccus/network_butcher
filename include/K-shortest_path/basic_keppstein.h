@@ -265,16 +265,19 @@ namespace network_butcher::kfinder
           }
       }
 
-    auto const &first_side_track = extract_first_sidetrack_edge(h_g_it);
 
     res.reserve(K);
 
     // Collection of "final" implicit paths to be added to res
-    Heap<Implicit_Path_Info, std::greater<>> Q;
-    Q.reserve(K);
+    std::vector<Implicit_Path_Info> tmp_vect;
+    tmp_vect.reserve(K);
+
+    std::priority_queue<Implicit_Path_Info, std::vector<Implicit_Path_Info>, std::greater<>> Q(std::greater<>(),
+                                                                                               std::move(tmp_vect));
 
 
     // First deviatory path
+    auto const &first_side_track = extract_first_sidetrack_edge(h_g_it);
     Q.push(Implicit_Path_Info{.current_sidetrack   = first_side_track,
                               .previous_sidetracks = nullptr,
                               .length              = first_side_track.delta_weight + shortest_distance[root]});
@@ -283,7 +286,9 @@ namespace network_butcher::kfinder
     // Loop through Q until either Q is empty or the number of paths found is K
     for (; k <= K && !Q.empty(); ++k)
       {
-        res.emplace_back(Q.pop_head());
+        res.emplace_back(Q.top());
+        Q.pop();
+
         auto const &SK = res.back();
 
         auto const &[current_h_g, current_location, _e_weight] = *SK.current_sidetrack;

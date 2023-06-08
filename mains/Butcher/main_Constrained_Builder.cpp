@@ -3,7 +3,6 @@
 
 #include "GetPot"
 #include "chrono.h"
-#include "test_class.h"
 
 #include "network_butcher.h"
 
@@ -12,7 +11,6 @@ using namespace network_butcher::types;
 
 using Node_type = Node;
 using GraphType = MWGraph<false, Node_type, long>;
-using time_type = long double;
 
 
 template <class Graph>
@@ -163,7 +161,7 @@ main(int argc, char **argv)
   GetPot      command_line(argc, argv);
   std::string export_path = "report_Constrained_Builder.txt";
 
-  std::vector<std::tuple<std::string, time_type>> results;
+  std::vector<std::tuple<std::string, Time_Type>> results;
   std::size_t                                     num_tests = command_line("num_tests", 10);
   std::size_t                                     max_power = command_line("max_power", 15);
 
@@ -200,7 +198,7 @@ main(int argc, char **argv)
   for (std::size_t power = 10; power <= max_power; ++power)
     {
       std::size_t nodes = simple_pow(2, power);
-      time_type   time  = 0.;
+      Time_Type   time  = 0.;
 
       auto params       = generate_parameters();
       auto graph        = basic_graph(nodes);
@@ -218,7 +216,7 @@ main(int argc, char **argv)
           builder.construct_block_graph();
           crono.stop();
 
-          time_type local_time = crono.wallTime();
+          Time_Type local_time = crono.wallTime();
           time += local_time;
 
           std::cout << "Test #" << Utilities::custom_to_string(test_num + 1) << ": " << local_time / 1000. << " ms"

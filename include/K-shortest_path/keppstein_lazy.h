@@ -4,7 +4,8 @@
 #include <list>
 
 #include "basic_keppstein.h"
-#include "heap_traits.h"
+#include "traits.h"
+#include "weighted_graph.h"
 
 namespace network_butcher::kfinder
 {
@@ -117,16 +118,28 @@ namespace network_butcher::kfinder
       // Prepare the new H_out
       h_out_it = h_out_collection.emplace(tail, typename H_out_collection::mapped_type()).first;
 
-      // For every "sidetrack" node in the outer start of node
-      for (auto const &exit : graph.get_output_nodes(tail))
-        {
-          auto [begin, end] = sidetrack_distances[tail].equal_range(exit);
-          for (; begin != end && begin->first == exit; ++begin)
-            {
-              // Add the sidetrack edges to the H_out
-              h_out_it->second.push(Edge_Info{std::make_pair(tail, exit), begin->second});
-            }
-        }
+      std::vector<Edge_Info> edges_vec;
+
+      {
+        std::list<Edge_Info> edges;
+
+        // For every "sidetrack" node in the outer start of node
+        for (auto const &exit : graph.get_output_nodes(tail))
+          {
+            auto [begin, end] = sidetrack_distances[tail].equal_range(exit);
+            for (; begin != end && begin->first == exit; ++begin)
+              {
+                // Add the sidetrack edges to the collection
+                edges.emplace_back(std::make_pair(tail, exit), begin->second);
+              }
+          }
+
+        edges_vec.insert(edges_vec.begin(),
+                         std::make_move_iterator(edges.begin()),
+                         std::make_move_iterator(edges.end()));
+      }
+
+      h_out_it->second.overwrite_children(std::move(edges_vec), true);
 
       return h_out_it;
     };
@@ -161,12 +174,12 @@ namespace network_butcher::kfinder
 
           // Prepare a new H_g
           if (previous_inserted_h_g != h_g.end() && !previous_inserted_h_g->second.empty())
-            build_iterator->second.overwrite_children(previous_inserted_h_g->second);
+            build_iterator->second.overwrite_children(previous_inserted_h_g->second); // O(N)
         }
 
       if (to_insert_h_out != h_out.cend() && !to_insert_h_out->second.empty())
         {
-          build_iterator->second.push(to_insert_h_out);
+          build_iterator->second.push(to_insert_h_out); // O(log(N))
         }
 
       return build_iterator;

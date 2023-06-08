@@ -1,5 +1,5 @@
-#ifndef NETWORK_BUTCHER_BASIC_TRAITS_H
-#define NETWORK_BUTCHER_BASIC_TRAITS_H
+#ifndef NETWORK_BUTCHER_TRAITS_H
+#define NETWORK_BUTCHER_TRAITS_H
 
 #include <set>
 #include <map>
@@ -32,4 +32,4 @@ namespace network_butcher
 } // namespace network_butcher
 
 
-#endif // NETWORK_BUTCHER_BASIC_TRAITS_H
+#endif // NETWORK_BUTCHER_TRAITS_H

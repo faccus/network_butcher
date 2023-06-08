@@ -1,7 +1,7 @@
 #ifndef NETWORK_BUTCHER_WEIGHTED_GRAPH_H
 #define NETWORK_BUTCHER_WEIGHTED_GRAPH_H
 
-#include "basic_traits.h"
+#include "traits.h"
 
 
 namespace network_butcher::kfinder
@@ -116,6 +116,12 @@ namespace network_butcher::kfinder
   private:
     Graph_Type const &graph;
   };
+
+
+  template <typename T>
+  concept Valid_Weighted_Graph = std::is_base_of_v<Base_Weighted_Graph, T>;
+
+
 } // namespace network_butcher::kfinder
 
 #endif // NETWORK_BUTCHER_WEIGHTED_GRAPH_H

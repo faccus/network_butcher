@@ -1,8 +1,8 @@
 #ifndef NETWORK_BUTCHER_NODE_H
 #define NETWORK_BUTCHER_NODE_H
 
-#include "basic_traits.h"
 #include "dense_tensor.h"
+#include "traits.h"
 
 #include <memory>
 #include <utility>

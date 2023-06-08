@@ -1,6 +1,4 @@
 #include "chrono.h"
-#include "test_class.h"
-
 #include "GetPot"
 
 #include <fstream>

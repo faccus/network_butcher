@@ -1,8 +1,8 @@
 #ifndef NETWORK_BUTCHER_PATH_INFO_H
 #define NETWORK_BUTCHER_PATH_INFO_H
 
-#include "basic_traits.h"
 #include "crtp_grater.h"
+#include "traits.h"
 
 namespace network_butcher::kfinder
 {

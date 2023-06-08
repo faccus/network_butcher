@@ -16,6 +16,6 @@ RUN apt-get install python3-dev python3-pip --no-install-recommends -y
 WORKDIR ${MY_DIR}
 COPY dep/aMLLibrary/requirements.txt .
 RUN python3 -m pip install -r requirements.txt
-RUN python3 -m pip install onnx-tool
+RUN python3 -m pip install onnx-tool==0.6.1
 
 CMD bash

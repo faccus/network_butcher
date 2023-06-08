@@ -1,9 +1,8 @@
 #include "network_butcher.h"
-#include "test_graph.h"
+#include "weighted_graph_specialization.h"
 
 #include "GetPot"
 #include "chrono.h"
-
 
 #include <fstream>
 
@@ -58,8 +57,8 @@ import_graph(const std::string &file_path)
 std::vector<std::string>
 get_test_names()
 {
-  return {"almost_path_00",     "almost_path_01",     "almost_path_02",  "dense_00",
-          "dense_01",           "example_00",         "max_random_00",   "max_random_01",
+  return {"dense_00",           "dense_01",           "almost_path_00",  "almost_path_01",
+          "almost_path_02",     "example_00",         "max_random_00",   "max_random_01",
           "max_random_02",      "max_random_03",      "max_random_04",   "path_00",
           "random_00",          "random_01",          "random_02",       "random_04",
           "small_random_00",    "small_random_01",    "small_random_02", "smallest_random_00",
