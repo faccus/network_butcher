@@ -170,7 +170,7 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
   /// \param  edit_graph The onnx graph of the new model
   /// \param  container Either the input or the output of the graph
   /// \param  get_io A function that given a node, it returns the inputs/outputs of the node
-  /// \param  get_second_io A function that given a node, it returns the outputs/inputs of the node
+  /// \param  get_node_container A function that given a node, it returns the outputs/inputs of the node
   /// \param  get_new_entry A function that adds either a new input or a new output to the graph
   /// \param preprocessed_ios_nodes The output of process_node_ios_nodes
   template <bool reversed>

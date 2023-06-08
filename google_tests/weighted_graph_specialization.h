@@ -27,8 +27,8 @@ namespace network_butcher::kfinder
     using Node_Collection_Type = std::vector<Node_Type>;
 
 
-    [[nodiscard]] Weight_Edge_Type
-    get_weight(Edge_Type const &edge) const
+    [[nodiscard]] auto
+    get_weight(Edge_Type const &edge) const -> Weight_Edge_Type
     {
       if constexpr (Reversed && Parallel_Edges)
         {
@@ -48,20 +48,20 @@ namespace network_butcher::kfinder
         }
     }
 
-    [[nodiscard]] std::size_t
-    size() const
+    [[nodiscard]] auto
+    size() const -> std::size_t
     {
       return graph.size();
     };
 
-    [[nodiscard]] bool
-    empty() const
+    [[nodiscard]] auto
+    empty() const -> bool
     {
       return graph.empty();
     };
 
-    [[nodiscard]] std::set<Node_Id_Type> const &
-    get_output_nodes(Node_Id_Type const &id) const
+    [[nodiscard]] auto
+    get_output_nodes(Node_Id_Type const &id) const -> std::set<Node_Id_Type> const &
     {
       if constexpr (Reversed)
         {
@@ -74,39 +74,39 @@ namespace network_butcher::kfinder
     };
 
 
-    Node_Type const &
-    operator[](Node_Id_Type const &id) const
+    auto
+    operator[](Node_Id_Type const &id) const -> Node_Type const &
     {
       return graph[id];
     };
 
-    [[nodiscard]] typename Node_Collection_Type::const_iterator
+    [[nodiscard]] auto
     cbegin() const
     {
       return graph.cbegin();
     }
 
-    [[nodiscard]] typename Node_Collection_Type::const_iterator
+    [[nodiscard]] auto
     cend() const
     {
       return graph.cend();
     }
 
-    [[nodiscard]] typename Node_Collection_Type::const_iterator
+    [[nodiscard]] auto
     begin() const
     {
       return cbegin();
     }
 
-    [[nodiscard]] typename Node_Collection_Type::const_iterator
+    [[nodiscard]] auto
     end() const
     {
       return cend();
     }
 
 
-    Weighted_Graph<Graph_Type, !Reversed, Node_Type, Node_Collection_Type, Weight_Type>
-    reverse() const
+    auto
+    reverse() const -> Weighted_Graph<Graph_Type, !Reversed, Node_Type, Node_Collection_Type, Weight_Type>
     {
       return Weighted_Graph<Graph_Type, !Reversed, Node_Type, Node_Collection_Type, Weight_Type>(graph);
     }

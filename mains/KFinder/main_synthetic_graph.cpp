@@ -3,10 +3,8 @@
 
 #include "GetPot"
 #include "chrono.h"
-#include "test_class.h"
 
-#include "graph_traits.h"
-#include "kfinder_factory.h"
+#include "network_butcher.h"
 
 using namespace network_butcher;
 using namespace network_butcher::types;

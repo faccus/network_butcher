@@ -21,19 +21,22 @@ namespace
   using Node_type    = CNode<Content_type>;
   using GraphType    = MWGraph<false, Node_type>;
 
-  GraphType basic_graph(std::size_t);
+  auto basic_graph(std::size_t) -> GraphType;
 
-  Butcher<GraphType>
-  basic_butcher();
+  auto
+  basic_butcher() -> Butcher<GraphType>;
 
-  parameters::Parameters
-  basic_parameters(std::size_t k, std::size_t num_devices);
+  auto
+  basic_parameters(std::size_t k, std::size_t num_devices) -> parameters::Parameters;
 
-  parameters::Parameters
-  eppstein_parameters(std::size_t k, std::size_t num_devices);
+  auto
+  eppstein_parameters(std::size_t k, std::size_t num_devices) -> parameters::Parameters;
 
-  parameters::Parameters
-  lazy_eppstein_parameters(std::size_t k, std::size_t num_devices);
+  auto
+  lazy_eppstein_parameters(std::size_t k, std::size_t num_devices) -> parameters::Parameters;
+
+  auto basic_transmission(std::size_t, std::size_t)
+    -> std::function<type_weight(Edge_Type const &, std::size_t, std::size_t)>;
 
   struct path_comparison
   {
@@ -41,26 +44,6 @@ namespace
     operator()(Weighted_Real_Path const &rhs, Weighted_Real_Path const &lhs) const;
   };
 
-  template <class Graph>
-  void
-  complete_weights(Graph &graph)
-  {
-    auto const  num_nodes    = graph.get_nodes().size();
-    auto const &dependencies = graph.get_neighbors();
-
-    for (Node_Id_Type tail = 0; tail < num_nodes; ++tail)
-      for (auto const &head : dependencies[tail].second)
-        {
-          for (std::size_t k = 0; k < graph.get_num_devices(); ++k)
-            {
-              if (graph.get_weight(k, {tail, head}) == -1.)
-                graph.set_weight(k, {tail, head}, 0.);
-            }
-        }
-  };
-
-
-  std::function<type_weight(Edge_Type const &, std::size_t, std::size_t)> basic_transmission(std::size_t, std::size_t);
 
   TEST(ButcherTest, compute_k_shortest_paths_eppstein_linear)
   {
@@ -100,7 +83,6 @@ namespace
     std::size_t k           = 1000;
 
 
-
     auto        butcher = basic_butcher();
     auto       &graph   = butcher.get_graph_ref();
     auto const &nodes   = graph.get_nodes();
@@ -131,8 +113,8 @@ namespace
   }
 
 
-  GraphType
-  basic_graph(std::size_t dev)
+  auto
+  basic_graph(std::size_t dev) -> GraphType
   {
     std::vector<Node_type> nodes;
 
@@ -149,28 +131,29 @@ namespace
     return GraphType(dev, std::move(nodes));
   }
 
-  Butcher<GraphType>
-  basic_butcher()
+  auto
+  basic_butcher() -> Butcher<GraphType>
   {
     auto graph = basic_graph(3);
 
     for (std::size_t k = 0; k < graph.get_num_devices(); ++k)
       {
-        graph.set_weight(k, {0, 1}, 1000. / std::pow(2, k) + k);
-        graph.set_weight(k, {1, 2}, 1000. / std::pow(2, k) + k);
-        graph.set_weight(k, {1, 3}, 500. / std::pow(2, k) + k);
-        graph.set_weight(k, {3, 4}, 500. / std::pow(2, k) + k);
-        graph.set_weight(k, {2, 5}, 1000. / std::pow(2, k) + k);
-        graph.set_weight(k, {4, 5}, 1000. / std::pow(2, k) + k);
-        graph.set_weight(k, {5, 6}, 1000. / std::pow(2, k) + k);
-        graph.set_weight(k, {6, 7}, 0.);
+        graph.set_weight(k, std::make_pair(0, 1), 1000. / std::pow(2, k) + k);
+        graph.set_weight(k, std::make_pair(1, 2), 1000. / std::pow(2, k) + k);
+        graph.set_weight(k, std::make_pair(1, 3), 500. / std::pow(2, k) + k);
+        graph.set_weight(k, std::make_pair(3, 4), 500. / std::pow(2, k) + k);
+        graph.set_weight(k, std::make_pair(2, 5), 1000. / std::pow(2, k) + k);
+        graph.set_weight(k, std::make_pair(4, 5), 1000. / std::pow(2, k) + k);
+        graph.set_weight(k, std::make_pair(5, 6), 1000. / std::pow(2, k) + k);
+        graph.set_weight(k, std::make_pair(6, 7), 0.);
       }
 
     return Butcher(std::move(graph));
   }
 
-  std::function<type_weight(Edge_Type const &, std::size_t, std::size_t)>
+  auto
   basic_transmission(std::size_t devices, std::size_t size)
+    -> std::function<type_weight(Edge_Type const &, std::size_t, std::size_t)>
   {
     return [devices, size](Edge_Type const &t_input, std::size_t first, std::size_t second) {
       auto const &[input, _tmp] = t_input;
@@ -202,10 +185,9 @@ namespace
     };
   }
 
-  parameters::Parameters
-  basic_parameters(std::size_t k, std::size_t num_devices)
+  auto
+  basic_parameters(std::size_t k, std::size_t num_devices) -> parameters::Parameters
   {
-    using g_type = parameters::Parameters::Weights::connection_type::element_type;
     parameters::Parameters res;
 
     res.ksp_params.K = k;
@@ -217,7 +199,7 @@ namespace
       res.devices[i].id = i;
 
     res.block_graph_generation_params.memory_constraint = false;
-    res.block_graph_generation_params.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
+    res.block_graph_generation_params.block_graph_mode  = parameters::Block_Graph_Generation_Mode::classic;
     res.block_graph_generation_params.use_bandwidth_to_manage_connections = false;
 
     res.block_graph_generation_params.starting_device_id = 0;
@@ -226,8 +208,8 @@ namespace
     return res;
   }
 
-  parameters::Parameters
-  eppstein_parameters(std::size_t k, std::size_t num_devices)
+  auto
+  eppstein_parameters(std::size_t k, std::size_t num_devices) -> parameters::Parameters
   {
     auto res              = basic_parameters(k, num_devices);
     res.ksp_params.method = parameters::KSP_Method::Eppstein;
@@ -235,8 +217,8 @@ namespace
     return res;
   }
 
-  parameters::Parameters
-  lazy_eppstein_parameters(std::size_t k, std::size_t num_devices)
+  auto
+  lazy_eppstein_parameters(std::size_t k, std::size_t num_devices) -> parameters::Parameters
   {
     auto res              = basic_parameters(k, num_devices);
     res.ksp_params.method = parameters::KSP_Method::Lazy_Eppstein;
@@ -244,9 +226,9 @@ namespace
     return res;
   }
 
-  bool
+  auto
   path_comparison::operator()(const network_butcher::types::Weighted_Real_Path &rhs,
-                              const network_butcher::types::Weighted_Real_Path &lhs) const
+                              const network_butcher::types::Weighted_Real_Path &lhs) const -> bool
   {
     return rhs.first < lhs.first || rhs.first == lhs.first && rhs.second < lhs.second;
   }

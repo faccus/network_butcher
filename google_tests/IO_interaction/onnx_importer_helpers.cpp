@@ -7,8 +7,8 @@ namespace
   using namespace network_butcher;
   using namespace network_butcher::io;
 
-  onnx::ModelProto
-  import_simple_model();
+  auto
+  import_simple_model() -> onnx::ModelProto;
 
 
   TEST(OnnxImporterHelpersTests, ReadIOsValueInfoProto)
@@ -69,8 +69,8 @@ namespace
   }
 
 
-  onnx::ModelProto
-  import_simple_model()
+  auto
+  import_simple_model() -> onnx::ModelProto
   {
     std::string const model_path = Utilities::combine_path("test_data/models", "version-RFB-640-inferred.onnx");
     return Utilities::parse_onnx_file(model_path);

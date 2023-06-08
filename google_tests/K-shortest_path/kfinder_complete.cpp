@@ -19,7 +19,6 @@ namespace
   using type_weight = double;
 
   using Input               = Test_Class<basic_type>;
-  using Content_input       = types::Content<Input>;
   using Node_type           = types::Node;
   using Test_Weight_Type    = unsigned long long int;
   using Graph_type_Parallel = types::WGraph<true, Node_type, Test_Weight_Type>;
@@ -31,11 +30,12 @@ namespace
                                                       Graph_type_Parallel::Node_Collection_Type,
                                                       Test_Weight_Type>;
 
-  std::tuple<Graph_type_Parallel, Node_Id_Type, Node_Id_Type, Node_Id_Type>
-  import_graph(std::string file_path);
+  auto
+  import_graph(const std::string &file_path)
+    -> std::tuple<Graph_type_Parallel, Node_Id_Type, Node_Id_Type, Node_Id_Type>;
 
-  std::vector<std::string>
-  get_test_names();
+  auto
+  get_test_names() -> std::vector<std::string>;
 
 
   TEST(KFinderTest, CompleteParallelEdgesEppstein)
@@ -120,19 +120,19 @@ namespace
   }
 
 
-  std::tuple<Graph_type_Parallel, Node_Id_Type, Node_Id_Type, Node_Id_Type>
-  import_graph(std::string file_path)
+  auto
+  import_graph(const std::string &file_path)
+    -> std::tuple<Graph_type_Parallel, Node_Id_Type, Node_Id_Type, Node_Id_Type>
   {
-    std::size_t                  N, M, s, t, k, u, v;
-    network_butcher::Time_Type   tmp_weight;
+    std::size_t      N, M, s, t, k, u, v;
+    Test_Weight_Type tmp_weight;
 
     std::ifstream in_file(file_path);
     in_file >> N >> M >> s >> t >> k;
 
-    std::vector<network_butcher::types::Node> nodes(N);
-    Converted_Onnx_Graph_Type::Dependencies_Type             deps(N);
-    std::vector<
-      std::pair<std::pair<network_butcher::Node_Id_Type, network_butcher::Node_Id_Type>, network_butcher::Time_Type>>
+    std::vector<network_butcher::types::Node>    nodes(N);
+    Converted_Onnx_Graph_Type::Dependencies_Type deps(N);
+    std::vector<std::pair<std::pair<network_butcher::Node_Id_Type, network_butcher::Node_Id_Type>, Test_Weight_Type>>
       edges;
     edges.reserve(M);
 
@@ -153,8 +153,8 @@ namespace
   }
 
   // https://github.com/yosupo06/library-checker-problems
-  std::vector<std::string>
-  get_test_names()
+  auto
+  get_test_names() -> std::vector<std::string>
   {
     return {"almost_path_00",
             "almost_path_01",

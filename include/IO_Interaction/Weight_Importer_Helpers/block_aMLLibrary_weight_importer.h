@@ -96,6 +96,8 @@ namespace network_butcher::io
     /// \param map_onnx_tool The output of onnx_tool
     /// \param previous_entries_info The info of the previous entries elements in the .csv
     /// \param original_ids The ids of the original graph of the node
+    /// \param node_output_ids The ids of the output nodes of the node in the original graph
+    /// \return The relevant entry in the .csv file
     [[nodiscard]] auto
     generate_entry(std::string const                                                           &lower_case,
                    std::size_t                                                                  id,
@@ -160,7 +162,7 @@ namespace network_butcher::io
     void
     import_weights(std::function<bool(Block_Graph_Type::Node_Type const &)> const &extra_condition);
 
-    virtual ~block_aMLLibrary_Weight_Importer() = default;
+    ~block_aMLLibrary_Weight_Importer() override = default;
   };
 
 } // namespace network_butcher::io

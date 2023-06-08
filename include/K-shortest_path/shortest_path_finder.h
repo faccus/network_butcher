@@ -7,49 +7,47 @@
 #include <queue>
 #include <vector>
 
+namespace network_butcher::kfinder::Shortest_path_finder::utilities
+{
+  /// A helper struct for the Dijkstra algorithm
+  template <typename Weight_Type = Time_Type>
+  struct Dijkstra_Helper : Crtp_Greater<Dijkstra_Helper<Weight_Type>>
+  {
+    Weight_Type  weight;
+    Node_Id_Type id;
+
+    Dijkstra_Helper(Weight_Type w, Node_Id_Type i)
+      : weight(w)
+      , id(i)
+    {}
+
+    bool
+    operator<(const Dijkstra_Helper &rhs) const
+    {
+      return weight < rhs.weight || (weight == rhs.weight && id < rhs.id);
+    }
+  };
+
+  /// Given the tail and the head of the edge, it will produce the associated weight
+  /// \param graph The graph
+  /// \param tail The tail node id
+  /// \param head The head node id
+  /// \return The corresponding weight
+  template <Valid_Weighted_Graph v_Weighted_Graph>
+  auto
+  get_weight(v_Weighted_Graph const &graph, Node_Id_Type tail, Node_Id_Type head) -> v_Weighted_Graph::Weight_Type
+  {
+    auto const &weight_container = graph.get_weight(std::make_pair(tail, head));
+
+    return *weight_container.cbegin();
+  }
+} // namespace network_butcher::kfinder::Shortest_path_finder::utilities
 
 namespace network_butcher::kfinder::Shortest_path_finder
 {
-
   /// The output type of the Dijkstra algorithm
   template <typename Weight_Type = Time_Type>
   using Templated_Dijkstra_Result_Type = std::pair<std::vector<Node_Id_Type>, std::vector<Weight_Type>>;
-
-  namespace utilities
-  {
-    /// A helper struct for the Dijkstra algorithm
-    template <typename Weight_Type = Time_Type>
-    struct Dijkstra_Helper : Crtp_Greater<Dijkstra_Helper<Weight_Type>>
-    {
-      Weight_Type  weight;
-      Node_Id_Type id;
-
-      Dijkstra_Helper(Weight_Type w, Node_Id_Type i)
-        : weight(w)
-        , id(i)
-      {}
-
-      bool
-      operator<(const Dijkstra_Helper &rhs) const
-      {
-        return weight < rhs.weight || (weight == rhs.weight && id < rhs.id);
-      }
-    };
-
-    /// Given the tail and the head of the edge, it will produce the associated weight
-    /// \param graph The graph
-    /// \param tail The tail node id
-    /// \param head The head node id
-    /// \return The corresponding weight
-    template <Valid_Weighted_Graph v_Weighted_Graph>
-    auto
-    get_weight(v_Weighted_Graph const &graph, Node_Id_Type tail, Node_Id_Type head) -> v_Weighted_Graph::Weight_Type
-    {
-      auto const &weight_container = graph.get_weight(std::make_pair(tail, head));
-
-      return *weight_container.cbegin();
-    }
-  } // namespace utilities
 
 
   /// Executes Dijkstra algorithm to compute the shortest paths from the root to every node of the graph
@@ -120,14 +118,14 @@ namespace network_butcher::kfinder::Shortest_path_finder
                 throw std::logic_error(error_message(current_node.id, head_node));
               }
 
-            auto const candidate_distance = start_distance + weight; // O(1)
-            if (candidate_distance < base_distance)                  // O(1)
+            auto const candidate_distance = start_distance + weight;              // O(1)
+            if (candidate_distance < base_distance)                               // O(1)
               {
                 to_visit.erase(dijkstra_helper_struct(base_distance, head_node)); // O(log(N)
 
-                predecessors[head_node] = current_node.id;           // O(1)
-                base_distance           = candidate_distance;        // O(1)
-                to_visit.emplace(candidate_distance, head_node);     // O(log(N))
+                predecessors[head_node] = current_node.id;                        // O(1)
+                base_distance           = candidate_distance;                     // O(1)
+                to_visit.emplace(candidate_distance, head_node);                  // O(log(N))
               }
           }
       }

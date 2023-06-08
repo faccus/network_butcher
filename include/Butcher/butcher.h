@@ -20,7 +20,6 @@
 
 namespace network_butcher
 {
-
   /// Butcher generates the partitioning for the given input graph.
   /// \tparam GraphType The type of the graph
   template <typename GraphType>

@@ -1,14 +1,12 @@
-#include "butcher.h"
 #include "chrono.h"
-#include "io_manager.h"
 #include "test_class.h"
-
-#include "utilities.h"
 
 #include "GetPot"
 
 #include <fstream>
 #include <random>
+
+#include "network_butcher.h"
 
 using namespace network_butcher;
 using namespace network_butcher::types;

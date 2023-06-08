@@ -1,12 +1,9 @@
-#include "graph_traits.h"
-#include "kfinder_factory.h"
-#include "weighted_graph_specialization.h"
-
-#include "chrono.h"
-#include "test_class.h"
+#include "network_butcher.h"
 #include "test_graph.h"
 
 #include "GetPot"
+#include "chrono.h"
+
 
 #include <fstream>
 
@@ -27,18 +24,17 @@ using Weighted_Graph_Parallel_type = Weighted_Graph<Graph_type_Parallel,
 
 
 std::tuple<Graph_type_Parallel, Node_Id_Type, Node_Id_Type, Node_Id_Type>
-import_graph(std::string file_path)
+import_graph(const std::string &file_path)
 {
-  std::size_t                  N, M, s, t, k, u, v;
-  network_butcher::Time_Type   tmp_weight;
+  std::size_t      N, M, s, t, k, u, v;
+  Test_Weight_Type tmp_weight;
 
   std::ifstream in_file(file_path);
   in_file >> N >> M >> s >> t >> k;
 
-  std::vector<network_butcher::types::Node> nodes(N);
-  Converted_Onnx_Graph_Type::Dependencies_Type             deps(N);
-  std::vector<
-    std::pair<std::pair<network_butcher::Node_Id_Type, network_butcher::Node_Id_Type>, network_butcher::Time_Type>>
+  std::vector<network_butcher::types::Node>    nodes(N);
+  Converted_Onnx_Graph_Type::Dependencies_Type deps(N);
+  std::vector<std::pair<std::pair<network_butcher::Node_Id_Type, network_butcher::Node_Id_Type>, Test_Weight_Type>>
     edges;
   edges.reserve(M);
 
@@ -62,30 +58,12 @@ import_graph(std::string file_path)
 std::vector<std::string>
 get_test_names()
 {
-  return {"almost_path_00",
-          "almost_path_01",
-          "almost_path_02",
-          "dense_00",
-          "dense_01",
-          "example_00",
-          "max_random_00",
-          "max_random_01",
-          "max_random_02",
-          "max_random_03",
-          "max_random_04",
-          "path_00",
-          "random_00",
-          "random_01",
-          "random_02",
-          "random_04",
-          "small_random_00",
-          "small_random_01",
-          "small_random_02",
-          "smallest_random_00",
-          "smallest_random_01",
-          "smallest_random_02",
-          "sparse_00",
-          "sparse_01"};
+  return {"almost_path_00",     "almost_path_01",     "almost_path_02",  "dense_00",
+          "dense_01",           "example_00",         "max_random_00",   "max_random_01",
+          "max_random_02",      "max_random_03",      "max_random_04",   "path_00",
+          "random_00",          "random_01",          "random_02",       "random_04",
+          "small_random_00",    "small_random_01",    "small_random_02", "smallest_random_00",
+          "smallest_random_01", "smallest_random_02", "sparse_00",       "sparse_01"};
 }
 
 

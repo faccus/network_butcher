@@ -25,12 +25,6 @@ if (DOXYGEN_FOUND)
             ${PROJECT_SOURCE_DIR}
             COMMENT "Generate doc pages"
     )
-
-    add_custom_target(
-            doc
-            COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.doxygen
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            COMMENT "Generating API documentation")
 elseif ()
     message(STATUS "Missing doxygen: I will not be able to produce documentation files!")
 endif ()

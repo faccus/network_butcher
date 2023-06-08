@@ -30,7 +30,6 @@ namespace network_butcher::types
 
     using Weight_Type            = Parent_Type::Weight_Type;
     using Edge_Weight_Type       = Parent_Type::Edge_Weight_Type;
-    using Weight_Collection_Type = Parent_Type::Weight_Collection_Type;
 
     template <typename A, typename B>
     explicit WGraph(A &&v, B &&dep)
@@ -39,7 +38,7 @@ namespace network_butcher::types
 
 
     /// Checks if the given edge has a weight
-    /// \param device The device id
+    /// \param edge The edge
     /// \return True if the edge has a weight on the given device, false otherwise
     [[nodiscard]] auto
     check_weight(Edge_Type const &edge) const
@@ -129,7 +128,6 @@ namespace network_butcher::types
   {
   private:
     using Parent_Type   = MWGraph<Parallel_Edges, CNode<Content<T>>>;
-    using t_Node_Type   = Parent_Type::Node_Type;
 
     using T_Weight_Type = Parent_Type::Weight_Type;
 
@@ -146,7 +144,6 @@ namespace network_butcher::types
 
     using Weight_Type            = Parent_Type::Weight_Type;
     using Edge_Weight_Type       = Parent_Type::Edge_Weight_Type;
-    using Weight_Collection_Type = Parent_Type::Weight_Collection_Type;
 
     template <typename A, typename B>
     explicit WGraph(A &&v, B &&dep)
@@ -162,7 +159,7 @@ namespace network_butcher::types
 
 
     /// Checks if the given edge has a weight
-    /// \param device The device id
+    /// \param edge The edge
     /// \return True if the edge has a weight on the given device, false otherwise
     [[nodiscard]] auto
     check_weight(Edge_Type const &edge) const

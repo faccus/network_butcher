@@ -5,8 +5,7 @@
 #include "chrono.h"
 #include "test_class.h"
 
-#include "constrained_block_graph_builder.h"
-#include "graph_traits.h"
+#include "network_butcher.h"
 
 using namespace network_butcher;
 using namespace network_butcher::types;
@@ -112,8 +111,8 @@ generate_parameters()
   for (std::size_t i = 0; i < res.devices.size(); ++i)
     res.devices[i].id = i;
 
-    res.block_graph_generation_params.memory_constraint = false;
-  res.block_graph_generation_params.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
+  res.block_graph_generation_params.memory_constraint = false;
+  res.block_graph_generation_params.block_graph_mode  = parameters::Block_Graph_Generation_Mode::classic;
   res.block_graph_generation_params.use_bandwidth_to_manage_connections = true;
 
   g_type::Dependencies_Type deps(4);
@@ -135,7 +134,8 @@ generate_parameters()
   for (std::size_t i = 0; i < res.weights_params.bandwidth->size(); ++i)
     {
       res.weights_params.bandwidth->set_weight(std::make_pair(i, i),
-                                               std::make_pair(std::numeric_limits<Bandwidth_Value_Type>::infinity(), 0.));
+                                               std::make_pair(std::numeric_limits<Bandwidth_Value_Type>::infinity(),
+                                                              0.));
     }
 
 

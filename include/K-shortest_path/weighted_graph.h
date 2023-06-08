@@ -13,6 +13,7 @@ namespace network_butcher::kfinder
             typename t_Weight_Type          = Time_Type>
   class Weighted_Graph;
 
+  /// Helper Weighted graph class. It is used to identify Weighted_Graph independently of its template parameters
   class Base_Weighted_Graph
   {
   private:
@@ -99,14 +100,14 @@ namespace network_butcher::kfinder
 
     /// It should return the reversed graph, that is the graph with the direction of the edges reversed
     /// \return The reversed graph
-    [[nodiscard]] Weighted_Graph<Graph_Type, !t_Reversed, Node_Type, Node_Collection_Type, Weight_Type>
-    reverse() const
+    [[nodiscard]] auto
+    reverse() const -> Weighted_Graph<Graph_Type, !t_Reversed, Node_Type, Node_Collection_Type, Weight_Type>
     {
       return Weighted_Graph<Graph_Type, !t_Reversed, Node_Type, Node_Collection_Type, Weight_Type>(graph);
     }
 
     explicit Weighted_Graph(Graph_Type const &g)
-      : InternalGraphType()
+      : Base_Weighted_Graph()
       , graph(g)
     {}
 
