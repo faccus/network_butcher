@@ -117,8 +117,8 @@ namespace network_butcher::kfinder
       Weight_Type              length;
 
 
-      bool
-      operator<(const Implicit_Path_Info &rhs) const
+      auto
+      operator<(const Implicit_Path_Info &rhs) const -> bool
       {
         return length < rhs.length;
       }
@@ -141,8 +141,10 @@ namespace network_butcher::kfinder
         sidetracks.push_back(&(current_sidetrack.value().get_head_content()));
       }
 
-      std::list<Edge_Info const *>
-      compute_sidetracks() const
+      /// Produce the list of sidetrack edges associated to the current path
+      /// \return The list of sidetracks
+      [[nodiscard]] auto
+      compute_sidetracks() const -> std::list<Edge_Info const *>
       {
         if (!current_sidetrack)
           {
@@ -318,8 +320,6 @@ namespace network_butcher::kfinder
 
     // First deviatory path
     auto const &first_side_track = extract_first_sidetrack_edge(h_g_it);
-
-
     Q.push(Implicit_Path_Info{.current_sidetrack   = first_side_track,
                               .previous_sidetracks = nullptr,
                               .length = first_side_track.get_head_content().delta_weight + shortest_distance[root]});
@@ -435,7 +435,6 @@ namespace network_butcher::kfinder
     auto const &sink = Parent_Type::sink;
 
     auto const &successors = dij_res.first;
-    auto const &distances  = dij_res.second;
 
     std::vector<Path_Info> res(epp_res.size());
 
@@ -451,12 +450,8 @@ namespace network_butcher::kfinder
       return final_steps;
     };
 
-    // Basically, we start from the specified node and go along the shortest path until we meet a sidetrack edge
-    // contained in the implicit path. In that case, we add the sidetrack edge and proceed along the "new" shortest
-    // path until either the "sink" node is reached or another sidetrack edge is met
-#if PARALLEL_TBB
     auto const process_path =
-      [&go_shortest, &dij_res = dij_res, &res = res, &epp_res = epp_res, &root, &sink](std::size_t index) {
+      [&go_shortest, &dij_res = dij_res, &res = res, &epp_res = epp_res, &root, &sink](std::size_t i) {
         auto const &implicit_path = epp_res[i];
 
         auto       &info       = res[i];
@@ -501,138 +496,95 @@ namespace network_butcher::kfinder
                   node_to_insert = dij_res.first[node_to_insert];
               }
           }
-      }
-  };
+      };
 
-  auto const &view = std::ranges::iota_view(std::size_t{0}, epp_res.size());
-  std::for_each(std::execution::par, view.begin(), view.end(), process_path);
+    // Basically, we start from the specified node and go along the shortest path until we meet a sidetrack edge
+    // contained in the implicit path. In that case, we add the sidetrack edge and proceed along the "new" shortest
+    // path until either the "sink" node is reached or another sidetrack edge is met
+#if PARALLEL_TBB
+    auto const &view = std::ranges::iota_view(std::size_t{0}, epp_res.size());
+    std::for_each(std::execution::par, view.begin(), view.end(), process_path);
 #else
-
-#  pragma omp parallel default(none) shared(epp_res, res, go_shortest, root, sink, dij_res)
+    #pragma omp parallel default(none) shared(go_shortest, dij_res, res, epp_res, root, sink, process_path)
     {
-#  pragma omp for
+      #pragma omp for
       for (std::size_t i = 0; i < epp_res.size(); ++i)
         {
-          auto const &implicit_path = epp_res[i];
-
-          auto       &info       = res[i];
-          auto const &sidetracks = implicit_path.compute_sidetracks();
-
-          info.length = implicit_path.length;
-
-          if (sidetracks.empty())
-            {
-              info.path = go_shortest(root);
-            }
-          else
-            {
-              auto sidetrack_edge_it = sidetracks.cbegin();
-
-              auto [first, second]       = (*sidetrack_edge_it)->edge;
-              std::size_t node_to_insert = root;
-
-              while (node_to_insert != sink)
-                {
-                  info.path.push_back(node_to_insert);
-                  if (first == node_to_insert)
-                    {
-                      node_to_insert = second;
-                      ++sidetrack_edge_it;
-
-                      if (sidetrack_edge_it == sidetracks.cend())
-                        {
-                          auto to_insert = go_shortest(node_to_insert);
-                          info.path.insert(info.path.end(),
-                                           std::make_move_iterator(to_insert.begin()),
-                                           std::make_move_iterator(to_insert.end()));
-
-                          break;
-                        }
-
-                      auto tmp = (*sidetrack_edge_it)->edge;
-                      first    = tmp.first;
-                      second   = tmp.second;
-                    }
-                  else
-                    node_to_insert = dij_res.first[node_to_insert];
-                }
-            }
+          process_path(i);
         }
     }
-
-
 #endif
 
-  return res;
-}
+    return res;
+  }
 
 
-template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-auto
-Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::sidetrack_distances(
-  Dijkstra_Result_Type const &dij_res) const -> Internal_Weight_Collection_Type
-{
-  Internal_Weight_Collection_Type res;
-  res.resize(graph.size());
+  template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
+  auto
+  Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::sidetrack_distances(
+    Dijkstra_Result_Type const &dij_res) const -> Internal_Weight_Collection_Type
+  {
+    Internal_Weight_Collection_Type res;
+    res.resize(graph.size());
 
-  auto const &[successors, distances_from_sink] = dij_res;
+    auto const &[successors, distances_from_sink] = dij_res;
 
-  for (auto const &tail_node : graph)
-    {
-      auto const &tail = tail_node.get_id();
-      if (distances_from_sink[tail] == std::numeric_limits<Weight_Type>::max())
-        continue;
+    for (auto const &tail_node : graph)
+      {
+        auto const &tail = tail_node.get_id();
+        if (distances_from_sink[tail] == std::numeric_limits<Weight_Type>::max())
+          continue;
 
-      for (auto const &head : graph.get_output_nodes(tail))
-        {
-          if (distances_from_sink[head] == std::numeric_limits<Weight_Type>::max())
-            continue;
+        for (auto const &head : graph.get_output_nodes(tail))
+          {
+            if (distances_from_sink[head] == std::numeric_limits<Weight_Type>::max())
+              continue;
 
-          auto const  edge    = std::make_pair(tail, head);
-          auto const &weights = graph.get_weight(edge);
+            auto const  edge    = std::make_pair(tail, head);
+            auto const &weights = graph.get_weight(edge);
 
-          // If it is its successor...
-          if (successors[tail] == head)
-            {
-              // ...and it has more than one weight, then we have to consider the edge with the smallest weight as the
-              // edge in the shortest path tree, while the other ones will be sidetrack edges.
-              if (weights.size() > 1)
-                {
-                  bool found = false;
+            // If it is its successor...
+            if (successors[tail] == head)
+              {
+                // ...and it has more than one weight, then we have to consider the edge with the smallest weight as the
+                // edge in the shortest path tree, while the other ones will be sidetrack edges.
+                if (weights.size() > 1)
+                  {
+                    bool found = false;
 
-                  for (auto it = ++weights.cbegin(); it != weights.cend(); ++it)
-                    {
-                      auto const &weight = *it;
+                    for (auto it = ++weights.cbegin(); it != weights.cend(); ++it)
+                      {
+                        auto const &weight = *it;
 
-                      res[tail].emplace_hint(res[tail].cend(),
-                                             head,
-                                             weight + distances_from_sink[head] - distances_from_sink[tail]); // O(1)}
-                    }
-                }
-            }
-          else
-            {
-              for (auto const &weight : weights)
-                {
-                  res[tail].emplace(res[tail].cend(),
-                                    head,
-                                    weight + distances_from_sink[head] - distances_from_sink[tail]); // O(1)
-                }
-            }
-        }
-    }
+                        res[tail].emplace_hint(res[tail].cend(),
+                                               head,
+                                               weight + distances_from_sink[head] - distances_from_sink[tail]); // O(1)}
+                      }
+                  }
+              }
+            else
+              {
+                for (auto const &weight : weights)
+                  {
+                    res[tail].emplace_hint(res[tail].cend(),
+                                           head,
+                                           weight + distances_from_sink[head] - distances_from_sink[tail]); // O(1)
+                  }
+              }
+          }
+      }
 
-  return res;
-}
+    return res;
+  }
 
 
-template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-auto
-Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::extract_first_sidetrack_edge(
-  H_g_collection::const_iterator const &h_g_it) const -> Sidetrack
-{
-  return Sidetrack(h_g_it->second.get_head_node());
-}
+  template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
+  auto
+  Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::extract_first_sidetrack_edge(
+    H_g_collection::const_iterator const &h_g_it) const -> Sidetrack
+  {
+    return Sidetrack(h_g_it->second.get_head_node());
+  }
 } // namespace network_butcher::kfinder
 
 #endif // NETWORK_BUTCHER_BASIC_KEPPSTEIN_H

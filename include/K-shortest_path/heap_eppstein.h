@@ -262,8 +262,8 @@ namespace network_butcher::kfinder
     H_out_Type(H_out_Type const &)                = delete;
 
     auto
-    operator=(H_out_Type &&) -> H_out_Type & = default;
-    H_out_Type(H_out_Type &&)                = default;
+    operator=(H_out_Type &&)  noexcept -> H_out_Type & = default;
+    H_out_Type(H_out_Type &&)                 noexcept = default;
 
     /// Adds a new element to the heap
     /// \param elem The content to add to the new heap node

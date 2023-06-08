@@ -95,7 +95,7 @@ namespace network_butcher::kfinder::Shortest_path_finder
         // auto current_node = to_visit.pop_head(); // O(log(N))
         auto current_node = std::move(to_visit.extract(to_visit.begin()).value()); // O(log(N))
 
-        auto const &start_distance = total_distance[current_node];
+        auto const &start_distance = total_distance[current_node.id];
         if (start_distance == std::numeric_limits<Weight_Type>::max())
           {
             throw std::logic_error("Dijkstra error: the node current distance is +inf");
