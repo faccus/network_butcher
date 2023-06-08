@@ -1,9 +1,3 @@
-//
-// Created by faccus on 09/11/21.
-//
-
-//! An example of use of the C++11 chrono library.
-
 /*
 This file illustrate the use of the ctime library,
 Luca Formaggia 2005. New version using C++11 (2015)

@@ -1,7 +1,3 @@
-//
-// Created by faccus on 28/08/21.
-//
-
 #ifndef NETWORK_BUTCHER_UTILITIES_H
 #define NETWORK_BUTCHER_UTILITIES_H
 
@@ -12,8 +8,8 @@
 #include <fstream>
 #include <ranges>
 
-#include "basic_traits.h"
 #include "onnx.pb.h"
+#include "traits.h"
 
 #include "dense_tensor.h"
 #include "type_info.h"

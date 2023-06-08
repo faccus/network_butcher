@@ -1,7 +1,3 @@
-//
-// Created by faccus on 20/02/22.
-//
-
 #include "io_manager.h"
 
 namespace network_butcher::io::IO_Manager
@@ -245,11 +241,7 @@ namespace network_butcher::io::IO_Manager
       std::string const weight_import_method = network_butcher::Utilities::trim_copy(
         network_butcher::Utilities::to_lowercase_copy(file(weight_infos + "/import_mode", "")));
 
-      if (weight_import_method == "amllibrary_original")
-        {
-          return parameters::Weight_Import_Mode::aMLLibrary_original;
-        }
-      else if (weight_import_method == "amllibrary_block")
+      if (weight_import_method == "amllibrary_block")
         {
           return parameters::Weight_Import_Mode::aMLLibrary_block;
         }
@@ -469,6 +461,7 @@ namespace network_butcher::io::IO_Manager
         file(basic_infos + "/use_bandwidth_to_manage_connections", false);
 
       params.block_graph_generation_params.block_graph_mode = read_block_graph_mode(file);
+      params.block_graph_generation_params.memory_constraint = file(basic_infos + "/memory_constraint", false);
     };
 
     auto const k_shortest_path_params_func = [basic_infos, weight_infos, &read_k_method](auto &file, auto &params) {
@@ -476,30 +469,6 @@ namespace network_butcher::io::IO_Manager
       params.ksp_params.method = read_k_method(file);
     };
 
-    auto const constraint_params_func = [basic_infos](auto &file, auto &params) {
-      params.block_graph_generation_params.memory_constraint = file(basic_infos + "/memory_constraint", false);
-      if (params.block_graph_generation_params.memory_constraint)
-        {
-          std::string const memory_constraint_type = network_butcher::Utilities::trim_copy(
-            network_butcher::Utilities::to_lowercase_copy(file(basic_infos + "/memory_constraint_type", "none")));
-
-          if (memory_constraint_type == "max")
-            {
-              params.block_graph_generation_params.memory_constraint_type =
-                network_butcher::parameters::Memory_Constraint_Type::Max;
-            }
-          else if (memory_constraint_type == "preload_parameters")
-            {
-              params.block_graph_generation_params.memory_constraint_type =
-                network_butcher::parameters::Memory_Constraint_Type::Preload_Parameters;
-            }
-          else
-            {
-              params.block_graph_generation_params.memory_constraint_type =
-                network_butcher::parameters::Memory_Constraint_Type::None;
-            }
-        }
-    };
 
     auto const devices_params_func = [basic_infos](auto &file, auto &params) {
       std::size_t num_devices = file(basic_infos + "/num_devices", 1);
@@ -538,7 +507,6 @@ namespace network_butcher::io::IO_Manager
 
     basic_infos_func(file, res);
     k_shortest_path_params_func(file, res);
-    constraint_params_func(file, res);
 
     devices_params_func(file, res);
 
@@ -557,10 +525,6 @@ namespace network_butcher::io::IO_Manager
   {
     switch (params.weights_params.weight_import_mode)
       {
-          case network_butcher::parameters::Weight_Import_Mode::aMLLibrary_original: {
-            return std::make_unique<original_aMLLibrary_Weight_Importer>(
-              original_aMLLibrary_Weight_Importer(graph, params));
-          }
           case network_butcher::parameters::Weight_Import_Mode::single_direct_read: {
             return std::make_unique<Csv_Weight_Importer<Converted_Onnx_Graph_Type>>(
               Csv_Weight_Importer(graph,

@@ -1,6 +1,3 @@
-//
-// Created by faccus on 01/05/23.
-//
 #include <gtest/gtest.h>
 #include <iostream>
 #include <random>
@@ -24,36 +21,18 @@ namespace
   using Node_type    = CNode<Content_type>;
   using GraphType    = MWGraph<false, Node_type>;
 
-  GraphType
-  basic_graph(std::size_t num_devices = 2);
+  auto
+  basic_graph(std::size_t num_devices = 2) -> GraphType;
 
-  GraphType
-  basic_graph2(std::size_t num_devices = 2);
+  auto
+  basic_graph2(std::size_t num_devices = 2) -> GraphType;
 
 
-  parameters::Parameters
-  full_connection_parameters();
+  auto
+  full_connection_parameters() -> parameters::Parameters;
 
-  parameters::Parameters
-  partial_connection_parameters();
-
-  template <class Graph>
-  void
-  complete_weights(Graph &graph)
-  {
-    auto const  num_nodes    = graph.get_nodes().size();
-    auto const &dependencies = graph.get_neighbors();
-
-    for (Node_Id_Type tail = 0; tail < num_nodes; ++tail)
-      for (auto const &head : dependencies[tail].second)
-        {
-          for (std::size_t k = 0; k < graph.get_num_devices(); ++k)
-            {
-              if (graph.get_weight(k, {tail, head}) == -1.)
-                graph.set_weight(k, {tail, head}, 0.);
-            }
-        }
-  };
+  auto
+  partial_connection_parameters() -> parameters::Parameters;
 
 
   TEST(BlockGraphBuilderTest, Devices)
@@ -74,7 +53,7 @@ namespace
   }
 
 
-  TEST(BlockGraphBuilderTest, ConstructionClassic)
+  TEST(BlockGraphBuilderTest, ConstructionModeClassic)
   {
     auto graph  = basic_graph();
     auto params = full_connection_parameters();
@@ -99,7 +78,7 @@ namespace
     ASSERT_EQ(*block_graph[9].content.second, std::set<std::size_t>{7});
   }
 
-  TEST(BlockGraphBuilderTest, ConstructionClassic2)
+  TEST(BlockGraphBuilderTest, ConstructionModeClassic2)
   {
     auto graph  = basic_graph2();
     auto params = full_connection_parameters();
@@ -116,7 +95,7 @@ namespace
   }
 
 
-  TEST(BlockGraphBuilderTest, ConstructionInput)
+  TEST(BlockGraphBuilderTest, ConstructionModeInput)
   {
     auto graph                                            = basic_graph();
     auto params                                           = full_connection_parameters();
@@ -141,7 +120,7 @@ namespace
     ASSERT_EQ(*block_graph[7].content.second, std::set<std::size_t>{7});
   }
 
-  TEST(BlockGraphBuilderTest, ConstructionInput2)
+  TEST(BlockGraphBuilderTest, ConstructionModeInput2)
   {
     auto graph                                            = basic_graph2();
     auto params                                           = full_connection_parameters();
@@ -164,7 +143,7 @@ namespace
   }
 
 
-  TEST(BlockGraphBuilderTest, ConstructionOutput)
+  TEST(BlockGraphBuilderTest, ConstructionModeOutput)
   {
     auto graph                                            = basic_graph();
     auto params                                           = full_connection_parameters();
@@ -189,7 +168,7 @@ namespace
     ASSERT_EQ(*block_graph[7].content.second, std::set<std::size_t>{7});
   }
 
-  TEST(BlockGraphBuilderTest, ConstructionOutput2)
+  TEST(BlockGraphBuilderTest, ConstructionModeOutput2)
   {
     auto graph                                            = basic_graph2();
     auto params                                           = full_connection_parameters();
@@ -529,8 +508,8 @@ namespace
   }
 
 
-  GraphType
-  basic_graph(std::size_t num_devices)
+  auto
+  basic_graph(std::size_t num_devices) -> GraphType
   {
     std::vector<Node_type> nodes;
 
@@ -547,8 +526,8 @@ namespace
     return GraphType(num_devices, std::move(nodes));
   }
 
-  GraphType
-  basic_graph2(std::size_t num_devices)
+  auto
+  basic_graph2(std::size_t num_devices) -> GraphType
   {
     std::vector<Node_type> nodes;
 
@@ -563,8 +542,9 @@ namespace
   }
 
 
-  std::function<type_weight(Edge_Type const &, std::size_t, std::size_t)>
+  auto
   basic_transmission(std::size_t devices, std::size_t size)
+    -> std::function<type_weight(Edge_Type const &, std::size_t, std::size_t)>
   {
     return [devices, size](Edge_Type const &t_input, std::size_t first, std::size_t second) {
       auto const &[input, _tmp] = t_input;
@@ -597,8 +577,8 @@ namespace
   }
 
 
-  parameters::Parameters
-  full_connection_parameters()
+  auto
+  full_connection_parameters() -> parameters::Parameters
   {
     parameters::Parameters res;
 
@@ -609,8 +589,8 @@ namespace
     for (std::size_t i = 0; i < res.devices.size(); ++i)
       res.devices[i].id = i;
 
-    res.block_graph_generation_params.memory_constraint_type = parameters::Memory_Constraint_Type::None;
-    res.block_graph_generation_params.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
+    res.block_graph_generation_params.memory_constraint = false;
+    res.block_graph_generation_params.block_graph_mode  = parameters::Block_Graph_Generation_Mode::classic;
     res.block_graph_generation_params.use_bandwidth_to_manage_connections = false;
 
     res.block_graph_generation_params.starting_device_id = 0;
@@ -619,8 +599,8 @@ namespace
     return res;
   }
 
-  parameters::Parameters
-  partial_connection_parameters()
+  auto
+  partial_connection_parameters() -> parameters::Parameters
   {
     using g_type = parameters::Parameters::Weights::connection_type::element_type;
     parameters::Parameters res;
@@ -632,8 +612,8 @@ namespace
     for (std::size_t i = 0; i < res.devices.size(); ++i)
       res.devices[i].id = i;
 
-    res.block_graph_generation_params.memory_constraint_type = parameters::Memory_Constraint_Type::None;
-    res.block_graph_generation_params.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
+    res.block_graph_generation_params.memory_constraint = false;
+    res.block_graph_generation_params.block_graph_mode  = parameters::Block_Graph_Generation_Mode::classic;
     res.block_graph_generation_params.use_bandwidth_to_manage_connections = true;
 
     g_type::Dependencies_Type deps(4);

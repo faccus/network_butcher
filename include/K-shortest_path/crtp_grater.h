@@ -1,7 +1,3 @@
-//
-// Created by faccus on 18/05/23.
-//
-
 #ifndef NETWORK_BUTCHER_CRTP_GRATER_H
 #define NETWORK_BUTCHER_CRTP_GRATER_H
 

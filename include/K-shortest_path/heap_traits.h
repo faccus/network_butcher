@@ -1,13 +1,9 @@
-//
-// Created by root on 07/03/22.
-//
-
 #ifndef NETWORK_BUTCHER_HEAP_TRAITS_H
 #define NETWORK_BUTCHER_HEAP_TRAITS_H
 
-#include "basic_traits.h"
 #include "heap_eppstein.h"
 #include "path_info.h"
+#include "traits.h"
 #include "weighted_graph.h"
 
 

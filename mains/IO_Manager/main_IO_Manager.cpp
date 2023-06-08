@@ -1,18 +1,10 @@
-//
-// Created by faccus on 30/05/23.
-//
-
-#include "butcher.h"
 #include "chrono.h"
-#include "io_manager.h"
-#include "test_class.h"
-
-#include "utilities.h"
-
 #include "GetPot"
 
 #include <fstream>
 #include <random>
+
+#include "network_butcher.h"
 
 using namespace network_butcher;
 using namespace network_butcher::types;
@@ -98,7 +90,7 @@ base_parameters(std::size_t k, std::size_t num_devices)
     }
 
 
-  res.block_graph_generation_params.memory_constraint_type = Memory_Constraint_Type::None;
+  res.block_graph_generation_params.memory_constraint = false;
   res.block_graph_generation_params.starting_device_id     = 0;
   res.block_graph_generation_params.ending_device_id       = 1;
   res.block_graph_generation_params.block_graph_mode       = parameters::Block_Graph_Generation_Mode::output;

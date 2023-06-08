@@ -1,14 +1,11 @@
-//
-// Created by faccus on 21/11/21.
-//
-
 #ifndef NETWORK_BUTCHER_KEPPSTEIN_LAZY_H
 #define NETWORK_BUTCHER_KEPPSTEIN_LAZY_H
 
 #include <list>
 
 #include "basic_keppstein.h"
-#include "heap_traits.h"
+#include "traits.h"
+#include "weighted_graph.h"
 
 namespace network_butcher::kfinder
 {
@@ -35,11 +32,12 @@ namespace network_butcher::kfinder
     using H_g_collection   = Parent_Type::H_g_collection;
     using H_out_collection = Parent_Type::H_out_collection;
 
+    using Callback_Function = Parent_Type::Callback_Function;
 
     /// It will generate the callback function using during the Eppstein main loop to construct the required H_gs (and
     /// H_outs) \return The generator function
     auto
-    construct_h_g_builder() const;
+    construct_h_g_builder() const -> Callback_Function;
 
     /// The basic function for the lazy Eppstein algorithm
     /// \param K The number of shortest paths
@@ -102,6 +100,7 @@ namespace network_butcher::kfinder
   template <class Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
   auto
   KFinder_Lazy_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::construct_h_g_builder() const
+    -> Callback_Function
   {
     auto const construct_h_out = [](auto       &h_out_collection,
                                     auto const &sidetrack_distances,

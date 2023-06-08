@@ -1,7 +1,3 @@
-//
-// Created by faccus on 24/04/23.
-//
-
 #ifndef NETWORK_BUTCHER_EXTRA_CONDITION_BUILDER_H
 #define NETWORK_BUTCHER_EXTRA_CONDITION_BUILDER_H
 
@@ -18,7 +14,7 @@ namespace network_butcher::constraints
     Graph_Constraint() = default;
 
     /// Apply the specified constraint to the graph
-    /// \param graph
+    /// \param graph The block graph onto which the constraint should be applied
     virtual void
     apply_constraint(Block_Graph_Type &graph) const = 0;
 
@@ -45,7 +41,6 @@ namespace network_butcher::constraints
 
     /// Helper function used to estimate the memory usage of a group of nodes
     /// \param devices The devices
-    /// \param constraint_type The type of the memory constraint
     /// \param ids The set of nodes to "analyze"
     /// \param input_memory The memory usage of all input nodes
     /// \param output_memory The memory usage of all output nodes
@@ -53,7 +48,6 @@ namespace network_butcher::constraints
     /// \return The pair of maximum memory of ios and of memory of parameters
     [[nodiscard]] auto
     estimate_maximum_memory_usage(const std::vector<network_butcher::parameters::Device> &devices,
-                                  network_butcher::parameters::Memory_Constraint_Type     constraint_type,
                                   const std::set<Node_Id_Type>                           &ids,
                                   const std::vector<Memory_Type>                         &input_memory,
                                   const std::vector<Memory_Type>                         &output_memory,
@@ -94,61 +88,35 @@ namespace network_butcher::constraints
   void
   Memory_Constraint<GraphType>::apply_constraint(Block_Graph_Type &new_graph) const
   {
-    auto const &constraint_type = params.block_graph_generation_params.memory_constraint_type;
-
-    if (constraint_type == network_butcher::parameters::Memory_Constraint_Type::None)
-      return;
-
-    auto const &devices = params.devices;
+    auto const &devices     = params.devices;
+    auto const  num_devices = devices.size();
 
     auto const input_memory  = network_butcher::computer::Computer_memory::compute_nodes_memory_usage_input(graph);
     auto const output_memory = network_butcher::computer::Computer_memory::compute_nodes_memory_usage_output(graph);
     auto const params_memory = network_butcher::computer::Computer_memory::compute_nodes_memory_usage_parameters(graph);
 
-    std::vector<bool> available(devices.size(), true);
+    std::vector<bool> available(num_devices, true);
     Memory_Type       memory_graph = 0;
 
     // Eliminate dependencies of the specified node
     auto const dependencies_clear = [&](Node_Id_Type const &node_id) {
-      auto &dep = new_graph.get_neighbors_ref()[node_id];
+      auto &[input_neighbours, output_neighbours] = new_graph.get_neighbors_ref()[node_id];
 
-      for (auto const &in : dep.first)
+      for (auto const &in : input_neighbours)
         new_graph.get_neighbors_ref()[in].second.erase(node_id);
-      for (auto const &out : dep.second)
+      for (auto const &out : output_neighbours)
         new_graph.get_neighbors_ref()[out].first.erase(node_id);
 
-      dep.first.clear();
-      dep.second.clear();
+      input_neighbours.clear();
+      output_neighbours.clear();
     };
 
-    // If Memory_Constraint_Type::Max, then...
-    auto const response_fun_max = [&](std::size_t basic_node_id, Memory_Type const &memory_node) {
-      // Check if the memory_node is bigger than memory_graph
-      if (memory_graph < memory_node)
-        {
-          // Adjust the memory graph
-          memory_graph = std::max(memory_graph, memory_node);
-
-          // Cycle though the devices
-          for (std::size_t k = 0; k < devices.size(); ++k)
-            {
-              // Check if everything fits in memory
-              if (available[k] && memory_graph >= devices[k].maximum_memory)
-                {
-                  // If not, delete the node
-                  available[k] = false;
-                  dependencies_clear(basic_node_id + k);
-                }
-            }
-        }
-    };
-
-    // If Memory_Constraint_Type::Preload_Parameters, then...
+    // Helper function used to update the memory usage and, if necessary, deactivate a device
     auto const response_fun_preload_parameters =
       [&](std::size_t basic_node_id, Memory_Type const &param, Memory_Type const &io) {
         memory_graph += param;
 
-        for (std::size_t k = 0; k < devices.size(); ++k)
+        for (std::size_t k = 0; k < num_devices; ++k)
           {
             // Check if everything fits in memory
             if (available[k] && (memory_graph + io) >= devices[k].maximum_memory)
@@ -167,31 +135,16 @@ namespace network_butcher::constraints
         // If the node corresponds to a single node...
         if (new_node_content.size() == 1)
           {
-            auto const index = *new_node_content.begin();
-
-            if (constraint_type == network_butcher::parameters::Memory_Constraint_Type::Max)
-              {
-                response_fun_max(i, params_memory[index] + input_memory[index] + output_memory[index]);
-              }
-            else if (constraint_type == network_butcher::parameters::Memory_Constraint_Type::Preload_Parameters)
-              {
-                response_fun_preload_parameters(i, params_memory[index], input_memory[index] + output_memory[index]);
-              }
+            auto const &index = *new_node_content.cbegin();
+            response_fun_preload_parameters(i, params_memory[index], input_memory[index] + output_memory[index]);
           }
         else
           {
             // Get the IO memory usage and the parameters memory usage
-            auto const [io_mem, param_mem] = estimate_maximum_memory_usage(
-              devices, constraint_type, new_node_content, input_memory, output_memory, params_memory);
+            auto const &[io_mem, param_mem] =
+              estimate_maximum_memory_usage(devices, new_node_content, input_memory, output_memory, params_memory);
 
-            if (constraint_type == network_butcher::parameters::Memory_Constraint_Type::Max)
-              {
-                response_fun_max(i, param_mem + io_mem);
-              }
-            else if (constraint_type == network_butcher::parameters::Memory_Constraint_Type::Preload_Parameters)
-              {
-                response_fun_preload_parameters(i, param_mem, io_mem);
-              }
+            response_fun_preload_parameters(i, param_mem, io_mem);
           }
       }
   }
@@ -200,7 +153,6 @@ namespace network_butcher::constraints
   auto
   Memory_Constraint<GraphType>::estimate_maximum_memory_usage(
     const std::vector<network_butcher::parameters::Device> &devices,
-    network_butcher::parameters::Memory_Constraint_Type     constraint_type,
     const std::set<Node_Id_Type>                           &ids,
     const std::vector<Memory_Type>                         &input_memory,
     const std::vector<Memory_Type>                         &output_memory,
@@ -208,13 +160,16 @@ namespace network_butcher::constraints
   {
     Memory_Type result_memory = 0, fixed_memory = 0;
 
-    if (constraint_type == network_butcher::parameters::Memory_Constraint_Type::Preload_Parameters)
-      {
-        fixed_memory = std::reduce(std::next(params_memory.begin(), *ids.cbegin()),
-                                   std::next(params_memory.begin(), *ids.crbegin()));
-      }
+    // This variable will estimate the maximum number of branches detected. The resulting memory will be given by the
+    // space occupied by the parameters and the product between qty and the maximum sum between the input and output
+    // of each node. The final result will be an overestimation of the memory required by the group of nodes.
     std::size_t qty = 1;
 
+    // Memory required by the parameters
+    fixed_memory =
+      std::reduce(std::next(params_memory.begin(), *ids.cbegin()), std::next(params_memory.begin(), *ids.crbegin()));
+
+    // Check if a branch is detected
     if (graph.get_input_nodes(*ids.begin()).size() == 1)
       {
         auto const &father = *graph.get_input_nodes(*ids.begin()).begin();
@@ -231,21 +186,17 @@ namespace network_butcher::constraints
         Memory_Type        in_memory  = input_memory[id];
         Memory_Type const &out_memory = output_memory[id];
 
-        if (constraint_type == network_butcher::parameters::Memory_Constraint_Type::Preload_Parameters)
-          {
-            result_memory = std::max(result_memory, in_memory + out_memory);
-          }
-        else if (constraint_type == network_butcher::parameters::Memory_Constraint_Type::Max)
-          {
-            result_memory = std::max(result_memory, in_memory + out_memory + params_memory[id]);
-          }
+        // Compute the maximum memory required by any node
+        result_memory = std::max(result_memory, in_memory + out_memory);
 
+        // Adjust qty if extra branches are detected
         if (children.size() > parents.size())
           qty = qty + children.size() - parents.size();
       }
 
     return {result_memory * qty, fixed_memory};
   }
+
 
   /// Simple function to generate a set of constraints from the given constraints
   /// \tparam GraphType The graph type

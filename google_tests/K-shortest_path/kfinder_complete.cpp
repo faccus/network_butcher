@@ -19,7 +19,6 @@ namespace
   using type_weight = double;
 
   using Input               = Test_Class<basic_type>;
-  using Content_input       = types::Content<Input>;
   using Node_type           = types::Node;
   using Test_Weight_Type    = unsigned long long int;
   using Graph_type_Parallel = types::WGraph<true, Node_type, Test_Weight_Type>;
@@ -31,11 +30,12 @@ namespace
                                                       Graph_type_Parallel::Node_Collection_Type,
                                                       Test_Weight_Type>;
 
-  std::tuple<Graph_type_Parallel, Node_Id_Type, Node_Id_Type, Node_Id_Type>
-  import_graph(std::string file_path);
+  auto
+  import_graph(const std::string &file_path)
+    -> std::tuple<Graph_type_Parallel, Node_Id_Type, Node_Id_Type, Node_Id_Type>;
 
-  std::vector<std::string>
-  get_test_names();
+  auto
+  get_test_names() -> std::vector<std::string>;
 
 
   TEST(KFinderTest, CompleteParallelEdgesEppstein)
@@ -120,8 +120,9 @@ namespace
   }
 
 
-  std::tuple<Graph_type_Parallel, Node_Id_Type, Node_Id_Type, Node_Id_Type>
-  import_graph(std::string file_path)
+  auto
+  import_graph(const std::string &file_path)
+    -> std::tuple<Graph_type_Parallel, Node_Id_Type, Node_Id_Type, Node_Id_Type>
   {
     std::size_t                N, M, s, t, k, u, v;
     network_butcher::Time_Type tmp_weight;
@@ -153,8 +154,8 @@ namespace
   }
 
   // https://github.com/yosupo06/library-checker-problems
-  std::vector<std::string>
-  get_test_names()
+  auto
+  get_test_names() -> std::vector<std::string>
   {
     return {"dense_00",
             "dense_01",

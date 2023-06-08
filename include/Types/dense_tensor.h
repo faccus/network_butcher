@@ -1,7 +1,3 @@
-//
-// Created by faccus on 28/08/21
-//
-
 #ifndef NETWORK_BUTCHER_DENSE_TENSOR_H
 #define NETWORK_BUTCHER_DENSE_TENSOR_H
 
@@ -26,7 +22,7 @@ namespace network_butcher::types
 
   public:
     /// Construct the tensor from the type id and the shape
-    /// \param in_type_id onnx::TensorProto_DataType_* id
+    /// \param in_type_id onnx::TensorProto_DataType id
     /// \param in_shape Shape of the tensor
     /// \param given Is it already initialized?
     /// \param constant Is it constant?

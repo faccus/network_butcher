@@ -1,7 +1,3 @@
-//
-// Created by faccus on 7/22/22.
-
-//
 #include <gtest/gtest.h>
 #include <iostream>
 
@@ -38,6 +34,7 @@ namespace
   {
     execute_boot("ksp_result3", "test_data/configs/test3_parameters.conf");
   }
+
 
   TEST(GeneralManagerTest, boot_test4)
   {

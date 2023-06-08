@@ -1,7 +1,3 @@
-//
-// Created by root on 15/03/22.
-//
-
 #ifndef NETWORK_BUTCHER_MWGRAPH_H
 #define NETWORK_BUTCHER_MWGRAPH_H
 
@@ -12,7 +8,9 @@ namespace network_butcher::types
 {
   /// A custom graph class. It contains a single graph and multiple weight maps. Technically, it can be viewed
   /// as a collection of graphs with the same structure, but different weight maps.
-  /// \tparam T Type of the content of the nodes
+  /// \tparam Parallel_Edges If true, the graph will allow parallel edges
+  /// \tparam Template_Node_Type The type of the node
+  /// \tparam t_weight_type The type of the weight
   template <bool Parallel_Edges, typename Template_Node_Type = Node, typename t_weight_type = Time_Type>
   class MWGraph : public Graph<Template_Node_Type>
   {
@@ -229,7 +227,8 @@ namespace network_butcher::types
 
   /// A custom graph class. It contains a single graph and multiple weight maps. Technically, it can be viewed
   /// as a collection of graphs with the same structure, but different weight maps.
-  /// \tparam T Type of the content of the nodes
+  /// \tparam Parallel_Edges If true, the graph will allow parallel edges
+  /// \tparam T The content type of each CNode
   template <bool Parallel_Edges, typename T>
   class MWGraph<Parallel_Edges, CNode<Content<T>>, Time_Type> : public Graph<CNode<Content<T>>>
   {
@@ -386,6 +385,7 @@ namespace network_butcher::types
         }
     }
 
+
     /// Gets the number of devices
     /// \return Number of devices
     [[nodiscard]] auto
@@ -393,6 +393,7 @@ namespace network_butcher::types
     {
       return weigth_map.size();
     }
+
 
     /// Simple helper function that will print the graph
     /// \return The graph description

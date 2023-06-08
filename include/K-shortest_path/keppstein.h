@@ -1,14 +1,11 @@
-//
-// Created by faccus on 01/11/21.
-//
-
 #ifndef NETWORK_BUTCHER_KEPPSTEIN_H
 #define NETWORK_BUTCHER_KEPPSTEIN_H
 
 #include <list>
 
 #include "basic_keppstein.h"
-#include "heap_traits.h"
+#include "traits.h"
+#include "weighted_graph.h"
 
 namespace network_butcher::kfinder
 {
@@ -36,7 +33,7 @@ namespace network_butcher::kfinder
     using H_out_collection = Parent_Type::H_out_collection;
 
 
-    /// Given the successors collection and the sidetrack distances, it will construct the h_out map
+    /// Given the successors collection and the sidetrack distances, it will construct the h_out map. O(M)
     /// \param successors The list of the successors of every node (the node following the current one in the
     /// shortest path)
     /// \param sidetrack_distances The collection of the sidetrack distances for all the sidetrack edges
@@ -46,7 +43,7 @@ namespace network_butcher::kfinder
                     Internal_Weight_Collection_Type const &sidetrack_distances) const -> H_out_collection;
 
 
-    /// It will produce the map associating every node to its corresponding H_g map
+    /// It will produce the map associating every node to its corresponding H_g map. O(N^2)
     /// \param h_out_collection The collection of h_outs
     /// \param successors The successors list
     /// \return The map associating every node to its corresponding H_g map
@@ -103,7 +100,6 @@ namespace network_butcher::kfinder
     H_out_collection h_out_collection;
     h_out_collection.reserve(graph.size());
 
-
     for (auto const &tail_node : graph)
       {
         auto const &tail           = tail_node.get_id();
@@ -124,7 +120,7 @@ namespace network_butcher::kfinder
 
             for (; begin != end && begin->first == head; ++begin)
               {
-                sidetrack_edges.emplace_back(std::make_pair(tail, begin->first), begin->second);
+                sidetrack_edges.emplace_back(std::make_pair(tail, head), begin->second);
               }
           }
 
@@ -173,7 +169,6 @@ namespace network_butcher::kfinder
     auto h_out_iterator = h_out_collection.find(sink); // O(1)
 
     // Prepare the last H_g
-
     h_g_collection.emplace(sink, typename H_g_collection::mapped_type(&h_out_iterator->second)); // O(1)
 
     // Now, we have to find the nodes whose successor is the sink itself

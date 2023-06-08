@@ -1,15 +1,11 @@
-//
-// Created by faccus on 30/05/23.
-//
-#include "graph_traits.h"
-#include "kfinder_factory.h"
+#include "network_butcher.h"
 #include "weighted_graph_specialization.h"
 
+#include "GetPot"
 #include "chrono.h"
-#include "test_class.h"
+
 #include "test_graph.h"
 
-#include "GetPot"
 
 #include <fstream>
 
@@ -30,7 +26,7 @@ using Weighted_Graph_Parallel_type = Weighted_Graph<Graph_type_Parallel,
 
 
 std::tuple<Graph_type_Parallel, Node_Id_Type, Node_Id_Type, Node_Id_Type>
-import_graph(std::string file_path)
+import_graph(const std::string &file_path)
 {
   std::size_t                N, M, s, t, k, u, v;
   network_butcher::Time_Type tmp_weight;
@@ -64,11 +60,11 @@ import_graph(std::string file_path)
 std::vector<std::string>
 get_test_names()
 {
-  return {"almost_path_00",
+  return {"dense_00",
+          "dense_01",
+          "almost_path_00",
           "almost_path_01",
           "almost_path_02",
-          "dense_00",
-          "dense_01",
           "example_00",
           "loop_00",
           "max_random_00",

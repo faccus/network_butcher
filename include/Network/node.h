@@ -1,12 +1,8 @@
-//
-// Created by faccus on 24/08/21.
-//
-
 #ifndef NETWORK_BUTCHER_NODE_H
 #define NETWORK_BUTCHER_NODE_H
 
-#include "basic_traits.h"
 #include "dense_tensor.h"
+#include "traits.h"
 
 #include <memory>
 #include <utility>
@@ -32,12 +28,15 @@ namespace network_butcher::types
 
 
     /// Getter for the node id
+    /// \return The node id
     [[nodiscard]] auto
     get_id() const -> Node_Id_Type
     {
       return id;
     }
 
+    /// Setter for the node id
+    /// \param starting_id The new id
     void
     set_id(Node_Id_Type starting_id)
     {

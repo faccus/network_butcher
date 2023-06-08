@@ -1,7 +1,3 @@
-//
-// Created by root on 15/03/22.
-//
-
 #ifndef NETWORK_BUTCHER_WGRAPH_H
 #define NETWORK_BUTCHER_WGRAPH_H
 
@@ -14,12 +10,12 @@ namespace network_butcher::types
   /// Just another weighted graph class...
   /// \tparam Parallel_Edges If true, the graph will support parallel edges
   /// \tparam Template_Node_Type Type of nodes
-  /// \tparam t_weight_type Type of the weight
-  template <bool Parallel_Edges, typename Template_Node_Type = Node, typename t_weight_type = Time_Type>
-  class WGraph : public MWGraph<Parallel_Edges, Template_Node_Type, t_weight_type>
+  /// \tparam T_Weight_Type Type of the weight
+  template <bool Parallel_Edges, typename Template_Node_Type = Node, typename T_Weight_Type = Time_Type>
+  class WGraph : public MWGraph<Parallel_Edges, Template_Node_Type, T_Weight_Type>
   {
   private:
-    using Parent_Type = MWGraph<Parallel_Edges, Template_Node_Type, t_weight_type>;
+    using Parent_Type = MWGraph<Parallel_Edges, Template_Node_Type, T_Weight_Type>;
 
     using Parent_Type::check_weight;
     using Parent_Type::get_num_devices;
@@ -34,7 +30,6 @@ namespace network_butcher::types
 
     using Weight_Type            = Parent_Type::Weight_Type;
     using Edge_Weight_Type       = Parent_Type::Edge_Weight_Type;
-    using Weight_Collection_Type = Parent_Type::Weight_Collection_Type;
 
     template <typename A, typename B>
     explicit WGraph(A &&v, B &&dep)
@@ -43,7 +38,7 @@ namespace network_butcher::types
 
 
     /// Checks if the given edge has a weight
-    /// \param device The device id
+    /// \param edge The edge
     /// \return True if the edge has a weight on the given device, false otherwise
     [[nodiscard]] auto
     check_weight(Edge_Type const &edge) const
@@ -66,7 +61,7 @@ namespace network_butcher::types
     /// \param edge The edge
     /// \param weight The weight
     void
-    set_weight(Edge_Type const &edge, t_weight_type const &weight)
+    set_weight(Edge_Type const &edge, T_Weight_Type const &weight)
     {
       Parent_Type::set_weight(0, edge, weight);
     }
@@ -133,8 +128,8 @@ namespace network_butcher::types
   {
   private:
     using Parent_Type   = MWGraph<Parallel_Edges, CNode<Content<T>>>;
-    using t_Node_Type   = Parent_Type::Node_Type;
-    using t_weight_type = Parent_Type::Weight_Type;
+
+    using T_Weight_Type = Parent_Type::Weight_Type;
 
     using Parent_Type::check_weight;
     using Parent_Type::get_num_devices;
@@ -149,7 +144,6 @@ namespace network_butcher::types
 
     using Weight_Type            = Parent_Type::Weight_Type;
     using Edge_Weight_Type       = Parent_Type::Edge_Weight_Type;
-    using Weight_Collection_Type = Parent_Type::Weight_Collection_Type;
 
     template <typename A, typename B>
     explicit WGraph(A &&v, B &&dep)
@@ -165,7 +159,7 @@ namespace network_butcher::types
 
 
     /// Checks if the given edge has a weight
-    /// \param device The device id
+    /// \param edge The edge
     /// \return True if the edge has a weight on the given device, false otherwise
     [[nodiscard]] auto
     check_weight(Edge_Type const &edge) const
@@ -188,7 +182,7 @@ namespace network_butcher::types
     /// \param edge The edge
     /// \param weight The weight
     void
-    set_weight(Edge_Type const &edge, t_weight_type const &weight)
+    set_weight(Edge_Type const &edge, T_Weight_Type const &weight)
     {
       Parent_Type::set_weight(0, edge, weight);
     }

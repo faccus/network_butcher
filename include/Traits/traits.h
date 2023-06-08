@@ -1,9 +1,5 @@
-//
-// Created by faccus on 14/10/21.
-//
-
-#ifndef NETWORK_BUTCHER_BASIC_TRAITS_H
-#define NETWORK_BUTCHER_BASIC_TRAITS_H
+#ifndef NETWORK_BUTCHER_TRAITS_H
+#define NETWORK_BUTCHER_TRAITS_H
 
 #include <set>
 #include <map>
@@ -32,8 +28,8 @@ namespace network_butcher
   using Io_Collection_Type = std::map<std::string, T>;
 
   template <typename T>
-  using Repeatable_field = google::protobuf::RepeatedPtrField<T>;
+  using RepeatablePtr_field = google::protobuf::RepeatedPtrField<T>;
 } // namespace network_butcher
 
 
-#endif // NETWORK_BUTCHER_BASIC_TRAITS_H
+#endif // NETWORK_BUTCHER_TRAITS_H

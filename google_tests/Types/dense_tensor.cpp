@@ -1,7 +1,3 @@
-//
-// Created by faccus on 30/08/21.
-//
-
 #include "dense_tensor.h"
 #include <gtest/gtest.h>
 

@@ -1,6 +1,3 @@
-//
-// Created by root on 12/04/22.
-//
 #include "io_manager.h"
 #include <gtest/gtest.h>
 
@@ -26,8 +23,6 @@ namespace
     ASSERT_EQ(params.block_graph_generation_params.ending_device_id, 0);
 
     ASSERT_EQ(params.block_graph_generation_params.memory_constraint, true);
-    ASSERT_EQ(params.block_graph_generation_params.memory_constraint_type,
-              parameters::Memory_Constraint_Type::Preload_Parameters);
     ASSERT_EQ(params.devices.size(), 2);
 
     ASSERT_EQ(params.weights_params.weight_import_mode, parameters::Weight_Import_Mode::aMLLibrary_block);

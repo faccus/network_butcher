@@ -1,7 +1,3 @@
-//
-// Created by faccus on 8/7/22.
-//
-
 #ifndef NETWORK_BUTCHER_ONNX_MODEL_RECONSTRUCTOR_HELPERS_H
 #define NETWORK_BUTCHER_ONNX_MODEL_RECONSTRUCTOR_HELPERS_H
 
@@ -47,8 +43,8 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
     struct IO_Tensors_Iterators_Type
     {
       IO_Type                                                tensor_type;
-      Repeatable_field<onnx::ValueInfoProto>::const_iterator value_info;
-      Repeatable_field<onnx::TensorProto>::const_iterator    initializer;
+      RepeatablePtr_field<onnx::ValueInfoProto>::const_iterator value_info;
+      RepeatablePtr_field<onnx::TensorProto>::const_iterator    initializer;
     };
 
     /// Map that associates to the name of the tensor a pair describing if it's a input/output/initializer and its
@@ -63,8 +59,8 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
   /// \return The iterator to the tensor (or to the end  of the container if it was not found)
   template <typename T>
   auto
-  get_element_from_container(Repeatable_field<T> const &container, std::string const &communication_node_name)
-    -> Repeatable_field<T>::const_iterator
+  get_element_from_container(RepeatablePtr_field<T> const &container, std::string const &communication_node_name)
+    -> RepeatablePtr_field<T>::const_iterator
   {
     return std::find_if(container.cbegin(), container.cend(), [communication_node_name](auto const &ref) {
       return ref.name() == communication_node_name;
@@ -77,7 +73,7 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
   /// \return Optional of constant iterator to the tensor
   auto
   get_type(const onnx::ModelProto &original_model, const std::string &communication_node_name)
-    -> std::optional<Repeatable_field<onnx::ValueInfoProto>::const_iterator>;
+    -> std::optional<RepeatablePtr_field<onnx::ValueInfoProto>::const_iterator>;
 
 
   /// From the original model, it will add basic information to the new_model
@@ -149,14 +145,13 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
 
 
   /// It will package a tensor and its initializer in a IO_Tensors_Iterators_Type
-  /// \param model_graph The graph of the given model
   /// \param found_input True if the iterator "it" comes from the graph input
   /// \param found_value_info True if the iterator is from a node input (that is not an input of the model)
   /// \param found_initializer True if the input value is initialized
   /// \param fake_initializer True if the iterator "it" represents an input of a node that is not an output of any node
   /// (nor a graph input). It may be an initializer
   /// \param it The iterator to the ValueInfoProto
-  /// \param init The initializer iterator
+  /// \param init The iterator to the initializer iterator
   /// \return A IO_Tensors_Iterators_Type, containing the "type" of tensor and the iterator to both the value info and
   /// the initializer
   auto
@@ -164,8 +159,8 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
                              bool                                                          found_value_info,
                              bool                                                          found_initializer,
                              bool                                                          fake_initializer,
-                             Repeatable_field<onnx::ValueInfoProto>::const_iterator const &it,
-                             Repeatable_field<onnx::TensorProto>::const_iterator const    &init)
+                             RepeatablePtr_field<onnx::ValueInfoProto>::const_iterator const &it,
+                             RepeatablePtr_field<onnx::TensorProto>::const_iterator const    &init)
     -> helper_structures::Preprocessed_Ios_Type::mapped_type;
 
 
@@ -175,7 +170,7 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
   /// \param  edit_graph The onnx graph of the new model
   /// \param  container Either the input or the output of the graph
   /// \param  get_io A function that given a node, it returns the inputs/outputs of the node
-  /// \param  get_second_io A function that given a node, it returns the outputs/inputs of the node
+  /// \param  get_node_container A function that given a node, it returns the outputs/inputs of the node
   /// \param  get_new_entry A function that adds either a new input or a new output to the graph
   /// \param preprocessed_ios_nodes The output of process_node_ios_nodes
   template <bool reversed>
@@ -183,9 +178,9 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
   helper_add_missing_io(
     onnx::ModelProto const                                                                  &original_model,
     onnx::GraphProto                                                                        *edit_graph,
-    Repeatable_field<onnx::ValueInfoProto> const                                            &container,
-    std::function<Repeatable_field<std::basic_string<char>>(onnx::NodeProto const &)> const &get_io,
-    std::function<Repeatable_field<std::basic_string<char>>(onnx::NodeProto const &)> const &get_node_container,
+    RepeatablePtr_field<onnx::ValueInfoProto> const                                            &container,
+    std::function<RepeatablePtr_field<std::basic_string<char>>(onnx::NodeProto const &)> const &get_io,
+    std::function<RepeatablePtr_field<std::basic_string<char>>(onnx::NodeProto const &)> const &get_node_container,
     std::function<onnx::ValueInfoProto *()> const                                           &get_new_entry,
     helper_structures::Preprocessed_Ios_Type const                                          &preprocessed_ios_nodes)
   {

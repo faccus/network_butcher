@@ -1,7 +1,3 @@
-//
-// Created by faccus on 09/11/21.
-//
-
 /*
 This file illustrate the use of the ctime library,
 Luca Formaggia 2005.

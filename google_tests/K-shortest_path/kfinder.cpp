@@ -1,7 +1,3 @@
-//
-// Created by faccus on 26/10/21.
-//
-
 #include "graph_traits.h"
 #include "keppstein.h"
 #include "keppstein_lazy.h"
@@ -20,7 +16,6 @@ namespace
   using type_weight = double;
 
   using Input         = Test_Class<basic_type>;
-  using Content_input = types::Content<Input>;
   using Node_type     = types::CNode<types::Content<Input>>;
   using Graph_type    = types::WGraph<false, Node_type>;
 
@@ -28,11 +23,11 @@ namespace
   using Weighted_Graph_type =
     Weighted_Graph<Graph_type, Reversed, Graph_type::Node_Type, Graph_type::Node_Collection_Type, Time_Type>;
 
-  Graph_type
-  eppstein_graph();
+  auto
+  eppstein_graph() -> Graph_type;
 
-  Test_Graph<basic_type>
-  test_graph();
+  auto
+  test_graph() -> Test_Graph<basic_type>;
 
 
   TEST(KFinderTest, EppsteinOriginalNetwork)
@@ -140,8 +135,8 @@ namespace
       }
   }
 
-  Graph_type
-  eppstein_graph()
+  auto
+  eppstein_graph() -> Graph_type
   {
     std::vector<Node_type> nodes;
 
@@ -207,11 +202,9 @@ namespace
     return graph;
   }
 
-  Test_Graph<basic_type>
-  test_graph()
+  auto
+  test_graph() -> Test_Graph<basic_type>
   {
-    using content_in = types::Content<Input>;
-
     auto const built_graph = eppstein_graph();
 
     Test_Graph<basic_type> res;

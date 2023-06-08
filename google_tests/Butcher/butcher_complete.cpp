@@ -1,7 +1,3 @@
-//
-// Created by faccus on 12/12/21.
-//
-
 #include <gtest/gtest.h>
 #include <iostream>
 #include <random>
@@ -25,25 +21,25 @@ namespace
   using Input        = Test_Class<int>;
   using Content_type = Content<Input>;
   using Node_type    = CNode<Content_type>;
-
   using Graph_type      = MWGraph<false, Node_type>;
-  using Real_Graph_Type = MWGraph<false, Onnx_Converted_Node_Type>;
 
-  parameters::Parameters
-  base_parameters(std::size_t k, bool backward, std::size_t num_devices);
+  auto
+  base_parameters(std::size_t k, bool backward, std::size_t num_devices) -> Parameters;
 
-  parameters::Parameters
-  eppstein_parameters(std::size_t k, bool backward, std::size_t num_devices);
+  auto
+  eppstein_parameters(std::size_t k, bool backward, std::size_t num_devices) -> Parameters;
 
-  parameters::Parameters
-  lazy_eppstein_parameters(std::size_t k, bool backward, std::size_t num_devices);
+  auto
+  lazy_eppstein_parameters(std::size_t k, bool backward, std::size_t num_devices) -> Parameters;
+
+  auto basic_transmission(std::size_t, std::size_t)
+    -> std::function<type_weight(Edge_Type const &, std::size_t, std::size_t)>;
 
   struct path_comparison
   {
-    bool
-    operator()(Weighted_Real_Path const &rhs, Weighted_Real_Path const &lhs) const;
+    auto
+    operator()(Weighted_Real_Path const &rhs, Weighted_Real_Path const &lhs) const -> bool;
   };
-
 
   template <class Graph>
   void
@@ -74,9 +70,6 @@ namespace
             }
         }
   }
-
-
-  std::function<type_weight(Edge_Type const &, std::size_t, std::size_t)> basic_transmission(std::size_t, std::size_t);
 
 
   TEST(ButcherTest, compute_k_shortest_paths_test_network_basic_weights)
@@ -120,12 +113,14 @@ namespace
     ASSERT_EQ(eppstein, lazy_eppstein);
   }
 
-  std::function<type_weight(Edge_Type const &, std::size_t, std::size_t)>
+
+  auto
   basic_transmission(std::size_t devices, std::size_t size)
+    -> std::function<type_weight(Edge_Type const &, std::size_t, std::size_t)>
   {
     return [devices, size](Edge_Type const &in_edge, std::size_t first, std::size_t second) {
       auto const &[input, tmp] = in_edge;
-      if (0 <= input && input < size && first < devices && second < devices)
+      if (input < size && first < 3 && second < 3)
         {
           auto in_device_id  = first;
           auto out_device_id = second;
@@ -153,30 +148,8 @@ namespace
     };
   }
 
-  std::function<type_weight(Node_Id_Type const &, std::size_t, std::size_t)>
-  real_transmission(Real_Graph_Type const &graph)
-  {
-    auto const mbps = 1000. / 8;
-
-    return [&graph, mbps](Node_Id_Type const &node, std::size_t from_device, std::size_t to_device) {
-      auto const mem_to_transmit = Computer_memory::compute_memory_usage_output(graph.get_nodes()[node]);
-
-      auto const first  = std::min(from_device, to_device);
-      auto const second = std::max(from_device, to_device);
-
-      if (first == 0 && second == 1)
-        return mem_to_transmit / (18.88 * mbps);
-      else if (first == 0 && second == 2)
-        return mem_to_transmit / (5.85 * mbps) + mem_to_transmit / (18.88 * mbps);
-      else if (first == 1 && second == 2)
-        return mem_to_transmit / (5.85 * mbps);
-      else
-        return .0;
-    };
-  }
-
-  parameters::Parameters
-  base_parameters(std::size_t k, bool backward, std::size_t num_devices)
+  auto
+  base_parameters(std::size_t k, bool backward, std::size_t num_devices) -> Parameters
   {
     Parameters res;
     res.ksp_params.K                      = k;
@@ -189,7 +162,7 @@ namespace
 
     if (backward)
       {
-        using g_type = parameters::Parameters::Weights::connection_type::element_type;
+        using g_type = Parameters::Weights::connection_type::element_type;
         g_type::Dependencies_Type deps(num_devices);
 
         for (std::size_t i = 0; i < num_devices; ++i)
@@ -220,17 +193,16 @@ namespace
           }
       }
 
-
-    res.block_graph_generation_params.memory_constraint_type = Memory_Constraint_Type::None;
-    res.block_graph_generation_params.starting_device_id     = 0;
-    res.block_graph_generation_params.ending_device_id       = 0;
-    res.block_graph_generation_params.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
+    res.block_graph_generation_params.memory_constraint  = false;
+    res.block_graph_generation_params.starting_device_id = 0;
+    res.block_graph_generation_params.ending_device_id   = 0;
+    res.block_graph_generation_params.block_graph_mode   = parameters::Block_Graph_Generation_Mode::classic;
 
     return res;
   }
 
-  Parameters
-  eppstein_parameters(std::size_t k, bool backward, std::size_t num_devices)
+  auto
+  eppstein_parameters(std::size_t k, bool backward, std::size_t num_devices) -> Parameters
   {
     auto res              = base_parameters(k, backward, num_devices);
     res.ksp_params.method = KSP_Method::Eppstein;
@@ -238,8 +210,8 @@ namespace
     return res;
   }
 
-  Parameters
-  lazy_eppstein_parameters(std::size_t k, bool backward, std::size_t num_devices)
+  auto
+  lazy_eppstein_parameters(std::size_t k, bool backward, std::size_t num_devices) -> Parameters
   {
     auto res              = base_parameters(k, backward, num_devices);
     res.ksp_params.method = KSP_Method::Lazy_Eppstein;
@@ -247,9 +219,9 @@ namespace
     return res;
   }
 
-  bool
+  auto
   path_comparison::operator()(const network_butcher::types::Weighted_Real_Path &rhs,
-                              const network_butcher::types::Weighted_Real_Path &lhs) const
+                              const network_butcher::types::Weighted_Real_Path &lhs) const -> bool
   {
     return rhs.first < lhs.first || rhs.first == lhs.first && rhs.second < lhs.second;
   }

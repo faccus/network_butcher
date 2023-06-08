@@ -1,7 +1,3 @@
-//
-// Created by faccus on 26/10/21.
-//
-
 #ifndef NETWORK_BUTCHER_SHORTEST_PATH_FINDER_H
 #define NETWORK_BUTCHER_SHORTEST_PATH_FINDER_H
 
@@ -11,49 +7,47 @@
 #include <queue>
 #include <vector>
 
+namespace network_butcher::kfinder::Shortest_path_finder::utilities
+{
+  /// A helper struct for the Dijkstra algorithm
+  template <typename Weight_Type = Time_Type>
+  struct Dijkstra_Helper : Crtp_Greater<Dijkstra_Helper<Weight_Type>>
+  {
+    Weight_Type  weight;
+    Node_Id_Type id;
+
+    Dijkstra_Helper(Weight_Type w, Node_Id_Type i)
+      : weight(w)
+      , id(i)
+    {}
+
+    bool
+    operator<(const Dijkstra_Helper &rhs) const
+    {
+      return weight < rhs.weight || (weight == rhs.weight && id < rhs.id);
+    }
+  };
+
+  /// Given the tail and the head of the edge, it will produce the associated weight
+  /// \param graph The graph
+  /// \param tail The tail node id
+  /// \param head The head node id
+  /// \return The corresponding weight
+  template <Valid_Weighted_Graph v_Weighted_Graph>
+  auto
+  get_weight(v_Weighted_Graph const &graph, Node_Id_Type tail, Node_Id_Type head) -> v_Weighted_Graph::Weight_Type
+  {
+    auto const &weight_container = graph.get_weight(std::make_pair(tail, head));
+
+    return *weight_container.cbegin();
+  }
+} // namespace network_butcher::kfinder::Shortest_path_finder::utilities
 
 namespace network_butcher::kfinder::Shortest_path_finder
 {
-
   /// The output type of the Dijkstra algorithm
   template <typename Weight_Type = Time_Type>
   using Templated_Dijkstra_Result_Type = std::pair<std::vector<Node_Id_Type>, std::vector<Weight_Type>>;
-
-  namespace utilities
-  {
-    /// A helper struct for the Dijkstra algorithm
-    template <typename Weight_Type = Time_Type>
-    struct Dijkstra_Helper : Crtp_Greater<Dijkstra_Helper<Weight_Type>>
-    {
-      Weight_Type  weight;
-      Node_Id_Type id;
-
-      Dijkstra_Helper(Weight_Type w, Node_Id_Type i)
-        : weight(w)
-        , id(i)
-      {}
-
-      bool
-      operator<(const Dijkstra_Helper &rhs) const
-      {
-        return weight < rhs.weight || (weight == rhs.weight && id < rhs.id);
-      }
-    };
-
-    /// Given the tail and the head of the edge, it will produce the associated weight
-    /// \param graph The graph
-    /// \param tail The tail node id
-    /// \param head The head node id
-    /// \return The corresponding weight
-    template <Valid_Weighted_Graph v_Weighted_Graph>
-    auto
-    get_weight(v_Weighted_Graph const &graph, Node_Id_Type tail, Node_Id_Type head) -> v_Weighted_Graph::Weight_Type
-    {
-      auto const &weight_container = graph.get_weight(std::make_pair(tail, head));
-
-      return *weight_container.cbegin();
-    }
-  } // namespace utilities
 
 
   /// Executes Dijkstra algorithm to compute the shortest paths from the root to every node of the graph
@@ -81,7 +75,6 @@ namespace network_butcher::kfinder::Shortest_path_finder
     std::vector<Node_Id_Type> predecessors(graph.size(), std::numeric_limits<Node_Id_Type>::max()); // O(N)
     predecessors[root] = root;
 
-    // Heap<dijkstra_helper_struct, std::greater<>> to_visit;
     std::set<dijkstra_helper_struct> to_visit;
     to_visit.emplace(0, root);
 
@@ -102,16 +95,13 @@ namespace network_butcher::kfinder::Shortest_path_finder
         // auto current_node = to_visit.pop_head(); // O(log(N))
         auto current_node = std::move(to_visit.extract(to_visit.begin()).value()); // O(log(N))
 
-        auto const &start_distance = total_distance[current_node.id];
+        auto const &start_distance = total_distance[current_node];
         if (start_distance == std::numeric_limits<Weight_Type>::max())
           {
             throw std::logic_error("Dijkstra error: the node current distance is +inf");
           }
 
-        if (current_node.weight != total_distance[current_node.id])
-          continue;
-
-        for (auto const &head_node : graph.get_output_nodes(current_node.id))
+        for (auto const &head_node : graph.get_output_nodes(current_node.id)) // O(M)
           {
             if (head_node == current_node.id)
               continue;

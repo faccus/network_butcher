@@ -1,7 +1,3 @@
-//
-// Created by faccus on 21/04/23.
-//
-
 #ifndef NETWORK_BUTCHER_BASIC_KEPPSTEIN_H
 #define NETWORK_BUTCHER_BASIC_KEPPSTEIN_H
 
@@ -120,12 +116,15 @@ namespace network_butcher::kfinder
       Implicit_Path_Info      *previous_sidetracks; // Previous Implicit_Path_Info in the chain
       Weight_Type              length;
 
+
       bool
       operator<(const Implicit_Path_Info &rhs) const
       {
         return length < rhs.length;
       }
 
+      /// Recursive method to compute the sequence of sidetracks associated to the current path
+      /// \param sidetracks The list of sidetracks
       void
       compute_sidetracks(std::list<Edge_Info const *> &sidetracks) const
       {
@@ -197,6 +196,7 @@ namespace network_butcher::kfinder
     /// and call the general_algo_eppstein function
     /// \param K The number of shortest paths to compute
     /// \param dij_res The result of the Dijkstra algorithm
+    /// \param sidetrack_distances The sidetrack distances of every sidetrack edge
     /// \return The shortest paths (in explicit form)
     [[nodiscard]] virtual auto
     start(std::size_t                            K,
@@ -211,7 +211,7 @@ namespace network_butcher::kfinder
     /// \param h_g The h_g map
     /// \param h_out The h_out map
     /// \param callback_fun A callback function called during the loop used to find the shortest paths
-    /// \return The (implicit) shortest paths
+    /// \return The (explicit) shortest paths
     auto
     general_algo_eppstein(std::size_t                            K,
                           Dijkstra_Result_Type const            &dij_res,
@@ -249,17 +249,7 @@ namespace network_butcher::kfinder
     if (graph.empty() || K == 0)
       return {};
 
-#if PRINT_DEBUG_STATEMENTS
-    Chrono dd_crono;
-    dd_crono.start();
-#endif
-
     auto const dij_res = Shortest_path_finder::dijkstra(this->graph.reverse(), sink); // time:
-
-#if PRINT_DEBUG_STATEMENTS
-    dd_crono.stop();
-    std::cout << "basic_KEppstein, dijkstra: " << dd_crono.wallTime() / 1000. << " ms" << std::endl;
-#endif
 
     if (K == 1)
       {
@@ -273,19 +263,7 @@ namespace network_butcher::kfinder
           }
       }
 
-#if PRINT_DEBUG_STATEMENTS
-    dd_crono.start();
-#endif
-
-    auto const sidetrack_distances_res = sidetrack_distances(dij_res); // O(E)
-
-#if PRINT_DEBUG_STATEMENTS
-    dd_crono.stop();
-    std::cout << "basic_KEppstein, sidetrack_distances_computation: " << dd_crono.wallTime() / 1000. << " ms"
-              << std::endl;
-#endif
-
-    return start(K, dij_res, sidetrack_distances_res);
+    return start(K, dij_res, sidetrack_distances(dij_res));
   }
 
 
@@ -350,7 +328,7 @@ namespace network_butcher::kfinder
     std::size_t k = 2;
 
     // Loop through Q until either Q is empty or the number of paths found is K
-    for (; k <= K && !Q.empty(); ++k) // O(K)
+    for (; k <= K && !Q.empty(); ++k)
       {
         res.emplace_back(Q.top());
         Q.pop();
@@ -366,7 +344,7 @@ namespace network_butcher::kfinder
           }
         else
           {
-            h_g_it = h_g.find(e_edge.second); // O(1), the element should always exist!
+            h_g_it = h_g.find(e_edge.second);
           }
 
         if (!h_g_it->second.empty())
@@ -394,8 +372,8 @@ namespace network_butcher::kfinder
         std::vector<Weight_Type> final_res;
         final_res.reserve(res.size());
 
-        for (auto &path : res) // O(K)
-          final_res.emplace_back(std::move(path.length));
+        for (auto const &path : res)
+          final_res.push_back(path.length);
 
         return final_res;
       }
@@ -624,10 +602,11 @@ Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::side
 
                   for (auto it = ++weights.cbegin(); it != weights.cend(); ++it)
                     {
-                      auto const &weight    = *it;
-                      auto        to_insert = weight + distances_from_sink[head] - distances_from_sink[tail];
+                      auto const &weight = *it;
 
-                      res[edge.first].emplace(edge.second, std::move(to_insert)); // O(1)}
+                      res[tail].emplace_hint(res[tail].cend(),
+                                             head,
+                                             weight + distances_from_sink[head] - distances_from_sink[tail]); // O(1)}
                     }
                 }
             }
@@ -635,8 +614,9 @@ Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::side
             {
               for (auto const &weight : weights)
                 {
-                  auto to_insert = weight + distances_from_sink[head] - distances_from_sink[tail];
-                  res[edge.first].emplace(edge.second, std::move(to_insert)); // O(1)
+                  res[tail].emplace(res[tail].cend(),
+                                    head,
+                                    weight + distances_from_sink[head] - distances_from_sink[tail]); // O(1)
                 }
             }
         }

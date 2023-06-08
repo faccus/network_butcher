@@ -108,6 +108,7 @@ if (BUILD_TESTS)
 
 endif ()
 
+
     add_executable(main_kfinder mains/KFinder/main_kfinder.cpp ${BASE_SOURCE} ${PROTO_SRCS})
     target_include_directories(main_kfinder PUBLIC ${INCLUDES} google_tests)
     target_link_libraries(main_kfinder ${RUN_LIBRARIES_LOCATION})
@@ -119,17 +120,17 @@ endif ()
 
 
     add_executable(main_IO_Manager mains/IO_Manager/main_IO_Manager.cpp ${BASE_SOURCE} ${PROTO_SRCS})
-    target_include_directories(main_IO_Manager PUBLIC ${INCLUDES} google_tests)
+    target_include_directories(main_IO_Manager PUBLIC ${INCLUDES})
     target_link_libraries(main_IO_Manager ${RUN_LIBRARIES_LOCATION})
 
 
     add_executable(main_Constrained_Builder mains/Butcher/main_Constrained_Builder.cpp ${BASE_SOURCE} ${PROTO_SRCS})
-    target_include_directories(main_Constrained_Builder PUBLIC ${INCLUDES} google_tests)
+    target_include_directories(main_Constrained_Builder PUBLIC ${INCLUDES})
     target_link_libraries(main_Constrained_Builder ${RUN_LIBRARIES_LOCATION})
 
 
     add_executable(main_synthetic_graph mains/KFinder/main_synthetic_graph.cpp ${BASE_SOURCE} ${PROTO_SRCS})
-    target_include_directories(main_synthetic_graph PUBLIC ${INCLUDES} google_tests)
+    target_include_directories(main_synthetic_graph PUBLIC ${INCLUDES})
     target_link_libraries(main_synthetic_graph ${RUN_LIBRARIES_LOCATION})
 
 

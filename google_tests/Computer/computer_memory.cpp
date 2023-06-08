@@ -16,11 +16,10 @@ namespace
   using Input         = Test_Class<basic_type>;
   using Content_type  = Content<Input>;
   using Node_type     = CNode<Content_type>;
-  using IO_collection = Io_Collection_Type<Input>;
   using Graph_type    = WGraph<false, Node_type>;
 
-  Graph_type
-  basic_graph();
+  auto
+  basic_graph() -> Graph_type;
 
   TEST(ComputerTests, ComputeMemoryUsageTypeInfo)
   {
@@ -45,8 +44,6 @@ namespace
 
   TEST(ComputerTests, ComputeMemoryUsageCustomClass)
   {
-    using basic_type = int;
-
     Test_Class<basic_type> ex(10);
 
     ASSERT_EQ(Computer_memory::compute_memory_usage(ex), 10 * sizeof(basic_type));
@@ -62,8 +59,9 @@ namespace
     ASSERT_EQ(lhs, rhs);
   }
 
-  Graph_type
-  basic_graph()
+
+  auto
+  basic_graph() -> Graph_type
   {
     std::vector<Node_type> nodes;
 

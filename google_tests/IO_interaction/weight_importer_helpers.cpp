@@ -12,8 +12,8 @@ namespace
   std::string graph_path  = Utilities::combine_path(base_path, "models/version-RFB-640-inferred.onnx");
   std::string graph2_path = Utilities::combine_path(base_path, "models/mobilenet_v2-inferred.onnx");
 
-  Block_Graph_Type
-  simple_graph_generator();
+  auto
+  simple_graph_generator() -> Block_Graph_Type;
 
 
   TEST(WeightImporterTest, DirectImportWeightsFromCsv)
@@ -99,8 +99,8 @@ namespace
     EXPECT_DOUBLE_EQ(graph.get_weight({0, 2}), 1234.2);
   }
 
-  Block_Graph_Type
-  simple_graph_generator()
+  auto
+  simple_graph_generator() -> Block_Graph_Type
   {
     std::vector<Block_Graph_Type::Node_Type> nodes;
     Block_Graph_Type::Dependencies_Type      deps(8);

@@ -1,7 +1,3 @@
-//
-// Created by faccus on 22/04/23.
-//
-
 #ifndef NETWORK_BUTCHER_KFINDER_FACTORY_H
 #define NETWORK_BUTCHER_KFINDER_FACTORY_H
 
@@ -44,24 +40,36 @@ namespace network_butcher::kfinder
     add(std::string entry_name, Builder_type const &func);
 
     /// Creates a new KFinder object
+    /// \tparam Args The types of the arguments to pass to the builder
     /// \param name The name of the builder
-    /// \param graph The graph
-    /// \param root The root node id
-    /// \param sink The sink node id
+    /// \param args The arguments to pass to the builder
     /// \return The KFinder object
+    template <typename... Args>
     auto
-    create(std::string const &name, GraphType const &graph, Node_Id_Type root, Node_Id_Type sink) const
-      -> std::unique_ptr<kfinder_type>;
+    create(std::string const &name, Args &&...args) const -> std::unique_ptr<kfinder_type>
+    {
+      return Factory::Instance().create(name, std::forward<Args>(args)...);
+    };
 
     /// Creates a new KFinder object
+    /// \tparam Args The types of the arguments to pass to the builder
     /// \param method Enum for the method to use
-    /// \param graph The graph
-    /// \param root The root node id
-    /// \param sink The sink node id
+    /// \param args The arguments to pass to the builder
     /// \return The KFinder object
+    template <typename... Args>
     auto
-    create(parameters::KSP_Method method, GraphType const &graph, Node_Id_Type root, Node_Id_Type sink) const
-      -> std::unique_ptr<kfinder_type>;
+    create(parameters::KSP_Method method, Args &&...args) const -> std::unique_ptr<kfinder_type>
+    {
+      switch (method)
+        {
+          case parameters::KSP_Method::Eppstein:
+            return create("eppstein", std::forward<Args>(args)...);
+          case parameters::KSP_Method::Lazy_Eppstein:
+            return create("lazy_eppstein", std::forward<Args>(args)...);
+          default:
+            throw std::logic_error("The specified KSP_Method is not implemented.");
+        }
+    };
 
     /// Returns the vector of registered builders
     /// \return The vector of registered builders
@@ -79,38 +87,6 @@ namespace network_butcher::kfinder
     void
     unregister(std::string const &name);
   };
-
-
-  template <typename T, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  auto
-  KFinder_Factory<T, Only_Distance, t_Weighted_Graph_Complete_Type>::create(const std::string &name,
-                                                                            const T           &graph,
-                                                                            Node_Id_Type       root,
-                                                                            Node_Id_Type       sink) const
-    -> std::unique_ptr<kfinder_type>
-  {
-    return Factory::Instance().create(name, graph, root, sink);
-  }
-
-
-  template <typename T, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  auto
-  KFinder_Factory<T, Only_Distance, t_Weighted_Graph_Complete_Type>::create(parameters::KSP_Method method,
-                                                                            const T               &graph,
-                                                                            Node_Id_Type           root,
-                                                                            Node_Id_Type           sink) const
-    -> std::unique_ptr<kfinder_type>
-  {
-    switch (method)
-      {
-        case parameters::KSP_Method::Eppstein:
-          return create("eppstein", graph, root, sink);
-        case parameters::KSP_Method::Lazy_Eppstein:
-          return create("lazy_eppstein", graph, root, sink);
-        default:
-          throw std::logic_error("The specified KSP_Method is not implemented.");
-      }
-  }
 
 
   template <typename T, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>

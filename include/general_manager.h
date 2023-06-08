@@ -1,7 +1,3 @@
-//
-// Created by faccus on 7/12/22.
-//
-
 #ifndef NETWORK_BUTCHER_MANAGER_H
 #define NETWORK_BUTCHER_MANAGER_H
 
@@ -19,7 +15,7 @@ namespace network_butcher::io
     {
       /// Based on the information related to the bandwidth between devices, it will produce a "transmission"
       /// function for the given case
-      /// \param params The collection of parameters
+      /// \param weights_params The collection of weight parameters
       /// \param graph The graph
       /// \return  The transmission function
       auto

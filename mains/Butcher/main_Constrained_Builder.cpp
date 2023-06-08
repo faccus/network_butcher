@@ -1,23 +1,16 @@
-//
-// Created by faccus on 31/05/23.
-//
-
 #include <iostream>
 #include <random>
 
 #include "GetPot"
 #include "chrono.h"
-#include "test_class.h"
 
-#include "constrained_block_graph_builder.h"
-#include "graph_traits.h"
+#include "network_butcher.h"
 
 using namespace network_butcher;
 using namespace network_butcher::types;
 
 using Node_type = Node;
 using GraphType = MWGraph<false, Node_type, long>;
-using time_type = long double;
 
 
 template <class Graph>
@@ -116,8 +109,8 @@ generate_parameters()
   for (std::size_t i = 0; i < res.devices.size(); ++i)
     res.devices[i].id = i;
 
-  res.block_graph_generation_params.memory_constraint_type = parameters::Memory_Constraint_Type::None;
-  res.block_graph_generation_params.block_graph_mode       = parameters::Block_Graph_Generation_Mode::classic;
+  res.block_graph_generation_params.memory_constraint = false;
+  res.block_graph_generation_params.block_graph_mode  = parameters::Block_Graph_Generation_Mode::classic;
   res.block_graph_generation_params.use_bandwidth_to_manage_connections = true;
 
   g_type::Dependencies_Type deps(4);
@@ -139,7 +132,8 @@ generate_parameters()
   for (std::size_t i = 0; i < res.weights_params.bandwidth->size(); ++i)
     {
       res.weights_params.bandwidth->set_weight(std::make_pair(i, i),
-                                               std::make_pair(std::numeric_limits<Bandwidth_Value_Type>::infinity(), 0.));
+                                               std::make_pair(std::numeric_limits<Bandwidth_Value_Type>::infinity(),
+                                                              0.));
     }
 
 
@@ -167,7 +161,7 @@ main(int argc, char **argv)
   GetPot      command_line(argc, argv);
   std::string export_path = "report_Constrained_Builder.txt";
 
-  std::vector<std::tuple<std::string, time_type>> results;
+  std::vector<std::tuple<std::string, Time_Type>> results;
   std::size_t                                     num_tests = command_line("num_tests", 10);
   std::size_t                                     max_power = command_line("max_power", 15);
 
@@ -204,7 +198,7 @@ main(int argc, char **argv)
   for (std::size_t power = 10; power <= max_power; ++power)
     {
       std::size_t nodes = simple_pow(2, power);
-      time_type   time  = 0.;
+      Time_Type   time  = 0.;
 
       auto params       = generate_parameters();
       auto graph        = basic_graph(nodes);
@@ -222,7 +216,7 @@ main(int argc, char **argv)
           builder.construct_block_graph();
           crono.stop();
 
-          time_type local_time = crono.wallTime();
+          Time_Type local_time = crono.wallTime();
           time += local_time;
 
           std::cout << "Test #" << Utilities::custom_to_string(test_num + 1) << ": " << local_time / 1000. << " ms"

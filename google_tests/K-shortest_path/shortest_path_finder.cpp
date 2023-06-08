@@ -1,7 +1,3 @@
-//
-// Created by faccus on 26/10/21.
-//
-
 #include "graph_traits.h"
 #include "keppstein.h"
 #include "keppstein_lazy.h"
@@ -20,7 +16,6 @@ namespace
   using type_weight = double;
 
   using Input         = Test_Class<basic_type>;
-  using Content_input = types::Content<Input>;
   using Node_type     = types::CNode<types::Content<Input>>;
   using Graph_type    = types::WGraph<false, Node_type>;
 
@@ -28,16 +23,14 @@ namespace
   using Weighted_Graph_type =
     Weighted_Graph<Graph_type, Reversed, Graph_type::Node_Type, Graph_type::Node_Collection_Type, Time_Type>;
 
-  using weights_collection_type = std::map<std::pair<Node_Id_Type, Node_Id_Type>, type_weight>;
+  auto
+  basic_graph() -> Graph_type;
 
-  Graph_type
-  basic_graph();
+  auto
+  eppstein_graph() -> Graph_type;
 
-  Graph_type
-  eppstein_graph();
-
-  Test_Graph<basic_type>
-  test_graph();
+  auto
+  test_graph() -> Test_Graph<basic_type>;
 
 
   TEST(KspTests, DijkstraSourceSink)
@@ -70,11 +63,11 @@ namespace
 
     int k = 100; // Up to 10
 
-    std::vector<type_weight> real_sol = {55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
+    std::vector<Time_Type> real_sol = {55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
     auto                     res      = kfinder.compute(real_sol.size());
 
-    std::vector<type_weight> real_path_lengths;
-    std::vector<type_weight> path_lengths;
+    std::vector<Time_Type> real_path_lengths;
+    std::vector<Time_Type> path_lengths;
 
     path_lengths.reserve(k);
     real_path_lengths.reserve(k);
@@ -97,11 +90,11 @@ namespace
 
     int k = 100; // Up to 10
 
-    std::vector<type_weight> real_sol = {55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
+    std::vector<Time_Type> real_sol = {55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
     auto                     res      = kfinder.compute(real_sol.size());
 
-    std::vector<type_weight> real_path_lengths;
-    std::vector<type_weight> path_lengths;
+    std::vector<Time_Type> real_path_lengths;
+    std::vector<Time_Type> path_lengths;
 
     path_lengths.reserve(k);
     real_path_lengths.reserve(k);
@@ -124,11 +117,11 @@ namespace
 
     int k = 100; // Up to 10
 
-    std::vector<type_weight> real_sol = {55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
+    std::vector<Time_Type> real_sol = {55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
     auto                     res      = kfinder.compute(real_sol.size());
 
-    std::vector<type_weight> real_path_lengths;
-    std::vector<type_weight> path_lengths;
+    std::vector<Time_Type> real_path_lengths;
+    std::vector<Time_Type> path_lengths;
 
     path_lengths.reserve(k);
     real_path_lengths.reserve(k);
@@ -144,11 +137,9 @@ namespace
     ASSERT_EQ(path_lengths, real_path_lengths);
   }
 
-  Graph_type
-  basic_graph()
+  auto
+  basic_graph() -> Graph_type
   {
-    using content_in = types::Content<Input>;
-
     std::vector<Node_type> nodes;
 
 
@@ -184,10 +175,9 @@ namespace
     return graph;
   }
 
-  Graph_type
-  eppstein_graph()
+  auto
+  eppstein_graph() -> Graph_type
   {
-    using content_in = types::Content<Input>;
     std::vector<Node_type> nodes;
 
     nodes.emplace_back(std::move(Content_Builder<Input>().set_output({{"X0", 0}})).build());
@@ -252,17 +242,15 @@ namespace
     return graph;
   }
 
-  Test_Graph<basic_type>
-  test_graph()
+  auto
+  test_graph() -> Test_Graph<basic_type>
   {
-    using content_in = types::Content<Input>;
-
     auto const built_graph = eppstein_graph();
 
     Test_Graph<basic_type> res;
-    auto                 &nodes        = res.nodes;
-    auto                 &dependencies = res.dependencies;
-    auto                 &weights      = res.map_weight;
+    auto                  &nodes        = res.nodes;
+    auto                  &dependencies = res.dependencies;
+    auto                  &weights      = res.map_weight;
 
     for (auto const &node : built_graph.get_nodes())
       {

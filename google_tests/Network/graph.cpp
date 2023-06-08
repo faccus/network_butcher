@@ -1,7 +1,3 @@
-//
-// Created by faccus on 11/09/21.
-//
-
 #include "graph.h"
 #include "test_class.h"
 #include <gtest/gtest.h>

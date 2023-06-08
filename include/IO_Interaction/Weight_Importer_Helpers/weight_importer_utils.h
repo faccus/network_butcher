@@ -1,11 +1,7 @@
-//
-// Created by faccus on 13/04/23.
-//
-
 #ifndef NETWORK_BUTCHER_WEIGHT_IMPORTER_UTILS_H
 #define NETWORK_BUTCHER_WEIGHT_IMPORTER_UTILS_H
 
-#include "basic_traits.h"
+#include "traits.h"
 #include "utilities.h"
 
 namespace network_butcher::io::Weight_importer_helpers
