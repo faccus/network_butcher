@@ -30,7 +30,7 @@ To easily start to read the project, we think it's best to start from the Genera
 - g++ version 8 (or higher)
 
 The remaining libraries (except Doxygen) can be automatically downloaded and (statically) linked by CMake (currently, I
-have tested it only for Ubuntu systems). 
+have tested it only for Ubuntu systems).
 They may be installed manually:
 
 - [Protobuf v3.17.3](https://github.com/protocolbuffers/protobuf/releases/tag/v3.17.3) (Required)
@@ -40,12 +40,12 @@ They may be installed manually:
 The weight initialization may be automatically performed. This, however, adds some extra requirements:
 
 - [PyBind v2.10.3](https://github.com/pybind/pybind11/releases/tag/v2.10.3).
-  The library will be automatically downloaded and compiled by CMake. 
+  The library will be automatically downloaded and compiled by CMake.
   However, it requires Python3 and pip3 to be installed.
 - [aMLLibrary](https://github.com/brunoguindani/aMLLibrary/tree/933be8b094ca468d4813fe0c837fc6d46cc608d2) (Python github
-  project). 
-  A local version of the package is already available as a submodule in the dep directory. 
-  It doesn't need any installation. 
+  project).
+  A local version of the package is already available as a submodule in the dep directory.
+  It doesn't need any installation.
   Since the package is still work in progress, we chose a specific commit.
   To install all of its package dependencies, simply call in the repository directory:
 ```bash
@@ -58,7 +58,7 @@ pip install onnx-tool
 
 To (dynamically) link the installed libraries, check the CMakeLists.txt file in the root directory of the repository.
 
-Parallelism can be enabled by checking the proper option in the CMakeLists.txt file. 
+Parallelism can be enabled by checking the proper option in the CMakeLists.txt file.
 Parallelism may be used with either:
 
 - [OpenMP v4.5](https://www.openmp.org/)
@@ -72,27 +72,27 @@ Parallelism may be used with either:
 We here report a small collection of simple bash commands to install the required libraries on a Linux system:
 - Compiler, CMake and Doxygen (with its extra packages):
 ```bash
-printf 'Initial package refresh:'
+echo 'Initial package refresh:'
 sudo apt-get update
-printf 'Installing the compiler and CMake:'
+echo 'Installing the compiler and CMake:'
 sudo apt-get install build-essential cmake -y
-printf 'Installing Doxygen (and Graphviz, dia and mscgen):'
+echo 'Installing Doxygen (and Graphviz, dia and mscgen):'
 sudo apt-get install doxygen graphviz dia mscgen -y
 ```
 - Python, pip, aMLLibrary requirements and onnx-tool:
 ```bash
-printf 'Installing python and pip:'
+echo 'Installing python and pip:'
 sudo apt-get install python3-dev python3-pip --no-install-recommends -y
-printf 'Installing aMLLibrary requirements:'
+echo 'Installing aMLLibrary requirements:'
 python3 -m pip install -r requirements.txt
-printf 'Installing onnx-tool:'
+echo 'Installing onnx-tool:'
 python3 -m pip install onnx-tool==0.6.1
 ```
 - OpenMP and TBB:
 ```bash
-printf 'Installing OpenMP:'
+echo 'Installing OpenMP:'
 sudo apt-get install libomp-14-dev -y
-printf 'Installing TBB:'
+echo 'Installing TBB:'
 sudo apt-get install libtbb-dev -y
 ```
 
