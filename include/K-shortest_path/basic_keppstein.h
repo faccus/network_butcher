@@ -381,7 +381,6 @@ namespace network_butcher::kfinder
     // Basically, we start from the specified node and go along the shortest path until we meet a sidetrack edge
     // contained in the implicit path. In that case, we add the sidetrack edge and proceed along the "new" shortest
     // path until either the "sink" node is reached or another sidetrack edge is met
-#if PARALLEL_TBB
     auto const process_path =
       [&go_shortest, &extract_edge, &dij_res = dij_res, &res = res, &epp_res = epp_res, &root, &sink](
         std::size_t index) {
@@ -449,8 +448,6 @@ namespace network_butcher::kfinder
           process_path(i);
         }
     }
-
-
 #endif
 
     return res;
