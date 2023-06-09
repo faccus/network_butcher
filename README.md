@@ -164,6 +164,13 @@ cmake --build . --target main_path_reconstruction
 cmake --build . --target main_synthetic_graph
 ```
 
+### Doxygen
+To run doxygen and generate the documentation, you can just call from the build directory:
+```bash
+cmake --build . --target doxygen
+```
+
+
 ### Tests
 
 Optionally, the tests can be built by using the following command:
