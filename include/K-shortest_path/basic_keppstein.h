@@ -450,6 +450,10 @@ namespace network_butcher::kfinder
       return final_steps;
     };
 
+
+    // Basically, we start from the specified node and go along the shortest path until we meet a sidetrack edge
+    // contained in the implicit path. In that case, we add the sidetrack edge and proceed along the "new" shortest
+    // path until either the "sink" node is reached or another sidetrack edge is met
     auto const process_path =
       [&go_shortest, &dij_res = dij_res, &res = res, &epp_res = epp_res, &root, &sink](std::size_t i) {
         auto const &implicit_path = epp_res[i];
@@ -497,17 +501,18 @@ namespace network_butcher::kfinder
               }
           }
       };
-
-    // Basically, we start from the specified node and go along the shortest path until we meet a sidetrack edge
-    // contained in the implicit path. In that case, we add the sidetrack edge and proceed along the "new" shortest
-    // path until either the "sink" node is reached or another sidetrack edge is met
 #if PARALLEL_TBB
-    auto const &view = std::ranges::iota_view(std::size_t{0}, epp_res.size());
-    std::for_each(std::execution::par, view.begin(), view.end(), process_path);
+    // https://stackoverflow.com/a/63340360 .
+    // Tested views, but they are slower, so they are not used.
+
+    std::vector<std::size_t> v(epp_res.size());
+    std::generate(v.begin(), v.end(), [n = 0]() mutable { return n++; });
+
+    std::for_each(std::execution::par, v.begin(), v.end(), process_path);
 #else
-    #pragma omp parallel default(none) shared(go_shortest, dij_res, res, epp_res, root, sink, process_path)
+#  pragma omp parallel default(none) shared(go_shortest, dij_res, res, epp_res, root, sink, process_path)
     {
-      #pragma omp for
+#  pragma omp for
       for (std::size_t i = 0; i < epp_res.size(); ++i)
         {
           process_path(i);

@@ -33,7 +33,7 @@ namespace network_butcher::kfinder
   };
 
 
-  /// Simple node class, used to construct an Heap (though pointers...)
+  /// Simple node class, used to construct a min-Heap (though pointers...)
   /// \tparam T The node content
   /// \tparam Comparison Content comparison struct
   /// \tparam Max_Children The number of children per node
@@ -90,7 +90,7 @@ namespace network_butcher::kfinder
     {
       if (children.size() >= Max_Children)
         {
-          throw std::runtime_error("Heap_Node::copy_child: children.size() >= Max_Children");
+          throw std::runtime_error("Heap_Node::add_child: children.size() >= Max_Children");
         }
 
       depth[children.size()] = 0;
@@ -160,27 +160,9 @@ namespace network_butcher::kfinder
 
   protected:
     std::array<std::size_t, Max_Children> depth;
-    std::vector<Heap_Node *>        children;
+    std::vector<Heap_Node *>              children;
 
     T content;
-
-    /// Swaps the content of the current node with the content of the other node. If they are either pointers or
-    /// iterators, it will swap the pointers/iterators (not the pointed values)
-    /// \param other_content The other node content
-    void
-    safe_swap(T &other_content)
-    {
-      if constexpr (std::is_pointer_v<T> || std::is_reference_v<T>)
-        {
-          auto tmp      = other_content;
-          other_content = content;
-          content       = tmp;
-        }
-      else
-        {
-          std::swap(other_content, content);
-        }
-    }
 
     /// Pushes in the heap the new node and performs the required swaps to keep the heap property
     /// \param new_heap The new node to push
@@ -194,7 +176,7 @@ namespace network_butcher::kfinder
 
           if (comp(children.back()->content, content))
             {
-              safe_swap(children.back()->content);
+              std::swap(content, children.back()->content);
             }
         }
       else
@@ -216,14 +198,14 @@ namespace network_butcher::kfinder
 
           if (comp(children[index]->content, content))
             {
-              safe_swap(children[index]->content);
+              std::swap(content, children[index]->content);
             }
         }
     }
   };
 
 
-  /// Simple class use to represent an H_out, a 2-heap with the extra restriction that the first node may have up to a
+  /// Simple class used to represent an H_out, a 2-heap with the extra restriction that the first node may have up to a
   /// single child \tparam T The type of the content of the nodes \tparam Comparison The comparison function to use to
   /// compare the content of the nodes
   template <typename T, typename Comparison>
@@ -262,49 +244,59 @@ namespace network_butcher::kfinder
     H_out_Type(H_out_Type const &)                = delete;
 
     auto
-    operator=(H_out_Type &&)  noexcept -> H_out_Type & = default;
-    H_out_Type(H_out_Type &&)                 noexcept = default;
+    operator=(H_out_Type &&) noexcept -> H_out_Type & = default;
+    H_out_Type(H_out_Type &&) noexcept                = default;
 
-    /// Adds a new element to the heap
-    /// \param elem The content to add to the new heap node
+
+    /// It adds to the heap a new element based on the provided content
+    /// \tparam U The type of the content. Must be convertible to T
+    /// \param elem The actual content
+    template <typename U>
     void
-    add_elem(T const &elem)
+    add_elem(U &&elem)
     {
+      // If there aren't nodes, just add the element
       if (internal_children->empty())
         {
-          internal_children->emplace_back(elem);
+          internal_children->emplace_back(std::forward<U>(elem));
         }
+      // If there is a single node...
       else if (internal_children->size() == 1)
         {
-          if (Heap_Node<T, Comparison, 2>::comp(elem, internal_children->front().get_content()))
+          // Check if the new node should be the root of the heap
+          if (Node_Type::comp(elem, internal_children->front().get_content()))
             {
-              internal_children->emplace_front(elem);
+              internal_children->emplace_front(std::forward<U>(elem));
             }
           else
             {
-              internal_children->emplace_back(elem);
+              internal_children->emplace_back(std::forward<U>(elem));
             }
 
           internal_children->front().add_child(&internal_children->back());
         }
       else
         {
-          if (Heap_Node<T, Comparison, 2>::comp(elem, internal_children->front().get_content()))
+          // Check if the new node should be the root of the heap
+          if (Node_Type::comp(elem, internal_children->front().get_content()))
             {
+              // Substitute the head node with the new one
               auto val = internal_children->front();
               internal_children->pop_front();
               val.clear_children();
 
-              internal_children->emplace_front(elem);
+              internal_children->emplace_front(std::forward<U>(elem));
               internal_children->front().add_child(&(*(++internal_children->begin())));
 
               internal_children->emplace_back(val);
             }
+          // If not, it goes in the back of the list
           else
             {
-              internal_children->emplace_back(elem);
+              internal_children->emplace_back(std::forward<U>(elem));
             }
 
+          // Add the new node to the heap stored in the second node.
           (++internal_children->begin())->push(&internal_children->back());
         }
     }
@@ -393,12 +385,18 @@ namespace network_butcher::kfinder
   };
 
 
+  /// Simple class used to represent an H_g, an heap of H_out. During its construction, several children of ndoes
+  /// contained in the heap do not point to node that are "physically" stored in the heap itself, but instead point to
+  /// nodes that are stored in H_g heap. This is done to avoid the need to copy the entire H_g structure when it's not
+  /// needed. \tparam T The type stored inside each H_out \tparam Comparison The comparison function used to compare two
+  /// elements of type T
   template <typename T, typename Comparison>
   class H_g_Type
   {
   public:
     using Elem_Type = H_out_Type<T, Comparison>;
 
+    /// Simple helper struct used to compare two pointers to elements of type Elem_Type
     struct Pointer_Less
     {
       using Ptr_Type = Elem_Type const *;
@@ -415,7 +413,7 @@ namespace network_butcher::kfinder
 
     /// It will construct H_g from the given H_out
     /// \param starting_content
-    explicit H_g_Type(H_out_Type<T, Comparison> const *const &starting_content)
+    explicit H_g_Type(Elem_Type const *const &starting_content)
       : internal_children(std::make_unique<Internal_Collection_Type>())
     {
       if (!starting_content->empty())
@@ -426,7 +424,7 @@ namespace network_butcher::kfinder
     /// build the new H_g
     /// \param starting_content The H_out to use to build the new H_g
     /// \param to_copy The H_g to use to build the new H_g
-    explicit H_g_Type(H_out_Type<T, Comparison> const *const &starting_content, H_g_Type const &to_copy)
+    explicit H_g_Type(Elem_Type const *const &starting_content, H_g_Type const &to_copy)
       : internal_children(std::make_unique<Internal_Collection_Type>())
     {
       if (starting_content->empty() && to_copy.empty())
@@ -518,8 +516,8 @@ namespace network_butcher::kfinder
     /// \param parent The parent of the current heap
     void
     construction_from_other_h_g(Node_Type::Content_Type const &starting_content,
-                                H_g_Type::Node_Type const     *other_h_g,
-                                H_g_Type::Node_Type           *parent)
+                                Node_Type const               *other_h_g,
+                                Node_Type                     *parent)
     {
       static auto const &comp = Node_Type::comp;
 
