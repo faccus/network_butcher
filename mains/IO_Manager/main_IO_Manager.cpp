@@ -6,6 +6,11 @@
 
 #include "network_butcher.h"
 
+/*
+ * With this main file, we test how quick is the model reconstruction is performed and how ling does it take to perform
+ * the final partitionings export given a collection of real networks.
+ * */
+
 using namespace network_butcher;
 using namespace network_butcher::types;
 using namespace network_butcher::computer;
@@ -259,6 +264,8 @@ main(int argc, char **argv)
           std::ofstream out_file(export_path, std::ios_base::app);
           out_file << file_name << "," << k << "," << time << std::endl;
           out_file.close();
+
+          Utilities::directory_delete(params.model_params.export_directory);
         }
     }
 }

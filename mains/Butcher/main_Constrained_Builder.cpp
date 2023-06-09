@@ -6,6 +6,13 @@
 
 #include "network_butcher.h"
 
+/*
+ * This main file generates a simple linear graph with 4 devices. The graph is linear since
+ * the linearization phase of the algorithm doesn't influence the performances of the construction.
+ * Weights are assigned randomly. We test how Constrained_Block_Graph_Builder performs on graphs with an
+ * increasing number of nodes.
+ * */
+
 using namespace network_butcher;
 using namespace network_butcher::types;
 
@@ -161,10 +168,6 @@ main(int argc, char **argv)
   GetPot      command_line(argc, argv);
   std::string export_path = "report_Constrained_Builder.txt";
 
-  std::vector<std::tuple<std::string, Time_Type>> results;
-  std::size_t                                     num_tests = command_line("num_tests", 10);
-  std::size_t                                     max_power = command_line("max_power", 15);
-
 #if PARALLEL_OPENMP
   std::cout << "Is OpenMP enabled? Let's check it!" << std::endl;
 
@@ -186,9 +189,11 @@ main(int argc, char **argv)
   } /* All threads join master thread and disband */
 #endif
 
+  std::vector<std::tuple<std::string, Time_Type>> results;
+  std::size_t                                     num_tests = command_line("num_tests", 10);
+  std::size_t                                     max_power = command_line("max_power", 22);
 
   Chrono crono;
-
   {
     std::ofstream out_file(export_path);
     out_file << "NumNodes,TotalTime" << std::endl;
