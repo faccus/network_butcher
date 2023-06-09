@@ -435,63 +435,18 @@ namespace network_butcher::kfinder
           }
       };
 
-    auto const &view = std::ranges::iota_view(std::size_t{0}, epp_res.size());
-    std::for_each(std::execution::par, view.begin(), view.end(), process_path);
+#if PARALLEL_TBB
+    std::vector<std::size_t> v(epp_res.size());
+    std::generate(v.begin(), v.end(), [n = 0]() mutable { return n++; });
+    std::for_each(std::execution::par, v.begin(), v.end(), process_path);
 #else
 
-#  pragma omp parallel default(none) shared(epp_res, res, go_shortest, extract_edge, root, sink, dij_res)
+#  pragma omp parallel default(none) shared(epp_res, res, go_shortest, extract_edge, root, sink, dij_res, process_path)
     {
 #  pragma omp for
       for (std::size_t i = 0; i < epp_res.size(); ++i)
         {
-          auto const &implicit_path = epp_res[i];
-
-          auto       &info       = res[i];
-          auto const &sidetracks = implicit_path.compute_sidetracks();
-
-          info.length = implicit_path.length;
-
-          if (sidetracks.empty())
-            {
-              info.path = go_shortest(root);
-            }
-          else
-            {
-              auto        it             = sidetracks.cbegin();
-              std::size_t node_to_insert = root;
-
-
-              auto h_out_pos       = (*it)->current_h_g->second.get_elem((*it)->location.first);
-              auto [first, second] = extract_edge(h_out_pos, (*it)->location);
-
-              while (node_to_insert != sink)
-                {
-                  info.path.push_back(node_to_insert);
-                  if (first == node_to_insert)
-                    {
-                      node_to_insert = second;
-                      ++it;
-
-                      if (it == sidetracks.cend())
-                        {
-                          auto to_insert = go_shortest(node_to_insert);
-                          info.path.insert(info.path.end(),
-                                           std::make_move_iterator(to_insert.begin()),
-                                           std::make_move_iterator(to_insert.end()));
-
-                          break;
-                        }
-
-                      h_out_pos = (*it)->current_h_g->second.get_elem((*it)->location.first);
-
-                      auto tmp = extract_edge(h_out_pos, (*it)->location);
-                      first    = tmp.first;
-                      second   = tmp.second;
-                    }
-                  else
-                    node_to_insert = dij_res.first[node_to_insert];
-                }
-            }
+          process_path(i);
         }
     }
 

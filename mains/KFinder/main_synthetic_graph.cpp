@@ -106,7 +106,7 @@ main(int argc, char **argv)
 
   std::vector<std::tuple<std::string, Time_Type>> results;
   std::size_t                                     num_tests       = command_line("num_tests", 10);
-  std::size_t                                     max_power_nodes = command_line("max_power_nodes", 17);
+  std::size_t                                     max_power_nodes = command_line("max_power_nodes", 15);
   std::size_t                                     max_power_K     = command_line("max_power_K", 13);
   std::size_t                                     num_devices     = command_line("num_devices", 3);
 
