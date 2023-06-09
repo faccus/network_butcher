@@ -10,7 +10,7 @@ option(BUILD_TESTS "Build tests" ON)
 option(BUILD_COMPLETE_TESTS "Build complete tests" OFF)
 
 option(ENABLE_PARALLEL "Enable parallel execution" OFF)
-option(USE_OPENMP "Use OpenMP" ON)
+option(USE_OPENMP "Use OpenMP" OFF)
 
 option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
 

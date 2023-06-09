@@ -168,9 +168,30 @@ main(int argc, char **argv)
   GetPot      command_line(argc, argv);
   std::string export_path = "report_Constrained_Builder.txt";
 
+#if PARALLEL_OPENMP
+  std::cout << "Is OpenMP enabled? Let's check it!" << std::endl;
+
+  int nthreads, tid;
+
+#  pragma omp parallel default(none) private(nthreads, tid)
+  {
+    /* Obtain thread number */
+    tid = omp_get_thread_num();
+    printf("Hello world from omp thread %d\n", tid);
+
+    /* Only master thread does this */
+    if (tid == 0)
+      {
+        nthreads = omp_get_num_threads();
+        printf("Number of threads = %d\n", nthreads);
+      }
+
+  } /* All threads join master thread and disband */
+#endif
+
   std::vector<std::tuple<std::string, Time_Type>> results;
   std::size_t                                     num_tests = command_line("num_tests", 10);
-  std::size_t                                     max_power = command_line("max_power", 20);
+  std::size_t                                     max_power = command_line("max_power", 22);
 
   Chrono crono;
   {

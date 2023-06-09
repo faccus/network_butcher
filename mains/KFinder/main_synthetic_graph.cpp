@@ -6,6 +6,14 @@
 
 #include "network_butcher.h"
 
+
+/*
+ * In this file, we test how long does the Eppstein and Lazy Eppstein algorithm take to compute the K shortest paths on
+ * a "synthetic" graph, that is an emulation of the block graph. We, in particular, test how long does the algortihm take
+ * to generate K paths both in the only distance and path case, and both for Eppstein and Lazy Eppstein given the number
+ * of nodes
+ * */
+
 using namespace network_butcher;
 using namespace network_butcher::types;
 
@@ -98,8 +106,8 @@ main(int argc, char **argv)
 
   std::vector<std::tuple<std::string, Time_Type>> results;
   std::size_t                                     num_tests       = command_line("num_tests", 10);
-  std::size_t                                     max_power_nodes = command_line("max_power_nodes", 13);
-  std::size_t                                     max_power_K     = command_line("max_power_K", 14);
+  std::size_t                                     max_power_nodes = command_line("max_power_nodes", 17);
+  std::size_t                                     max_power_K     = command_line("max_power_K", 13);
   std::size_t                                     num_devices     = command_line("num_devices", 3);
 
 #if PARALLEL_OPENMP
