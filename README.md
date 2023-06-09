@@ -26,7 +26,7 @@ To easily start to read the project, we think it's best to start from the Genera
 
 ### Requirements:
 
-- cmake version 3.21 (or higher)
+- CMake version 3.21 (or higher)
 - g++ version 8 (or higher)
 
 The remaining libraries (except Doxygen) can be automatically downloaded and (statically) linked by CMake (currently, I
