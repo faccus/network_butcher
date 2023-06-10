@@ -30,7 +30,7 @@ namespace network_butcher
     using new_network = Block_Graph_Type;
 
   private:
-    network graph;
+    network graph; //< The graph to be partitioned
 
   public:
     Butcher() = default;
