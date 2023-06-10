@@ -206,7 +206,9 @@ namespace network_butcher::kfinder
 
 
   /// Simple class used to represent an H_out, a 2-heap with the extra restriction that the first node may have up to a
-  /// single child \tparam T The type of the content of the nodes \tparam Comparison The comparison function to use to
+  /// single child
+  /// \tparam T The type of the content of the nodes
+  /// \tparam Comparison The comparison function to use to
   /// compare the content of the nodes
   template <typename T, typename Comparison>
   class H_out_Type
@@ -385,10 +387,15 @@ namespace network_butcher::kfinder
   };
 
 
-  /// Simple class used to represent an H_g, an heap of H_out. During its construction, several children of ndoes
-  /// contained in the heap do not point to node that are "physically" stored in the heap itself, but instead point to
-  /// nodes that are stored in H_g heap. This is done to avoid the need to copy the entire H_g structure when it's not
-  /// needed. \tparam T The type stored inside each H_out \tparam Comparison The comparison function used to compare two
+  /// Simple class used to represent an H_g, an heap of H_out. During its construction, several children of nodes
+  /// contained in the heap do not point to nodes that are "physically" stored in the heap itself, but instead point to
+  /// nodes that are stored in different H_g heaps. This is done to avoid the need to copy the entire H_g structure
+  /// when it's not needed. Moreover, notice that this class does not implement a proper binary heap, since we will give
+  /// priority during the insertion to the branches that have the least number of children. Thus, we lose the array
+  /// representation of the heap, but, in this way, we both save memory and we can still navigate the heap through
+  /// pointers. This class will still be a valid min-heap (but not a proper binary min-heap).
+  /// \tparam T The type stored inside each H_out
+  /// \tparam Comparison The comparison function used to compare two
   /// elements of type T
   template <typename T, typename Comparison>
   class H_g_Type
@@ -488,28 +495,6 @@ namespace network_butcher::kfinder
   private:
     std::unique_ptr<Internal_Collection_Type> internal_children;
 
-    /// Helper function to perform a (deep) copy of the provided heap
-    /// \param to_copy The heap from which we will copy the children
-    /// \return The pointer to the head node of the copied heap
-    auto
-    recursion_copy(Node_Type const *const &to_copy) -> Node_Type *
-    {
-      // Insert myself
-      internal_children->emplace_back(to_copy->get_content());
-
-      // Get my position
-      Node_Type *elem = &internal_children->back();
-
-      // Add the copy of my children position
-      for (auto const &child : to_copy->get_children())
-        {
-          elem->add_child(recursion_copy(child));
-        }
-
-      // Return my position
-      return elem;
-    }
-
     /// Helper (recursive) function to construct the new H_g from the given H_out and H_g
     /// \param starting_content The initial H_out
     /// \param other_h_g A node of the H_g used to build the new H_g
@@ -519,35 +504,56 @@ namespace network_butcher::kfinder
                                 Node_Type const               *other_h_g,
                                 Node_Type                     *parent)
     {
-      static auto const &comp = Node_Type::comp;
+      static auto const &comp    = Node_Type::comp;
+      bool const         smaller = comp(starting_content, other_h_g->get_content());
 
-      if (comp(starting_content, other_h_g->get_content()))
+      // If the starting content is smaller than the other node, it must be inserted here
+      if (smaller)
         {
           internal_children->emplace_back(starting_content);
-          auto       &inserted_element = internal_children->back();
-          auto       &depth            = inserted_element.get_depth_edit();
-          auto const &new_content      = other_h_g->get_content();
+        }
+      // else, insert the content of the other_h_g node
+      else
+        {
+          internal_children->emplace_back(other_h_g->get_content());
+        }
 
-          if (parent)
+      // Get the newly inserted node
+      auto &inserted_element = internal_children->back();
+      auto &depth            = inserted_element.get_depth_edit();
+
+      // Add the newly added node
+      if (parent)
+        {
+          parent->add_child(&inserted_element);
+        }
+
+      // Get the non-inserted content
+      auto const &new_content = smaller ? other_h_g->get_content() : starting_content;
+
+      // Check if the other_h_g has zero or one children
+      if (other_h_g->get_children().size() < 2)
+        {
+          // In this case, the other_h_g is not a "complete" heap, but instead it's made by up to two nodes. Then, we
+          // just need to insert the non-inserted content as a children of inserted_element and, if other_h_g has a
+          // child (that, by construction, will not have any children) we will insert it as a child of inserted_element
+
+          internal_children->emplace_back(new_content);
+          inserted_element.add_child(&internal_children->back());
+          depth[0] = 0;
+
+          // If the node of the other H_g had an extra child, add it as a child of internal_children
+          if (!other_h_g->get_children().empty())
             {
-              parent->add_child(&internal_children->back());
+              inserted_element.copy_child(0, other_h_g);
+              depth[1] = 0;
             }
-
-          if (other_h_g->get_children().size() < 2)
-            {
-              internal_children->emplace_back(new_content);
-              inserted_element.add_child(&internal_children->back());
-              depth[0] = 0;
-
-              if (!other_h_g->get_children().empty())
-                {
-                  inserted_element.add_child(other_h_g->get_children().front());
-                  depth[1] = 0;
-                }
-
-              return;
-            }
-
+        }
+      // In this case, the other H_g is still a heap. Thus, we will recursively call the function using as a content
+      // the non-inserted content, as the other_h_g we will use the child of the current other_h_g with the smallest
+      // depth and as a parent the inserted_element
+      else
+        {
           depth             = other_h_g->get_depth();
           std::size_t index = std::min(depth.cbegin(), depth.cend()) - depth.cbegin();
 
@@ -555,41 +561,6 @@ namespace network_butcher::kfinder
           ++depth[index];
 
           construction_from_other_h_g(new_content, other_h_g->get_children()[index], &inserted_element);
-        }
-      else
-        {
-          internal_children->emplace_back(other_h_g->get_content());
-          auto &inserted_element = internal_children->back();
-
-          if (parent)
-            {
-              parent->add_child(&inserted_element);
-            }
-
-          if (other_h_g->get_children().size() < 2)
-            {
-              inserted_element.get_depth_edit()[0] = 0;
-              if (!other_h_g->get_children().empty())
-                {
-                  inserted_element.copy_child(0, other_h_g);
-                  inserted_element.get_depth_edit()[1] = 0;
-                }
-
-              internal_children->emplace_back(starting_content);
-              inserted_element.add_child(&internal_children->back());
-            }
-          else
-            {
-              auto &depth = inserted_element.get_depth_edit();
-              depth       = other_h_g->get_depth();
-
-              std::size_t index = std::min(depth.cbegin(), depth.cend()) - depth.cbegin();
-
-              inserted_element.copy_child(1 - index, other_h_g);
-              ++depth[index];
-
-              construction_from_other_h_g(starting_content, other_h_g->get_children()[index], &inserted_element);
-            }
         }
     }
   };
