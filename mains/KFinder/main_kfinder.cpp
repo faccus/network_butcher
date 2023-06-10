@@ -45,7 +45,7 @@ import_graph(const std::string &file_path)
   in_file >> N >> M >> s >> t >> k;
 
   std::vector<network_butcher::types::Node>    nodes(N);
-  Converted_Onnx_Graph_Type::Dependencies_Type deps(N);
+  Converted_Onnx_Graph_Type::Neighbours_Type   deps(N);
   std::vector<std::pair<std::pair<network_butcher::Node_Id_Type, network_butcher::Node_Id_Type>, Test_Weight_Type>>
     edges;
   edges.reserve(M);

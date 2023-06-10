@@ -441,7 +441,7 @@ namespace network_butcher
 
     // It will produce the dependencies for the block graph
     auto const process_full_dependencies = [](std::size_t dep_size, std::size_t supp_size, std::size_t num_devices) {
-      Block_Graph_Type::Dependencies_Type new_dependencies;
+      Block_Graph_Type::Neighbours_Type new_dependencies;
       new_dependencies.reserve(dep_size);
 
       // The first node is fully connected with the first layer
@@ -567,7 +567,7 @@ namespace network_butcher
       [&weights_params = weights_params,
        &block_graph_generation_params =
          block_graph_generation_params](std::size_t dep_size, std::size_t supp_size, std::size_t num_devices) {
-        Block_Graph_Type::Dependencies_Type new_dependencies;
+        Block_Graph_Type::Neighbours_Type new_dependencies;
         new_dependencies.reserve(dep_size);
 
         auto const &bandwidth = weights_params.bandwidth;

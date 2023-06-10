@@ -163,7 +163,7 @@ namespace
     if (backward)
       {
         using g_type = Parameters::Weights::connection_type::element_type;
-        g_type::Dependencies_Type deps(num_devices);
+        g_type::Neighbours_Type deps(num_devices);
 
         for (std::size_t i = 0; i < num_devices; ++i)
           {

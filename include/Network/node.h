@@ -10,7 +10,6 @@
 namespace network_butcher::types
 {
   /// Just another node class...
-  /// \tparam T Type of the content of the node
   class Node
   {
   private:
@@ -53,11 +52,13 @@ namespace network_butcher::types
   class CNode : public Node
   {
   public:
+    /// Alias for the content type
     using Content_Type = T;
 
     /// Node content
     Content_Type content;
 
+    /// Default constructor
     CNode() = default;
 
     /// Basic move constructor for a node

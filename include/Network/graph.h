@@ -16,16 +16,22 @@
 namespace network_butcher::types
 {
   /// Just another graph class...
-  /// \tparam T Type of the content of the nodes
+  /// \tparam Template_Node_Type Type of the content of the nodes
   template <typename Template_Node_Type = Node>
     requires std::is_base_of_v<Node, Template_Node_Type> || std::is_same_v<Node, Template_Node_Type>
   class Graph
   {
   public:
+    /// Type of the collection of the neighbours of each node
     using Neighbours_Type      = std::vector<std::pair<Node_Id_Collection_Type, Node_Id_Collection_Type>>;
+
+    /// Alias for the node type
     using Node_Type            = Template_Node_Type;
+
+    /// Alias for the internal collection of nodes
     using Node_Collection_Type = std::vector<Node_Type>;
 
+    /// Default constructor
     Graph() = default;
 
     /// Construct a new Graph object
@@ -172,15 +178,6 @@ namespace network_butcher::types
     }
 
 
-    /// It deletes the nodes and dependencies of the graph
-    void
-    clear()
-    {
-      nodes.clear();
-      neighbours.clear();
-    }
-
-
     virtual ~Graph() = default;
 
   protected:
@@ -198,10 +195,16 @@ namespace network_butcher::types
   class Graph<CNode<Content<T>>>
   {
   public:
+    /// Type of the collection of the neighbours of each node
     using Neighbours_Type      = std::vector<std::pair<Node_Id_Collection_Type, Node_Id_Collection_Type>>;
+
+    /// Alias for the node type
     using Node_Type            = CNode<Content<T>>;
+
+    /// Alias for the internal collection of nodes
     using Node_Collection_Type = std::vector<Node_Type>;
 
+    /// Default constructor
     Graph() = default;
 
     /// Construct a new Graph object
@@ -224,6 +227,9 @@ namespace network_butcher::types
         }
     }
 
+    /// Construct a new graph object. The nodes will be copied. The neighbours will be computed automatically based on
+    /// the provided nodes
+    /// \param v The collection of nodes
     explicit Graph(Node_Collection_Type const &v)
       : nodes(v)
     {
@@ -235,6 +241,10 @@ namespace network_butcher::types
       compute_dependencies();
     }
 
+
+    /// Construct a new graph object. The nodes will be moved. The neighbours will be computed automatically based on
+    /// the provided nodes
+    /// \param v The collection of nodes
     explicit Graph(Node_Collection_Type &&v)
       : nodes(std::move(v))
     {

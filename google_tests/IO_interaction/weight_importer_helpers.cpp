@@ -103,7 +103,7 @@ namespace
   simple_graph_generator() -> Block_Graph_Type
   {
     std::vector<Block_Graph_Type::Node_Type> nodes;
-    Block_Graph_Type::Dependencies_Type      deps(8);
+    Block_Graph_Type::Neighbours_Type        deps(8);
 
     nodes.emplace_back(std::pair{0, nullptr});
     deps[0].second.insert({1, 2});

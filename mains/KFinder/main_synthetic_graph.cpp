@@ -56,7 +56,7 @@ basic_graph(std::size_t base_nodes, std::size_t num_devices = 3)
       throw std::runtime_error("Number of nodes must be at least 2");
     }
 
-  GraphType::Dependencies_Type deps(2 + (base_nodes - 2) * num_devices);
+  GraphType::Neighbours_Type deps(2 + (base_nodes - 2) * num_devices);
 
 
   for (std::size_t i = 1; i < 1 + num_devices; ++i)

@@ -15,22 +15,53 @@ namespace network_butcher::types
   class WGraph : public MWGraph<Parallel_Edges, Template_Node_Type, T_Weight_Type>
   {
   private:
+    /// Parent type
     using Parent_Type = MWGraph<Parallel_Edges, Template_Node_Type, T_Weight_Type>;
 
+    /// In theory, the method could be used, but we would be asked the num_device, that is not available in this case.
+    /// Thus, the method is made private and a new method with the same name (but the proper signature) is created
+    /// (under the hood, it will just call this method with the num_device=0)
     using Parent_Type::check_weight;
+
+    /// In theory, the method could be used, but we would be asked the num_device, that is not available in this case.
+    /// Thus, the method is made private and a new method with the same name (but the proper signature) is created
+    /// (under the hood, it will just call this method with the num_device=0)
     using Parent_Type::get_num_devices;
+
+    /// In theory, the method could be used, but we would be asked the num_device, that is not available in this case.
+    /// Thus, the method is made private and a new method with the same name (but the proper signature) is created
+    /// (under the hood, it will just call this method with the num_device=0)
     using Parent_Type::get_weight;
+
+    /// In theory, the method could be used, but we would be asked the num_device, that is not available in this case.
+    /// Thus, the method is made private and a new method with the same name (but the proper signature) is created
+    /// (under the hood, it will just call this method with the num_device=0)
     using Parent_Type::print_graph;
+
+    /// In theory, the method could be used, but we would be asked the num_device, that is not available in this case.
+    /// Thus, the method is made private and a new method with the same name (but the proper signature) is created
+    /// (under the hood, it will just call this method with the num_device=0)
     using Parent_Type::set_weight;
 
   public:
-    using Dependencies_Type    = Parent_Type::Dependencies_Type;
-    using Node_Type            = Parent_Type::Node_Type;
+    /// Alias for the type of the collection of the neighbours of each node
+    using Neighbours_Type = Parent_Type::Neighbours_Type;
+
+    /// Alias for the node type
+    using Node_Type = Parent_Type::Node_Type;
+
+    /// Alias for the internal collection of nodes
     using Node_Collection_Type = Parent_Type::Node_Collection_Type;
 
-    using Weight_Type            = Parent_Type::Weight_Type;
-    using Edge_Weight_Type       = Parent_Type::Edge_Weight_Type;
+    /// Alias for the weight type
+    using Weight_Type = Parent_Type::Weight_Type;
 
+    /// Alias for the type of the container containing for each pair of nodes the associated weights
+    using Edge_Weight_Type = Parent_Type::Edge_Weight_Type;
+
+    /// (Perfect forwarding) constructor of WGraph
+    /// \param v The nodes
+    /// \param dep The neighbours
     template <typename A, typename B>
     explicit WGraph(A &&v, B &&dep)
       : Parent_Type(1, std::forward<A>(v), std::forward<B>(dep))
@@ -69,7 +100,7 @@ namespace network_butcher::types
 
     /// Sets the weight for the given edge
     /// \param edge The edge
-    /// \param weights The weight
+    /// \param weights The weights
     void
     set_weight(Edge_Type const &edge, Edge_Weight_Type weights)
       requires Parallel_Edges
@@ -124,35 +155,72 @@ namespace network_butcher::types
   /// \tparam Parallel_Edges If true, the graph will support parallel edges
   /// \tparam T The type of the content of the nodes
   template <bool Parallel_Edges, typename T>
-  class WGraph<Parallel_Edges, CNode<Content<T>>> : public MWGraph<Parallel_Edges, CNode<Content<T>>>
+  class WGraph<Parallel_Edges, CNode<Content<T>>, Time_Type>
+    : public MWGraph<Parallel_Edges, CNode<Content<T>>, Time_Type>
   {
   private:
-    using Parent_Type   = MWGraph<Parallel_Edges, CNode<Content<T>>>;
+    /// Parent type
+    using Parent_Type = MWGraph<Parallel_Edges, CNode<Content<T>>, Time_Type>;
 
-    using T_Weight_Type = Parent_Type::Weight_Type;
-
+    /// In theory, the method could be used, but we would be asked the num_device, that is not available in this case.
+    /// Thus, the method is made private and a new method with the same name (but the proper signature) is created
+    /// (under the hood, it will just call this method with the num_device=0)
     using Parent_Type::check_weight;
+
+    /// In theory, the method could be used, but we would be asked the num_device, that is not available in this case.
+    /// Thus, the method is made private and a new method with the same name (but the proper signature) is created
+    /// (under the hood, it will just call this method with the num_device=0)
     using Parent_Type::get_num_devices;
+
+    /// In theory, the method could be used, but we would be asked the num_device, that is not available in this case.
+    /// Thus, the method is made private and a new method with the same name (but the proper signature) is created
+    /// (under the hood, it will just call this method with the num_device=0)
     using Parent_Type::get_weight;
+
+    /// In theory, the method could be used, but we would be asked the num_device, that is not available in this case.
+    /// Thus, the method is made private and a new method with the same name (but the proper signature) is created
+    /// (under the hood, it will just call this method with the num_device=0)
     using Parent_Type::print_graph;
+
+    /// In theory, the method could be used, but we would be asked the num_device, that is not available in this case.
+    /// Thus, the method is made private and a new method with the same name (but the proper signature) is created
+    /// (under the hood, it will just call this method with the num_device=0)
     using Parent_Type::set_weight;
 
   public:
-    using Dependencies_Type    = Parent_Type::Dependencies_Type;
-    using Node_Type            = Parent_Type::Node_Type;
+    /// Alias for the type of the collection of the neighbours of each node
+    using Neighbours_Type = Parent_Type::Neighbours_Type;
+
+    /// Alias for the node type
+    using Node_Type = Parent_Type::Node_Type;
+
+    /// Alias for the internal collection of nodes
     using Node_Collection_Type = Parent_Type::Node_Collection_Type;
 
-    using Weight_Type            = Parent_Type::Weight_Type;
-    using Edge_Weight_Type       = Parent_Type::Edge_Weight_Type;
+    /// Alias for the weight type
+    using Weight_Type = Parent_Type::Weight_Type;
 
+    /// Alias for the type of the container containing for each pair of nodes the associated weights
+    using Edge_Weight_Type = Parent_Type::Edge_Weight_Type;
+
+    /// (Perfect forwarding) constructor of WGraph
+    /// \param v The nodes
+    /// \param dep The neighbours
     template <typename A, typename B>
     explicit WGraph(A &&v, B &&dep)
       : Parent_Type(1, std::forward<A>(v), std::forward<B>(dep))
     {}
 
+    /// Constructor of WGraph. The nodes are copied. The neighbours are automatically generated based on the provided
+    /// nodes
+    /// \param v The nodes
     explicit WGraph(Node_Collection_Type const &v)
       : Parent_Type(1, v)
     {}
+
+    /// Constructor of WGraph. The nodes are moved. The neighbours are automatically generated based on the provided
+    /// nodes
+    /// \param v The nodes
     explicit WGraph(Node_Collection_Type &&v)
       : Parent_Type(1, std::move(v))
     {}
@@ -182,7 +250,7 @@ namespace network_butcher::types
     /// \param edge The edge
     /// \param weight The weight
     void
-    set_weight(Edge_Type const &edge, T_Weight_Type const &weight)
+    set_weight(Edge_Type const &edge, Weight_Type const &weight)
     {
       Parent_Type::set_weight(0, edge, weight);
     }

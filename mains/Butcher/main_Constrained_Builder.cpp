@@ -89,7 +89,7 @@ basic_transmission(parameters::Parameters::Weights const &weight_params, std::si
 GraphType
 basic_graph(std::size_t num_nodes)
 {
-  GraphType::Dependencies_Type deps(num_nodes);
+  GraphType::Neighbours_Type deps(num_nodes);
 
   deps[0].second.insert(1);
   deps[1].first.insert(0);
@@ -120,7 +120,7 @@ generate_parameters()
   res.block_graph_generation_params.block_graph_mode  = parameters::Block_Graph_Generation_Mode::classic;
   res.block_graph_generation_params.use_bandwidth_to_manage_connections = true;
 
-  g_type::Dependencies_Type deps(4);
+  g_type::Neighbours_Type deps(4);
   deps[0] = std::make_pair(std::set<Node_Id_Type>{0}, std::set<Node_Id_Type>{0, 1, 3});
   deps[1] = std::make_pair(std::set<Node_Id_Type>{0, 1, 2}, std::set<Node_Id_Type>{1, 2});
   deps[2] = std::make_pair(std::set<Node_Id_Type>{1, 2}, std::set<Node_Id_Type>{1, 2, 3});

@@ -9,8 +9,10 @@
 
 namespace network_butcher
 {
-  // using layer_type = Graph<node_type>;
+  /// An Onnx graph will be converted to this type
   using Converted_Onnx_Graph_Type = network_butcher::types::MWGraph<false, Onnx_Converted_Node_Type>;
+
+  /// The block graph type
   using Block_Graph_Type          = network_butcher::types::WGraph<false, Block_Graph_Node_Type>;
 } // namespace network_butcher
 

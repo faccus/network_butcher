@@ -269,7 +269,7 @@ namespace network_butcher::io::IO_Manager
     auto const read_bandwidth = [](auto &file, std::size_t num_devices, parameters::Parameters::Weights &res) {
       using g_type = parameters::Parameters::Weights::connection_type::element_type;
 
-      g_type::Dependencies_Type                                                     connections(num_devices);
+      g_type::Neighbours_Type                                                       connections(num_devices);
       std::map<Edge_Type, std::pair<Bandwidth_Value_Type, Access_Delay_Value_Type>> weights;
 
       auto const error_msg = [](const std::string &name, Node_Id_Type i, Node_Id_Type j) {

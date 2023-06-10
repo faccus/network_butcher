@@ -6,8 +6,8 @@
 
 namespace network_butcher::types
 {
-  /// A custom graph class. It contains a single graph and multiple weight maps. Technically, it can be viewed
-  /// as a collection of graphs with the same structure, but different weight maps.
+  /// A custom graph class. It contains a single graph and multiple weight collections. Technically, it can be viewed
+  /// as a collection of graphs with the same structure, but different weight collections.
   /// \tparam Parallel_Edges If true, the graph will allow parallel edges
   /// \tparam Template_Node_Type The type of the node
   /// \tparam t_weight_type The type of the weight
@@ -15,29 +15,48 @@ namespace network_butcher::types
   class MWGraph : public Graph<Template_Node_Type>
   {
   protected:
+    /// The parent type
     using Parent_Type = Graph<Template_Node_Type>;
 
-
   public:
-    using Dependencies_Type    = Parent_Type::Neighbours_Type;
-    using Node_Type            = Parent_Type::Node_Type;
+    /// Type of the collection of the neighbours of each node
+    using Neighbours_Type = Parent_Type::Neighbours_Type;
+
+    /// Alias for the node type
+    using Node_Type = Parent_Type::Node_Type;
+
+    /// Alias for the internal collection of nodes
     using Node_Collection_Type = Parent_Type::Node_Collection_Type;
 
+    /// Weight type
     using Weight_Type = t_weight_type;
 
   private:
+    /// Helper alias for the weight collection: a vector containing for each node a map to the edge weights, indexed by
+    /// the head node in the edge
     using single_edge_weight_container = std::vector<std::map<Node_Id_Type, Weight_Type>>;
-    using multi_edge_weight_container  = std::vector<std::multimap<Node_Id_Type, Weight_Type>>;
+
+    /// Helper alias for the weight collection: a vector containing for each node a multimap to the edge weights,
+    /// indexed by the head node in the edge
+    using multi_edge_weight_container = std::vector<std::multimap<Node_Id_Type, Weight_Type>>;
 
   public:
+    /// Collection type for the weights of a given pair of nodes
     using Edge_Weight_Type = std::conditional_t<Parallel_Edges, std::multiset<Weight_Type>, Weight_Type>;
+
+    /// The actual weight collection type
     using Weight_Collection_Type =
       std::conditional_t<Parallel_Edges, multi_edge_weight_container, single_edge_weight_container>;
 
   protected:
+    /// The weight collection
     std::vector<Weight_Collection_Type> weigth_map;
 
   public:
+    /// It constructs (using perfect forwarding) a MWGraph
+    /// \param num_maps The number of weight collections to store
+    /// \param v The collection of nodes
+    /// \param dep The collection of neighbours
     template <typename A, typename B>
     explicit MWGraph(std::size_t num_maps, A &&v, B &&dep)
       : Parent_Type(std::forward<A>(v), std::forward<B>(dep))
@@ -76,7 +95,8 @@ namespace network_butcher::types
     {
       if (device >= weigth_map.size())
         {
-          throw std::runtime_error("MWGraph: the device " + Utilities::custom_to_string(device) + " does not exist");
+          throw std::runtime_error("MWGraph::get_weight : the device " + Utilities::custom_to_string(device) +
+                                   " does not exist");
         }
 
       auto const &map = weigth_map[device][edge.first];
@@ -87,13 +107,14 @@ namespace network_butcher::types
         {
           if (Parent_Type::check_edge(edge))
             {
-              throw std::runtime_error("MWGraph: the edge " + Utilities::custom_to_string(edge) +
+              throw std::runtime_error("MWGraph::get_weight : the edge " + Utilities::custom_to_string(edge) +
                                        " was not associated with any weight of device " +
                                        Utilities::custom_to_string(device));
             }
           else
             {
-              throw std::runtime_error("MWGraph: the edge " + Utilities::custom_to_string(edge) + " does not exist");
+              throw std::runtime_error("MWGraph::get_weight : the edge " + Utilities::custom_to_string(edge) +
+                                       " does not exist");
             }
         }
 
@@ -120,7 +141,8 @@ namespace network_butcher::types
     {
       if (!Parent_Type::check_edge(edge))
         {
-          throw std::runtime_error("MWGraph: the edge " + Utilities::custom_to_string(edge) + " does not exist");
+          throw std::runtime_error("MWGraph:: set_weight: the edge " + Utilities::custom_to_string(edge) +
+                                   " does not exist");
         }
 
       if constexpr (Parallel_Edges)
@@ -148,7 +170,8 @@ namespace network_butcher::types
         }
       else
         {
-          throw std::runtime_error("MWGraph: the edge " + Utilities::custom_to_string(edge) + " does not exist");
+          throw std::runtime_error("MWGraph::set_weight : the edge " + Utilities::custom_to_string(edge) +
+                                   " does not exist");
         }
     }
 
@@ -225,36 +248,56 @@ namespace network_butcher::types
     ~MWGraph() override = default;
   };
 
-  /// A custom graph class. It contains a single graph and multiple weight maps. Technically, it can be viewed
-  /// as a collection of graphs with the same structure, but different weight maps.
+  /// A custom graph class. It contains a single graph and multiple weight collections. Technically, it can be viewed
+  /// as a collection of graphs with the same structure, but different weight collections.
   /// \tparam Parallel_Edges If true, the graph will allow parallel edges
   /// \tparam T The content type of each CNode
   template <bool Parallel_Edges, typename T>
   class MWGraph<Parallel_Edges, CNode<Content<T>>, Time_Type> : public Graph<CNode<Content<T>>>
   {
-  private:
+  protected:
+    /// The parent type
     using Parent_Type = Graph<CNode<Content<T>>>;
 
   public:
-    using Dependencies_Type    = Parent_Type::Neighbours_Type;
-    using Node_Type            = Parent_Type::Node_Type;
+    /// Type of the collection of the neighbours of each node
+    using Neighbours_Type = Parent_Type::Neighbours_Type;
+
+    /// Alias for the node type
+    using Node_Type = Parent_Type::Node_Type;
+
+    /// Alias for the internal collection of nodes
     using Node_Collection_Type = Parent_Type::Node_Collection_Type;
 
+    /// Weight type
     using Weight_Type = Time_Type;
 
   private:
+    /// Helper alias for the weight collection: a vector containing for each node a map to the edge weights, indexed by
+    /// the head node in the edge
     using single_edge_weight_container = std::vector<std::map<Node_Id_Type, Weight_Type>>;
-    using multi_edge_weight_container  = std::vector<std::multimap<Node_Id_Type, Weight_Type>>;
+
+    /// Helper alias for the weight collection: a vector containing for each node a multimap to the edge weights,
+    /// indexed by the head node in the edge
+    using multi_edge_weight_container = std::vector<std::multimap<Node_Id_Type, Weight_Type>>;
 
   public:
+    /// Collection type for the weights of a given pair of nodes
     using Edge_Weight_Type = std::conditional_t<Parallel_Edges, std::multiset<Weight_Type>, Weight_Type>;
+
+    /// The actual weight collection type
     using Weight_Collection_Type =
       std::conditional_t<Parallel_Edges, multi_edge_weight_container, single_edge_weight_container>;
 
   protected:
+    /// The weight collection
     std::vector<Weight_Collection_Type> weigth_map;
 
   public:
+    /// It constructs (using perfect forwarding) a MWGraph
+    /// \param num_maps The number of weight collections to store
+    /// \param v The collection of nodes
+    /// \param dep The collection of neighbours
     template <typename A, typename B>
     explicit MWGraph(std::size_t num_maps, A &&v, B &&dep)
       : Parent_Type(std::forward<A>(v), std::forward<B>(dep))
@@ -264,6 +307,7 @@ namespace network_butcher::types
         {
           throw std::runtime_error("MWGraph: the number of maps must be greater than 0");
         }
+
       weigth_map.resize(num_maps);
       for (auto &map : weigth_map)
         {
@@ -271,6 +315,10 @@ namespace network_butcher::types
         }
     }
 
+    /// It constructs (using perfect forwarding) a MWGraph. The neighbours of each node are computed using the
+    /// provided collection of nodes
+    /// \param num_maps The number of weight collections to store
+    /// \param v The collection of nodes
     template <typename A>
     explicit MWGraph(std::size_t num_maps, A &&v)
       : Parent_Type(std::forward<A>(v))
@@ -308,7 +356,8 @@ namespace network_butcher::types
     {
       if (device >= weigth_map.size())
         {
-          throw std::runtime_error("MWGraph: the device " + Utilities::custom_to_string(device) + " does not exist");
+          throw std::runtime_error("MWGraph::get_weight : the device " + Utilities::custom_to_string(device) +
+                                   " does not exist");
         }
 
       auto const &map = weigth_map[device][edge.first];
@@ -319,13 +368,14 @@ namespace network_butcher::types
         {
           if (Parent_Type::check_edge(edge))
             {
-              throw std::runtime_error("MWGraph: the edge " + Utilities::custom_to_string(edge) +
+              throw std::runtime_error("MWGraph::get_weight : the edge " + Utilities::custom_to_string(edge) +
                                        " was not associated with any weight of device " +
                                        Utilities::custom_to_string(device));
             }
           else
             {
-              throw std::runtime_error("MWGraph: the edge " + Utilities::custom_to_string(edge) + " does not exist");
+              throw std::runtime_error("MWGraph::get_weight : the edge " + Utilities::custom_to_string(edge) +
+                                       " does not exist");
             }
         }
 
@@ -352,7 +402,8 @@ namespace network_butcher::types
     {
       if (!Parent_Type::check_edge(edge))
         {
-          throw std::runtime_error("MWGraph: the edge " + Utilities::custom_to_string(edge) + " does not exist");
+          throw std::runtime_error("MWGraph:: set_weight: the edge " + Utilities::custom_to_string(edge) +
+                                   " does not exist");
         }
 
       if constexpr (Parallel_Edges)
@@ -381,7 +432,8 @@ namespace network_butcher::types
         }
       else
         {
-          throw std::runtime_error("MWGraph: the edge " + Utilities::custom_to_string(edge) + " does not exist");
+          throw std::runtime_error("MWGraph::set_weight : the edge " + Utilities::custom_to_string(edge) +
+                                   " does not exist");
         }
     }
 

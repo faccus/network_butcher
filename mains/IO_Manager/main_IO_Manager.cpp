@@ -63,7 +63,7 @@ base_parameters(std::size_t k, std::size_t num_devices)
     res.devices[i].id = i;
 
   using g_type = parameters::Parameters::Weights::connection_type::element_type;
-  g_type::Dependencies_Type deps(num_devices);
+  g_type::Neighbours_Type deps(num_devices);
 
   for (std::size_t i = 0; i < num_devices; ++i)
     {
