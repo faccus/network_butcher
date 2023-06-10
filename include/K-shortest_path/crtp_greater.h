@@ -1,5 +1,5 @@
-#ifndef NETWORK_BUTCHER_CRTP_GRATER_H
-#define NETWORK_BUTCHER_CRTP_GRATER_H
+#ifndef NETWORK_BUTCHER_CRTP_GREATER_H
+#define NETWORK_BUTCHER_CRTP_GREATER_H
 
 namespace network_butcher::kfinder
 {
@@ -18,4 +18,4 @@ namespace network_butcher::kfinder
 } // namespace network_butcher::kfinder
 
 
-#endif // NETWORK_BUTCHER_CRTP_GRATER_H
+#endif // NETWORK_BUTCHER_CRTP_GREATER_H

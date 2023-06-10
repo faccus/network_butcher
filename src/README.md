@@ -2,8 +2,8 @@
 
 This directory contains the source files of the program. The main directories are:
 
-- APSC: This directory contains the source files of libraries taken from the APSC repository
-- IO_Interaction: It contains the source files used to interact with the onnx files and the yaml files
+- APSC: This directory contains the source files of libraries taken from the APSC repository.
+- IO_Interaction: It contains the source files used to interact with the onnx files and the yaml files.
 - Types: It contains the source files for the custom types
 
 This directory also contains:

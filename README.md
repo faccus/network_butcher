@@ -4,8 +4,8 @@
 
 The project is structured into three main directories:
 
-- include: It contains all the header files
-- src: It contains all the source files
+- include: It contains all the header files. A [README](include/README.md) file describing its contents is also available.
+- src: It contains all the source files. A [README](src/README.md) file describing its contents is also available.
 - google_tests: It contains all the source files of the tests
 - mains: It contains a collection of main files to test the performances of the program
 
@@ -29,8 +29,7 @@ To easily start to read the project, we think it's best to start from the Genera
 - CMake version 3.21 (or higher)
 - g++ version 8 (or higher)
 
-The remaining libraries (except Doxygen) can be automatically downloaded and (statically) linked by CMake (currently, I
-have tested it only for Ubuntu systems). 
+The remaining libraries (except Doxygen) can be automatically downloaded and (statically) linked by CMake. 
 They may be installed manually:
 
 - [Protobuf v3.17.3](https://github.com/protocolbuffers/protobuf/releases/tag/v3.17.3) (Required)

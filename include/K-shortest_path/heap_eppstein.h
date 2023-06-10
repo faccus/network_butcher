@@ -6,7 +6,7 @@
 #include <memory>
 #include <utility>
 
-#include "crtp_grater.h"
+#include "crtp_greater.h"
 #include "traits.h"
 
 namespace network_butcher::kfinder
