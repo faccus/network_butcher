@@ -523,15 +523,38 @@ namespace network_butcher::kfinder
 
       if (comp(starting_content, other_h_g->get_content()))
         {
-          Node_Type *father = recursion_copy(other_h_g);
+          internal_children->emplace_back(starting_content);
+          auto       &inserted_element = internal_children->back();
+          auto       &depth            = inserted_element.get_depth_edit();
+          auto const &new_content      = other_h_g->get_content();
 
           if (parent)
             {
-              parent->add_child(father);
+              parent->add_child(&internal_children->back());
             }
 
-          internal_children->emplace_back(starting_content);
-          father->push(&internal_children->back());
+          if (other_h_g->get_children().size() < 2)
+            {
+              internal_children->emplace_back(new_content);
+              inserted_element.add_child(&internal_children->back());
+              depth[0] = 0;
+
+              if (!other_h_g->get_children().empty())
+                {
+                  inserted_element.add_child(other_h_g->get_children().front());
+                  depth[1] = 0;
+                }
+
+              return;
+            }
+
+          depth             = other_h_g->get_depth();
+          std::size_t index = std::min(depth.cbegin(), depth.cend()) - depth.cbegin();
+
+          inserted_element.copy_child(1 - index, other_h_g);
+          ++depth[index];
+
+          construction_from_other_h_g(new_content, other_h_g->get_children()[index], &inserted_element);
         }
       else
         {
@@ -545,14 +568,11 @@ namespace network_butcher::kfinder
 
           if (other_h_g->get_children().size() < 2)
             {
-              if (other_h_g->get_children().empty())
-                {
-                  inserted_element.get_depth_edit()[0] = 0;
-                }
-              else
+              inserted_element.get_depth_edit()[0] = 0;
+              if (!other_h_g->get_children().empty())
                 {
                   inserted_element.copy_child(0, other_h_g);
-                  inserted_element.get_depth_edit() = {0, 0};
+                  inserted_element.get_depth_edit()[1] = 0;
                 }
 
               internal_children->emplace_back(starting_content);
