@@ -44,15 +44,24 @@ namespace network_butcher::kfinder
   class Weighted_Graph : Base_Weighted_Graph
   {
   public:
+    /// Alias for the weight type
     using Weight_Type = t_Weight_Type;
 
+    /// Alias for the edge type
     using Edge_Type = std::pair<Node_Id_Type, Node_Id_Type>;
 
-    using Graph_Type       = InternalGraphType;
+    /// Alias for the graph type
+    using Graph_Type = InternalGraphType;
+
+    /// Alias for the weights of a pair of nodes
     using Weight_Edge_Type = std::multiset<Weight_Type>;
 
-    using Node_Type            = t_Node_Type;
+    /// Alias for the node type
+    using Node_Type = t_Node_Type;
+
+    /// Alias for the node collection type
     using Node_Collection_Type = t_Node_Collection_Type;
+
 
     /// It should return the weight(s) of the edge
     /// \param edge The edge
@@ -117,11 +126,10 @@ namespace network_butcher::kfinder
     Graph_Type const &graph;
   };
 
-
+  /// Simple concept that checks if T is a child class of Base_Weighted_Graph
+  /// \tparam T The considered type. It should be a child of Base_Weighted_Graph
   template <typename T>
   concept Valid_Weighted_Graph = std::is_base_of_v<Base_Weighted_Graph, T>;
-
-
 } // namespace network_butcher::kfinder
 
 #endif // NETWORK_BUTCHER_WEIGHTED_GRAPH_H

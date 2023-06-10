@@ -9,13 +9,20 @@
 
 namespace network_butcher::kfinder::Shortest_path_finder::utilities
 {
-  /// A helper struct for the Dijkstra algorithm
+  /// A helper struct for the Dijkstra algorithm (we lose aggregate status, but we can use the emplace methods of STL
+  /// containers)
   template <typename Weight_Type = Time_Type>
   struct Dijkstra_Helper : Crtp_Greater<Dijkstra_Helper<Weight_Type>>
   {
-    Weight_Type  weight;
+    /// Weight of the node
+    Weight_Type weight;
+
+    /// Node id
     Node_Id_Type id;
 
+    /// Simple constructor
+    /// \param w Weight
+    /// \param i Index
     Dijkstra_Helper(Weight_Type w, Node_Id_Type i)
       : weight(w)
       , id(i)
@@ -28,7 +35,7 @@ namespace network_butcher::kfinder::Shortest_path_finder::utilities
     }
   };
 
-  /// Given the tail and the head of the edge, it will produce the associated weight
+  /// Given a pair of nodes, it will produce the smallest weight associated to one of the edges made by the pair
   /// \param graph The graph
   /// \param tail The tail node id
   /// \param head The head node id
@@ -46,11 +53,14 @@ namespace network_butcher::kfinder::Shortest_path_finder::utilities
 namespace network_butcher::kfinder::Shortest_path_finder
 {
   /// The output type of the Dijkstra algorithm
+  /// \tparam Weight_Type The weight type
   template <typename Weight_Type = Time_Type>
   using Templated_Dijkstra_Result_Type = std::pair<std::vector<Node_Id_Type>, std::vector<Weight_Type>>;
 
 
-  /// Executes Dijkstra algorithm to compute the shortest paths from the root to every node of the graph
+  /// Executes Dijkstra algorithm to compute the shortest paths from the root to every node of the graph. The overall
+  /// time complexity should be O((N+E)*log(N))
+  /// \tparam v_Weighted_Graph The weighted graph type
   /// \param graph The graph
   /// \param root The starting vertex
   /// \return The collection of successor and shortest distances
@@ -58,7 +68,7 @@ namespace network_butcher::kfinder::Shortest_path_finder
   [[nodiscard]] auto
   dijkstra(v_Weighted_Graph const &graph,
            Node_Id_Type            root)
-    -> Templated_Dijkstra_Result_Type<typename v_Weighted_Graph::Weight_Type> // time: ((N+E)log(N)), space: O(N)
+    -> Templated_Dijkstra_Result_Type<typename v_Weighted_Graph::Weight_Type> // time: ((N+E)log(N))
   {
     using Weight_Type            = typename v_Weighted_Graph::Weight_Type;
     using dijkstra_result_type   = Templated_Dijkstra_Result_Type<Weight_Type>;
@@ -75,6 +85,7 @@ namespace network_butcher::kfinder::Shortest_path_finder
     std::vector<Node_Id_Type> predecessors(graph.size(), std::numeric_limits<Node_Id_Type>::max()); // O(N)
     predecessors[root] = root;
 
+    // We are using a set instead of a priority_queue to have O(log(N)) erase
     std::set<dijkstra_helper_struct> to_visit;
     to_visit.emplace(0, root);
 
@@ -90,38 +101,41 @@ namespace network_butcher::kfinder::Shortest_path_finder
       return error_msg.str();
     };
 
+    // The complexity due to the loop is considered below
     while (!to_visit.empty())
       {
-        // auto current_node = to_visit.pop_head(); // O(log(N))
-        auto current_node = std::move(to_visit.extract(to_visit.begin()).value()); // O(log(N))
+        auto current_node =
+          std::move(to_visit.extract(to_visit.begin()).value());      // O(N*log(N)), O(log(N)) up to once per node
 
-        auto const &start_distance = total_distance[current_node.id];
+        auto const &start_distance = total_distance[current_node.id]; // O(N), O(1) once per node
         if (start_distance == std::numeric_limits<Weight_Type>::max())
           {
             throw std::logic_error("Dijkstra error: the node current distance is +inf");
           }
 
-        for (auto const &head_node : graph.get_output_nodes(current_node.id)) // O(M)
+        for (auto const &head_node :
+             graph.get_output_nodes(current_node.id)) // O(M) taking into account the previous loop
           {
             if (head_node == current_node.id)
               continue;
 
-            auto      &base_distance = total_distance[head_node];                                // O(1)
-            auto const weight        = utilities::get_weight(graph, current_node.id, head_node); // O(log(N))
+            auto      &base_distance = total_distance[head_node];       // O(1)
+            auto const weight =
+              utilities::get_weight(graph, current_node.id, head_node); // Up to O(log(N)) base on the underlying graph
 
             if (weight < 0)
               {
                 throw std::logic_error(error_message(current_node.id, head_node));
               }
 
-            auto const candidate_distance = start_distance + weight; // O(1)
-            if (candidate_distance < base_distance)                  // O(1)
+            auto const candidate_distance = start_distance + weight;              // O(1)
+            if (candidate_distance < base_distance)                               // O(1)
               {
                 to_visit.erase(dijkstra_helper_struct(base_distance, head_node)); // O(log(N)
 
-                predecessors[head_node] = current_node.id;           // O(1)
-                base_distance           = candidate_distance;        // O(1)
-                to_visit.emplace(candidate_distance, head_node);     // O(log(N))
+                predecessors[head_node] = current_node.id;                        // O(1)
+                base_distance           = candidate_distance;                     // O(1)
+                to_visit.emplace(candidate_distance, head_node);                  // O(log(N))
               }
           }
       }

@@ -17,19 +17,39 @@ namespace network_butcher::kfinder
   class KFinder_Eppstein final : public Basic_KEppstein<GraphType, Only_Distance, t_Weighted_Graph_Complete_Type>
   {
   private:
+    /// The parent type. Used to access quickly to the parent methods
     using Parent_Type = Basic_KEppstein<GraphType, Only_Distance, t_Weighted_Graph_Complete_Type>;
 
   public:
+    /// The type of the output of the algorithm
     using Output_Type = Parent_Type::Output_Type;
 
   private:
-    using Edge_Info   = Parent_Type::Edge_Info;
+    /// Bring forward the graph
+    using Parent_Type::graph;
+
+    /// Bring forward the root node id
+    using Parent_Type::root;
+
+    /// Bring forward the sink node id
+    using Parent_Type::sink;
+
+    /// Type for an edge with its weight
+    using Edge_Info = Parent_Type::Edge_Info;
+
+    /// Weight Type
     using Weight_Type = Parent_Type::Weight_Type;
 
-    using Dijkstra_Result_Type            = Parent_Type::Dijkstra_Result_Type;
+    /// Type of the result of the Dijkstra algorithm
+    using Dijkstra_Result_Type = Parent_Type::Dijkstra_Result_Type;
+
+    /// Type of collection of weights. Used to map edges to their sidetrack weights
     using Internal_Weight_Collection_Type = Parent_Type::Internal_Weight_Collection_Type;
 
-    using H_g_collection   = Parent_Type::H_g_collection;
+    /// Type of the collection of H_g
+    using H_g_collection = Parent_Type::H_g_collection;
+
+    /// Type of the collection of H_out
     using H_out_collection = Parent_Type::H_out_collection;
 
 
@@ -43,7 +63,7 @@ namespace network_butcher::kfinder
                     Internal_Weight_Collection_Type const &sidetrack_distances) const -> H_out_collection;
 
 
-    /// It will produce the map associating every node to its corresponding H_g map. O(N^2)
+    /// It will produce the map associating every node to its corresponding H_g map. O(N*log(N))
     /// \param h_out_collection The collection of h_outs
     /// \param successors The successors list
     /// \return The map associating every node to its corresponding H_g map
@@ -76,15 +96,16 @@ namespace network_butcher::kfinder
   template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
   auto
   KFinder_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::start(
-    std::size_t                 K,
-    Dijkstra_Result_Type const &dij_res,
+    std::size_t                            K,
+    Dijkstra_Result_Type const            &dij_res,
     Internal_Weight_Collection_Type const &sidetrack_distances) const -> Output_Type
   {
     auto const &successors = dij_res.first;
 
-    auto h_out = construct_h_out(successors, sidetrack_distances); // O(N+E)
-    auto h_g = construct_h_g(h_out, successors); // O(N*log(N))
+    auto h_out = construct_h_out(successors, sidetrack_distances); // O(E)
+    auto h_g   = construct_h_g(h_out, successors);     // O(N*log(N))
 
+    // O(K*log(K)) + O(Path_reconstruction)
     return Parent_Type::general_algo_eppstein(K, dij_res, sidetrack_distances, h_g, h_out);
   }
 
@@ -138,22 +159,19 @@ namespace network_butcher::kfinder
   auto
   KFinder_Eppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::construct_h_g(
     const H_out_collection          &h_out_collection,
-    const std::vector<Node_Id_Type> &successors) const -> H_g_collection // O(N^2)
+    const std::vector<Node_Id_Type> &successors) const -> H_g_collection
   {
-    H_g_collection h_g_collection;
-
-    auto const &graph     = Parent_Type::graph;
     auto const &num_nodes = graph.size();
-    auto const &sink      = Parent_Type::sink;
 
+    H_g_collection h_g_collection;
     h_g_collection.reserve(graph.size());
 
-    // sp_dependencies contains the predecessors of every node in the shortest path. Notice
-    // that the sum of the sizes of all the stored sets is at most N
+    // sp_dependencies contains the predecessors of every node in the shortest path.
     std::vector<std::set<Node_Id_Type>> sp_dependencies;
     sp_dependencies.resize(num_nodes);
 
-    for (auto const &node : graph)
+    // At worst, since each node is contained in up to a single sp_dependencies, the loop takes at most O(N*log(N))
+    for (auto const &node : graph) // O(N)
       {
         auto const &node_id   = node.get_id();
         auto const &successor = successors[node_id];
@@ -166,7 +184,7 @@ namespace network_butcher::kfinder
       }
 
     // The actual generation of the H_g should now start from the sink node
-    auto h_out_iterator = h_out_collection.find(sink); // O(1)
+    auto h_out_iterator = h_out_collection.find(sink); // O(1), it always exists
 
     // Prepare the last H_g
     h_g_collection.emplace(sink, typename H_g_collection::mapped_type(&h_out_iterator->second)); // O(1)
@@ -176,7 +194,7 @@ namespace network_butcher::kfinder
     for (auto const &node : graph) // O(N)
       {
         auto const &id = node.get_id();
-        if (successors[id] == sink && id != sink) // O(log(N))
+        if (successors[id] == sink && id != sink) // O(1)
           queue.push(id);
       }
 
@@ -185,8 +203,8 @@ namespace network_butcher::kfinder
       {
         auto const &front_element = queue.front();
 
-        // Find the "new" nodes that must be added to the queue. At the end this iteration, their H_g can be computed
-        auto       &deps          = sp_dependencies[front_element];                         // O(1)
+        // Find the "new" nodes that must be added to the queue.
+        auto       &deps          = sp_dependencies[front_element];       // O(1)
         auto const &successor_h_g = h_g_collection.find(successors[front_element])->second; // O(1)
 
         h_g_collection.emplace(front_element,

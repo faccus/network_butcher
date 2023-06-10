@@ -20,8 +20,13 @@ namespace network_butcher::kfinder
   class KFinder_Factory
   {
   private:
+    /// KFinder type
     using kfinder_type = KFinder<GraphType, Only_Distance, t_Weighted_Graph_Complete_Type>;
+
+    /// Type of the builder function
     using Builder_type = std::function<std::unique_ptr<kfinder_type>(GraphType const &, Node_Id_Type, Node_Id_Type)>;
+
+    /// Type of underlying factory
     using Factory      = GenericFactory::Factory<kfinder_type, std::string, Builder_type>;
 
     /// The factory. Private constructor to use singleton pattern

@@ -5,6 +5,7 @@
 #include <list>
 #include <optional>
 #include <ranges>
+#include <variant>
 
 #include "heap_traits.h"
 #include "shortest_path_finder.h"
@@ -217,7 +218,7 @@ namespace network_butcher::kfinder
     sidetrack_distances(Dijkstra_Result_Type const &dij_res) const -> Internal_Weight_Collection_Type;
 
 
-    /// Given the input sidetrack, it will return the vector of next alternative sidetracks
+    /// Given the input sidetrack, it will return the vector of next alternative sidetracks O(1)
     /// \param current_sidetrack The current sidetrack
     /// \return The vector of next alternative sidetracks
     [[nodiscard]] auto
@@ -287,7 +288,11 @@ namespace network_butcher::kfinder
     if (graph.empty() || K == 0)
       return {};
 
-    auto const dij_res = Shortest_path_finder::dijkstra(graph.reverse(), sink); // time:
+    auto const dij_res = Shortest_path_finder::dijkstra(graph.reverse(), sink);
+
+    // If the shortest path doesn't exist, then we can return an empty vector
+    if (dij_res.second[root] == std::numeric_limits<Weight_Type>::max())
+      return {};
 
     if (K == 1)
       {
@@ -316,10 +321,6 @@ namespace network_butcher::kfinder
     const Basic_KEppstein::Callback_Function &callback_fun) const -> Output_Type
   {
     auto const &[successors, shortest_distance] = dij_res;
-
-    // If the shortest path doesn't exist, then we can return an empty vector
-    if (shortest_distance[root] == std::numeric_limits<Weight_Type>::max())
-      return {};
 
     // Start with the shortest path
     std::vector<Implicit_Path_Info> res;
@@ -567,7 +568,7 @@ namespace network_butcher::kfinder
 
     auto const &[successors, distances_from_sink] = dij_res;
 
-    for (auto const &tail_node : graph)
+    for (auto const &tail_node : graph) // The overall loop has worst case complexity O(E)
       {
         auto const &tail = tail_node.get_id();
         if (distances_from_sink[tail] == std::numeric_limits<Weight_Type>::max())

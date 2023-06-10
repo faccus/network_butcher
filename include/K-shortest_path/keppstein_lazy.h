@@ -17,25 +17,47 @@ namespace network_butcher::kfinder
   class KFinder_Lazy_Eppstein final : public Basic_KEppstein<GraphType, Only_Distance, t_Weighted_Graph_Complete_Type>
   {
   private:
+    /// The parent type. Used to access quickly to the parent methods
     using Parent_Type = Basic_KEppstein<GraphType, Only_Distance, t_Weighted_Graph_Complete_Type>;
 
   public:
+    /// The type of the output of the algorithm
     using Output_Type = Parent_Type::Output_Type;
 
   private:
-    using Edge_Info   = Parent_Type::Edge_Info;
+    /// Bring forward the graph
+    using Parent_Type::graph;
+
+    /// Bring forward the root node id
+    using Parent_Type::root;
+
+    /// Bring forward the sink node id
+    using Parent_Type::sink;
+
+    /// Type for an edge with its weight
+    using Edge_Info = Parent_Type::Edge_Info;
+
+    /// Weight Type
     using Weight_Type = Parent_Type::Weight_Type;
 
-    using Dijkstra_Result_Type            = Parent_Type::Dijkstra_Result_Type;
+    /// Type of the result of the Dijkstra algorithm
+    using Dijkstra_Result_Type = Parent_Type::Dijkstra_Result_Type;
+
+    /// Type of collection of weights. Used to map edges to their sidetrack weights
     using Internal_Weight_Collection_Type = Parent_Type::Internal_Weight_Collection_Type;
 
-    using H_g_collection   = Parent_Type::H_g_collection;
+    /// Type of the collection of H_g
+    using H_g_collection = Parent_Type::H_g_collection;
+
+    /// Type of the collection of H_out
     using H_out_collection = Parent_Type::H_out_collection;
 
+    /// Type of the callback function
     using Callback_Function = Parent_Type::Callback_Function;
 
-    /// It will generate the callback function using during the Eppstein main loop to construct the required H_gs (and
-    /// H_outs) \return The generator function
+    /// It will generate the callback function used during the Eppstein main loop to construct the required H_gs (and
+    /// H_outs)
+    /// \return The generator function
     auto
     construct_h_g_builder() const -> Callback_Function;
 
@@ -70,25 +92,25 @@ namespace network_butcher::kfinder
     H_out_collection h_out;
     H_g_collection   h_g;
 
-    h_out.reserve(this->graph.size()); // Reserve space for the h_out collection (O(V)
-    h_g.reserve(this->graph.size());   // Reserve space for the h_g collection (O(V)
+    h_out.reserve(graph.size()); // Reserve space for the h_out collection O(N)
+    h_g.reserve(graph.size());   // Reserve space for the h_g collection   O(N)
 
     auto const &[successors, distances] = dij_res;
 
-    if (distances[Parent_Type::root] == std::numeric_limits<Weight_Type>::max())
+    if (distances[root] == std::numeric_limits<Weight_Type>::max())
       return {};
 
     std::list<Node_Id_Type> to_compute;
-    to_compute.push_back(Parent_Type::root);
+    to_compute.push_back(root);
 
-    while (to_compute.back() != Parent_Type::sink)
+    while (to_compute.back() != sink) // O(N)
       to_compute.push_back(successors[to_compute.back()]);
 
-    auto fun = construct_h_g_builder();
+    auto const fun = construct_h_g_builder(); // O(1)
 
-    while (!to_compute.empty())
+    while (!to_compute.empty())         // O(E + N*log(N))
       {
-        fun(h_g, h_out, sidetrack_distances, successors, to_compute.back(), Parent_Type::graph);
+        fun(h_g, h_out, sidetrack_distances, successors, to_compute.back(), graph);
         to_compute.pop_back();
       }
 
@@ -108,12 +130,12 @@ namespace network_butcher::kfinder
                                     auto        tail,
                                     auto const &graph) -> auto {
       // If we can find the required H_out, return it
-      auto h_out_it = h_out_collection.find(tail);
+      auto h_out_it = h_out_collection.find(tail); // O(1)
       if (h_out_it != h_out_collection.cend())
         return h_out_it;
 
       std::vector<Edge_Info> to_insert;
-      auto const            &out_nodes = graph.get_output_nodes(tail);
+      auto const            &out_nodes = graph.get_output_nodes(tail); // O(1)
 
       to_insert.reserve(sidetrack_distances[tail].size());
 
@@ -148,7 +170,7 @@ namespace network_butcher::kfinder
                                             auto                                  &func,
                                             auto const                            &graph) {
         // If H_g has been already computed, return it
-        auto iterator = h_g.find(node);
+        auto iterator = h_g.find(node); // O(1)
 
         if (iterator != h_g.cend())
           return iterator;
@@ -167,11 +189,11 @@ namespace network_butcher::kfinder
             return h_g
               .emplace(node,
                        typename H_g_collection::mapped_type(&(to_insert_h_out->second), previous_inserted_h_g->second))
-              .first;
+              .first; // O(log(N))
           }
         else
           {
-            return h_g.emplace(node, typename H_g_collection::mapped_type(&(to_insert_h_out->second))).first;
+            return h_g.emplace(node, typename H_g_collection::mapped_type(&(to_insert_h_out->second))).first; // O(1)
           }
       };
 

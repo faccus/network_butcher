@@ -18,7 +18,6 @@ namespace network_butcher::kfinder
     using Weighted_Graph_Complete_Type = t_Weighted_Graph_Complete_Type;
     using Weight_Type                  = Weighted_Graph_Complete_Type::Weight_Type;
 
-
     Weighted_Graph_Complete_Type graph;
     Node_Id_Type                 root;
     Node_Id_Type                 sink;
