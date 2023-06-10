@@ -8,10 +8,12 @@
 namespace network_butcher::Utilities
 {
   /// Simple class used to convert the output of the K-shortest path algorithms to std::vector<Weighted_Real_Path>
+  /// \tparam Weight_Type The type of the weight
   template <typename Weight_Type = Time_Type>
   class Path_Converter
   {
   private:
+    /// The block graph. Used to reconstruct the paths
     Block_Graph_Type const &graph;
 
   public:
@@ -82,9 +84,9 @@ namespace network_butcher::Utilities
         return network_butcher::types::Weighted_Real_Path{path.length, res};
       });
 #else
-#  pragma omp parallel default(none) shared(final_res, paths)
+    #pragma omp parallel default(none) shared(final_res, paths)
     {
-#  pragma omp for
+      #pragma omp for
       for (std::size_t i = 0; i < paths.size(); ++i)
         {
           auto const &path     = paths[i];
