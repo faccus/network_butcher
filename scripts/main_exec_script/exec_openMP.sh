@@ -1,6 +1,6 @@
 for i in 2 4 8 16
 do
-   mkdir -p ../results/FINAL/Revision/OpenMP/$i
+   mkdir -p ../results/FINAL/OpenMP/$i
    export OMP_NUM_THREADS=$i
    echo $OMP_NUM_THREADS
 
@@ -10,6 +10,6 @@ do
    ./main_Constrained_Builder
    ./main_IO_Manager
    ./main_path_reconstruction
-   mv report_* ../results/FINAL/Revision/OpenMP/$i
+   mv report_* ../results/FINAL/OpenMP/$i
    
 done

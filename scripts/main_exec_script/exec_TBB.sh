@@ -1,4 +1,4 @@
-mkdir -p ../results/FINAL/Revision/TBB
+mkdir -p ../results/FINAL/TBB
 export OMP_NUM_THREADS=$i
 echo $OMP_NUM_THREADS
 
@@ -8,4 +8,4 @@ echo $OMP_NUM_THREADS
 ./main_Constrained_Builder
 ./main_IO_Manager
 ./main_path_reconstruction
-mv report_* ../results/FINAL/Revision/TBB
+mv report_* ../results/FINAL/TBB
