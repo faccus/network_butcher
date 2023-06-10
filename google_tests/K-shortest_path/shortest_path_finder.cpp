@@ -33,7 +33,7 @@ namespace
   test_graph() -> Test_Graph<basic_type>;
 
 
-  TEST(KspTests, DijkstraSourceSink)
+  TEST(ShortestPathFinderTest, DijkstraSourceSink)
   {
     auto const graph = basic_graph();
 
@@ -44,7 +44,7 @@ namespace
     ASSERT_EQ(res.first, theoretical_res);
   }
 
-  TEST(KspTests, DijkstraSinkSource)
+  TEST(ShortestPathFinderTest, DijkstraSinkSource)
   {
     auto const graph = basic_graph();
 
@@ -53,88 +53,6 @@ namespace
     std::vector<Node_Id_Type> theoretical_res = {2, 3, 5, 4, 5, 6, 6};
 
     ASSERT_EQ(res.first, theoretical_res);
-  }
-
-
-  TEST(KFinderTest, EppsteinOriginalNetwork)
-  {
-    auto const       graph = eppstein_graph();
-    KFinder_Eppstein kfinder(graph, graph.get_nodes().front().get_id(), graph.get_nodes().back().get_id());
-
-    int k = 100; // Up to 10
-
-    std::vector<Time_Type> real_sol = {55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
-    auto                     res      = kfinder.compute(real_sol.size());
-
-    std::vector<Time_Type> real_path_lengths;
-    std::vector<Time_Type> path_lengths;
-
-    path_lengths.reserve(k);
-    real_path_lengths.reserve(k);
-
-    EXPECT_EQ(real_sol.size(), res.size());
-
-    for (auto i = 0; i < real_sol.size(); ++i)
-      {
-        path_lengths.push_back(res[i].length);
-        real_path_lengths.push_back(real_sol[i]);
-      }
-
-    ASSERT_EQ(path_lengths, real_path_lengths);
-  }
-
-  TEST(KFinderTest, LazyEppsteinOriginalNetwork)
-  {
-    auto const            graph = eppstein_graph();
-    KFinder_Lazy_Eppstein kfinder(graph, graph.get_nodes().front().get_id(), graph.get_nodes().back().get_id());
-
-    int k = 100; // Up to 10
-
-    std::vector<Time_Type> real_sol = {55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
-    auto                     res      = kfinder.compute(real_sol.size());
-
-    std::vector<Time_Type> real_path_lengths;
-    std::vector<Time_Type> path_lengths;
-
-    path_lengths.reserve(k);
-    real_path_lengths.reserve(k);
-
-    EXPECT_EQ(real_sol.size(), res.size());
-
-    for (auto i = 0; i < k && i < res.size(); ++i)
-      {
-        path_lengths.push_back(res[i].length);
-        real_path_lengths.push_back(real_sol[i]);
-      }
-
-    ASSERT_EQ(path_lengths, real_path_lengths);
-  }
-
-  TEST(KFinderTest, LazyEppsteinOriginalTestGraph)
-  {
-    auto const            graph = test_graph();
-    KFinder_Lazy_Eppstein kfinder(graph, 0, 11);
-
-    int k = 100; // Up to 10
-
-    std::vector<Time_Type> real_sol = {55., 58., 59., 61., 62., 64., 65., 68., 68., 71.};
-    auto                     res      = kfinder.compute(real_sol.size());
-
-    std::vector<Time_Type> real_path_lengths;
-    std::vector<Time_Type> path_lengths;
-
-    path_lengths.reserve(k);
-    real_path_lengths.reserve(k);
-
-    EXPECT_EQ(real_sol.size(), res.size());
-
-    for (auto i = 0; i < k && i < res.size(); ++i)
-      {
-        path_lengths.push_back(res[i].length);
-        real_path_lengths.push_back(real_sol[i]);
-      }
-
-    ASSERT_EQ(path_lengths, real_path_lengths);
   }
 
   auto

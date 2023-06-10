@@ -8,8 +8,8 @@ set(
         google_tests/Network/graph.cpp
         google_tests/io_manager.cpp
         google_tests/K-shortest_path/shortest_path_finder.cpp
-        google_tests/K-shortest_path/kfinder.cpp
         google_tests/K-shortest_path/heap_eppstein.cpp
+        google_tests/K-shortest_path/kfinder.cpp
         google_tests/Butcher/butcher.cpp
         google_tests/Butcher/constrained_block_graph_builder.cpp
         google_tests/IO_interaction/weight_importer_helpers.cpp
