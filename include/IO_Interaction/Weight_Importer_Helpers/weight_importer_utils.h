@@ -13,10 +13,16 @@ namespace network_butcher::io::Weight_importer_helpers
   /// It summarizes an entry produced by onnx_tool
   struct Onnx_Tool_Output_Type
   {
+    /// Layer name
     std::string name;
 
+    /// Layer number of MACs
     std::size_t macs;
+
+    /// Layer memory occupied
     std::size_t memory;
+
+    /// Layer number of parameters
     std::size_t params;
   };
 
@@ -25,7 +31,7 @@ namespace network_butcher::io::Weight_importer_helpers
   /// \param separator The column separator character
   /// \param columns_to_read The (numeric) columns to read
   /// \param column_suffix A suffix to place after the column name in the result object
-  /// \param only_non_negative It will convert negative weights to zeros
+  /// \param only_non_negative If true, it will convert negative weights to zeros
   /// \return The numeric columns in a map
   auto
   read_csv_numerics(std::string const              &path,

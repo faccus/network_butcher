@@ -23,15 +23,28 @@ namespace network_butcher::io
   class block_aMLLibrary_Weight_Importer : public Weight_Importer
   {
   protected:
-    /// Collection of parameters
+    /// The collection of block graph related parameters
     network_butcher::parameters::Parameters::Block_Graph_Generation const &block_graph_generation_params;
+
+    /// The collection of aMLLibrary related parameters
     network_butcher::parameters::Parameters::aMLLibrary const             &aMLLibrary_params;
+
+    /// The collection of weights related parameters
     parameters::Parameters::Weights const                                 &weights_params;
+
+    /// The collection of model related parameters
     network_butcher::parameters::Parameters::Model const                  &model_params;
+
+    /// The collection of devices
     parameters::Parameters::Devices const                                 &devices;
 
+    /// The original graph
     Converted_Onnx_Graph_Type const &graph;
+
+    /// The block graph
     Block_Graph_Type                &new_graph;
+
+
 
     /// It will check if the aMLLibrary is available
     void
@@ -78,6 +91,8 @@ namespace network_butcher::io
 
 
     /// It will prepare and export the .csv file to be fed to aMLLibrary
+    /// \param content The content of the .csv file
+    /// \param path The path of the .csv file
     static void
     csv_assembler(const std::vector<std::vector<std::string>> &content, const std::string &path);
 

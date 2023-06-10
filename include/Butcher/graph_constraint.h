@@ -36,8 +36,11 @@ namespace network_butcher::constraints
   class Memory_Constraint : public Graph_Constraint
   {
   private:
+    /// The parameters
     parameters::Parameters const &params;
-    GraphType const              &graph;
+
+    /// The original graph. Used to measure the memory usage of each layer of the model
+    GraphType const &graph;
 
     /// Helper function used to estimate the memory usage of a group of nodes
     /// \param devices The devices
@@ -178,12 +181,10 @@ namespace network_butcher::constraints
 
     for (auto const &id : ids)
       {
-        auto const &node = graph[id];
-
         auto const &parents  = graph.get_input_nodes(id);
         auto const &children = graph.get_output_nodes(id);
 
-        Memory_Type        in_memory  = input_memory[id];
+        Memory_Type const &in_memory  = input_memory[id];
         Memory_Type const &out_memory = output_memory[id];
 
         // Compute the maximum memory required by any node

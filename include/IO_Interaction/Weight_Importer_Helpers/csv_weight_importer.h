@@ -12,12 +12,22 @@ namespace network_butcher::io
   class Csv_Weight_Importer : public Weight_Importer
   {
   protected:
+    /// A reference to the graph
     GraphType &graph;
 
+    /// The path(s) to the .csv file(s)
     std::vector<std::string> paths;
+
+    /// The ids of the devices to be considered
     std::vector<std::size_t> devices;
+
+    /// The relevant entries in the .csv file(s)
     std::vector<std::string> relevant_entries;
+
+    /// The separator used in the .csv file(s)
     char const               separator;
+
+    /// True if negative weights should be defaulted to 0.
     bool                     only_non_negative;
 
 

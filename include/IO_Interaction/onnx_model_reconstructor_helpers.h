@@ -11,28 +11,28 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
   /// Enumerator for the type of the tensor in the Onnx graph
   enum IO_Type
   {
-    // Graph input
+    /// Graph input
     Input,
 
-    // Either an input of a node or an output
+    /// Either an input of a node or an output of either a node or the graph
     ValueInfo,
 
-    // Already initialized value
+    /// Already initialized value
     Initializer,
 
-    // Already initialized input of the graph
+    /// Already initialized input of the graph
     Initializer_Input,
 
-    // Already initialized io of a node
+    /// Already initialized io of a node
     Initializer_ValueInfo,
 
-    // Formally an input of a node, it's not an output of any node. Thus, the model analyzed is not
-    // trained and this ValueInfo is not initialized. It should be treated by the Node point of view as
-    // a ValueInfo, while by the model point of view as an initializer (thus, it cannot be a tensor to
-    // be sent to another device)
+    /// Formally an input of a node (but not of the graph), it's not an output of any node. Thus, the model analyzed
+    /// is not trained and this ValueInfo is not initialized. It should be treated by the Node point of view as a
+    /// ValueInfo, while by the model point of view as an initializer (thus, it cannot be a tensor to be sent to
+    /// another device)
     Fake_ValueInfo,
 
-    // Unknown connection (neither an input nor an output nor a ValueInfo....). It should be impossible
+    /// Unknown connection (neither an input nor an output nor a ValueInfo....). It should be impossible
     NoConnection
   };
 
@@ -40,6 +40,8 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
   /// Collection of helper structs (used instead of tuples to improve readability)
   namespace helper_structures
   {
+    /// Simple structure used to store, based on IO_Type, a constant iterator of a collection of either ValueInfoProto
+    /// or TensorProto
     struct IO_Tensors_Iterators_Type
     {
       IO_Type                                                tensor_type;
@@ -86,7 +88,7 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
   /// From the original model, it will return a new graph with the same name and documentation string of the graph
   /// of the original model
   /// \param original_model The original model
-  /// \return The "new" graph
+  /// \return The "new" graph. ATTENTION: the caller is responsible for the deletion of the graph.
   auto
   prepare_new_graph(const onnx::ModelProto &original_model) -> onnx::GraphProto *;
 

@@ -158,7 +158,7 @@ namespace network_butcher::kfinder
 
     virtual ~Heap_Node() = default;
 
-  protected:
+  private:
     std::array<std::size_t, Max_Children> depth;
     std::vector<Heap_Node *>              children;
 

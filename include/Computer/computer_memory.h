@@ -139,15 +139,14 @@ namespace network_butcher::computer::Computer_memory
     -> std::vector<Memory_Type>
   {
     auto const              &nodes = graph.get_nodes();
-    std::vector<Memory_Type> memory_usages;
-    memory_usages.resize(nodes.size());
+    std::vector<Memory_Type> memory_usages(nodes.size());
 
 #if PARALLEL_TBB
     std::transform(std::execution::par, nodes.cbegin(), nodes.cend(), memory_usages.begin(), func);
 #else
-#  pragma omp parallel default(none) shared(nodes, memory_usages)
+    #pragma omp parallel default(none) shared(nodes, memory_usages)
     {
-#  pragma omp for
+      #pragma omp for
       for (std::size_t i = 0; i < nodes.size(); ++i)
         {
           memory_usages[i] = func(nodes[i]);
@@ -175,8 +174,7 @@ namespace network_butcher::computer::Computer_memory
   compute_nodes_memory_usage_input(Contented_Graph_Type<T> const &graph) -> std::vector<Memory_Type>
   {
     auto const              &nodes = graph.get_nodes();
-    std::vector<Memory_Type> memory_usages;
-    memory_usages.resize(nodes.size());
+    std::vector<Memory_Type> memory_usages(nodes.size());
 
 #if PARALLEL_TBB
     std::transform(std::execution::par,
@@ -185,9 +183,9 @@ namespace network_butcher::computer::Computer_memory
                    memory_usages.begin(),
                    [](Content_Node_Type<T> const &node) { return compute_memory_usage_input(node); });
 #else
-#  pragma omp parallel default(none) shared(nodes, memory_usages)
+    #pragma omp parallel default(none) shared(nodes, memory_usages)
     {
-#  pragma omp for
+      #pragma omp for
       for (std::size_t i = 0; i < nodes.size(); ++i)
         {
           memory_usages[i] = compute_memory_usage_input(nodes[i]);
@@ -205,8 +203,7 @@ namespace network_butcher::computer::Computer_memory
     -> std::vector<Memory_Type>
   {
     auto const              &nodes = graph.get_nodes();
-    std::vector<Memory_Type> memory_usages;
-    memory_usages.resize(nodes.size());
+    std::vector<Memory_Type> memory_usages(nodes.size());
 
     std::function<Memory_Type(Content_Node_Type<T> const &)> func;
 
@@ -225,9 +222,9 @@ namespace network_butcher::computer::Computer_memory
 #if PARALLEL_TBB
     std::transform(std::execution::par, nodes.cbegin(), nodes.cend(), memory_usages.begin(), func);
 #else
-#  pragma omp parallel default(none) shared(nodes, memory_usages, func)
+    #pragma omp parallel default(none) shared(nodes, memory_usages, func)
     {
-#  pragma omp for
+      #pragma omp for
       for (std::size_t i = 0; i < nodes.size(); ++i)
         {
           memory_usages[i] = func(nodes[i]);
@@ -244,8 +241,7 @@ namespace network_butcher::computer::Computer_memory
   compute_nodes_memory_usage_parameters(Contented_Graph_Type<T> const &graph) -> std::vector<Memory_Type>
   {
     auto const              &nodes = graph.get_nodes();
-    std::vector<Memory_Type> memory_usages;
-    memory_usages.resize(nodes.size());
+    std::vector<Memory_Type> memory_usages(nodes.size());
 
 #if PARALLEL_TBB
     std::transform(std::execution::par,
@@ -255,9 +251,9 @@ namespace network_butcher::computer::Computer_memory
                    [](Content_Node_Type<T> const &node) { return compute_memory_usage_parameters(node); });
 #else
 
-#  pragma omp parallel default(none) shared(nodes, memory_usages)
+    #pragma omp parallel default(none) shared(nodes, memory_usages)
     {
-#  pragma omp for
+      #pragma omp for
       for (std::size_t i = 0; i < nodes.size(); ++i)
         {
           memory_usages[i] = compute_memory_usage_parameters(nodes[i]);
@@ -285,9 +281,9 @@ namespace network_butcher::computer::Computer_memory
       }
 
     auto mem = nodes_usage.front();
-#  pragma omp parallel default(none) shared(nodes_usage, mem)
+    #pragma omp parallel default(none) shared(nodes_usage, mem)
     {
-#  pragma omp for reduction(+ : mem)
+      #pragma omp for reduction(+ : mem)
       for (std::size_t i = 1; i < nodes_usage.size(); ++i)
         {
           mem += nodes_usage[i];
@@ -314,9 +310,9 @@ namespace network_butcher::computer::Computer_memory
       }
 
     auto mem = nodes_usage.front();
-#  pragma omp parallel default(none) shared(nodes_usage, mem)
+    #pragma omp parallel default(none) shared(nodes_usage, mem)
     {
-#  pragma omp for reduction(+ : mem)
+      #pragma omp for reduction(+ : mem)
       for (std::size_t i = 1; i < nodes_usage.size(); ++i)
         {
           mem += nodes_usage[i];
