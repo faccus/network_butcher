@@ -31,7 +31,7 @@ namespace network_butcher::io
 
 
     /// Boot! It will firstly import the specified network from the .onnx file. Then, the butchering process starts:
-    /// based on the specific parameters, different partitions of the network will be produced and exported to the
+    /// based on the specified parameters, different partitions of the network will be produced and exported to the
     /// specified location.
     /// \param path The input configuration file
     /// \param performance Print some performance information (required time for each "phase")
@@ -40,7 +40,7 @@ namespace network_butcher::io
 
 
     /// Boot! It will firstly import the specified network from the .onnx file. Then, the butchering process starts:
-    /// based on the specific parameters, different partitions of the network will be produced and exported to the
+    /// based on the imported parameters, different partitions of the network will be produced and exported to the
     /// specified location.
     /// \param params The collection of parameters
     /// \param performance Print some performance information (required time for each "phase")

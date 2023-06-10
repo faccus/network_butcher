@@ -18,16 +18,8 @@ namespace network_butcher::io::IO_Manager
                                                         params.model_params.model_name + ".onnx"));
 
     auto const preprocessed_node_ios = Onnx_model_reconstructor_helpers::process_node_ios_nodes(model.graph());
-
-#if PARALLEL_TBB
-    // https://stackoverflow.com/a/63340360 .
-    // Tested views, but they are slower, so they are not used.
-
-    std::vector<std::size_t> v(paths.size());
-    std::generate(v.begin(), v.end(), [n = 0]() mutable { return n++; });
-
     auto const process_partitioning =
-      [&params, &paths, &model, &link_id_nodeproto, &preprocessed_node_ios](std::size_t j) {
+      [&params, &paths, &model, &link_id_nodeproto, &preprocessed_node_ios](auto const &j) {
         auto const dir_path =
           Utilities::combine_path(params.model_params.export_directory, Utilities::custom_to_string(j));
         network_butcher::Utilities::create_directory(dir_path);
@@ -36,20 +28,21 @@ namespace network_butcher::io::IO_Manager
         utilities::reconstruct_model_and_export(paths[j], model, link_id_nodeproto, preprocessed_node_ios, output_path);
       };
 
+#if PARALLEL_TBB
+    // https://stackoverflow.com/a/63340360 .
+    // Tested views, but they are slower, so they are not used.
+
+    std::vector<std::size_t> v(paths.size());
+    std::generate(v.begin(), v.end(), [n = 0]() mutable { return n++; });
+
     std::for_each(std::execution::par, v.cbegin(), v.cend(), process_partitioning);
 #else
-#  pragma omp parallel default(none) shared(params, model, link_id_nodeproto, preprocessed_node_ios, paths)
+    #pragma omp parallel default(none) shared(process_partitioning, paths)
     {
-#  pragma omp for
+      #pragma omp for
       for (std::size_t j = 0; j < paths.size(); ++j)
         {
-          auto const dir_path =
-            Utilities::combine_path(params.model_params.export_directory, Utilities::custom_to_string(j));
-          network_butcher::Utilities::create_directory(dir_path);
-
-          auto const output_path = Utilities::combine_path(dir_path, params.model_params.model_name);
-          utilities::reconstruct_model_and_export(
-            paths[j], model, link_id_nodeproto, preprocessed_node_ios, output_path);
+          process_partitioning(j);
         }
     }
 #endif
@@ -460,7 +453,7 @@ namespace network_butcher::io::IO_Manager
       params.block_graph_generation_params.use_bandwidth_to_manage_connections =
         file(basic_infos + "/use_bandwidth_to_manage_connections", false);
 
-      params.block_graph_generation_params.block_graph_mode = read_block_graph_mode(file);
+      params.block_graph_generation_params.block_graph_mode  = read_block_graph_mode(file);
       params.block_graph_generation_params.memory_constraint = file(basic_infos + "/memory_constraint", false);
     };
 

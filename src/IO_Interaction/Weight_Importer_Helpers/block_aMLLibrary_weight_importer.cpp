@@ -7,12 +7,13 @@ namespace network_butcher::io
   {
 #if PYBIND_ACTIVE
     if (weights_params.bandwidth->size() != 2)
-      throw std::logic_error("aMLLibrary only supports graphs with two devices");
+      throw std::logic_error("block_aMLLibrary_Weight_Importer: aMLLibrary only supports graphs with two devices");
 
     if (weights_params.bandwidth->check_weight(std::make_pair(1, 0)))
-      throw std::logic_error("aMLLibrary doesn't support backward connections");
+      throw std::logic_error("block_aMLLibrary_Weight_Importer: aMLLibrary doesn't support backward connections");
 #else
-    throw std::logic_error("aMLLibrary not supported. Please compile with PYBIND_ACTIVE"); //
+    throw std::logic_error(
+      "block_aMLLibrary_Weight_Importer: aMLLibrary not supported. Please compile with PYBIND_ACTIVE"); //
 #endif
   }
 
@@ -104,8 +105,6 @@ namespace network_butcher::io
     model_profile(model_params.model_path, "savenode"_a = weight_path);
 
     return weight_path;
-#else
-    throw;                                                                                 // ("aMLLibrary not supported. Please compile with PYBIND_ACTIVE");
 #endif
   }
 

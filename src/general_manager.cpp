@@ -17,7 +17,7 @@ namespace network_butcher::io
 
       auto const &[tail, head] = edge;
 
-      // Is the node the front facing node?
+      // Is the node the first node in the graph?
       if (tail == graph.get_nodes().front().get_id() &&
           weights_params.in_bandwidth.find(device_pair) != weights_params.in_bandwidth.cend())
         {
@@ -25,6 +25,7 @@ namespace network_butcher::io
           bdw                     = tmp_bdw;
           acc                     = tmp_acc;
         }
+      // Is the node the last node in the graph?
       else if (head == graph.get_nodes().back().get_id() &&
                weights_params.out_bandwidth.find(device_pair) != weights_params.out_bandwidth.cend())
         {
@@ -32,6 +33,7 @@ namespace network_butcher::io
           bdw                     = tmp_bdw;
           acc                     = tmp_acc;
         }
+      // Is the connection between the specified devices allowed?
       else if (bandwidth->check_weight(device_pair))
         {
           auto [tmp_bdw, tmp_acc] = bandwidth->get_weight(device_pair);

@@ -81,7 +81,7 @@ namespace network_butcher::Utilities
             res.back().second.insert(node.content.second->begin(), node.content.second->end());
           }
 
-        return network_butcher::types::Weighted_Real_Path{path.length, res};
+        return network_butcher::types::Weighted_Real_Path{path.length, std::move(res)};
       });
 #else
     #pragma omp parallel default(none) shared(final_res, paths)

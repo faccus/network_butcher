@@ -471,16 +471,7 @@ namespace network_butcher
         {
           new_dependencies.resize(new_dependencies.size() + (supp_size - 2) * num_devices);
 
-#if PARALLEL_TBB
-          // Here, we would like to use the C++ (native) integration with TBB. So... we need to create a vector of
-          // indices to be used by the parallel_for_each. We will use the indices to access the new_dependencies
-
-          // In C++26, in theory, we will be able to use std::views and std::ranges::for_each with parallel policies
-          // to speed up the process
-          std::vector<std::size_t> v(supp_size - 2);
-          std::generate(v.begin(), v.end(), [n = 2]() mutable { return n++; });
-
-          std::for_each(std::execution::par, v.cbegin(), v.cend(), [&new_dependencies, num_devices](std::size_t i) {
+          auto const func = [&new_dependencies, &num_devices](auto const &i) {
             auto const id = num_devices * (i - 1) + 1;
 
             auto &[in, out] = new_dependencies[id];
@@ -500,32 +491,25 @@ namespace network_butcher
                 new_dependencies[id + k].first  = in;
                 new_dependencies[id + k].second = out;
               }
-          });
+          };
+
+#if PARALLEL_TBB
+          // Here, we would like to use the C++ (native) integration with TBB. So... we need to create a vector of
+          // indices to be used by the parallel for_each. We will use the indices to access the new_dependencies
+
+          // In C++26, in theory, we will be able to use std::views and std::ranges::for_each with parallel policies
+          // to speed up the process
+          std::vector<std::size_t> v(supp_size - 2);
+          std::generate(v.begin(), v.end(), [n = 2]() mutable { return n++; });
+
+          std::for_each(std::execution::par, v.cbegin(), v.cend(), func);
 #else
-#  pragma omp parallel default(none) shared(supp_size, num_devices, new_dependencies)
+#  pragma omp parallel default(none) shared(supp_size, func)
           {
 #  pragma omp for
             for (std::size_t i = 2; i < supp_size; ++i)
               {
-                auto const id = num_devices * (i - 1) + 1;
-
-                auto &[in, out] = new_dependencies[id];
-
-                for (std::size_t k = 0; k < num_devices; ++k)
-                  {
-                    in.insert(in.end(), id - num_devices + k);
-                  }
-
-                for (std::size_t k = 0; k < num_devices; ++k)
-                  {
-                    out.insert(out.end(), id + num_devices + k);
-                  }
-
-                for (std::size_t k = 1; k < num_devices; ++k)
-                  {
-                    new_dependencies[id + k].first  = in;
-                    new_dependencies[id + k].second = out;
-                  }
+                func(i);
               }
           }
 #endif
@@ -621,55 +605,38 @@ namespace network_butcher
           {
             new_dependencies.resize(new_dependencies.size() + (supp_size - 2) * num_devices);
 
+            auto const func = [&num_devices, &bandwidth, &new_dependencies](auto const &i) {
+              auto const base_id = num_devices * (i - 1) + 1;
+              for (Device_Id_Type k = 0; k < num_devices; ++k)
+                {
+                  auto const id = base_id + k;
+
+                  auto &[in, out] = new_dependencies[id];
+
+                  for (auto const &neighbour : bandwidth->get_input_nodes(k))
+                    {
+                      in.insert(in.end(), base_id - num_devices + neighbour);
+                    }
+
+                  for (auto const &neighbour : bandwidth->get_output_nodes(k))
+                    {
+                      out.insert(out.end(), base_id + num_devices + neighbour);
+                    }
+                }
+            };
+
 #if PARALLEL_TBB
             std::vector<Node_Id_Type> v(supp_size - 2);
             std::generate(v.begin(), v.end(), [n = 2]() mutable { return n++; });
 
-            std::for_each(std::execution::par,
-                          v.cbegin(),
-                          v.cend(),
-                          [num_devices, &bandwidth, &new_dependencies](std::size_t i) {
-                            auto const base_id = num_devices * (i - 1) + 1;
-                            for (Node_Id_Type k = 0; k < num_devices; ++k)
-                              {
-                                auto const id = base_id + k;
-
-                                auto &[in, out] = new_dependencies[id];
-
-                                for (auto const &neighbour : bandwidth->get_input_nodes(k))
-                                  {
-                                    in.insert(in.end(), base_id - num_devices + neighbour);
-                                  }
-
-                                for (auto const &neighbour : bandwidth->get_output_nodes(k))
-                                  {
-                                    out.insert(out.end(), base_id + num_devices + neighbour);
-                                  }
-                              }
-                          });
+            std::for_each(std::execution::par, v.cbegin(), v.cend(), func);
 #else
-#  pragma omp parallel default(none) shared(supp_size, num_devices, bandwidth, new_dependencies)
+            #pragma omp parallel default(none) shared(supp_size, func)
             {
-#  pragma omp for
+              #pragma omp for
               for (Node_Id_Type i = 2; i < supp_size; ++i)
                 {
-                  auto const base_id = num_devices * (i - 1) + 1;
-                  for (Device_Id_Type k = 0; k < num_devices; ++k)
-                    {
-                      auto const id = base_id + k;
-
-                      auto &[in, out] = new_dependencies[id];
-
-                      for (auto const &neighbour : bandwidth->get_input_nodes(k))
-                        {
-                          in.insert(in.end(), base_id - num_devices + neighbour);
-                        }
-
-                      for (auto const &neighbour : bandwidth->get_output_nodes(k))
-                        {
-                          out.insert(out.end(), base_id + num_devices + neighbour);
-                        }
-                    }
+                  func(i);
                 }
             }
 #endif
@@ -908,9 +875,9 @@ namespace network_butcher
 #if PARALLEL_TBB
     std::for_each(nodes.cbegin(), nodes.cend(), process_node);
 #else
-    #pragma omp parallel default(none) shared(nodes, new_graph, graph, mode, process_node)
+#  pragma omp parallel default(none) shared(nodes, new_graph, graph, mode, process_node)
     {
-      #pragma omp for
+#  pragma omp for
       for (const auto &node : nodes)
         {
           process_node(node);
@@ -1034,9 +1001,9 @@ namespace network_butcher
 #if PARALLEL_TBB
     std::for_each(std::execution::par, nodes.cbegin(), nodes.cend(), process_node);
 #else
-    #pragma omp parallel default(none) shared(nodes, graph, new_graph, transmission_weights, mode, process_node)
+#  pragma omp parallel default(none) shared(nodes, graph, new_graph, transmission_weights, mode, process_node)
     {
-      #pragma omp for
+#  pragma omp for
       for (const auto &node : nodes)
         {
           process_node(node);

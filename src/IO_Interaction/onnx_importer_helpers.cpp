@@ -68,7 +68,6 @@ namespace network_butcher::io
 
     // Collection of the tensor names that have already been initialized
     std::set<std::string> initialized;
-
     for (auto const &p : onnx_initializer)
       {
         initialized.insert(p.name());
@@ -78,16 +77,18 @@ namespace network_butcher::io
     std::vector<std::string> int_res(std::max(tmp_onnx_inputs_ids.size(), initialized.size()));
 
     // Add to int_res the non-initialized inputs
-    auto it = std::set_difference( // PAR,
-      tmp_onnx_inputs_ids.cbegin(),
-      tmp_onnx_inputs_ids.cend(),
-      initialized.cbegin(),
-      initialized.cend(),
-      int_res.begin());
+    auto it = std::set_difference(tmp_onnx_inputs_ids.cbegin(),
+                                  tmp_onnx_inputs_ids.cend(),
+                                  initialized.cbegin(),
+                                  initialized.cend(),
+                                  int_res.begin());
 
     int_res.resize(it - int_res.begin());
+
+    // Graph inputs
     onnx_inputs_ids.insert(int_res.cbegin(), int_res.cend());
 
+    // Process the remaining tensors
     read_ios(value_infos, onnx_input, initialized);
     read_ios(value_infos, onnx_output, initialized);
     read_ios(value_infos, onnx_value_info, initialized);
@@ -112,7 +113,6 @@ namespace network_butcher::io
                    io_collection.end(),
                    std::inserter(in_keys, in_keys.end()),
                    [](auto const &pair) { return pair.first; });
-
     tmp.resize(std::max(onnx_io_ids.size(), in_keys.size()));
 
     auto it =
@@ -131,7 +131,7 @@ namespace network_butcher::io
 
   void
   Onnx_importer_helpers::populate_id_collection(const RepeatablePtr_field<::onnx::ValueInfoProto> &onnx_io,
-                                                std::set<std::string>                          &onnx_io_ids)
+                                                std::set<std::string>                             &onnx_io_ids)
   {
     std::transform(onnx_io.begin(), onnx_io.end(), std::inserter(onnx_io_ids, onnx_io_ids.end()), [](auto const &el) {
       return el.name();
@@ -140,9 +140,9 @@ namespace network_butcher::io
 
 
   void
-  Onnx_importer_helpers::read_ios(Onnx_importer_helpers::Map_IO                &input_map,
+  Onnx_importer_helpers::read_ios(Onnx_importer_helpers::Map_IO                   &input_map,
                                   const RepeatablePtr_field<onnx::ValueInfoProto> &collection,
-                                  const std::set<std::string>                  &initialized)
+                                  const std::set<std::string>                     &initialized)
   {
     for (const auto &value_info : collection)
       {
@@ -159,9 +159,9 @@ namespace network_butcher::io
 
 
   void
-  Onnx_importer_helpers::read_ios(Onnx_importer_helpers::Map_IO             &input_map,
+  Onnx_importer_helpers::read_ios(Onnx_importer_helpers::Map_IO                &input_map,
                                   const RepeatablePtr_field<onnx::TensorProto> &collection,
-                                  const std::set<std::string>               &initialized)
+                                  const std::set<std::string>                  &initialized)
   {
     for (const auto &tensor : collection)
       {
@@ -178,7 +178,7 @@ namespace network_butcher::io
 
   auto
   Onnx_importer_helpers::process_node_ios(const RepeatablePtr_field<std::basic_string<char>> &io_names,
-                                          Io_Collection_Type<Type_Info_Pointer>           &parameters_collection,
+                                          Io_Collection_Type<Type_Info_Pointer>              &parameters_collection,
                                           Map_IO const &value_infos) -> Io_Collection_Type<Type_Info_Pointer>
   {
     Io_Collection_Type<Type_Info_Pointer> res;
