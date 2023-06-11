@@ -1,6 +1,3 @@
-find_package(Doxygen
-        OPTIONAL_COMPONENTS dot mscgen dia) # doxygen, graphviz
-
 if (DOXYGEN_FOUND)
     set(Doxygen_FIND_QUIETLY TRUE)
 

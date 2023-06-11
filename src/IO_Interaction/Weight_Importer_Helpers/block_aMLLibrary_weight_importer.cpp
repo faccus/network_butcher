@@ -40,6 +40,9 @@ namespace network_butcher::io
 
     for (auto const &package_location : aMLLibrary_params.extra_packages_location)
       inserter(package_location);
+#else
+    throw std::logic_error(
+      "block_aMLLibrary_Weight_Importer: aMLLibrary not supported. Please compile with PYBIND_ACTIVE"); //
 #endif
   }
 
@@ -81,6 +84,9 @@ namespace network_butcher::io
         .attr("predict");
 
     predict("config_file"_a = config_file, "mape_to_file"_a = false);
+#else
+    throw std::logic_error(
+      "block_aMLLibrary_Weight_Importer: aMLLibrary not supported. Please compile with PYBIND_ACTIVE"); //
 #endif
   }
 
@@ -105,6 +111,9 @@ namespace network_butcher::io
     model_profile(model_params.model_path, "savenode"_a = weight_path);
 
     return weight_path;
+#else
+    throw std::logic_error(
+      "block_aMLLibrary_Weight_Importer: aMLLibrary not supported. Please compile with PYBIND_ACTIVE");
 #endif
   }
 
@@ -370,6 +379,7 @@ namespace network_butcher::io
   block_aMLLibrary_Weight_Importer::import_weights(
     std::function<bool(Block_Graph_Type::Node_Type const &)> const &extra_condition)
   {
+#if PYBIND_ACTIVE
     pybind11::initialize_interpreter();
 
     add_python_packages();
@@ -410,5 +420,9 @@ namespace network_butcher::io
 
     Csv_Weight_Importer importer(new_graph, paths, relevant_entries, devices, weights_params.separator, true);
     importer.import_weights(extra_condition);
+#else
+    throw std::logic_error(
+      "block_aMLLibrary_Weight_Importer: aMLLibrary not supported. Please compile with PYBIND_ACTIVE"); //
+#endif
   }
 } // namespace network_butcher::io

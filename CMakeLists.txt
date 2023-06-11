@@ -2,42 +2,44 @@ cmake_minimum_required(VERSION 3.21)
 project("Network Butcher" DESCRIPTION "Just a normal butcher. A network butcher")
 set(CMAKE_CXX_STANDARD 20)
 
-# #######################################################################################################################
-# ############ USER OPTIONS #############################################################################################
-# #######################################################################################################################
+########################################################################################################################
+############# USER OPTIONS #############################################################################################
+########################################################################################################################
 
-option(BUILD_TESTS "Build tests" ON)
-option(BUILD_COMPLETE_TESTS "Build complete tests" OFF)
+option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from github" ON)
+
+option(USE_GOOGLETEST "Enable target for tests (download automatically GoogleTest from github)" ON)
+option(DISCOVER_TESTS "Let CTest discover the tests" ON)
+option(DISCOVER_COMPLETE_TESTS "Let CTest discover the complete tests" OFF)
 
 option(ENABLE_PARALLEL "Enable parallel execution" ON)
-option(USE_OPENMP "Use OpenMP" OFF)
+option(USE_OPENMP "Use OpenMP (if OFF, it will use TBB)" OFF)
 
-option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from git" ON)
-
-option(USE_PYBIND "Download and compile pybind11 from git:" ON)
-
+option(USE_PYBIND "Use pybind11 (downloaded automatically from github)" OFF)
 
 option(BUILD_DOC "Build documentation" ON)
 
-# #######################################################################################################################
-# #######################################################################################################################
-# #######################################################################################################################
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
 
-message(STATUS "Build tests: ${BUILD_TESTS}")
-message(STATUS "Build complete tests: ${BUILD_COMPLETE_TESTS}")
+message(STATUS "Use GoogleTest: ${USE_GOOLETEST}")
+message(STATUS "Let CTest discover the tests: ${BUILD_TESTS}")
+message(STATUS "Let CTest discover the complete tests: ${BUILD_COMPLETE_TESTS}")
 
 message(STATUS "Enable parallel execution: ${ENABLE_PARALLEL}")
-message(STATUS "Enable OpenMP: ${USE_OPENMP}")
+message(STATUS "Use OpenMP (if OFF, it will use TBB): ${USE_OPENMP}")
 
 
 message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
 
-message(STATUS "Download and compile pybind11 from git: " ${USE_PYBIND})
+message(STATUS "Use pybind11 (downloaded automatically from github): " ${USE_PYBIND})
 
 message(STATUS "Build documentation: ${BUILD_DOC}")
 
 
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.24.0")
+    # Basically, files will be downloaded again based on download date/time, not extraction.
     cmake_policy(SET CMP0135 NEW)
 endif ()
 
@@ -77,12 +79,43 @@ set(
         ${EXTRA_INCLUDE_DIR}
 )
 
+
+if (BUILD_DOC)
+    include(doc/CMakeLists.txt)
+endif ()
+
+
 add_executable(network_butcher src/main.cpp ${BASE_SOURCE} ${PROTO_SRCS})
 target_include_directories(network_butcher PUBLIC ${INCLUDES})
 target_link_libraries(network_butcher ${RUN_LIBRARIES_LOCATION})
 
 
-if (BUILD_TESTS)
+add_executable(main_kfinder mains/KFinder/main_kfinder.cpp ${BASE_SOURCE} ${PROTO_SRCS})
+target_include_directories(main_kfinder PUBLIC ${INCLUDES} google_tests)
+target_link_libraries(main_kfinder ${RUN_LIBRARIES_LOCATION})
+
+
+add_executable(main_path_reconstruction mains/KFinder/main_path_reconstruction.cpp ${BASE_SOURCE} ${PROTO_SRCS})
+target_include_directories(main_path_reconstruction PUBLIC ${INCLUDES} google_tests)
+target_link_libraries(main_path_reconstruction ${RUN_LIBRARIES_LOCATION})
+
+
+add_executable(main_IO_Manager mains/IO_Manager/main_IO_Manager.cpp ${BASE_SOURCE} ${PROTO_SRCS})
+target_include_directories(main_IO_Manager PUBLIC ${INCLUDES})
+target_link_libraries(main_IO_Manager ${RUN_LIBRARIES_LOCATION})
+
+
+add_executable(main_Constrained_Builder mains/Butcher/main_Constrained_Builder.cpp ${BASE_SOURCE} ${PROTO_SRCS})
+target_include_directories(main_Constrained_Builder PUBLIC ${INCLUDES})
+target_link_libraries(main_Constrained_Builder ${RUN_LIBRARIES_LOCATION})
+
+
+add_executable(main_synthetic_graph mains/KFinder/main_synthetic_graph.cpp ${BASE_SOURCE} ${PROTO_SRCS})
+target_include_directories(main_synthetic_graph PUBLIC ${INCLUDES})
+target_link_libraries(main_synthetic_graph ${RUN_LIBRARIES_LOCATION})
+
+
+if (USE_GOOGLETEST)
 
     include(google_tests/CMakeLists.txt)
 
@@ -100,40 +133,10 @@ if (BUILD_TESTS)
 
     include(GoogleTest)
 
-    if (BUILD_COMPLETE_TESTS)
+    if (DISCOVER_COMPLETE_TESTS)
         gtest_discover_tests(test_run_complete)
-    else ()
+    elseif (DISCOVER_TESTS)
         gtest_discover_tests(test_run)
     endif ()
 
-endif ()
-
-
-    add_executable(main_kfinder mains/KFinder/main_kfinder.cpp ${BASE_SOURCE} ${PROTO_SRCS})
-    target_include_directories(main_kfinder PUBLIC ${INCLUDES} google_tests)
-    target_link_libraries(main_kfinder ${RUN_LIBRARIES_LOCATION})
-
-
-    add_executable(main_path_reconstruction mains/KFinder/main_path_reconstruction.cpp ${BASE_SOURCE} ${PROTO_SRCS})
-    target_include_directories(main_path_reconstruction PUBLIC ${INCLUDES} google_tests)
-    target_link_libraries(main_path_reconstruction ${RUN_LIBRARIES_LOCATION})
-
-
-    add_executable(main_IO_Manager mains/IO_Manager/main_IO_Manager.cpp ${BASE_SOURCE} ${PROTO_SRCS})
-    target_include_directories(main_IO_Manager PUBLIC ${INCLUDES})
-    target_link_libraries(main_IO_Manager ${RUN_LIBRARIES_LOCATION})
-
-
-    add_executable(main_Constrained_Builder mains/Butcher/main_Constrained_Builder.cpp ${BASE_SOURCE} ${PROTO_SRCS})
-    target_include_directories(main_Constrained_Builder PUBLIC ${INCLUDES})
-    target_link_libraries(main_Constrained_Builder ${RUN_LIBRARIES_LOCATION})
-
-
-    add_executable(main_synthetic_graph mains/KFinder/main_synthetic_graph.cpp ${BASE_SOURCE} ${PROTO_SRCS})
-    target_include_directories(main_synthetic_graph PUBLIC ${INCLUDES})
-    target_link_libraries(main_synthetic_graph ${RUN_LIBRARIES_LOCATION})
-
-
-if (BUILD_DOC)
-    include(doc/CMakeLists.txt)
 endif ()

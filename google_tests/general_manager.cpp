@@ -35,11 +35,12 @@ namespace
     execute_boot("ksp_result3", "test_data/configs/test3_parameters.conf");
   }
 
-
+#if PYBIND_ACTIVE
   TEST(GeneralManagerTest, boot_test4)
   {
     execute_boot("ksp_result4", "test_data/configs/test4_parameters.conf");
   }
+#endif
 
   TEST(GeneralManagerTest, boot_test5)
   {

@@ -18,12 +18,13 @@ if (BUILD_PROTOBUF_SOURCE)
     list(APPEND BASE_SOURCE ${CMAKE_SOURCE_DIR}/onnx_proto/onnx.pb.cc)
 else ()
     find_package(Protobuf REQUIRED)
-    list(APPEND RUN_LIBRARIES_LOCATION ${Protobuf_LIBRARIES})
+    list(APPEND RUN_LIBRARIES_LOCATION protobuf::libprotobuf)
 
     if(EXISTS ${CMAKE_SOURCE_DIR}/onnx_proto/onnx)
         file(REMOVE ${CMAKE_SOURCE_DIR}/onnx_proto/onnx)
     endif()
 
+    # Download onnx.proto3 most recent scheme
     file(DOWNLOAD https://raw.githubusercontent.com/onnx/onnx/main/onnx/onnx.proto3 ${CMAKE_SOURCE_DIR}/onnx_proto/onnx)
 
     protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_SOURCE_DIR}/onnx_proto/onnx)
@@ -48,8 +49,7 @@ if(USE_PYBIND)
         configure_file(${CMAKE_SOURCE_DIR}/include/Extra/platform_specific_config.h.in platform_specific_config.h)
         add_compile_definitions(PLATFORM_SPECIFIC_CONFIG)
     endif()
-    
-    #list(APPEND PYTHONPATH ${CMAKE_SOURCE_DIR}) 
+
     list(APPEND EXTRA_INCLUDE_DIR ${CMAKE_BINARY_DIR})
 
     list(APPEND RUN_LIBRARIES_LOCATION pybind11::embed pybind11::pybind11)
@@ -67,8 +67,8 @@ if (ENABLE_PARALLEL)
 
 endif ()
 
-if (BUILD_TESTS)
-    # Add google test library from git
+if (USE_GOOGLETEST)
+    # Add google test library from git (as suggested by the documentation)
     FetchContent_Declare(
             googletest
             GIT_REPOSITORY https://github.com/google/googletest.git
@@ -77,6 +77,9 @@ if (BUILD_TESTS)
     FetchContent_MakeAvailable(googletest)
     include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
-
     set(TEST_LIBRARIES_LOCATION ${RUN_LIBRARIES_LOCATION} gtest gtest_main)
+endif ()
+
+if(BUILD_DOC)
+    find_package(Doxygen OPTIONAL_COMPONENTS dot mscgen dia) # doxygen, graphviz
 endif ()

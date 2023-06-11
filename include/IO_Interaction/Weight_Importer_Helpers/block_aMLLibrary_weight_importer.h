@@ -11,6 +11,8 @@
 #  endif
 #endif
 
+#include <cmath>
+
 #include "computer_memory.h"
 #include "weight_importer.h"
 #include "weight_importer_utils.h"
@@ -144,13 +146,13 @@ namespace network_butcher::io
       network_butcher::parameters::Parameters::Model const                  &model_params,
       parameters::Parameters::Devices const                                 &devices)
       : Weight_Importer()
+      , graph{graph}
+      , new_graph{new_graph}
       , block_graph_generation_params{block_graph_generation_params}
       , aMLLibrary_params{aMLLibrary_params}
       , weights_params{weights_params}
       , model_params{model_params}
       , devices{devices}
-      , graph{graph}
-      , new_graph{new_graph}
     {
       check_aMLLibrary();
     };
