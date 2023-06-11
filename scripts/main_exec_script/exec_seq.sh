@@ -1,6 +1,4 @@
 mkdir -p ../results/FINAL/Sequential
-export OMP_NUM_THREADS=$i
-echo $OMP_NUM_THREADS
 
 
 ./main_kfinder
