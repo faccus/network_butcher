@@ -1,4 +1,9 @@
 # Network Butcher
+The objective of this project is to develop a C++ library that can find, given a Deep Neural Network in Onnx format, 
+the K optimal ways of partitioning it in order to minimize the overall execution time of the model itself on multiple 
+devices.
+
+
 
 ### Project structure
 
@@ -22,7 +27,7 @@ The other directories are:
   for a new .onnx model, unless shapes were already inferred)
 - test_data: It contains the files used during testing (models, sample configuration files and sample weight files)
 
-To easily start to read the project, we think it's best to start from the General_Manager files.
+To easily start reading the project, we think it's best to start from the General_Manager files.
 
 ### Requirements:
 
@@ -50,9 +55,9 @@ The weight initialization may be automatically performed. This, however, adds so
 ```bash
 python3 -m pip install -r dep/aMLLibrary/requirements.txt
 ```
-- [Onnx-Tool v0.6.0](https://github.com/ThanatosShinji/onnx-tool) (Python Package). To install it, simply call:
+- [Onnx-Tool v0.6.1](https://github.com/ThanatosShinji/onnx-tool) (Python Package). To install it, simply call:
 ```bash
-pip install onnx-tool
+python3 -m pip install onnx-tool
 ```
 
 To (dynamically) link the installed libraries, check the CMakeLists.txt file in the root directory of the repository.

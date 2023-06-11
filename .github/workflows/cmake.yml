@@ -19,7 +19,7 @@ jobs:
           submodules: recursive
 
       - name: Install TBB, OpenMP, python and doxygen
-        run: sudo apt-get update && sudo apt-get install libomp-dev libtbb2-dev python3-dev python3-pip sed doxygen graphviz mscgen dia
+        run: sudo apt-get update && sudo apt-get install libomp-dev libtbb-dev python3-dev python3-pip sed doxygen graphviz mscgen dia
 
       - name: Prepare a platform_specific_config.h.in
         run: sed 's+\$NON_STANDARD_PACKAGE_PATH\$+/home/runner/.local/lib/python3.10/site-packages+g' include/Extra/template_platform_specific_config.h.in > include/Extra/platform_specific_config.h.in
