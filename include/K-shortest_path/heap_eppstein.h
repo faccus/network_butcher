@@ -38,8 +38,7 @@ namespace network_butcher::kfinder
 
 
   /// Simple node class, used to construct a min-Heap (though pointers...). Thus, copies are allowed, but not moves.
-  /// Depth can be used to keep track of the number of nodes (minus one) below the current node in each branch.
-  /// Depth will also be zero if there are no children (or less than Max_Children).
+  /// Depth can be used to keep track of the number of nodes the current node in each branch.
   /// \tparam T The node content
   /// \tparam Comparison Content comparison struct
   /// \tparam Max_Children The number of children per node
@@ -60,16 +59,24 @@ namespace network_butcher::kfinder
     /// \param initial_content The content
     explicit Heap_Node(T const &initial_content)
       : content(initial_content)
+      , depth()
     {
       children.reserve(Max_Children);
+
+      for (auto &el : depth)
+        el = 0;
     };
 
     /// It constructs a node with the given content
     /// \param initial_content The content (as an rvalue)
     explicit Heap_Node(T &&initial_content)
       : content(std::move(initial_content))
+      , depth()
     {
       children.reserve(Max_Children);
+
+      for (auto &el : depth)
+        el = 0;
     };
 
 
@@ -86,6 +93,9 @@ namespace network_butcher::kfinder
     clear_children()
     {
       children.clear();
+
+      for (auto &el : depth)
+        el = 0;
     }
 
     /// Add a child to the current node. It will throw if the number of children is already at the maximum
@@ -101,7 +111,7 @@ namespace network_butcher::kfinder
 
       if (depth_update)
         {
-          depth[children.size()] = 0;
+          depth[children.size()] = 1;
         }
 
       children.push_back(child);
@@ -120,9 +130,9 @@ namespace network_butcher::kfinder
           throw std::runtime_error("Heap_Node::copy_child: children.size() >= Max_Children");
         }
 
-      if(depth_update)
+      if (depth_update)
         {
-          depth[children.size()] = 0;
+          depth[children.size()] = 1;
         }
 
       children.push_back(node->children[id]);
@@ -144,7 +154,7 @@ namespace network_butcher::kfinder
       internal_push(new_heap);
     }
 
-    /// Gets the number of nodes below each of each child of the current node
+    /// Gets the number of nodes below the current one in each branch
     /// \return The related array
     [[nodiscard]] auto
     get_depth() const -> std::array<std::size_t, Max_Children> const &
@@ -152,7 +162,7 @@ namespace network_butcher::kfinder
       return depth;
     }
 
-    /// Gets the number of nodes below each of each child of the current node. The resulting array is a reference to the
+    /// Gets the number of nodes below the current one in each branch. The resulting array is a reference to the
     /// internal array
     /// \return The related array
     [[nodiscard]] auto
@@ -186,7 +196,7 @@ namespace network_butcher::kfinder
       if (children.size() < Max_Children)
         {
           // Add the node
-          depth[children.size()] = 0;
+          depth[children.size()] = 1;
           children.push_back(new_heap);
 
           // Swap it with a child if needed
@@ -201,13 +211,13 @@ namespace network_butcher::kfinder
           std::size_t index = std::max_element(depth.cbegin(),
                                                depth.cend(),
                                                [](std::size_t const &lhs, std::size_t const &rhs) {
-                                                 return (lhs % Max_Children) < (rhs % Max_Children);
+                                                 return ((lhs - 1) % Max_Children) < ((rhs - 1) % Max_Children);
                                                }) -
                               depth.cbegin();
 
           // If index == 0, then there are two possibilities: either the new insertion should take place in the first
           // branch, or the first branch is full and we should insert in another branch (with minimum depth).
-          if (index == 0 && depth.front() % Max_Children == 0)
+          if (index == 0 && (depth.front() - 1) % Max_Children == 0)
             {
               // If we are here, then we just have to consider the element with the smallest depth
               index = std::min_element(depth.cbegin(), depth.cend()) - depth.cbegin();
@@ -333,8 +343,12 @@ namespace network_butcher::kfinder
               internal_children->emplace_back(std::forward<U>(elem));
             }
 
+          auto &heap_head = *(++internal_children->begin());
+
           // Add the last node to the heap (whose head is in the second node)
-          (++internal_children->begin())->push(&internal_children->back());
+          heap_head.push(&internal_children->back());
+
+          internal_children->begin()->get_depth_edit()[0] = internal_children->size() - 1;
         }
     }
 
@@ -423,6 +437,23 @@ namespace network_butcher::kfinder
               iterators.push_back((++internal_children->rbegin()).base());
 
               iterators[(i + 1) / 2]->add_child(&internal_children->back());
+            }
+
+          for (std::size_t i = internal_children->size() - 1; ; --i)
+            {
+              auto       &iterator = iterators[i];
+              auto       &depth    = iterator->get_depth_edit();
+              auto const &children = iterator->get_children();
+
+              for (std::size_t j = 0; j < children.size(); ++j)
+                {
+                  depth[j] = std::reduce(children[j]->get_depth().cbegin(), children[j]->get_depth().cend(), 1);
+                }
+
+              if(i == 0)
+                {
+                  break;
+                }
             }
         }
     }
@@ -591,7 +622,7 @@ namespace network_butcher::kfinder
         {
           // In this case, the other_h_g is not a "complete" heap, but instead it's made by up to two nodes. Then, we
           // just need to insert the non-inserted content as a children of inserted_element and, if other_h_g has a
-          // child (that, by construction, will not have any children) we will insert it as a child of inserted_element
+          // child (that, by construction, will not have any child), we will insert it as a child of inserted_element
 
           internal_children->emplace_back(new_content);
           inserted_element.add_child(&internal_children->back());

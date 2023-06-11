@@ -8,7 +8,6 @@
 
 namespace
 {
-
   using namespace network_butcher::kfinder;
 
 
@@ -112,7 +111,6 @@ namespace
 
     for (auto const &el : h_out_2.get_internal_children())
       ptrs.push_back(&el);
-
 
     to_visit.emplace_back(0, h_out_2.get_head_node());
     content_heap_2.push_back(to_visit.front().second->get_content());
