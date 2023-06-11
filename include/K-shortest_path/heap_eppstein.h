@@ -37,7 +37,9 @@ namespace network_butcher::kfinder
   };
 
 
-  /// Simple node class, used to construct a min-Heap (though pointers...). Thus, copies are allowed, but not moves
+  /// Simple node class, used to construct a min-Heap (though pointers...). Thus, copies are allowed, but not moves.
+  /// Depth can be used to keep track of the number of nodes (minus one) below the current node in each branch.
+  /// Depth will also be zero if there are no children (or less than Max_Children).
   /// \tparam T The node content
   /// \tparam Comparison Content comparison struct
   /// \tparam Max_Children The number of children per node
@@ -88,15 +90,19 @@ namespace network_butcher::kfinder
 
     /// Add a child to the current node. It will throw if the number of children is already at the maximum
     /// \param child The child to add
+    /// \param depth_update If true, the depth will be updated
     void
-    add_child(Heap_Node *child)
+    add_child(Heap_Node *child, bool depth_update = true)
     {
       if (children.size() >= Max_Children)
         {
           throw std::runtime_error("Heap_Node::add_child: children.size() >= Max_Children");
         }
 
-      depth[children.size()] = 0;
+      if (depth_update)
+        {
+          depth[children.size()] = 0;
+        }
 
       children.push_back(child);
     }
@@ -105,15 +111,19 @@ namespace network_butcher::kfinder
     /// at the maximum
     /// \param id The id of the child to copy
     /// \param node The node to copy the child from
+    /// \param depth_update If true, the depth will be updated
     void
-    copy_child(std::size_t id, Heap_Node const *const &node)
+    copy_child(std::size_t id, Heap_Node const *const &node, bool depth_update = true)
     {
       if (children.size() >= Max_Children)
         {
           throw std::runtime_error("Heap_Node::copy_child: children.size() >= Max_Children");
         }
 
-      depth[children.size()] = 0;
+      if(depth_update)
+        {
+          depth[children.size()] = 0;
+        }
 
       children.push_back(node->children[id]);
     }
@@ -134,7 +144,7 @@ namespace network_butcher::kfinder
       internal_push(new_heap);
     }
 
-    /// Gets the number of children of the children of the current node
+    /// Gets the number of nodes below each of each child of the current node
     /// \return The related array
     [[nodiscard]] auto
     get_depth() const -> std::array<std::size_t, Max_Children> const &
@@ -142,7 +152,7 @@ namespace network_butcher::kfinder
       return depth;
     }
 
-    /// Gets the number of children of the children of the current node. The resulting array is a reference to the
+    /// Gets the number of nodes below each of each child of the current node. The resulting array is a reference to the
     /// internal array
     /// \return The related array
     [[nodiscard]] auto
@@ -229,7 +239,7 @@ namespace network_butcher::kfinder
   {
   public:
     /// The type of the nodes of the heap
-    using Node_Type                = Heap_Node<T, Comparison, 2>;
+    using Node_Type = Heap_Node<T, Comparison, 2>;
 
     /// The type of the internal collection of nodes
     using Internal_Collection_Type = std::list<Node_Type>;
@@ -264,14 +274,14 @@ namespace network_butcher::kfinder
     operator=(H_out_Type const &) -> H_out_Type & = delete;
 
     /// Copy constructor is deleted since the node collection is stored in a unique_ptr
-    H_out_Type(H_out_Type const &)                = delete;
+    H_out_Type(H_out_Type const &) = delete;
 
     /// Move assignment operator
     auto
     operator=(H_out_Type &&) noexcept -> H_out_Type & = default;
 
     /// Move constructor
-    H_out_Type(H_out_Type &&) noexcept                = default;
+    H_out_Type(H_out_Type &&) noexcept = default;
 
 
     /// It adds to the heap a new element based on the provided content
@@ -392,11 +402,11 @@ namespace network_butcher::kfinder
           std::make_heap(initial_collection.begin(), initial_collection.end(), reversed_comparison); // O(N)
 
           // Use pop_heap to extract the top element of the heap
-          std::pop_heap(initial_collection.begin(), initial_collection.end(), reversed_comparison);  // O(log(N))
+          std::pop_heap(initial_collection.begin(), initial_collection.end(), reversed_comparison); // O(log(N))
 
           // Collection of iterators to the nodes in the internal collection
           std::vector<typename std::list<Node_Type>::iterator> iterators;
-          iterators.reserve(initial_collection.size());                          // O(N)
+          iterators.reserve(initial_collection.size()); // O(N)
 
           // Add the the last element of initial_collection to the internal collection. It should be the minimum element
           internal_children->emplace_back(std::move(initial_collection.back())); // O(1)
@@ -451,7 +461,7 @@ namespace network_butcher::kfinder
     };
 
     /// Node type used to represent the nodes in the heap
-    using Node_Type                = Heap_Node<Elem_Type const *, Pointer_Less, 2>;
+    using Node_Type = Heap_Node<Elem_Type const *, Pointer_Less, 2>;
 
     /// Type of the internal collection of nodes
     using Internal_Collection_Type = std::list<Node_Type>;
@@ -500,14 +510,14 @@ namespace network_butcher::kfinder
     operator=(H_g_Type const &) -> H_g_Type & = delete;
 
     /// Deleted copy constructor because the node collection is stored in a unique_ptr
-    H_g_Type(H_g_Type const &)                = delete;
+    H_g_Type(H_g_Type const &) = delete;
 
     /// Default move assignment operator
     auto
     operator=(H_g_Type &&) noexcept -> H_g_Type & = default;
 
     /// Default move constructor
-    H_g_Type(H_g_Type &&) noexcept                = default;
+    H_g_Type(H_g_Type &&) noexcept = default;
 
 
     /// It will return the head node of the heap
@@ -570,7 +580,7 @@ namespace network_butcher::kfinder
       // Add the newly added node
       if (parent)
         {
-          parent->add_child(&inserted_element);
+          parent->add_child(&inserted_element, false);
         }
 
       // Get the non-inserted content
@@ -585,13 +595,11 @@ namespace network_butcher::kfinder
 
           internal_children->emplace_back(new_content);
           inserted_element.add_child(&internal_children->back());
-          depth[0] = 0;
 
           // If the node of the other H_g had an extra child, add it as a child of internal_children
           if (!other_h_g->get_children().empty())
             {
               inserted_element.copy_child(0, other_h_g);
-              depth[1] = 0;
             }
         }
       // In this case, the other H_g is still a heap. Thus, we will recursively call the function using as a content
@@ -600,12 +608,20 @@ namespace network_butcher::kfinder
       else
         {
           depth             = other_h_g->get_depth();
-          std::size_t index = std::min(depth.cbegin(), depth.cend()) - depth.cbegin();
+          std::size_t index = std::min_element(depth.cbegin(), depth.cend()) - depth.cbegin();
 
-          inserted_element.copy_child(1 - index, other_h_g);
+          if (index == 0)
+            {
+              construction_from_other_h_g(new_content, other_h_g->get_children()[index], &inserted_element);
+              inserted_element.copy_child(1 - index, other_h_g, false);
+            }
+          else
+            {
+              inserted_element.copy_child(1 - index, other_h_g, false);
+              construction_from_other_h_g(new_content, other_h_g->get_children()[index], &inserted_element);
+            }
+
           ++depth[index];
-
-          construction_from_other_h_g(new_content, other_h_g->get_children()[index], &inserted_element);
         }
     }
   };

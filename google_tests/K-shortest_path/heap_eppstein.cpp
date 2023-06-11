@@ -104,7 +104,6 @@ namespace
             ASSERT_EQ(ptrs[2 * index + j], el->get_children()[j]);
           }
 
-
         to_visit.pop_front();
       }
 
@@ -142,7 +141,7 @@ namespace
   TEST(HeapEppsteinTest, H_g)
   {
     using H_out_container_type = std::vector<H_out_Type<int, std::less<>>>;
-    std::vector<int> vect{0, 1, 1, 2, 3, -1, -2, 4, -3, 0};
+    std::vector<int> vect{0, 1, 2, 3, 4, -1, -2, 5, -3, 0};
 
     H_out_container_type h_outs;
 
