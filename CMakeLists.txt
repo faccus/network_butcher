@@ -13,7 +13,7 @@ option(DISCOVER_TESTS "Let CTest discover the tests" ON)
 option(DISCOVER_COMPLETE_TESTS "Let CTest discover the complete tests" ON)
 
 option(ENABLE_PARALLEL "Enable parallel execution" ON)
-option(USE_OPENMP "Use OpenMP (if OFF, it will use TBB)" OFF)
+option(USE_OPENMP "Use OpenMP (if OFF, it will use TBB)" ON)
 
 option(USE_PYBIND "Use pybind11 (downloaded automatically from github)" ON)
 
