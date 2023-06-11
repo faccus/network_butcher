@@ -58,6 +58,8 @@ namespace network_butcher::Utilities
     // File can be opened
     if (input.good())
       m.ParseFromIstream(&input);
+
+    input.close();
   }
 
 
@@ -68,6 +70,8 @@ namespace network_butcher::Utilities
 
     if (output.good())
       m.SerializeToOstream(&output);
+
+    output.close();
   }
 
 
