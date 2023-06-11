@@ -10,12 +10,12 @@ option(BUILD_PROTOBUF_SOURCE "Download and compile protobuf from github" ON)
 
 option(USE_GOOGLETEST "Enable target for tests (download automatically GoogleTest from github)" ON)
 option(DISCOVER_TESTS "Let CTest discover the tests" ON)
-option(DISCOVER_COMPLETE_TESTS "Let CTest discover the complete tests" OFF)
+option(DISCOVER_COMPLETE_TESTS "Let CTest discover the complete tests" ON)
 
 option(ENABLE_PARALLEL "Enable parallel execution" ON)
 option(USE_OPENMP "Use OpenMP (if OFF, it will use TBB)" OFF)
 
-option(USE_PYBIND "Use pybind11 (downloaded automatically from github)" OFF)
+option(USE_PYBIND "Use pybind11 (downloaded automatically from github)" ON)
 
 option(BUILD_DOC "Build documentation" ON)
 
