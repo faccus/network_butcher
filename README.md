@@ -7,7 +7,7 @@ devices.
 
 ### Project structure
 
-The project is structured into three main directories:
+The project is structured into four main directories:
 
 - include: It contains all the header files. A [README](include/README.md) file describing its contents is also available.
 - src: It contains all the source files. A [README](src/README.md) file describing its contents is also available.
