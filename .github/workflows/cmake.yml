@@ -53,7 +53,7 @@ jobs:
           submodules: recursive
 
       - name: Install TBB, python and doxygen
-        run: sudo apt-get update && sudo apt-get install libomp-dev python3-dev python3-pip sed
+        run: sudo apt-get update && sudo apt-get install libtbb-dev python3-dev python3-pip sed
 
       - name: Prepare a platform_specific_config.h.in
         run: sed 's+\$NON_STANDARD_PACKAGE_PATH\$+/home/runner/.local/lib/python3.10/site-packages+g' include/Extra/template_platform_specific_config.h.in > include/Extra/platform_specific_config.h.in
@@ -91,7 +91,7 @@ jobs:
 
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory.
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_PROTOBUF_SOURCE=ON -DUSE_GOOGLETEST=OFF -DDISCOVER_COMPLETE_TESTS=OFF -DENABLE_PARALLEL=OFF -DUSE_OPENMP=OFF -DUSE_PYBIND=OFF -DBUILD_DOC=ON
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_PROTOBUF_SOURCE=ON -DUSE_GOOGLETEST=ON -DDISCOVER_COMPLETE_TESTS=ON -DENABLE_PARALLEL=OFF -DUSE_OPENMP=OFF -DUSE_PYBIND=ON -DBUILD_DOC=ON
 
       - name: Build
         # Build your program with the given configuration

@@ -9,18 +9,32 @@ namespace network_butcher::parameters
   /// Enumerator for the weight import modes
   enum struct Weight_Import_Mode
   {
+    /// Single file, simple graph
     single_direct_read,
+
+    /// Multiple files, simple graph
     multiple_direct_read,
 
+    /// aMLLibrary generates the weights for the block graph
     aMLLibrary_block,
+
+    /// Single file, block graph
     block_single_direct_read,
+
+    /// Multiple files, block graph
     block_multiple_direct_read
   };
 
+  /// Enumerator for the block graph generation modes
   enum struct Block_Graph_Generation_Mode
   {
+    /// Bottleneck input and output are not in the block node
     classic,
+
+    /// Bottleneck output is in the block node, bottleneck input is not
     output,
+
+    /// Bottleneck input is in the block node, bottleneck output is not
     input
   };
 
@@ -48,6 +62,7 @@ namespace network_butcher::parameters
   {
     using Devices = std::vector<Device>;
 
+    /// Structure used to contain all the aMLLibrary related parameters
     struct aMLLibrary
     {
       /// The temporary directory
@@ -63,6 +78,7 @@ namespace network_butcher::parameters
       std::vector<std::string> aMLLibrary_csv_features;
     };
 
+    /// Structure used to contain all the weights related parameters
     struct Weights
     {
       using connection_information_type = std::pair<Bandwidth_Value_Type, Access_Delay_Value_Type>;
@@ -84,10 +100,15 @@ namespace network_butcher::parameters
 
       /// The bandwidth information between the different devices (Mbps , s).
       connection_type    bandwidth;
+
+      /// The bandwidth information between the devices for the first padding node and its neighbours (Mbps , s).
       io_connection_type in_bandwidth;
+
+      /// The bandwidth information between the devices for the last padding node and its neighbours (Mbps , s).
       io_connection_type out_bandwidth;
     };
 
+    /// Structure used to contain all the model related parameters
     struct Model
     {
       /// The model name
@@ -103,6 +124,7 @@ namespace network_butcher::parameters
       std::string config_path;
     };
 
+    /// Structure used to contain all the parameters related to the K shortest path method
     struct KSP
     {
       /// The number of paths to return
@@ -112,6 +134,7 @@ namespace network_butcher::parameters
       KSP_Method method;
     };
 
+    /// Structure used to contain all the parameters related to the Block Graph Generation
     struct Block_Graph_Generation
     {
       /// Starting device
@@ -120,7 +143,7 @@ namespace network_butcher::parameters
       /// End device
       std::size_t ending_device_id;
 
-      /// Block Graph Generation mode for Butcher
+      /// Block Graph Generation mode for Butcher.
       Block_Graph_Generation_Mode block_graph_mode;
 
       /// Do we have to use the bandwidth to manage connections, i.e. determine if two devices can communicate?
