@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Network Butcher: include/K-shortest_path/basic_keppstein.h Source File</title>
+<title>Network Butcher: include/network_butcher/K-shortest_path/basic_keppstein.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -22,6 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Network Butcher
+   &#160;<span id="projectnumber">1.0</span>
    </div>
    <div id="projectbrief">Just a normal butcher. A network butcher</div>
   </td>
@@ -62,7 +63,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_e5f018b8c83e247b0734844cf4c8f97e.html">K-shortest_path</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_f39b691b51ee7d502178e277ead80d38.html">network_butcher</a></li><li class="navelem"><a class="el" href="dir_a96e4a8938a9c746b348d050395898d7.html">K-shortest_path</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -79,11 +80,11 @@ $(function() {
 <div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#include &lt;ranges&gt;</span></div>
 <div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">#include &lt;variant&gt;</span></div>
 <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160; </div>
-<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="heap__traits_8h.html">heap_traits.h</a>&quot;</span></div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="shortest__path__finder_8h.html">shortest_path_finder.h</a>&quot;</span></div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="heap__traits_8h.html">network_butcher/K-shortest_path/heap_traits.h</a>&gt;</span></div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="shortest__path__finder_8h.html">network_butcher/K-shortest_path/shortest_path_finder.h</a>&gt;</span></div>
 <div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160; </div>
-<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="chrono_8h.html">chrono.h</a>&quot;</span></div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="kfinder_8h.html">kfinder.h</a>&quot;</span></div>
+<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="chrono_8h.html">network_butcher/APSC/chrono.h</a>&gt;</span></div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="kfinder_8h.html">network_butcher/K-shortest_path/kfinder.h</a>&gt;</span></div>
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160; </div>
 <div class="line"><a name="l00016"></a><span class="lineno"><a class="line" href="namespacenetwork__butcher_1_1kfinder.html">   16</a></span>&#160;<span class="keyword">namespace </span><a class="code" href="namespacenetwork__butcher_1_1kfinder.html">network_butcher::kfinder</a></div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;{</div>
@@ -537,7 +538,7 @@ $(function() {
 <div class="line"><a name="l00535"></a><span class="lineno">  535</span>&#160;              }</div>
 <div class="line"><a name="l00536"></a><span class="lineno">  536</span>&#160;          }</div>
 <div class="line"><a name="l00537"></a><span class="lineno">  537</span>&#160;      };</div>
-<div class="line"><a name="l00538"></a><span class="lineno">  538</span>&#160;<span class="preprocessor">#if PARALLEL_TBB</span></div>
+<div class="line"><a name="l00538"></a><span class="lineno">  538</span>&#160;<span class="preprocessor">#if NETWORK_BUTCHER_PARALLEL_TBB</span></div>
 <div class="line"><a name="l00539"></a><span class="lineno">  539</span>&#160;    <span class="comment">// https://stackoverflow.com/a/63340360 .</span></div>
 <div class="line"><a name="l00540"></a><span class="lineno">  540</span>&#160;    <span class="comment">// Tested views, but they are slower, so they are not used.</span></div>
 <div class="line"><a name="l00541"></a><span class="lineno">  541</span>&#160; </div>
@@ -669,9 +670,9 @@ $(function() {
 <div class="ttc" id="anamespacenetwork__butcher_1_1kfinder_1_1Shortest__path__finder_html_ade4f653df1af288a788d03c3026c9fa4"><div class="ttname"><a href="namespacenetwork__butcher_1_1kfinder_1_1Shortest__path__finder.html#ade4f653df1af288a788d03c3026c9fa4">network_butcher::kfinder::Shortest_path_finder::dijkstra</a></div><div class="ttdeci">auto dijkstra(v_Weighted_Graph const &amp;graph, Node_Id_Type root) -&gt; Templated_Dijkstra_Result_Type&lt; typename v_Weighted_Graph::Weight_Type &gt;</div><div class="ttdef"><b>Definition:</b> shortest_path_finder.h:69</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_1_1kfinder_1_1Shortest__path__finder_html_adf8bb01e3743b3aab19018fef85b550f"><div class="ttname"><a href="namespacenetwork__butcher_1_1kfinder_1_1Shortest__path__finder.html#adf8bb01e3743b3aab19018fef85b550f">network_butcher::kfinder::Shortest_path_finder::shortest_path_finder</a></div><div class="ttdeci">auto shortest_path_finder(v_Weighted_Graph const &amp;graph, Templated_Dijkstra_Result_Type&lt; typename v_Weighted_Graph::Weight_Type &gt; const &amp;dij_res, Node_Id_Type root, Node_Id_Type sink) -&gt; Templated_Path_Info&lt; typename v_Weighted_Graph::Weight_Type &gt;</div><div class="ttdef"><b>Definition:</b> shortest_path_finder.h:155</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_1_1kfinder_html"><div class="ttname"><a href="namespacenetwork__butcher_1_1kfinder.html">network_butcher::kfinder</a></div><div class="ttdef"><b>Definition:</b> basic_keppstein.h:17</div></div>
-<div class="ttc" id="anamespacenetwork__butcher_1_1kfinder_html_a41c026858d84f07aa4dc04153ea98f7b"><div class="ttname"><a href="namespacenetwork__butcher_1_1kfinder.html#a41c026858d84f07aa4dc04153ea98f7b">network_butcher::kfinder::Templated_H_g_Collection</a></div><div class="ttdeci">std::unordered_map&lt; Node_Id_Type, H_g_Type&lt; Templated_Edge_Info&lt; Weight_Type &gt;, std::less&lt;&gt; &gt;&gt; Templated_H_g_Collection</div><div class="ttdoc">Simple alias for a map storing H_g_Type, indexed by the node id.</div><div class="ttdef"><b>Definition:</b> heap_traits.h:21</div></div>
+<div class="ttc" id="anamespacenetwork__butcher_1_1kfinder_html_a41c026858d84f07aa4dc04153ea98f7b"><div class="ttname"><a href="namespacenetwork__butcher_1_1kfinder.html#a41c026858d84f07aa4dc04153ea98f7b">network_butcher::kfinder::Templated_H_g_Collection</a></div><div class="ttdeci">std::unordered_map&lt; Node_Id_Type, H_g_Type&lt; Templated_Edge_Info&lt; Weight_Type &gt;, std::less&lt;&gt; &gt;&gt; Templated_H_g_Collection</div><div class="ttdoc">Simple alias for a map storing H_g_Type, indexed by the node id.</div><div class="ttdef"><b>Definition:</b> heap_traits.h:22</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_1_1kfinder_html_abb4536160f3ea03c3f08c21646c146a2"><div class="ttname"><a href="namespacenetwork__butcher_1_1kfinder.html#abb4536160f3ea03c3f08c21646c146a2">network_butcher::kfinder::Valid_Weighted_Graph</a></div><div class="ttdeci">concept Valid_Weighted_Graph</div><div class="ttdef"><b>Definition:</b> weighted_graph.h:132</div></div>
-<div class="ttc" id="anamespacenetwork__butcher_1_1kfinder_html_aee9c1f6d1cf5e990d172c660b33352a7"><div class="ttname"><a href="namespacenetwork__butcher_1_1kfinder.html#aee9c1f6d1cf5e990d172c660b33352a7">network_butcher::kfinder::Templated_H_out_Collection</a></div><div class="ttdeci">std::unordered_map&lt; Node_Id_Type, H_out_Type&lt; Templated_Edge_Info&lt; Weight_Type &gt;, std::less&lt;&gt; &gt;&gt; Templated_H_out_Collection</div><div class="ttdef"><b>Definition:</b> heap_traits.h:16</div></div>
+<div class="ttc" id="anamespacenetwork__butcher_1_1kfinder_html_aee9c1f6d1cf5e990d172c660b33352a7"><div class="ttname"><a href="namespacenetwork__butcher_1_1kfinder.html#aee9c1f6d1cf5e990d172c660b33352a7">network_butcher::kfinder::Templated_H_out_Collection</a></div><div class="ttdeci">std::unordered_map&lt; Node_Id_Type, H_out_Type&lt; Templated_Edge_Info&lt; Weight_Type &gt;, std::less&lt;&gt; &gt;&gt; Templated_H_out_Collection</div><div class="ttdef"><b>Definition:</b> heap_traits.h:17</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_html_a5c3a70884579b2e0d026e3790b705bb3"><div class="ttname"><a href="namespacenetwork__butcher.html#a5c3a70884579b2e0d026e3790b705bb3">network_butcher::Node_Id_Type</a></div><div class="ttdeci">long unsigned int Node_Id_Type</div><div class="ttdoc">The id of a node in a graph. Used also to represent device ids.</div><div class="ttdef"><b>Definition:</b> starting_traits.h:19</div></div>
 <div class="ttc" id="ashortest__path__finder_8h_html"><div class="ttname"><a href="shortest__path__finder_8h.html">shortest_path_finder.h</a></div></div>
 <div class="ttc" id="astructnetwork__butcher_1_1kfinder_1_1Basic__KEppstein_1_1Implicit__Path__Info_html"><div class="ttname"><a href="structnetwork__butcher_1_1kfinder_1_1Basic__KEppstein_1_1Implicit__Path__Info.html">network_butcher::kfinder::Basic_KEppstein::Implicit_Path_Info</a></div><div class="ttdoc">Simple struct to represent an implicit path.</div><div class="ttdef"><b>Definition:</b> basic_keppstein.h:149</div></div>

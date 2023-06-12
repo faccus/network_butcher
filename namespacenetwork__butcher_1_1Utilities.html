@@ -22,6 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Network Butcher
+   &#160;<span id="projectnumber">1.0</span>
    </div>
    <div id="projectbrief">Just a normal butcher. A network butcher</div>
   </td>
@@ -81,11 +82,9 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:af7e0caa5987dec07f8452bce313b1b7e"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:af7e0caa5987dec07f8452bce313b1b7e"><td class="memTemplItemLeft" align="right" valign="top">requires&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacenetwork__butcher_1_1Utilities.html#af7e0caa5987dec07f8452bce313b1b7e">requires</a> (T const &amp;a)</td></tr>
-<tr class="separator:af7e0caa5987dec07f8452bce313b1b7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa28e152b01992696e593fd76dd9401b3"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacenetwork__butcher_1_1Utilities.html#aa28e152b01992696e593fd76dd9401b3">custom_to_string</a> (T const &amp;obj) -&gt; std::string</td></tr>
-<tr class="separator:aa28e152b01992696e593fd76dd9401b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab51e67837482fd53a679898430610d2b"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:ab51e67837482fd53a679898430610d2b"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacenetwork__butcher_1_1Utilities.html#ab51e67837482fd53a679898430610d2b">custom_to_string</a> (T const &amp;obj) -&gt; std::string requires requires(T const &amp;a)</td></tr>
+<tr class="separator:ab51e67837482fd53a679898430610d2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a54e7e70b465282e093bef877c91478e4"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:a54e7e70b465282e093bef877c91478e4"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacenetwork__butcher_1_1Utilities.html#a54e7e70b465282e093bef877c91478e4">custom_to_string</a> (std::pair&lt; T, T &gt; const &amp;obj) -&gt; std::string</td></tr>
 <tr class="separator:a54e7e70b465282e093bef877c91478e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -262,22 +261,26 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="aa28e152b01992696e593fd76dd9401b3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa28e152b01992696e593fd76dd9401b3">&#9670;&nbsp;</a></span>custom_to_string() <span class="overload">[2/2]</span></h2>
+<a id="ab51e67837482fd53a679898430610d2b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab51e67837482fd53a679898430610d2b">&#9670;&nbsp;</a></span>custom_to_string() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">auto network_butcher::Utilities::custom_to_string </td>
           <td>(</td>
           <td class="paramtype">T const &amp;&#160;</td>
           <td class="paramname"><em>obj</em></td><td>)</td>
-          <td> -&gt;  std::string</td>
+          <td> -&gt; std::string requires requires(T const &amp;a) </td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Simple function that will apply std::to_string, if available. If the std::to_string was not provided, print " " </p><dl class="tparams"><dt>Template Parameters</dt><dd>
+<b>Initial value:</b><div class="fragment"><div class="line">{</div>
+<div class="line">    <span class="keywordflow">return</span> std::to_string(obj)</div>
+</div><!-- fragment --><p>Simple function that will apply std::to_string, if available. If the std::to_string was not provided, print " " </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">T</td><td>The type of the object to convert to string </td></tr>
   </table>
@@ -592,39 +595,6 @@ template&lt;typename T &gt; </div>
   </table>
   </dd>
 </dl>
-
-</div>
-</div>
-<a id="af7e0caa5987dec07f8452bce313b1b7e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af7e0caa5987dec07f8452bce313b1b7e">&#9670;&nbsp;</a></span>requires()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T &gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">requires network_butcher::Utilities::requires </td>
-          <td>(</td>
-          <td class="paramtype">T const &amp;&#160;</td>
-          <td class="paramname"><em>a</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Simple function that will apply std::to_string, if available. If the std::to_string was not provided, print " " </p><dl class="tparams"><dt>Template Parameters</dt><dd>
-  <table class="tparams">
-    <tr><td class="paramname">T</td><td>The type of the object to convert to string </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">obj</td><td>The object of type T to be converted to a string </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>The string </dd></dl>
 
 </div>
 </div>

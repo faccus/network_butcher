@@ -1,20 +1,19 @@
-<map id="include/IO_Interaction/Weight_Importer_Helpers/weight_importer.h" name="include/IO_Interaction/Weight_Importer_Helpers/weight_importer.h">
-<area shape="rect" id="node1" title=" " alt="" coords="112,5,303,61"/>
-<area shape="rect" id="node2" href="$block__aMLLibrary__weight__importer_8h.html" title=" " alt="" coords="5,213,196,284"/>
-<area shape="rect" id="node17" href="$csv__weight__importer_8h.html" title=" " alt="" coords="199,109,389,165"/>
-<area shape="rect" id="node3" href="$weight__importers_8h.html" title=" " alt="" coords="293,347,457,388"/>
-<area shape="rect" id="node16" href="$block__aMLLibrary__weight__importer_8cpp.html" title=" " alt="" coords="5,332,196,403"/>
-<area shape="rect" id="node4" href="$constrained__block__graph__builder_8h.html" title=" " alt="" coords="274,451,477,492"/>
-<area shape="rect" id="node5" href="$butcher_8h.html" title=" " alt="" coords="421,540,607,567"/>
-<area shape="rect" id="node7" href="$io__manager_8h.html" title=" " alt="" coords="265,733,427,760"/>
-<area shape="rect" id="node6" href="$onnx__importer__helpers_8h.html" title=" " alt="" coords="239,622,427,663"/>
-<area shape="rect" id="node11" href="$network__butcher_8h.html" title=" " alt="" coords="560,823,753,849"/>
-<area shape="rect" id="node14" href="$onnx__model__reconstructor__helpers_8h.html" title=" " alt="" coords="451,615,649,671"/>
-<area shape="rect" id="node13" href="$onnx__importer__helpers_8cpp.html" title=" " alt="" coords="38,726,241,767"/>
-<area shape="rect" id="node8" href="$general__manager_8h.html" title=" " alt="" coords="277,823,476,849"/>
-<area shape="rect" id="node12" href="$io__manager_8cpp.html" title=" " alt="" coords="105,823,253,849"/>
-<area shape="rect" id="node9" href="$general__manager_8cpp.html" title=" " alt="" coords="199,897,384,924"/>
-<area shape="rect" id="node10" href="$main_8cpp.html" title=" " alt="" coords="408,897,513,924"/>
-<area shape="rect" id="node15" href="$onnx__model__reconstructor__helpers_8cpp.html" title=" " alt="" coords="451,719,649,775"/>
-<area shape="rect" id="node18" href="$csv__weight__importer_8cpp.html" title=" " alt="" coords="220,221,411,277"/>
+<map id="include/network_butcher/IO_Interaction/Weight_Importer_Helpers/weight_importer.h" name="include/network_butcher/IO_Interaction/Weight_Importer_Helpers/weight_importer.h">
+<area shape="rect" id="node1" title=" " alt="" coords="152,5,343,76"/>
+<area shape="rect" id="node2" href="$block__aMLLibrary__weight__importer_8h.html" title=" " alt="" coords="18,243,245,313"/>
+<area shape="rect" id="node16" href="$csv__weight__importer_8h.html" title=" " alt="" coords="233,124,451,195"/>
+<area shape="rect" id="node3" href="$weight__importers_8h.html" title=" " alt="" coords="328,369,511,425"/>
+<area shape="rect" id="node15" href="$block__aMLLibrary__weight__importer_8cpp.html" title=" " alt="" coords="36,361,227,432"/>
+<area shape="rect" id="node4" href="$butcher_8h.html" title=" " alt="" coords="192,584,375,625"/>
+<area shape="rect" id="node6" href="$io__manager_8h.html" title=" " alt="" coords="491,785,673,826"/>
+<area shape="rect" id="node14" href="$constrained__block__graph__builder_8h.html" title=" " alt="" coords="184,480,383,536"/>
+<area shape="rect" id="node5" href="$onnx__importer__helpers_8h.html" title=" " alt="" coords="298,673,514,729"/>
+<area shape="rect" id="node8" href="$network__butcher_8h.html" title=" " alt="" coords="385,971,568,1012"/>
+<area shape="rect" id="node12" href="$onnx__model__reconstructor__helpers_8h.html" title=" " alt="" coords="72,673,273,729"/>
+<area shape="rect" id="node11" href="$onnx__importer__helpers_8cpp.html" title=" " alt="" coords="263,785,466,826"/>
+<area shape="rect" id="node7" href="$general__manager_8h.html" title=" " alt="" coords="555,881,737,923"/>
+<area shape="rect" id="node10" href="$io__manager_8cpp.html" title=" " alt="" coords="331,889,479,915"/>
+<area shape="rect" id="node9" href="$general__manager_8cpp.html" title=" " alt="" coords="592,978,777,1005"/>
+<area shape="rect" id="node13" href="$onnx__model__reconstructor__helpers_8cpp.html" title=" " alt="" coords="40,777,239,833"/>
+<area shape="rect" id="node17" href="$csv__weight__importer_8cpp.html" title=" " alt="" coords="269,250,460,306"/>
 </map>

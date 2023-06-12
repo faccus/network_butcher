@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Network Butcher: include/utilities.h File Reference</title>
+<title>Network Butcher: include/network_butcher/utilities.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -22,6 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Network Butcher
+   &#160;<span id="projectnumber">1.0</span>
    </div>
    <div id="projectbrief">Just a normal butcher. A network butcher</div>
   </td>
@@ -62,7 +63,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_f39b691b51ee7d502178e277ead80d38.html">network_butcher</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -78,14 +79,14 @@ $(function() {
 <code>#include &lt;filesystem&gt;</code><br />
 <code>#include &lt;fstream&gt;</code><br />
 <code>#include &lt;ranges&gt;</code><br />
-<code>#include &quot;onnx.pb.h&quot;</code><br />
-<code>#include &quot;<a class="el" href="traits_8h_source.html">traits.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="dense__tensor_8h_source.html">dense_tensor.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="type__info_8h_source.html">type_info.h</a>&quot;</code><br />
+<code>#include &lt;network_butcher/onnx_proto/onnx.pb.h&gt;</code><br />
+<code>#include &lt;<a class="el" href="traits_8h_source.html">network_butcher/Traits/traits.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="dense__tensor_8h_source.html">network_butcher/Types/dense_tensor.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="type__info_8h_source.html">network_butcher/Types/type_info.h</a>&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for utilities.h:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="utilities_8h__incl.svg" width="100%" height="496"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="utilities_8h__incl.svg" width="100%" height="540"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div>
 </div><div class="textblock"><div class="dynheader">
@@ -107,11 +108,9 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:af7e0caa5987dec07f8452bce313b1b7e"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:af7e0caa5987dec07f8452bce313b1b7e"><td class="memTemplItemLeft" align="right" valign="top">requires&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacenetwork__butcher_1_1Utilities.html#af7e0caa5987dec07f8452bce313b1b7e">network_butcher::Utilities::requires</a> (T const &amp;a)</td></tr>
-<tr class="separator:af7e0caa5987dec07f8452bce313b1b7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa28e152b01992696e593fd76dd9401b3"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacenetwork__butcher_1_1Utilities.html#aa28e152b01992696e593fd76dd9401b3">network_butcher::Utilities::custom_to_string</a> (T const &amp;obj) -&gt; std::string</td></tr>
-<tr class="separator:aa28e152b01992696e593fd76dd9401b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab51e67837482fd53a679898430610d2b"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:ab51e67837482fd53a679898430610d2b"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacenetwork__butcher_1_1Utilities.html#ab51e67837482fd53a679898430610d2b">network_butcher::Utilities::custom_to_string</a> (T const &amp;obj) -&gt; std::string requires requires(T const &amp;a)</td></tr>
+<tr class="separator:ab51e67837482fd53a679898430610d2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a54e7e70b465282e093bef877c91478e4"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:a54e7e70b465282e093bef877c91478e4"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacenetwork__butcher_1_1Utilities.html#a54e7e70b465282e093bef877c91478e4">network_butcher::Utilities::custom_to_string</a> (std::pair&lt; T, T &gt; const &amp;obj) -&gt; std::string</td></tr>
 <tr class="separator:a54e7e70b465282e093bef877c91478e4"><td class="memSeparator" colspan="2">&#160;</td></tr>

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Network Butcher: include/Computer/computer_memory.h Source File</title>
+<title>Network Butcher: include/network_butcher/Computer/computer_memory.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -22,6 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Network Butcher
+   &#160;<span id="projectnumber">1.0</span>
    </div>
    <div id="projectbrief">Just a normal butcher. A network butcher</div>
   </td>
@@ -62,7 +63,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_cdac857211719870f5c879b7d0d66bd2.html">Computer</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_f39b691b51ee7d502178e277ead80d38.html">network_butcher</a></li><li class="navelem"><a class="el" href="dir_1276ff1a920fbcc0a0b1725c00652e0c.html">Computer</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -75,8 +76,8 @@ $(function() {
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160; </div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &lt;functional&gt;</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160; </div>
-<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="utilities_8h.html">utilities.h</a>&quot;</span></div>
-<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="wgraph_8h.html">wgraph.h</a>&quot;</span></div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="utilities_8h.html">network_butcher/utilities.h</a>&gt;</span></div>
+<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="wgraph_8h.html">network_butcher/Network/wgraph.h</a>&gt;</span></div>
 <div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160; </div>
 <div class="line"><a name="l00009"></a><span class="lineno"><a class="line" href="namespacenetwork__butcher_1_1computer.html">    9</a></span>&#160;<span class="keyword">namespace </span><a class="code" href="namespacenetwork__butcher_1_1computer_1_1Computer__memory.html">network_butcher::computer::Computer_memory</a></div>
 <div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;{</div>
@@ -213,7 +214,7 @@ $(function() {
 <div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;    <span class="keyword">auto</span> <span class="keyword">const</span>              &amp;nodes = graph.<a class="code" href="classnetwork__butcher_1_1types_1_1Graph.html#af6c5c26d9dc4d84a8ebd1624c6558f69">get_nodes</a>();</div>
 <div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;    std::vector&lt;Memory_Type&gt; memory_usages(nodes.size());</div>
 <div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160; </div>
-<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;<span class="preprocessor">#if PARALLEL_TBB</span></div>
+<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;<span class="preprocessor">#if NETWORK_BUTCHER_PARALLEL_TBB</span></div>
 <div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;    std::transform(std::execution::par, nodes.cbegin(), nodes.cend(), memory_usages.begin(), func);</div>
 <div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;<span class="preprocessor">#else</span></div>
 <div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;<span class="preprocessor">    #pragma omp parallel default(none) shared(nodes, memory_usages)</span></div>
@@ -248,7 +249,7 @@ $(function() {
 <div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;    <span class="keyword">auto</span> <span class="keyword">const</span>              &amp;nodes = graph.<a class="code" href="classnetwork__butcher_1_1types_1_1Graph.html#af6c5c26d9dc4d84a8ebd1624c6558f69">get_nodes</a>();</div>
 <div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;    std::vector&lt;Memory_Type&gt; memory_usages(nodes.size());</div>
 <div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160; </div>
-<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;<span class="preprocessor">#if PARALLEL_TBB</span></div>
+<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;<span class="preprocessor">#if NETWORK_BUTCHER_PARALLEL_TBB</span></div>
 <div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;    std::transform(std::execution::par,</div>
 <div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;                   nodes.cbegin(),</div>
 <div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;                   nodes.cend(),</div>
@@ -291,7 +292,7 @@ $(function() {
 <div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;      }</div>
 <div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160; </div>
 <div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160; </div>
-<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;<span class="preprocessor">#if PARALLEL_TBB</span></div>
+<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;<span class="preprocessor">#if NETWORK_BUTCHER_PARALLEL_TBB</span></div>
 <div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;    std::transform(std::execution::par, nodes.cbegin(), nodes.cend(), memory_usages.begin(), func);</div>
 <div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;<span class="preprocessor">#else</span></div>
 <div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;<span class="preprocessor">    #pragma omp parallel default(none) shared(nodes, memory_usages, func)</span></div>
@@ -315,7 +316,7 @@ $(function() {
 <div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;    <span class="keyword">auto</span> <span class="keyword">const</span>              &amp;nodes = graph.<a class="code" href="classnetwork__butcher_1_1types_1_1Graph.html#af6c5c26d9dc4d84a8ebd1624c6558f69">get_nodes</a>();</div>
 <div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;    std::vector&lt;Memory_Type&gt; memory_usages(nodes.size());</div>
 <div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160; </div>
-<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;<span class="preprocessor">#if PARALLEL_TBB</span></div>
+<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;<span class="preprocessor">#if NETWORK_BUTCHER_PARALLEL_TBB</span></div>
 <div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;    std::transform(std::execution::par,</div>
 <div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;                   nodes.cbegin(),</div>
 <div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;                   nodes.cend(),</div>
@@ -344,7 +345,7 @@ $(function() {
 <div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;  {</div>
 <div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;    <span class="keyword">auto</span> <span class="keyword">const</span> nodes_usage = <a class="code" href="namespacenetwork__butcher_1_1computer_1_1Computer__memory.html#ac7102e99daa4ceb36d4c40bb660ae266">compute_nodes_memory_usage_input</a>(graph);</div>
 <div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160; </div>
-<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;<span class="preprocessor">#if PARALLEL_TBB</span></div>
+<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;<span class="preprocessor">#if NETWORK_BUTCHER_PARALLEL_TBB</span></div>
 <div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;    <span class="keywordflow">return</span> std::reduce(std::execution::par, nodes_usage.cbegin(), nodes_usage.cend());</div>
 <div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;<span class="preprocessor">#else</span></div>
 <div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;    <span class="keywordflow">if</span> (nodes_usage.size() == 1)</div>
@@ -373,7 +374,7 @@ $(function() {
 <div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;  {</div>
 <div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;    <span class="keyword">auto</span> <span class="keyword">const</span> nodes_usage = <a class="code" href="namespacenetwork__butcher_1_1computer_1_1Computer__memory.html#aaac735dfad4ad1b21d75576877d56522">compute_nodes_memory_usage_parameters</a>(graph);</div>
 <div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160; </div>
-<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;<span class="preprocessor">#if PARALLEL_TBB</span></div>
+<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;<span class="preprocessor">#if NETWORK_BUTCHER_PARALLEL_TBB</span></div>
 <div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;    <span class="keywordflow">return</span> std::reduce(std::execution::par, nodes_usage.cbegin(), nodes_usage.cend());</div>
 <div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;<span class="preprocessor">#else</span></div>
 <div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;    <span class="keywordflow">if</span> (nodes_usage.size() == 1)</div>
@@ -399,9 +400,9 @@ $(function() {
 <div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160; </div>
 <div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;<span class="preprocessor">#endif </span><span class="comment">// NETWORK_BUTCHER_COMPUTER_MEMORY_H</span></div>
 <div class="ttc" id="aclassnetwork__butcher_1_1types_1_1CNode_html"><div class="ttname"><a href="classnetwork__butcher_1_1types_1_1CNode.html">network_butcher::types::CNode</a></div><div class="ttdef"><b>Definition:</b> node.h:53</div></div>
-<div class="ttc" id="aclassnetwork__butcher_1_1types_1_1Content_html"><div class="ttname"><a href="classnetwork__butcher_1_1types_1_1Content.html">network_butcher::types::Content</a></div><div class="ttdef"><b>Definition:</b> content.h:17</div></div>
-<div class="ttc" id="aclassnetwork__butcher_1_1types_1_1Graph_html"><div class="ttname"><a href="classnetwork__butcher_1_1types_1_1Graph.html">network_butcher::types::Graph</a></div><div class="ttdef"><b>Definition:</b> graph.h:23</div></div>
-<div class="ttc" id="aclassnetwork__butcher_1_1types_1_1Graph_html_af6c5c26d9dc4d84a8ebd1624c6558f69"><div class="ttname"><a href="classnetwork__butcher_1_1types_1_1Graph.html#af6c5c26d9dc4d84a8ebd1624c6558f69">network_butcher::types::Graph::get_nodes</a></div><div class="ttdeci">auto get_nodes() const -&gt; Node_Collection_Type const &amp;</div><div class="ttdef"><b>Definition:</b> graph.h:61</div></div>
+<div class="ttc" id="aclassnetwork__butcher_1_1types_1_1Content_html"><div class="ttname"><a href="classnetwork__butcher_1_1types_1_1Content.html">network_butcher::types::Content</a></div><div class="ttdef"><b>Definition:</b> content.h:16</div></div>
+<div class="ttc" id="aclassnetwork__butcher_1_1types_1_1Graph_html"><div class="ttname"><a href="classnetwork__butcher_1_1types_1_1Graph.html">network_butcher::types::Graph</a></div><div class="ttdef"><b>Definition:</b> graph.h:20</div></div>
+<div class="ttc" id="aclassnetwork__butcher_1_1types_1_1Graph_html_af6c5c26d9dc4d84a8ebd1624c6558f69"><div class="ttname"><a href="classnetwork__butcher_1_1types_1_1Graph.html#af6c5c26d9dc4d84a8ebd1624c6558f69">network_butcher::types::Graph::get_nodes</a></div><div class="ttdeci">auto get_nodes() const -&gt; Node_Collection_Type const &amp;</div><div class="ttdef"><b>Definition:</b> graph.h:58</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_1_1computer_1_1Computer__memory_html"><div class="ttname"><a href="namespacenetwork__butcher_1_1computer_1_1Computer__memory.html">network_butcher::computer::Computer_memory</a></div><div class="ttdef"><b>Definition:</b> computer_memory.h:10</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_1_1computer_1_1Computer__memory_html_a2fa5b082eec8c2270ffcbdfe0914271b"><div class="ttname"><a href="namespacenetwork__butcher_1_1computer_1_1Computer__memory.html#a2fa5b082eec8c2270ffcbdfe0914271b">network_butcher::computer::Computer_memory::compute_nodes_memory_usage_gen</a></div><div class="ttdeci">auto compute_nodes_memory_usage_gen(const Contented_Graph_Type&lt; T &gt; &amp;graph, std::function&lt; Memory_Type(Node_Type&lt; T &gt; const &amp;node)&gt; const &amp;func) -&gt; std::vector&lt; Memory_Type &gt;</div><div class="ttdef"><b>Definition:</b> computer_memory.h:137</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_1_1computer_1_1Computer__memory_html_a4cf472d108ed4e3d3dcc40c61684d3ed"><div class="ttname"><a href="namespacenetwork__butcher_1_1computer_1_1Computer__memory.html#a4cf472d108ed4e3d3dcc40c61684d3ed">network_butcher::computer::Computer_memory::compute_nodes_memory_usage_output</a></div><div class="ttdeci">auto compute_nodes_memory_usage_output(Contented_Graph_Type&lt; T &gt; const &amp;graph, bool include_parameters=false) -&gt; std::vector&lt; Memory_Type &gt;</div><div class="ttdef"><b>Definition:</b> computer_memory.h:202</div></div>

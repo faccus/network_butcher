@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Network Butcher: include/utilities.h Source File</title>
+<title>Network Butcher: include/network_butcher/utilities.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -22,6 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Network Butcher
+   &#160;<span id="projectnumber">1.0</span>
    </div>
    <div id="projectbrief">Just a normal butcher. A network butcher</div>
   </td>
@@ -62,7 +63,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_f39b691b51ee7d502178e277ead80d38.html">network_butcher</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -80,145 +81,143 @@ $(function() {
 <div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">#include &lt;fstream&gt;</span></div>
 <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">#include &lt;ranges&gt;</span></div>
 <div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160; </div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#include &quot;onnx.pb.h&quot;</span></div>
-<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="traits_8h.html">traits.h</a>&quot;</span></div>
-<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160; </div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="dense__tensor_8h.html">dense_tensor.h</a>&quot;</span></div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="type__info_8h.html">type_info.h</a>&quot;</span></div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#include &lt;network_butcher/onnx_proto/onnx.pb.h&gt;</span></div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="traits_8h.html">network_butcher/Traits/traits.h</a>&gt;</span></div>
+<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="dense__tensor_8h.html">network_butcher/Types/dense_tensor.h</a>&gt;</span></div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="type__info_8h.html">network_butcher/Types/type_info.h</a>&gt;</span></div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160; </div>
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160; </div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160; </div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespacenetwork__butcher_1_1Utilities.html">network_butcher::Utilities</a></div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;{</div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160; </div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00026"></a><span class="lineno"><a class="line" href="namespacenetwork__butcher_1_1Utilities.html#af7e0caa5987dec07f8452bce313b1b7e">   26</a></span>&#160;    <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#af7e0caa5987dec07f8452bce313b1b7e">requires</a> <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#af7e0caa5987dec07f8452bce313b1b7e">requires</a>(T <span class="keyword">const</span> &amp;a) { std::to_string(a); }</div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;  <span class="keyword">auto</span></div>
-<div class="line"><a name="l00028"></a><span class="lineno"><a class="line" href="namespacenetwork__butcher_1_1Utilities.html#aa28e152b01992696e593fd76dd9401b3">   28</a></span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#aa28e152b01992696e593fd76dd9401b3">custom_to_string</a>(T <span class="keyword">const</span> &amp;obj) -&gt; std::string</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;  {</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;    <span class="keywordflow">return</span> std::to_string(obj);</div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;  }</div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160; </div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;  <span class="keyword">auto</span></div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#aa28e152b01992696e593fd76dd9401b3">custom_to_string</a>(T <span class="keyword">const</span> &amp;obj) -&gt; std::string</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  {</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    <span class="keywordflow">return</span> <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;  }</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160; </div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;  <span class="keyword">auto</span></div>
-<div class="line"><a name="l00050"></a><span class="lineno"><a class="line" href="namespacenetwork__butcher_1_1Utilities.html#a54e7e70b465282e093bef877c91478e4">   50</a></span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#aa28e152b01992696e593fd76dd9401b3">custom_to_string</a>(std::pair&lt;T, T&gt; <span class="keyword">const</span> &amp;obj) -&gt; std::string</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;  {</div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;    <span class="keywordflow">return</span> <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#aa28e152b01992696e593fd76dd9401b3">custom_to_string</a>(obj.first) + <span class="stringliteral">&quot; &quot;</span> + <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#aa28e152b01992696e593fd76dd9401b3">custom_to_string</a>(obj.second);</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;  }</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160; </div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160; </div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;  <span class="keyword">auto</span></div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a3c9ff7f918e1f5791c5a1fa5e62e4d9c">compute_memory_usage_from_enum</a>(<span class="keywordtype">int</span> input) -&gt; <a class="code" href="namespacenetwork__butcher.html#a1628cda4ba627ca6f4c4646ba1619840">Memory_Type</a>;</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160; </div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160; </div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;  <span class="keywordtype">void</span></div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#ac4a144d3b012ccede2df3c0b1fcaf623">parse_onnx_file</a>(onnx::ModelProto &amp;m, <span class="keyword">const</span> std::string &amp;model_path);</div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160; </div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160; </div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;  <span class="keyword">auto</span></div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#ac4a144d3b012ccede2df3c0b1fcaf623">parse_onnx_file</a>(<span class="keyword">const</span> std::string &amp;model_path) -&gt; onnx::ModelProto;</div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160; </div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160; </div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;  <span class="keywordtype">void</span></div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#ad110d74ddb4fd9a04fd2d004d84edafe">output_onnx_file</a>(onnx::ModelProto <span class="keyword">const</span> &amp;m, <span class="keyword">const</span> std::string &amp;path);</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160; </div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;  <span class="keyword">auto</span></div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a39994c629f332c1a8864c4135ae75452">file_copy</a>(std::string <span class="keyword">const</span> &amp;from, std::string <span class="keyword">const</span> &amp;to) -&gt; bool;</div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160; </div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160; </div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;  <span class="keyword">auto</span></div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a6cd744be9c26c0b02381990392bb9722">file_exists</a>(<span class="keyword">const</span> std::string &amp;name) -&gt; bool;</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160; </div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160; </div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;  <span class="keyword">auto</span></div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a710d26d16fe85f2bd6e9b90c96a4d95e">directory_exists</a>(<span class="keyword">const</span> std::string &amp;name) -&gt; bool;</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160; </div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160; </div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;  <span class="keywordtype">void</span></div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a3fa81e5e69e234b484a67098a8c2aad9">file_delete</a>(std::string <span class="keyword">const</span> &amp;path);</div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160; </div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160; </div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;  <span class="keywordtype">void</span></div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#ab6ed8b77c5d76e083273e0c64c5a4f94">directory_delete</a>(std::string <span class="keyword">const</span> &amp;path);</div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160; </div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160; </div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;  <span class="keywordtype">void</span></div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#abe8a0c688fc658232cce445249e713b1">create_directory</a>(<span class="keyword">const</span> std::string &amp;path);</div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160; </div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160; </div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;  <span class="keywordtype">void</span></div>
-<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a36eb52c116966725b12395535f318bc3">ltrim</a>(std::string &amp;s);</div>
-<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160; </div>
-<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160; </div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;  <span class="keywordtype">void</span></div>
-<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a29a805b14640fce817a5a5f4a29fb24a">rtrim</a>(std::string &amp;s);</div>
-<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160; </div>
-<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160; </div>
-<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;  <span class="keywordtype">void</span></div>
-<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a36eb52c116966725b12395535f318bc3">ltrim</a>(std::vector&lt;std::string&gt; &amp;vect);</div>
-<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160; </div>
-<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160; </div>
-<div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160;  <span class="keywordtype">void</span></div>
-<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a29a805b14640fce817a5a5f4a29fb24a">rtrim</a>(std::vector&lt;std::string&gt; &amp;vect);</div>
-<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160; </div>
-<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160; </div>
-<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;  <span class="keywordtype">void</span></div>
-<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a4ba74329c0cdce42ec646fb6b503b598">trim</a>(std::string &amp;s);</div>
-<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160; </div>
-<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160; </div>
-<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;  <span class="keywordtype">void</span></div>
-<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a4ba74329c0cdce42ec646fb6b503b598">trim</a>(std::vector&lt;std::string&gt; &amp;s);</div>
-<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160; </div>
-<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160; </div>
-<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;  <span class="keywordtype">void</span></div>
-<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#abe38d4571ec32c86a2d157def421476e">to_lowercase</a>(std::string &amp;s);</div>
-<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160; </div>
-<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160; </div>
-<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;  <span class="keywordtype">void</span></div>
-<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#abe38d4571ec32c86a2d157def421476e">to_lowercase</a>(std::vector&lt;std::string&gt; &amp;vect);</div>
-<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160; </div>
-<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160; </div>
-<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;  <span class="keyword">auto</span></div>
-<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#ac030ad76de7cef090e99d189cb4448ae">ltrim_copy</a>(std::string s) -&gt; std::string;</div>
-<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160; </div>
-<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160; </div>
-<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;  <span class="keyword">auto</span></div>
-<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a6b3ce67c16fec80eefe5b8e5b36386db">rtrim_copy</a>(std::string s) -&gt; std::string;</div>
-<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160; </div>
-<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160; </div>
-<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;  <span class="keyword">auto</span></div>
-<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a194faaff110e791c05563a7bbf31ee94">trim_copy</a>(std::string s) -&gt; std::string;</div>
-<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160; </div>
-<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160; </div>
-<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;  <span class="keyword">auto</span></div>
-<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a194faaff110e791c05563a7bbf31ee94">trim_copy</a>(std::vector&lt;std::string&gt; s) -&gt; std::vector&lt;std::string&gt;;</div>
-<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160; </div>
-<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160; </div>
-<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;  <span class="keyword">auto</span></div>
-<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a59532554340276886efb4375f4fccdea">to_lowercase_copy</a>(std::string s) -&gt; std::string;</div>
-<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160; </div>
-<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160; </div>
-<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;  <span class="keyword">auto</span></div>
-<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a59532554340276886efb4375f4fccdea">to_lowercase_copy</a>(std::vector&lt;std::string&gt; s) -&gt; std::vector&lt;std::string&gt;;</div>
-<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160; </div>
-<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160; </div>
-<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;  <span class="keyword">auto</span></div>
-<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a1690b27df86b2c63adbda8528b1756d2">split</a>(<span class="keyword">const</span> std::string&amp; s, <span class="keyword">const</span> std::string&amp; delimiter) -&gt; std::vector&lt;std::string&gt;;</div>
-<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160; </div>
-<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160; </div>
-<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;  <span class="keyword">auto</span></div>
-<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#acca8022b4a8e2ffbde0693eb5258de5a">combine_path</a>(std::string <span class="keyword">const</span> &amp;first, std::string <span class="keyword">const</span> &amp;second) -&gt; std::string;</div>
-<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160; </div>
-<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;} <span class="comment">// namespace network_butcher::Utilities</span></div>
-<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;<span class="preprocessor">#endif </span><span class="comment">// NETWORK_BUTCHER_UTILITIES_H</span></div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespacenetwork__butcher_1_1Utilities.html">network_butcher::Utilities</a></div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;{</div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160; </div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;  <span class="keyword">auto</span></div>
+<div class="line"><a name="l00026"></a><span class="lineno"><a class="line" href="namespacenetwork__butcher_1_1Utilities.html#ab51e67837482fd53a679898430610d2b">   26</a></span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#ab51e67837482fd53a679898430610d2b">custom_to_string</a>(T <span class="keyword">const</span> &amp;obj) -&gt; std::string requires requires(T <span class="keyword">const</span> &amp;a) { std::to_string(a); }</div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;  {</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    <span class="keywordflow">return</span> std::to_string(obj);</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;  }</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160; </div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;  <span class="keyword">auto</span></div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#ab51e67837482fd53a679898430610d2b">custom_to_string</a>(T <span class="keyword">const</span> &amp;obj) -&gt; std::string</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;  {</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;    <span class="keywordflow">return</span> <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  }</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160; </div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;  <span class="keyword">auto</span></div>
+<div class="line"><a name="l00048"></a><span class="lineno"><a class="line" href="namespacenetwork__butcher_1_1Utilities.html#a54e7e70b465282e093bef877c91478e4">   48</a></span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#ab51e67837482fd53a679898430610d2b">custom_to_string</a>(std::pair&lt;T, T&gt; <span class="keyword">const</span> &amp;obj) -&gt; std::string</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;  {</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;    <span class="keywordflow">return</span> <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#ab51e67837482fd53a679898430610d2b">custom_to_string</a>(obj.first) + <span class="stringliteral">&quot; &quot;</span> + <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#ab51e67837482fd53a679898430610d2b">custom_to_string</a>(obj.second);</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;  }</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160; </div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160; </div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;  <span class="keyword">auto</span></div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a3c9ff7f918e1f5791c5a1fa5e62e4d9c">compute_memory_usage_from_enum</a>(<span class="keywordtype">int</span> input) -&gt; <a class="code" href="namespacenetwork__butcher.html#a1628cda4ba627ca6f4c4646ba1619840">Memory_Type</a>;</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160; </div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160; </div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;  <span class="keywordtype">void</span></div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#ac4a144d3b012ccede2df3c0b1fcaf623">parse_onnx_file</a>(onnx::ModelProto &amp;m, <span class="keyword">const</span> std::string &amp;model_path);</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160; </div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160; </div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;  <span class="keyword">auto</span></div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#ac4a144d3b012ccede2df3c0b1fcaf623">parse_onnx_file</a>(<span class="keyword">const</span> std::string &amp;model_path) -&gt; onnx::ModelProto;</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160; </div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160; </div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;  <span class="keywordtype">void</span></div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#ad110d74ddb4fd9a04fd2d004d84edafe">output_onnx_file</a>(onnx::ModelProto <span class="keyword">const</span> &amp;m, <span class="keyword">const</span> std::string &amp;path);</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160; </div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;  <span class="keyword">auto</span></div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a39994c629f332c1a8864c4135ae75452">file_copy</a>(std::string <span class="keyword">const</span> &amp;from, std::string <span class="keyword">const</span> &amp;to) -&gt; bool;</div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160; </div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160; </div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;  <span class="keyword">auto</span></div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a6cd744be9c26c0b02381990392bb9722">file_exists</a>(<span class="keyword">const</span> std::string &amp;name) -&gt; bool;</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160; </div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160; </div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;  <span class="keyword">auto</span></div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a710d26d16fe85f2bd6e9b90c96a4d95e">directory_exists</a>(<span class="keyword">const</span> std::string &amp;name) -&gt; bool;</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160; </div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160; </div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;  <span class="keywordtype">void</span></div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a3fa81e5e69e234b484a67098a8c2aad9">file_delete</a>(std::string <span class="keyword">const</span> &amp;path);</div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160; </div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160; </div>
+<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;  <span class="keywordtype">void</span></div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#ab6ed8b77c5d76e083273e0c64c5a4f94">directory_delete</a>(std::string <span class="keyword">const</span> &amp;path);</div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160; </div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160; </div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;  <span class="keywordtype">void</span></div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#abe8a0c688fc658232cce445249e713b1">create_directory</a>(<span class="keyword">const</span> std::string &amp;path);</div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160; </div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160; </div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;  <span class="keywordtype">void</span></div>
+<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a36eb52c116966725b12395535f318bc3">ltrim</a>(std::string &amp;s);</div>
+<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160; </div>
+<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160; </div>
+<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;  <span class="keywordtype">void</span></div>
+<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a29a805b14640fce817a5a5f4a29fb24a">rtrim</a>(std::string &amp;s);</div>
+<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160; </div>
+<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160; </div>
+<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;  <span class="keywordtype">void</span></div>
+<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a36eb52c116966725b12395535f318bc3">ltrim</a>(std::vector&lt;std::string&gt; &amp;vect);</div>
+<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160; </div>
+<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160; </div>
+<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;  <span class="keywordtype">void</span></div>
+<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a29a805b14640fce817a5a5f4a29fb24a">rtrim</a>(std::vector&lt;std::string&gt; &amp;vect);</div>
+<div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160; </div>
+<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160; </div>
+<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;  <span class="keywordtype">void</span></div>
+<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a4ba74329c0cdce42ec646fb6b503b598">trim</a>(std::string &amp;s);</div>
+<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160; </div>
+<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160; </div>
+<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;  <span class="keywordtype">void</span></div>
+<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a4ba74329c0cdce42ec646fb6b503b598">trim</a>(std::vector&lt;std::string&gt; &amp;s);</div>
+<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160; </div>
+<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160; </div>
+<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;  <span class="keywordtype">void</span></div>
+<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#abe38d4571ec32c86a2d157def421476e">to_lowercase</a>(std::string &amp;s);</div>
+<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160; </div>
+<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160; </div>
+<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;  <span class="keywordtype">void</span></div>
+<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#abe38d4571ec32c86a2d157def421476e">to_lowercase</a>(std::vector&lt;std::string&gt; &amp;vect);</div>
+<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160; </div>
+<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160; </div>
+<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;  <span class="keyword">auto</span></div>
+<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#ac030ad76de7cef090e99d189cb4448ae">ltrim_copy</a>(std::string s) -&gt; std::string;</div>
+<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160; </div>
+<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160; </div>
+<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;  <span class="keyword">auto</span></div>
+<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a6b3ce67c16fec80eefe5b8e5b36386db">rtrim_copy</a>(std::string s) -&gt; std::string;</div>
+<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160; </div>
+<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160; </div>
+<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;  <span class="keyword">auto</span></div>
+<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a194faaff110e791c05563a7bbf31ee94">trim_copy</a>(std::string s) -&gt; std::string;</div>
+<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160; </div>
+<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160; </div>
+<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;  <span class="keyword">auto</span></div>
+<div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a194faaff110e791c05563a7bbf31ee94">trim_copy</a>(std::vector&lt;std::string&gt; s) -&gt; std::vector&lt;std::string&gt;;</div>
+<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160; </div>
+<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160; </div>
+<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;  <span class="keyword">auto</span></div>
+<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a59532554340276886efb4375f4fccdea">to_lowercase_copy</a>(std::string s) -&gt; std::string;</div>
+<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160; </div>
+<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160; </div>
+<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;  <span class="keyword">auto</span></div>
+<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a59532554340276886efb4375f4fccdea">to_lowercase_copy</a>(std::vector&lt;std::string&gt; s) -&gt; std::vector&lt;std::string&gt;;</div>
+<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160; </div>
+<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160; </div>
+<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;  <span class="keyword">auto</span></div>
+<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#a1690b27df86b2c63adbda8528b1756d2">split</a>(<span class="keyword">const</span> std::string&amp; s, <span class="keyword">const</span> std::string&amp; delimiter) -&gt; std::vector&lt;std::string&gt;;</div>
+<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160; </div>
+<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160; </div>
+<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;  <span class="keyword">auto</span></div>
+<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;  <a class="code" href="namespacenetwork__butcher_1_1Utilities.html#acca8022b4a8e2ffbde0693eb5258de5a">combine_path</a>(std::string <span class="keyword">const</span> &amp;first, std::string <span class="keyword">const</span> &amp;second) -&gt; std::string;</div>
+<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160; </div>
+<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;} <span class="comment">// namespace network_butcher::Utilities</span></div>
+<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;<span class="preprocessor">#endif </span><span class="comment">// NETWORK_BUTCHER_UTILITIES_H</span></div>
 <div class="ttc" id="adense__tensor_8h_html"><div class="ttname"><a href="dense__tensor_8h.html">dense_tensor.h</a></div></div>
-<div class="ttc" id="anamespacenetwork__butcher_1_1Utilities_html"><div class="ttname"><a href="namespacenetwork__butcher_1_1Utilities.html">network_butcher::Utilities</a></div><div class="ttdef"><b>Definition:</b> path_converter.h:9</div></div>
+<div class="ttc" id="anamespacenetwork__butcher_1_1Utilities_html"><div class="ttname"><a href="namespacenetwork__butcher_1_1Utilities.html">network_butcher::Utilities</a></div><div class="ttdef"><b>Definition:</b> path_converter.h:10</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_1_1Utilities_html_a1690b27df86b2c63adbda8528b1756d2"><div class="ttname"><a href="namespacenetwork__butcher_1_1Utilities.html#a1690b27df86b2c63adbda8528b1756d2">network_butcher::Utilities::split</a></div><div class="ttdeci">auto split(const std::string &amp;s, const std::string &amp;delimiter) -&gt; std::vector&lt; std::string &gt;</div><div class="ttdef"><b>Definition:</b> utilities.cpp:92</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_1_1Utilities_html_a194faaff110e791c05563a7bbf31ee94"><div class="ttname"><a href="namespacenetwork__butcher_1_1Utilities.html#a194faaff110e791c05563a7bbf31ee94">network_butcher::Utilities::trim_copy</a></div><div class="ttdeci">auto trim_copy(std::string s) -&gt; std::string</div><div class="ttdef"><b>Definition:</b> utilities.cpp:227</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_1_1Utilities_html_a29a805b14640fce817a5a5f4a29fb24a"><div class="ttname"><a href="namespacenetwork__butcher_1_1Utilities.html#a29a805b14640fce817a5a5f4a29fb24a">network_butcher::Utilities::rtrim</a></div><div class="ttdeci">void rtrim(std::string &amp;s)</div><div class="ttdef"><b>Definition:</b> utilities.cpp:166</div></div>
@@ -231,7 +230,7 @@ $(function() {
 <div class="ttc" id="anamespacenetwork__butcher_1_1Utilities_html_a6b3ce67c16fec80eefe5b8e5b36386db"><div class="ttname"><a href="namespacenetwork__butcher_1_1Utilities.html#a6b3ce67c16fec80eefe5b8e5b36386db">network_butcher::Utilities::rtrim_copy</a></div><div class="ttdeci">auto rtrim_copy(std::string s) -&gt; std::string</div><div class="ttdef"><b>Definition:</b> utilities.cpp:220</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_1_1Utilities_html_a6cd744be9c26c0b02381990392bb9722"><div class="ttname"><a href="namespacenetwork__butcher_1_1Utilities.html#a6cd744be9c26c0b02381990392bb9722">network_butcher::Utilities::file_exists</a></div><div class="ttdeci">auto file_exists(const std::string &amp;name) -&gt; bool</div><div class="ttdef"><b>Definition:</b> utilities.cpp:125</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_1_1Utilities_html_a710d26d16fe85f2bd6e9b90c96a4d95e"><div class="ttname"><a href="namespacenetwork__butcher_1_1Utilities.html#a710d26d16fe85f2bd6e9b90c96a4d95e">network_butcher::Utilities::directory_exists</a></div><div class="ttdeci">auto directory_exists(const std::string &amp;name) -&gt; bool</div><div class="ttdef"><b>Definition:</b> utilities.cpp:132</div></div>
-<div class="ttc" id="anamespacenetwork__butcher_1_1Utilities_html_aa28e152b01992696e593fd76dd9401b3"><div class="ttname"><a href="namespacenetwork__butcher_1_1Utilities.html#aa28e152b01992696e593fd76dd9401b3">network_butcher::Utilities::custom_to_string</a></div><div class="ttdeci">auto custom_to_string(T const &amp;obj) -&gt; std::string</div><div class="ttdef"><b>Definition:</b> utilities.h:28</div></div>
+<div class="ttc" id="anamespacenetwork__butcher_1_1Utilities_html_ab51e67837482fd53a679898430610d2b"><div class="ttname"><a href="namespacenetwork__butcher_1_1Utilities.html#ab51e67837482fd53a679898430610d2b">network_butcher::Utilities::custom_to_string</a></div><div class="ttdeci">auto custom_to_string(T const &amp;obj) -&gt; std::string requires requires(T const &amp;a)</div><div class="ttdef"><b>Definition:</b> utilities.h:26</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_1_1Utilities_html_ab6ed8b77c5d76e083273e0c64c5a4f94"><div class="ttname"><a href="namespacenetwork__butcher_1_1Utilities.html#ab6ed8b77c5d76e083273e0c64c5a4f94">network_butcher::Utilities::directory_delete</a></div><div class="ttdeci">void directory_delete(std::string const &amp;path)</div><div class="ttdef"><b>Definition:</b> utilities.cpp:145</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_1_1Utilities_html_abe38d4571ec32c86a2d157def421476e"><div class="ttname"><a href="namespacenetwork__butcher_1_1Utilities.html#abe38d4571ec32c86a2d157def421476e">network_butcher::Utilities::to_lowercase</a></div><div class="ttdeci">void to_lowercase(std::string &amp;s)</div><div class="ttdef"><b>Definition:</b> utilities.cpp:200</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_1_1Utilities_html_abe8a0c688fc658232cce445249e713b1"><div class="ttname"><a href="namespacenetwork__butcher_1_1Utilities.html#abe8a0c688fc658232cce445249e713b1">network_butcher::Utilities::create_directory</a></div><div class="ttdeci">void create_directory(const std::string &amp;path)</div><div class="ttdef"><b>Definition:</b> utilities.cpp:151</div></div>
@@ -239,7 +238,6 @@ $(function() {
 <div class="ttc" id="anamespacenetwork__butcher_1_1Utilities_html_ac4a144d3b012ccede2df3c0b1fcaf623"><div class="ttname"><a href="namespacenetwork__butcher_1_1Utilities.html#ac4a144d3b012ccede2df3c0b1fcaf623">network_butcher::Utilities::parse_onnx_file</a></div><div class="ttdeci">void parse_onnx_file(onnx::ModelProto &amp;m, const std::string &amp;model_path)</div><div class="ttdef"><b>Definition:</b> utilities.cpp:54</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_1_1Utilities_html_acca8022b4a8e2ffbde0693eb5258de5a"><div class="ttname"><a href="namespacenetwork__butcher_1_1Utilities.html#acca8022b4a8e2ffbde0693eb5258de5a">network_butcher::Utilities::combine_path</a></div><div class="ttdeci">auto combine_path(std::string const &amp;first, std::string const &amp;second) -&gt; std::string</div><div class="ttdef"><b>Definition:</b> utilities.cpp:114</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_1_1Utilities_html_ad110d74ddb4fd9a04fd2d004d84edafe"><div class="ttname"><a href="namespacenetwork__butcher_1_1Utilities.html#ad110d74ddb4fd9a04fd2d004d84edafe">network_butcher::Utilities::output_onnx_file</a></div><div class="ttdeci">void output_onnx_file(onnx::ModelProto const &amp;m, const std::string &amp;path)</div><div class="ttdef"><b>Definition:</b> utilities.cpp:67</div></div>
-<div class="ttc" id="anamespacenetwork__butcher_1_1Utilities_html_af7e0caa5987dec07f8452bce313b1b7e"><div class="ttname"><a href="namespacenetwork__butcher_1_1Utilities.html#af7e0caa5987dec07f8452bce313b1b7e">network_butcher::Utilities::requires</a></div><div class="ttdeci">requires requires(T const &amp;a)</div><div class="ttdef"><b>Definition:</b> utilities.h:26</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_html_a1628cda4ba627ca6f4c4646ba1619840"><div class="ttname"><a href="namespacenetwork__butcher.html#a1628cda4ba627ca6f4c4646ba1619840">network_butcher::Memory_Type</a></div><div class="ttdeci">unsigned long long Memory_Type</div><div class="ttdoc">Type used to store the length in byte of a tensor.</div><div class="ttdef"><b>Definition:</b> starting_traits.h:7</div></div>
 <div class="ttc" id="atraits_8h_html"><div class="ttname"><a href="traits_8h.html">traits.h</a></div></div>
 <div class="ttc" id="atype__info_8h_html"><div class="ttname"><a href="type__info_8h.html">type_info.h</a></div></div>

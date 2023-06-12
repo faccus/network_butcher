@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Network Butcher: include/Types/dense_tensor.h Source File</title>
+<title>Network Butcher: include/network_butcher/Types/dense_tensor.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -22,6 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Network Butcher
+   &#160;<span id="projectnumber">1.0</span>
    </div>
    <div id="projectbrief">Just a normal butcher. A network butcher</div>
   </td>
@@ -62,7 +63,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_f9f829b64ca4b1631a56cfb6096eefab.html">Types</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_f39b691b51ee7d502178e277ead80d38.html">network_butcher</a></li><li class="navelem"><a class="el" href="dir_188a1a5b7fd2fc7b330d67787793e9de.html">Types</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -73,10 +74,10 @@ $(function() {
 <a href="dense__tensor_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#ifndef NETWORK_BUTCHER_DENSE_TENSOR_H</span></div>
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#define NETWORK_BUTCHER_DENSE_TENSOR_H</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160; </div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="type__info_8h.html">type_info.h</a>&quot;</span></div>
-<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="variant__attribute_8h.html">variant_attribute.h</a>&quot;</span></div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="type__info_8h.html">network_butcher/Types/type_info.h</a>&gt;</span></div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="variant__attribute_8h.html">network_butcher/Types/variant_attribute.h</a>&gt;</span></div>
 <div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160; </div>
-<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="utilities_8h.html">utilities.h</a>&quot;</span></div>
+<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="utilities_8h.html">network_butcher/utilities.h</a>&gt;</span></div>
 <div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160; </div>
 <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">#include &lt;vector&gt;</span></div>
 <div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160; </div>
@@ -128,7 +129,7 @@ $(function() {
 <div class="ttc" id="aclassnetwork__butcher_1_1types_1_1Dense__tensor_html_ae662931514d9ae815c46c3e3cf1beec0"><div class="ttname"><a href="classnetwork__butcher_1_1types_1_1Dense__tensor.html#ae662931514d9ae815c46c3e3cf1beec0">network_butcher::types::Dense_tensor::type_tensor_memory</a></div><div class="ttdeci">Memory_Type type_tensor_memory</div><div class="ttdoc">Memory usage of the element type of the tensor.</div><div class="ttdef"><b>Definition:</b> dense_tensor.h:18</div></div>
 <div class="ttc" id="aclassnetwork__butcher_1_1types_1_1Type__Info_html"><div class="ttname"><a href="classnetwork__butcher_1_1types_1_1Type__Info.html">network_butcher::types::Type_Info</a></div><div class="ttdoc">Generic type contained in a onnx model (only type information, no values are actually stored)</div><div class="ttdef"><b>Definition:</b> type_info.h:22</div></div>
 <div class="ttc" id="aclassnetwork__butcher_1_1types_1_1Type__Info_html_a1196c63a7e9430c3bc7b6841aff6098b"><div class="ttname"><a href="classnetwork__butcher_1_1types_1_1Type__Info.html#a1196c63a7e9430c3bc7b6841aff6098b">network_butcher::types::Type_Info::constant</a></div><div class="ttdeci">bool constant</div><div class="ttdoc">Is it constant?</div><div class="ttdef"><b>Definition:</b> type_info.h:31</div></div>
-<div class="ttc" id="anamespacenetwork__butcher_1_1types_html"><div class="ttname"><a href="namespacenetwork__butcher_1_1types.html">network_butcher::types</a></div><div class="ttdef"><b>Definition:</b> graph.h:17</div></div>
+<div class="ttc" id="anamespacenetwork__butcher_1_1types_html"><div class="ttname"><a href="namespacenetwork__butcher_1_1types.html">network_butcher::types</a></div><div class="ttdef"><b>Definition:</b> graph.h:14</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_html_a1628cda4ba627ca6f4c4646ba1619840"><div class="ttname"><a href="namespacenetwork__butcher.html#a1628cda4ba627ca6f4c4646ba1619840">network_butcher::Memory_Type</a></div><div class="ttdeci">unsigned long long Memory_Type</div><div class="ttdoc">Type used to store the length in byte of a tensor.</div><div class="ttdef"><b>Definition:</b> starting_traits.h:7</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_html_a9c15077a6bf88569f34843fc26e5e0c2"><div class="ttname"><a href="namespacenetwork__butcher.html#a9c15077a6bf88569f34843fc26e5e0c2">network_butcher::Onnx_Element_Shape_Type</a></div><div class="ttdeci">unsigned long Onnx_Element_Shape_Type</div><div class="ttdef"><b>Definition:</b> type_info.h:12</div></div>
 <div class="ttc" id="atype__info_8h_html"><div class="ttname"><a href="type__info_8h.html">type_info.h</a></div></div>

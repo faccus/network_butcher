@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Network Butcher: include/Traits/traits.h Source File</title>
+<title>Network Butcher: include/network_butcher/Traits/traits.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -22,6 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Network Butcher
+   &#160;<span id="projectnumber">1.0</span>
    </div>
    <div id="projectbrief">Just a normal butcher. A network butcher</div>
   </td>
@@ -62,7 +63,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_34027d2a0bf06310b3333937ddd55e2d.html">Traits</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_f39b691b51ee7d502178e277ead80d38.html">network_butcher</a></li><li class="navelem"><a class="el" href="dir_11d26bc0b4ccdc18c9a043531e64f085.html">Traits</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -77,15 +78,15 @@ $(function() {
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &lt;map&gt;</span></div>
 <div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &lt;memory&gt;</span></div>
 <div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160; </div>
-<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="starting__traits_8h.html">starting_traits.h</a>&quot;</span></div>
-<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160; </div>
-<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="preprocessor">#include &quot;onnx.pb.h&quot;</span></div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="type__info_8h.html">type_info.h</a>&quot;</span></div>
+<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="starting__traits_8h.html">network_butcher/Traits/starting_traits.h</a>&gt;</span></div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="type__info_8h.html">network_butcher/Types/type_info.h</a>&gt;</span></div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160; </div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#include &lt;network_butcher/onnx_proto/onnx.pb.h&gt;</span></div>
 <div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160; </div>
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160; </div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#if PARALLEL_TBB</span></div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#if NETWORK_BUTCHER_PARALLEL_TBB</span></div>
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor">#include &lt;execution&gt;</span></div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="preprocessor">#elif PARALLEL_OPENMP</span></div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="preprocessor">#elif NETWORK_BUTCHER_PARALLEL_OPENMP</span></div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="preprocessor">#include &lt;omp.h&gt;</span></div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160; </div>
@@ -107,7 +108,7 @@ $(function() {
 <div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160; </div>
 <div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160; </div>
 <div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="preprocessor">#endif </span><span class="comment">// NETWORK_BUTCHER_TRAITS_H</span></div>
-<div class="ttc" id="anamespacenetwork__butcher_html"><div class="ttname"><a href="namespacenetwork__butcher.html">network_butcher</a></div><div class="ttdoc">is the basic namespace of the library. ALL other namespace and classes are contained here</div><div class="ttdef"><b>Definition:</b> butcher.h:22</div></div>
+<div class="ttc" id="anamespacenetwork__butcher_html"><div class="ttname"><a href="namespacenetwork__butcher.html">network_butcher</a></div><div class="ttdoc">is the basic namespace of the library. ALL other namespace and classes are contained here</div><div class="ttdef"><b>Definition:</b> butcher.h:19</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_html_a01e7e932191d94ed55290fc1ac043463"><div class="ttname"><a href="namespacenetwork__butcher.html#a01e7e932191d94ed55290fc1ac043463">network_butcher::Edge_Type</a></div><div class="ttdeci">std::pair&lt; Node_Id_Type, Node_Id_Type &gt; Edge_Type</div><div class="ttdoc">Edge in a graph. Simple pair of node ids.</div><div class="ttdef"><b>Definition:</b> traits.h:27</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_html_a32c074f0890f25f680914a7e0fa682b8"><div class="ttname"><a href="namespacenetwork__butcher.html#a32c074f0890f25f680914a7e0fa682b8">network_butcher::Type_Info_Pointer</a></div><div class="ttdeci">std::shared_ptr&lt; network_butcher::types::Type_Info const  &gt; Type_Info_Pointer</div><div class="ttdoc">Shared pointer to a Type_info.</div><div class="ttdef"><b>Definition:</b> traits.h:30</div></div>
 <div class="ttc" id="anamespacenetwork__butcher_html_a3ab0ccd9f094d5417ffcccc5c60fced3"><div class="ttname"><a href="namespacenetwork__butcher.html#a3ab0ccd9f094d5417ffcccc5c60fced3">network_butcher::RepeatablePtr_field</a></div><div class="ttdeci">google::protobuf::RepeatedPtrField&lt; T &gt; RepeatablePtr_field</div><div class="ttdoc">Simple alias for google::protobuf::RepeatedPtrField&lt;T&gt;</div><div class="ttdef"><b>Definition:</b> traits.h:38</div></div>

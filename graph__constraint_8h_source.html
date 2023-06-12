@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Network Butcher: include/Butcher/graph_constraint.h Source File</title>
+<title>Network Butcher: include/network_butcher/Butcher/graph_constraint.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -22,6 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Network Butcher
+   &#160;<span id="projectnumber">1.0</span>
    </div>
    <div id="projectbrief">Just a normal butcher. A network butcher</div>
   </td>
@@ -62,7 +63,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_dff6ce3dfbd7d28f56d4e9624d2b470d.html">Butcher</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_f39b691b51ee7d502178e277ead80d38.html">network_butcher</a></li><li class="navelem"><a class="el" href="dir_54f97457108193d20a10659fc1dfc4f8.html">Butcher</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -73,9 +74,9 @@ $(function() {
 <a href="graph__constraint_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#ifndef NETWORK_BUTCHER_EXTRA_CONDITION_BUILDER_H</span></div>
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#define NETWORK_BUTCHER_EXTRA_CONDITION_BUILDER_H</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160; </div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="computer__memory_8h.html">computer_memory.h</a>&quot;</span></div>
-<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="graph__traits_8h.html">graph_traits.h</a>&quot;</span></div>
-<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="parameters_8h.html">parameters.h</a>&quot;</span></div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="computer__memory_8h.html">network_butcher/Computer/computer_memory.h</a>&gt;</span></div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="graph__traits_8h.html">network_butcher/Network/graph_traits.h</a>&gt;</span></div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="parameters_8h.html">network_butcher/Types/parameters.h</a>&gt;</span></div>
 <div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160; </div>
 <div class="line"><a name="l00008"></a><span class="lineno"><a class="line" href="namespacenetwork__butcher_1_1constraints.html">    8</a></span>&#160;<span class="keyword">namespace </span><a class="code" href="namespacenetwork__butcher_1_1constraints.html">network_butcher::constraints</a></div>
 <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;{</div>
@@ -279,9 +280,9 @@ $(function() {
 <div class="ttc" id="aclassnetwork__butcher_1_1constraints_1_1Memory__Constraint_html_a9a1406bd4ca6e51a30bd8705bb7ba8a4"><div class="ttname"><a href="classnetwork__butcher_1_1constraints_1_1Memory__Constraint.html#a9a1406bd4ca6e51a30bd8705bb7ba8a4">network_butcher::constraints::Memory_Constraint::copy</a></div><div class="ttdeci">auto copy() const -&gt; std::unique_ptr&lt; Graph_Constraint &gt; override</div><div class="ttdef"><b>Definition:</b> graph_constraint.h:85</div></div>
 <div class="ttc" id="aclassnetwork__butcher_1_1constraints_1_1Memory__Constraint_html_aa2bc0a9ffb34391e85b5cbca74dce82d"><div class="ttname"><a href="classnetwork__butcher_1_1constraints_1_1Memory__Constraint.html#aa2bc0a9ffb34391e85b5cbca74dce82d">network_butcher::constraints::Memory_Constraint::params</a></div><div class="ttdeci">parameters::Parameters const  &amp; params</div><div class="ttdoc">The parameters.</div><div class="ttdef"><b>Definition:</b> graph_constraint.h:40</div></div>
 <div class="ttc" id="aclassnetwork__butcher_1_1constraints_1_1Memory__Constraint_html_ac36d8b2699b5852c78c5c222ec5d6871"><div class="ttname"><a href="classnetwork__butcher_1_1constraints_1_1Memory__Constraint.html#ac36d8b2699b5852c78c5c222ec5d6871">network_butcher::constraints::Memory_Constraint::graph</a></div><div class="ttdeci">GraphType const  &amp; graph</div><div class="ttdoc">The original graph. Used to measure the memory usage of each layer of the model.</div><div class="ttdef"><b>Definition:</b> graph_constraint.h:43</div></div>
-<div class="ttc" id="aclassnetwork__butcher_1_1types_1_1Graph_html_a2707ac1e0ed65d1c6815b6ec3a9b569f"><div class="ttname"><a href="classnetwork__butcher_1_1types_1_1Graph.html#a2707ac1e0ed65d1c6815b6ec3a9b569f">network_butcher::types::Graph::get_neighbors_ref</a></div><div class="ttdeci">auto get_neighbors_ref() -&gt; Neighbours_Type &amp;</div><div class="ttdef"><b>Definition:</b> graph.h:70</div></div>
-<div class="ttc" id="aclassnetwork__butcher_1_1types_1_1Graph_html_a4b87b14d6254961aad9f64dd182e0d55"><div class="ttname"><a href="classnetwork__butcher_1_1types_1_1Graph.html#a4b87b14d6254961aad9f64dd182e0d55">network_butcher::types::Graph::size</a></div><div class="ttdeci">auto size() const -&gt; std::size_t</div><div class="ttdef"><b>Definition:</b> graph.h:102</div></div>
-<div class="ttc" id="aclassnetwork__butcher_1_1types_1_1Graph_html_a625a209851e92b553d6e80b875933d28"><div class="ttname"><a href="classnetwork__butcher_1_1types_1_1Graph.html#a625a209851e92b553d6e80b875933d28">network_butcher::types::Graph::cbegin</a></div><div class="ttdeci">auto cbegin() const</div><div class="ttdef"><b>Definition:</b> graph.h:166</div></div>
+<div class="ttc" id="aclassnetwork__butcher_1_1types_1_1Graph_html_a2707ac1e0ed65d1c6815b6ec3a9b569f"><div class="ttname"><a href="classnetwork__butcher_1_1types_1_1Graph.html#a2707ac1e0ed65d1c6815b6ec3a9b569f">network_butcher::types::Graph::get_neighbors_ref</a></div><div class="ttdeci">auto get_neighbors_ref() -&gt; Neighbours_Type &amp;</div><div class="ttdef"><b>Definition:</b> graph.h:67</div></div>
+<div class="ttc" id="aclassnetwork__butcher_1_1types_1_1Graph_html_a4b87b14d6254961aad9f64dd182e0d55"><div class="ttname"><a href="classnetwork__butcher_1_1types_1_1Graph.html#a4b87b14d6254961aad9f64dd182e0d55">network_butcher::types::Graph::size</a></div><div class="ttdeci">auto size() const -&gt; std::size_t</div><div class="ttdef"><b>Definition:</b> graph.h:99</div></div>
+<div class="ttc" id="aclassnetwork__butcher_1_1types_1_1Graph_html_a625a209851e92b553d6e80b875933d28"><div class="ttname"><a href="classnetwork__butcher_1_1types_1_1Graph.html#a625a209851e92b553d6e80b875933d28">network_butcher::types::Graph::cbegin</a></div><div class="ttdeci">auto cbegin() const</div><div class="ttdef"><b>Definition:</b> graph.h:163</div></div>
 <div class="ttc" id="aclassnetwork__butcher_1_1types_1_1WGraph_html"><div class="ttname"><a href="classnetwork__butcher_1_1types_1_1WGraph.html">network_butcher::types::WGraph</a></div><div class="ttdef"><b>Definition:</b> wgraph.h:16</div></div>
 <div class="ttc" id="acomputer__memory_8h_html"><div class="ttname"><a href="computer__memory_8h.html">computer_memory.h</a></div></div>
 <div class="ttc" id="agraph__traits_8h_html"><div class="ttname"><a href="graph__traits_8h.html">graph_traits.h</a></div></div>

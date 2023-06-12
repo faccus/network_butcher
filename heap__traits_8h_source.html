@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Network Butcher: include/K-shortest_path/heap_traits.h Source File</title>
+<title>Network Butcher: include/network_butcher/K-shortest_path/heap_traits.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -22,6 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Network Butcher
+   &#160;<span id="projectnumber">1.0</span>
    </div>
    <div id="projectbrief">Just a normal butcher. A network butcher</div>
   </td>
@@ -62,7 +63,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_e5f018b8c83e247b0734844cf4c8f97e.html">K-shortest_path</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_f39b691b51ee7d502178e277ead80d38.html">network_butcher</a></li><li class="navelem"><a class="el" href="dir_a96e4a8938a9c746b348d050395898d7.html">K-shortest_path</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -73,29 +74,30 @@ $(function() {
 <a href="heap__traits_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#ifndef NETWORK_BUTCHER_HEAP_TRAITS_H</span></div>
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#define NETWORK_BUTCHER_HEAP_TRAITS_H</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160; </div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="heap__eppstein_8h.html">heap_eppstein.h</a>&quot;</span></div>
-<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="path__info_8h.html">path_info.h</a>&quot;</span></div>
-<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="traits_8h.html">traits.h</a>&quot;</span></div>
-<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="weighted__graph_8h.html">weighted_graph.h</a>&quot;</span></div>
-<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160; </div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="heap__eppstein_8h.html">network_butcher/K-shortest_path/heap_eppstein.h</a>&gt;</span></div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="path__info_8h.html">network_butcher/K-shortest_path/path_info.h</a>&gt;</span></div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="weighted__graph_8h.html">network_butcher/K-shortest_path/weighted_graph.h</a>&gt;</span></div>
+<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160; </div>
+<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="traits_8h.html">network_butcher/Traits/traits.h</a>&gt;</span></div>
 <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160; </div>
-<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespacenetwork__butcher_1_1kfinder.html">network_butcher::kfinder</a></div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;{</div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">typename</span> Weight_Type = Time_Type&gt;</div>
-<div class="line"><a name="l00015"></a><span class="lineno"><a class="line" href="namespacenetwork__butcher_1_1kfinder.html#aee9c1f6d1cf5e990d172c660b33352a7">   15</a></span>&#160;  <span class="keyword">using</span> <a class="code" href="namespacenetwork__butcher_1_1kfinder.html#aee9c1f6d1cf5e990d172c660b33352a7">Templated_H_out_Collection</a> =</div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;    std::unordered_map&lt;Node_Id_Type, H_out_Type&lt;Templated_Edge_Info&lt;Weight_Type&gt;, std::less&lt;&gt;&gt;&gt;;</div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160; </div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">typename</span> Weight_Type = Time_Type&gt;</div>
-<div class="line"><a name="l00020"></a><span class="lineno"><a class="line" href="namespacenetwork__butcher_1_1kfinder.html#a41c026858d84f07aa4dc04153ea98f7b">   20</a></span>&#160;  <span class="keyword">using</span> <a class="code" href="namespacenetwork__butcher_1_1kfinder.html#a41c026858d84f07aa4dc04153ea98f7b">Templated_H_g_Collection</a> =</div>
-<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;    std::unordered_map&lt;Node_Id_Type, H_g_Type&lt;Templated_Edge_Info&lt;Weight_Type&gt;, std::less&lt;&gt;&gt;&gt;;</div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;} <span class="comment">// namespace network_butcher::kfinder</span></div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160; </div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160; </div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespacenetwork__butcher_1_1kfinder.html">network_butcher::kfinder</a></div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;{</div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">typename</span> Weight_Type = Time_Type&gt;</div>
+<div class="line"><a name="l00016"></a><span class="lineno"><a class="line" href="namespacenetwork__butcher_1_1kfinder.html#aee9c1f6d1cf5e990d172c660b33352a7">   16</a></span>&#160;  <span class="keyword">using</span> <a class="code" href="namespacenetwork__butcher_1_1kfinder.html#aee9c1f6d1cf5e990d172c660b33352a7">Templated_H_out_Collection</a> =</div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;    std::unordered_map&lt;Node_Id_Type, H_out_Type&lt;Templated_Edge_Info&lt;Weight_Type&gt;, std::less&lt;&gt;&gt;&gt;;</div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160; </div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;  <span class="keyword">template</span> &lt;<span class="keyword">typename</span> Weight_Type = Time_Type&gt;</div>
+<div class="line"><a name="l00021"></a><span class="lineno"><a class="line" href="namespacenetwork__butcher_1_1kfinder.html#a41c026858d84f07aa4dc04153ea98f7b">   21</a></span>&#160;  <span class="keyword">using</span> <a class="code" href="namespacenetwork__butcher_1_1kfinder.html#a41c026858d84f07aa4dc04153ea98f7b">Templated_H_g_Collection</a> =</div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;    std::unordered_map&lt;Node_Id_Type, H_g_Type&lt;Templated_Edge_Info&lt;Weight_Type&gt;, std::less&lt;&gt;&gt;&gt;;</div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;} <span class="comment">// namespace network_butcher::kfinder</span></div>
 <div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160; </div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="preprocessor">#endif </span><span class="comment">// NETWORK_BUTCHER_HEAP_TRAITS_H</span></div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160; </div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="preprocessor">#endif </span><span class="comment">// NETWORK_BUTCHER_HEAP_TRAITS_H</span></div>
 <div class="ttc" id="aheap__eppstein_8h_html"><div class="ttname"><a href="heap__eppstein_8h.html">heap_eppstein.h</a></div></div>
 <div class="ttc" id="anamespacenetwork__butcher_1_1kfinder_html"><div class="ttname"><a href="namespacenetwork__butcher_1_1kfinder.html">network_butcher::kfinder</a></div><div class="ttdef"><b>Definition:</b> basic_keppstein.h:17</div></div>
-<div class="ttc" id="anamespacenetwork__butcher_1_1kfinder_html_a41c026858d84f07aa4dc04153ea98f7b"><div class="ttname"><a href="namespacenetwork__butcher_1_1kfinder.html#a41c026858d84f07aa4dc04153ea98f7b">network_butcher::kfinder::Templated_H_g_Collection</a></div><div class="ttdeci">std::unordered_map&lt; Node_Id_Type, H_g_Type&lt; Templated_Edge_Info&lt; Weight_Type &gt;, std::less&lt;&gt; &gt;&gt; Templated_H_g_Collection</div><div class="ttdoc">Simple alias for a map storing H_g_Type, indexed by the node id.</div><div class="ttdef"><b>Definition:</b> heap_traits.h:21</div></div>
-<div class="ttc" id="anamespacenetwork__butcher_1_1kfinder_html_aee9c1f6d1cf5e990d172c660b33352a7"><div class="ttname"><a href="namespacenetwork__butcher_1_1kfinder.html#aee9c1f6d1cf5e990d172c660b33352a7">network_butcher::kfinder::Templated_H_out_Collection</a></div><div class="ttdeci">std::unordered_map&lt; Node_Id_Type, H_out_Type&lt; Templated_Edge_Info&lt; Weight_Type &gt;, std::less&lt;&gt; &gt;&gt; Templated_H_out_Collection</div><div class="ttdef"><b>Definition:</b> heap_traits.h:16</div></div>
+<div class="ttc" id="anamespacenetwork__butcher_1_1kfinder_html_a41c026858d84f07aa4dc04153ea98f7b"><div class="ttname"><a href="namespacenetwork__butcher_1_1kfinder.html#a41c026858d84f07aa4dc04153ea98f7b">network_butcher::kfinder::Templated_H_g_Collection</a></div><div class="ttdeci">std::unordered_map&lt; Node_Id_Type, H_g_Type&lt; Templated_Edge_Info&lt; Weight_Type &gt;, std::less&lt;&gt; &gt;&gt; Templated_H_g_Collection</div><div class="ttdoc">Simple alias for a map storing H_g_Type, indexed by the node id.</div><div class="ttdef"><b>Definition:</b> heap_traits.h:22</div></div>
+<div class="ttc" id="anamespacenetwork__butcher_1_1kfinder_html_aee9c1f6d1cf5e990d172c660b33352a7"><div class="ttname"><a href="namespacenetwork__butcher_1_1kfinder.html#aee9c1f6d1cf5e990d172c660b33352a7">network_butcher::kfinder::Templated_H_out_Collection</a></div><div class="ttdeci">std::unordered_map&lt; Node_Id_Type, H_out_Type&lt; Templated_Edge_Info&lt; Weight_Type &gt;, std::less&lt;&gt; &gt;&gt; Templated_H_out_Collection</div><div class="ttdef"><b>Definition:</b> heap_traits.h:17</div></div>
 <div class="ttc" id="apath__info_8h_html"><div class="ttname"><a href="path__info_8h.html">path_info.h</a></div></div>
 <div class="ttc" id="atraits_8h_html"><div class="ttname"><a href="traits_8h.html">traits.h</a></div></div>
 <div class="ttc" id="aweighted__graph_8h_html"><div class="ttname"><a href="weighted__graph_8h.html">weighted_graph.h</a></div></div>
