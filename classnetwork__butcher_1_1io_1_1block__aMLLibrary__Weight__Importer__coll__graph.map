@@ -1,0 +1,13 @@
+<map id="network_butcher::io::block_aMLLibrary_Weight_Importer" name="network_butcher::io::block_aMLLibrary_Weight_Importer">
+<area shape="rect" id="node1" title="This class will be used to generate and import weights with aMLLibrary into the block graph." alt="" coords="566,1733,785,2104"/>
+<area shape="rect" id="node2" href="$classnetwork__butcher_1_1io_1_1Weight__Importer.html" title="This (pure virtual) class will be used to import weights into a graph." alt="" coords="5,1454,172,1575"/>
+<area shape="rect" id="node3" href="$structnetwork__butcher_1_1parameters_1_1Parameters_1_1Block__Graph__Generation.html" title="Structure used to contain all the parameters related to the Block Graph Generation." alt="" coords="196,1425,411,1605"/>
+<area shape="rect" id="node4" href="$classnetwork__butcher_1_1types_1_1MWGraph.html" title=" " alt="" coords="400,815,679,1024"/>
+<area shape="rect" id="node9" href="$classnetwork__butcher_1_1types_1_1MWGraph.html" title=" " alt="" coords="572,1101,779,1311"/>
+<area shape="rect" id="node5" href="$classnetwork__butcher_1_1types_1_1Graph.html" title=" " alt="" coords="541,424,716,765"/>
+<area shape="rect" id="node6" href="$classnetwork__butcher_1_1types_1_1Graph.html" title=" " alt="" coords="536,5,721,361"/>
+<area shape="rect" id="node7" href="$structnetwork__butcher_1_1parameters_1_1Parameters_1_1Model.html" title="Structure used to contain all the model related parameters." alt="" coords="841,1447,1056,1583"/>
+<area shape="rect" id="node8" href="$classnetwork__butcher_1_1types_1_1WGraph.html" title=" " alt="" coords="533,1373,817,1656"/>
+<area shape="rect" id="node10" href="$structnetwork__butcher_1_1parameters_1_1Parameters_1_1aMLLibrary.html" title="Structure used to contain all the aMLLibrary related parameters." alt="" coords="1080,1439,1295,1590"/>
+<area shape="rect" id="node11" href="$structnetwork__butcher_1_1parameters_1_1Parameters_1_1Weights.html" title="Structure used to contain all the weights related parameters." alt="" coords="1319,1417,1533,1612"/>
+</map>

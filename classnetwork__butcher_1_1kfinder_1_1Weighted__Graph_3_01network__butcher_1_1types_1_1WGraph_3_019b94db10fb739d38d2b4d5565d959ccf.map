@@ -1,0 +1,9 @@
+<map id="network_butcher::kfinder::Weighted_Graph&lt; network_butcher::types::WGraph&lt; Parallel_Edges, t_Node_Type &gt;, t_Reversed, typename network_butcher::types::WGraph&lt; Parallel_Edges, t_Node_Type &gt;::Node_Type, typename network_butcher::types::WGraph&lt; Parallel_Edges, t_Node_Type &gt;::Node_Collection_Type, Time_Type &gt;" name="network_butcher::kfinder::Weighted_Graph&lt; network_butcher::types::WGraph&lt; Parallel_Edges, t_Node_Type &gt;, t_Reversed, typename network_butcher::types::WGraph&lt; Parallel_Edges, t_Node_Type &gt;::Node_Type, typename network_butcher::types::WGraph&lt; Parallel_Edges, t_Node_Type &gt;::Node_Collection_Type, Time_Type &gt;">
+<area shape="rect" id="node1" title=" " alt="" coords="5,1705,287,2076"/>
+<area shape="rect" id="node2" href="$classnetwork__butcher_1_1kfinder_1_1Base__Weighted__Graph.html" title="Helper Weighted graph class. It is used to identify Weighted_Graph independently of its template para..." alt="" coords="23,1448,227,1555"/>
+<area shape="rect" id="node3" href="$classnetwork__butcher_1_1types_1_1WGraph.html" title=" " alt="" coords="251,1360,535,1643"/>
+<area shape="rect" id="node4" href="$classnetwork__butcher_1_1types_1_1MWGraph.html" title=" " alt="" coords="289,1101,496,1311"/>
+<area shape="rect" id="node5" href="$classnetwork__butcher_1_1types_1_1Graph.html" title=" " alt="" coords="300,424,475,765"/>
+<area shape="rect" id="node7" href="$classnetwork__butcher_1_1types_1_1MWGraph.html" title=" " alt="" coords="409,815,688,1024"/>
+<area shape="rect" id="node6" href="$classnetwork__butcher_1_1types_1_1Graph.html" title=" " alt="" coords="295,5,480,361"/>
+</map>

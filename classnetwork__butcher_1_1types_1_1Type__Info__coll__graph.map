@@ -1,0 +1,3 @@
+<map id="network_butcher::types::Type_Info" name="network_butcher::types::Type_Info">
+<area shape="rect" id="node1" title="Generic type contained in a onnx model (only type information, no values are actually stored)" alt="" coords="5,5,217,229"/>
+</map>

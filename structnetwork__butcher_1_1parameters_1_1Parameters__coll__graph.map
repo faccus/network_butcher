@@ -1,0 +1,8 @@
+<map id="network_butcher::parameters::Parameters" name="network_butcher::parameters::Parameters">
+<area shape="rect" id="node1" title="The collection of parameters." alt="" coords="483,277,697,369"/>
+<area shape="rect" id="node2" href="$structnetwork__butcher_1_1parameters_1_1Parameters_1_1Block__Graph__Generation.html" title="Structure used to contain all the parameters related to the Block Graph Generation." alt="" coords="5,13,220,193"/>
+<area shape="rect" id="node3" href="$structnetwork__butcher_1_1parameters_1_1Parameters_1_1Model.html" title="Structure used to contain all the model related parameters." alt="" coords="244,35,459,171"/>
+<area shape="rect" id="node4" href="$structnetwork__butcher_1_1parameters_1_1Parameters_1_1KSP.html" title="Structure used to contain all the parameters related to the K shortest path method." alt="" coords="483,49,697,156"/>
+<area shape="rect" id="node5" href="$structnetwork__butcher_1_1parameters_1_1Parameters_1_1aMLLibrary.html" title="Structure used to contain all the aMLLibrary related parameters." alt="" coords="721,27,936,178"/>
+<area shape="rect" id="node6" href="$structnetwork__butcher_1_1parameters_1_1Parameters_1_1Weights.html" title="Structure used to contain all the weights related parameters." alt="" coords="960,5,1175,200"/>
+</map>

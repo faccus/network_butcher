@@ -1,0 +1,4 @@
+<map id="network_butcher::types::Type_Info" name="network_butcher::types::Type_Info">
+<area shape="rect" id="node1" title="Generic type contained in a onnx model (only type information, no values are actually stored)" alt="" coords="5,5,217,229"/>
+<area shape="rect" id="node2" href="$classnetwork__butcher_1_1types_1_1Dense__tensor.html" title="(Dense) Tensor type of an onnx model" alt="" coords="5,277,217,457"/>
+</map>

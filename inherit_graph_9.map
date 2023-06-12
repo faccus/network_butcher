@@ -1,0 +1,5 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classnetwork__butcher_1_1io_1_1Weight__Importer.html" title="This (pure virtual) class will be used to import weights into a graph." alt="" coords="5,53,156,94"/>
+<area shape="rect" id="node2" href="$classnetwork__butcher_1_1io_1_1Csv__Weight__Importer.html" title=" " alt="" coords="217,5,387,61"/>
+<area shape="rect" id="node3" href="$classnetwork__butcher_1_1io_1_1block__aMLLibrary__Weight__Importer.html" title="This class will be used to generate and import weights with aMLLibrary into the block graph." alt="" coords="204,85,400,141"/>
+</map>

@@ -1,0 +1,10 @@
+<map id="network_butcher::constraints::Memory_Constraint&lt; GraphType &gt;" name="network_butcher::constraints::Memory_Constraint&lt; GraphType &gt;">
+<area shape="rect" id="node1" title=" " alt="" coords="245,476,503,641"/>
+<area shape="rect" id="node2" href="$classnetwork__butcher_1_1constraints_1_1Graph__Constraint.html" title="A simple class representing a constraint to be applied during the block graph construction." alt="" coords="247,277,458,413"/>
+<area shape="rect" id="node3" href="$structnetwork__butcher_1_1parameters_1_1Parameters.html" title="The collection of parameters." alt="" coords="483,299,697,391"/>
+<area shape="rect" id="node4" href="$structnetwork__butcher_1_1parameters_1_1Parameters_1_1Block__Graph__Generation.html" title="Structure used to contain all the parameters related to the Block Graph Generation." alt="" coords="5,13,220,193"/>
+<area shape="rect" id="node5" href="$structnetwork__butcher_1_1parameters_1_1Parameters_1_1Model.html" title="Structure used to contain all the model related parameters." alt="" coords="244,35,459,171"/>
+<area shape="rect" id="node6" href="$structnetwork__butcher_1_1parameters_1_1Parameters_1_1KSP.html" title="Structure used to contain all the parameters related to the K shortest path method." alt="" coords="483,49,697,156"/>
+<area shape="rect" id="node7" href="$structnetwork__butcher_1_1parameters_1_1Parameters_1_1aMLLibrary.html" title="Structure used to contain all the aMLLibrary related parameters." alt="" coords="721,27,936,178"/>
+<area shape="rect" id="node8" href="$structnetwork__butcher_1_1parameters_1_1Parameters_1_1Weights.html" title="Structure used to contain all the weights related parameters." alt="" coords="960,5,1175,200"/>
+</map>

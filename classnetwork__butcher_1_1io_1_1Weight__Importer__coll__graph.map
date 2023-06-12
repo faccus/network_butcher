@@ -1,0 +1,3 @@
+<map id="network_butcher::io::Weight_Importer" name="network_butcher::io::Weight_Importer">
+<area shape="rect" id="node1" title="This (pure virtual) class will be used to import weights into a graph." alt="" coords="5,5,172,127"/>
+</map>

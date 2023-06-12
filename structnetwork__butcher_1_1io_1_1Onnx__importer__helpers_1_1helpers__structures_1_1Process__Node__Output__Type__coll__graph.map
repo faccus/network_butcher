@@ -1,0 +1,3 @@
+<map id="network_butcher::io::Onnx_importer_helpers::helpers_structures::Process_Node_Output_Type" name="network_butcher::io::Onnx_importer_helpers::helpers_structures::Process_Node_Output_Type">
+<area shape="rect" id="node1" title="Simple helper struct used as an output of process_node. It contains the node to be added to the graph..." alt="" coords="5,5,213,156"/>
+</map>
