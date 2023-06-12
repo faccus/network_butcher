@@ -5,6 +5,7 @@
 #include <list>
 #include <memory>
 #include <utility>
+#include <numeric>
 
 #include "crtp_greater.h"
 #include "traits.h"

@@ -65,7 +65,9 @@ To (dynamically) link the installed libraries, check the CMakeLists.txt file in 
 Parallelism can be enabled by checking the proper option in the CMakeLists.txt file. 
 Parallelism may be used with either:
 
-- [OpenMP v4.5](https://www.openmp.org/)
+- [OpenMP v4.5](https://www.openmp.org/). 
+  Since we do not fix the number of threads directly in the code (by using the 
+  appropriate C++ command), we advise to set the environment variable OMP_NUM_THREADS to the desired number of threads.
 - [Intel TBB v2021.5.0](https://www.intel.com/content/www/us/en/developer/tools/oneapi/onetbb.html). Notice that both
   TBB and oneTBB are compatible. However, the former is easier to install through a package manager (for instance, in
   Ubuntu, the package is available as libtbb-dev), while the latter must be compiled from source. Since this library is
