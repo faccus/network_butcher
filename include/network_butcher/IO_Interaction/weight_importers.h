@@ -1,0 +1,7 @@
+#ifndef NETWORK_BUTCHER_WEIGHT_IMPORTERS_H
+#define NETWORK_BUTCHER_WEIGHT_IMPORTERS_H
+
+#include <network_butcher/IO_Interaction/Weight_Importer_Helpers/block_aMLLibrary_weight_importer.h>
+#include <network_butcher/IO_Interaction/Weight_Importer_Helpers/csv_weight_importer.h>
+
+#endif // NETWORK_BUTCHER_WEIGHT_IMPORTERS_H
