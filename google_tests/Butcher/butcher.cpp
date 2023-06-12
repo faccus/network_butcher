@@ -2,9 +2,9 @@
 #include <iostream>
 #include <random>
 
-#include "butcher.h"
-#include "chrono.h"
-#include "test_class.h"
+#include <network_butcher/Butcher/butcher.h>
+#include <network_butcher/APSC/chrono.h>
+#include "../test_class.h"
 
 // Here we will test the proper functioning of Butcher
 

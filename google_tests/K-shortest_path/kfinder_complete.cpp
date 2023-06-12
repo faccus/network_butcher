@@ -1,10 +1,7 @@
-#include "graph_traits.h"
-#include "kfinder_factory.h"
-#include "weighted_graph_specialization.h"
+#include <network_butcher/Network/graph_traits.h>
+#include <network_butcher/K-shortest_path/kfinder_factory.h>
 
-#include "chrono.h"
-#include "test_class.h"
-#include "test_graph.h"
+#include "../test_class.h"
 
 #include <fstream>
 #include <gtest/gtest.h>

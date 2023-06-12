@@ -1,7 +1,7 @@
 #ifndef NETWORK_BUTCHER_TEST_CLASS_H
 #define NETWORK_BUTCHER_TEST_CLASS_H
 
-#include "traits.h"
+#include <network_butcher/Traits/traits.h>
 
 /// Simple sample class
 /// \tparam T The content type

@@ -1,4 +1,4 @@
-#include "onnx_importer_helpers.h"
+#include <network_butcher/IO_Interaction/onnx_importer_helpers.h>
 
 namespace network_butcher::io
 {

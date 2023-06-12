@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 #include <memory>
 
-#include "test_class.h"
+#include "../test_class.h"
 
-#include "computer_memory.h"
+#include <network_butcher/Computer/computer_memory.h>
 
 /// Check if the memory usage functions work
 

@@ -1,4 +1,4 @@
-#include "io_manager.h"
+#include <network_butcher/io_manager.h>
 
 namespace network_butcher::io::IO_Manager
 {
@@ -28,7 +28,7 @@ namespace network_butcher::io::IO_Manager
         utilities::reconstruct_model_and_export(paths[j], model, link_id_nodeproto, preprocessed_node_ios, output_path);
       };
 
-#if PARALLEL_TBB
+#if NETWORK_BUTCHER_PARALLEL_TBB
     // https://stackoverflow.com/a/63340360 .
     // Tested views, but they are slower, so they are not used.
 

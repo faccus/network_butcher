@@ -2,10 +2,10 @@
 #include <iostream>
 #include <random>
 
-#include "test_class.h"
+#include "../test_class.h"
 
-#include "constrained_block_graph_builder.h"
-#include "graph_traits.h"
+#include <network_butcher/Butcher/constrained_block_graph_builder.h>
+#include <network_butcher/Network/graph_traits.h>
 
 // Here we test if Constrained_Block_Graph_Builder works
 

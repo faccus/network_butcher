@@ -26,7 +26,7 @@ jobs:
 
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory.
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_PROTOBUF_SOURCE=ON -DUSE_GOOGLETEST=ON -DDISCOVER_COMPLETE_TESTS=ON -DENABLE_PARALLEL=OFF -DUSE_OPENMP=OFF -DUSE_PYBIND=ON -DBUILD_DOC=ON
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_PROTOBUF_SOURCE=ON -DUSE_GOOGLETEST=ON -DDISCOVER_COMPLETE_TESTS=ON -DENABLE_NETWORK_BUTCHER_PARALLEL=OFF -DUSE_OPENMP=OFF -DUSE_PYBIND=ON -DBUILD_DOC=ON
 
       - name: Build
         # Build your program with the given configuration

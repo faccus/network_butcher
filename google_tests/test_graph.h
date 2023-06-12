@@ -1,7 +1,7 @@
 #ifndef NETWORK_BUTCHER_TEST_GRAPH_H
 #define NETWORK_BUTCHER_TEST_GRAPH_H
 
-#include "weighted_graph.h"
+#include <network_butcher/K-shortest_path/weighted_graph.h>
 
 /// Simple sample graph
 /// \tparam T The content type of each node

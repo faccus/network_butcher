@@ -1,9 +1,9 @@
-#include "graph_traits.h"
+#include <network_butcher/Network/graph_traits.h>
 
-#include "shortest_path_finder.h"
+#include <network_butcher/K-shortest_path/shortest_path_finder.h>
 
-#include "test_class.h"
-#include "test_graph.h"
+#include "../test_class.h"
+#include "../test_graph.h"
 #include <gtest/gtest.h>
 
 /// Checks if the shortest path finder works correctly

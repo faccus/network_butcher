@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 #include <memory>
 
-#include "node.h"
-#include "node_traits.h"
+#include <network_butcher/Network/node.h>
+#include <network_butcher/Network/node_traits.h>
 
 
 namespace

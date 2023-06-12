@@ -2,10 +2,10 @@
 #include <iostream>
 #include <random>
 
-#include "butcher.h"
-#include "chrono.h"
-#include "io_manager.h"
-#include "test_class.h"
+#include <network_butcher/Butcher/butcher.h>
+#include <network_butcher/APSC/chrono.h>
+#include <network_butcher/io_manager.h>
+#include "../test_class.h"
 
 // Here we test if Butcher works on a "real" Onnx model
 

@@ -1,8 +1,4 @@
-#include "network_butcher.h"
-#include "weighted_graph_specialization.h"
-
-#include "GetPot"
-#include "chrono.h"
+#include <network_butcher/network_butcher.h>
 
 #include <fstream>
 
@@ -12,7 +8,6 @@
  * implemented algorithm. In this case, we will also require the algorithm to compute the actual paths (not only the
  * distances).
  * */
-
 
 
 using namespace network_butcher;
@@ -66,12 +61,31 @@ import_graph(const std::string &file_path)
 std::vector<std::string>
 get_test_names()
 {
-  return {"dense_00",           "dense_01",           "almost_path_00",  "almost_path_01",
-          "almost_path_02",     "example_00",         "max_random_00",   "max_random_01",
-          "max_random_02",      "max_random_03",      "max_random_04",   "path_00",
-          "random_00",          "random_01",          "random_02",       "random_04",
-          "small_random_00",    "small_random_01",    "small_random_02", "smallest_random_00",
-          "smallest_random_01", "smallest_random_02", "sparse_00",       "sparse_01"};
+  return {"dense_00",
+          "dense_01",
+          "almost_path_00",
+          "almost_path_01",
+          "almost_path_02",
+          "example_00",
+          "loop_00",
+          "max_random_00",
+          "max_random_01",
+          "max_random_02",
+          "max_random_03",
+          "max_random_04",
+          "path_00",
+          "random_00",
+          "random_01",
+          "random_02",
+          "random_04",
+          "small_random_00",
+          "small_random_01",
+          "small_random_02",
+          "smallest_random_00",
+          "smallest_random_01",
+          "smallest_random_02",
+          "sparse_00",
+          "sparse_01"};
 }
 
 
@@ -80,7 +94,7 @@ main(int argc, char **argv)
 {
   GetPot command_line(argc, argv);
 
-#if PARALLEL_OPENMP
+#if NETWORK_BUTCHER_PARALLEL_OPENMP
   std::cout << "Is OpenMP enabled? Let's check it!" << std::endl;
 
   int nthreads, tid;

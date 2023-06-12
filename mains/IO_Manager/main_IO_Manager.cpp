@@ -1,10 +1,7 @@
-#include "chrono.h"
-#include "GetPot"
+#include <network_butcher/network_butcher.h>
 
 #include <fstream>
 #include <random>
-
-#include "network_butcher.h"
 
 /*
  * With this main file, we test how quick is the model reconstruction is performed and how ling does it take to perform
@@ -181,7 +178,7 @@ main(int argc, char **argv)
   std::size_t                                     max_k_power = command_line("max_k_power", 11);
   std::size_t                                     num_devices = 3;
 
-  #if PARALLEL_OPENMP
+  #if NETWORK_BUTCHER_PARALLEL_OPENMP
     std::cout << "Is OpenMP enabled? Let's check it!" << std::endl;
 
     int nthreads, tid;
@@ -213,7 +210,7 @@ main(int argc, char **argv)
 
   for (auto const &file_name : get_test_names())
     {
-      std::string input = "test_data/models/" + file_name + ".onnx";
+      std::string input = "../google_tests/test_data/models/" + file_name + ".onnx";
 
       std::cout << "Processing file: " << input << std::endl;
 

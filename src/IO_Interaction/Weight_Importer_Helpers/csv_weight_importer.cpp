@@ -1,4 +1,4 @@
-#include "csv_weight_importer.h"
+#include <network_butcher/IO_Interaction/Weight_Importer_Helpers/csv_weight_importer.h>
 
 namespace network_butcher::io
 {

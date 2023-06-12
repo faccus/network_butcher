@@ -1,4 +1,4 @@
-#include "utilities.h"
+#include <network_butcher/utilities.h>
 #include <gtest/gtest.h>
 
 /// Check if the utilities work properly.

@@ -1,0 +1,28 @@
+add_executable(main main.cpp)
+target_link_libraries(main PRIVATE network_butcher)
+target_compile_features(main PRIVATE cxx_std_20)
+
+
+add_executable(main_kfinder KFinder/main_kfinder.cpp)
+target_link_libraries(main_kfinder PRIVATE network_butcher)
+target_compile_features(main_kfinder PRIVATE cxx_std_20)
+
+
+add_executable(main_path_reconstruction KFinder/main_path_reconstruction.cpp)
+target_link_libraries(main_path_reconstruction PRIVATE network_butcher)
+target_compile_features(main_path_reconstruction PRIVATE cxx_std_20)
+
+
+add_executable(main_IO_Manager IO_Manager/main_IO_Manager.cpp)
+target_link_libraries(main_IO_Manager PRIVATE network_butcher)
+target_compile_features(main_IO_Manager PRIVATE cxx_std_20)
+
+
+add_executable(main_Constrained_Builder Butcher/main_Constrained_Builder.cpp)
+target_link_libraries(main_Constrained_Builder PRIVATE network_butcher)
+target_compile_features(main_Constrained_Builder PRIVATE cxx_std_20)
+
+
+add_executable(main_synthetic_graph KFinder/main_synthetic_graph.cpp)
+target_link_libraries(main_synthetic_graph PRIVATE network_butcher)
+target_compile_features(main_synthetic_graph PRIVATE cxx_std_20)

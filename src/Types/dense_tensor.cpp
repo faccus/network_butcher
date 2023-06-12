@@ -1,4 +1,4 @@
-#include "dense_tensor.h"
+#include <network_butcher/Types/dense_tensor.h>
 
 namespace network_butcher::types
 {

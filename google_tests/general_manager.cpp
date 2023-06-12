@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
-#include "general_manager.h"
+#include <network_butcher/general_manager.h>
 
 /// Checks if the boot tests run properly. The results must be checked manually.
 
@@ -36,7 +36,7 @@ namespace
     execute_boot("ksp_result3", "test_data/configs/test3_parameters.conf");
   }
 
-#if PYBIND_ACTIVE
+#if NETWORK_BUTCHER_PYBIND_ACTIVE
   TEST(GeneralManagerTest, boot_test4)
   {
     execute_boot("ksp_result4", "test_data/configs/test4_parameters.conf");

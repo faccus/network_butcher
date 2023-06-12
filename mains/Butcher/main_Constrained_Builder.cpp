@@ -1,10 +1,7 @@
 #include <iostream>
 #include <random>
 
-#include "GetPot"
-#include "chrono.h"
-
-#include "network_butcher.h"
+#include <network_butcher/network_butcher.h>
 
 /*
  * This main file generates a simple linear graph with 4 devices. The graph is linear since
@@ -168,7 +165,7 @@ main(int argc, char **argv)
   GetPot      command_line(argc, argv);
   std::string export_path = "report_Constrained_Builder.txt";
 
-#if PARALLEL_OPENMP
+#if NETWORK_BUTCHER_PARALLEL_OPENMP
   std::cout << "Is OpenMP enabled? Let's check it!" << std::endl;
 
   int nthreads, tid;

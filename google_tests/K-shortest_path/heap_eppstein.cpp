@@ -1,4 +1,4 @@
-#include "heap_eppstein.h"
+#include <network_butcher/K-shortest_path/heap_eppstein.h>
 #include <gtest/gtest.h>
 
 /// Check if the implementation of the heap is correct

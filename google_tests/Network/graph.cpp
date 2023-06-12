@@ -1,5 +1,5 @@
-#include "graph.h"
-#include "test_class.h"
+#include <network_butcher/Network/graph.h>
+#include "../test_class.h"
 #include <gtest/gtest.h>
 
 namespace

@@ -6,14 +6,14 @@
 /in
 /out
 
+
 /test_data/aMLLibrary_data/output
 /onnx_proto/onnx
 /.vscode
 /output*
-/include/Extra/platform_specific_config.h.in
 
-
-/test.*
-/test2.*
+/include/network_butcher/Extra/platform_specific_config.h.in
+/include/network_butcher/Extra/platform_specific_config.h
+/include/network_butcher/Extra/CMake_directives.h
 
 /results/

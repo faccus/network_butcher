@@ -1,10 +1,7 @@
 #include <iostream>
 #include <random>
 
-#include "GetPot"
-#include "chrono.h"
-
-#include "network_butcher.h"
+#include <network_butcher/network_butcher.h>
 
 
 /*
@@ -110,7 +107,7 @@ main(int argc, char **argv)
   std::size_t                                     max_power_K     = command_line("max_power_K", 13);
   std::size_t                                     num_devices     = command_line("num_devices", 3);
 
-#if PARALLEL_OPENMP
+#if NETWORK_BUTCHER_PARALLEL_OPENMP
   std::cout << "Is OpenMP enabled? Let's check it!" << std::endl;
 
   int nthreads, tid;

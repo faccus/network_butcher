@@ -1,0 +1,15 @@
+list(APPEND
+        INCLUDES
+        ${PROJECT_SOURCE_DIR}/include/network_butcher
+        ${PROJECT_SOURCE_DIR}/include/network_butcher/APSC
+        ${PROJECT_SOURCE_DIR}/include/network_butcher/Computer
+        ${PROJECT_SOURCE_DIR}/include/network_butcher/Butcher
+        ${PROJECT_SOURCE_DIR}/include/network_butcher/IO_Interaction
+        ${PROJECT_SOURCE_DIR}/include/network_butcher/IO_Interaction/Weight_Importer_Helpers
+        ${PROJECT_SOURCE_DIR}/include/network_butcher/K-shortest_path
+        ${PROJECT_SOURCE_DIR}/include/network_butcher/Network
+        ${PROJECT_SOURCE_DIR}/include/network_butcher/Traits
+        ${PROJECT_SOURCE_DIR}/include/network_butcher/onnx_proto
+        ${PROJECT_SOURCE_DIR}/include/network_butcher/Types
+        ${EXTRA_INCLUDE_DIR}
+)

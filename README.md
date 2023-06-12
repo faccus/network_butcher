@@ -10,15 +10,16 @@ it through [GitHub Pages](https://faccus.github.io/network_butcher/).
 
 The project is structured into four main directories:
 
-- include: It contains all the header files. A [README](include/README.md) file describing its contents is also available.
-- src: It contains all the source files. A [README](src/README.md) file describing its contents is also available.
+- include/network_butcher: It contains all the header files. A [README](include/network_butcher/README.md) file describing its contents is also available.
+- src: It contains all the source files of the library. 
+  Moreover, in the CMakeList file, all the external libraries used by the library are imported (except GoogleTest and
+  Doxygen). 
+  A [README](src/README.md) file describing its contents is also available.
 - google_tests: It contains all the source files of the tests
 - mains: It contains a collection of main files to test the performances of the program
 
 The other directories are:
 
-- cmake: It contains the CMakeLists.txt file to either download and compile external libraries or to dynamically link
-  them
 - dep: It contains the external libraries (currently, only aMLLibrary). They are stored as submodules
 - doc: It contains the CMakeLists.txt file with the options used to generate the documentation
 - onnx_proto: It contains the header and source file to import and store an onnx model. They were automatically
@@ -119,7 +120,7 @@ To run the container and enter the bash shell, run:
 docker run --name nn --rm -v $(pwd):/network_butcher -it network_butcher
 ```
 
-### Installation:
+### Project setup:
 
 1. Clone the repository:
 
@@ -150,13 +151,13 @@ cmake -DCMAKE_BUILD_TYPE=Release -S .. -B .
 4. Build the executable:
 
 ```bash
-cmake --build . --target network_butcher
+cmake --build . --target main
 ```
 
 5. Run the program:
 
 ```bash
-./network_butcher
+./main
 ```
 
 ### Profiling mains

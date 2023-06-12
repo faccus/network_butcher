@@ -1,9 +1,9 @@
-#include "graph_traits.h"
-#include "keppstein.h"
-#include "keppstein_lazy.h"
+#include <network_butcher/Network/graph_traits.h>
+#include <network_butcher/K-shortest_path/keppstein.h>
+#include <network_butcher/K-shortest_path/keppstein_lazy.h>
 
-#include "test_class.h"
-#include "test_graph.h"
+#include "../test_class.h"
+#include "../test_graph.h"
 #include <gtest/gtest.h>
 
 /// Checks if the K shortest path finder works correctly

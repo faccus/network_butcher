@@ -32,7 +32,7 @@ jobs:
 
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory.
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_PROTOBUF_SOURCE=ON -DUSE_GOOGLETEST=ON -DDISCOVER_COMPLETE_TESTS=ON -DENABLE_PARALLEL=ON -DUSE_OPENMP=ON -DUSE_PYBIND=ON -DBUILD_DOC=OFF
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_PROTOBUF_SOURCE=ON -DUSE_GOOGLETEST=ON -DDISCOVER_COMPLETE_TESTS=ON -DENABLE_NETWORK_BUTCHER_PARALLEL=ON -DUSE_OPENMP=ON -DUSE_PYBIND=ON -DBUILD_DOC=OFF
 
       - name: Build
         # Build your program with the given configuration
@@ -66,7 +66,7 @@ jobs:
 
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory.
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_PROTOBUF_SOURCE=ON -DUSE_GOOGLETEST=ON -DDISCOVER_COMPLETE_TESTS=ON -DENABLE_PARALLEL=ON -DUSE_OPENMP=OFF -DUSE_PYBIND=ON -DBUILD_DOC=OFF
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_PROTOBUF_SOURCE=ON -DUSE_GOOGLETEST=ON -DDISCOVER_COMPLETE_TESTS=ON -DENABLE_NETWORK_BUTCHER_PARALLEL=ON -DUSE_OPENMP=OFF -DUSE_PYBIND=ON -DBUILD_DOC=OFF
 
       - name: Build
         # Build your program with the given configuration

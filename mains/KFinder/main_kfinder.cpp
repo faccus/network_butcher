@@ -1,11 +1,4 @@
-#include "network_butcher.h"
-#include "weighted_graph_specialization.h"
-
-#include "GetPot"
-#include "chrono.h"
-
-#include "test_graph.h"
-
+#include <network_butcher/network_butcher.h>
 
 #include <fstream>
 
@@ -103,7 +96,7 @@ main(int argc, char **argv)
 {
   GetPot command_line(argc, argv);
 
-#if PARALLEL_OPENMP
+#if NETWORK_BUTCHER_PARALLEL_OPENMP
   std::cout << "Is OpenMP enabled? Let's check it!" << std::endl;
 
   int nthreads, tid;
@@ -132,7 +125,7 @@ main(int argc, char **argv)
   auto &factory = KFinder_Factory<Graph_type_Parallel, true, Weighted_Graph_Parallel_type<false>>::Instance();
   for (auto const &file_name : get_test_names())
     {
-      std::string input = "test_data/kfinder/in/" + file_name + ".in";
+      std::string input = "../google_tests/test_data/kfinder/in/" + file_name + ".in";
 
       std::cout << "Processing file: " << input << std::endl;
 

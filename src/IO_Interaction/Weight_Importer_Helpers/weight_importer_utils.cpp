@@ -1,4 +1,4 @@
-#include "weight_importer_utils.h"
+#include <network_butcher/IO_Interaction/Weight_Importer_Helpers/weight_importer_utils.h>
 
 namespace network_butcher::io::Weight_importer_helpers
 {

@@ -1,5 +1,5 @@
-#include "io_manager.h"
-#include "weight_importers.h"
+#include <network_butcher/io_manager.h>
+#include <network_butcher/IO_Interaction/weight_importers.h>
 
 #include <gtest/gtest.h>
 
