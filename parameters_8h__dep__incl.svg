@@ -46,7 +46,7 @@ if (edges && edges.length) {
         </defs>
 
 <script type="text/javascript">
-var viewWidth = 513;
+var viewWidth = 535;
 var viewHeight = 753;
 var sectionId = 'dynsection-1';
 </script>
@@ -54,7 +54,7 @@ var sectionId = 'dynsection-1';
 <svg id="graph" class="graph">
 <g id="viewport">
 <title>include/Types/parameters.h</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-749 509,-749 509,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-749 530.5,-749 530.5,4 -4,4"/>
 <!-- Node1 -->
 <g id="node1" class="node">
 <title>Node1</title>
@@ -236,9 +236,9 @@ var sectionId = 'dynsection-1';
 <!-- Node6 -->
 <g id="node6" class="node">
 <title>Node6</title>
-<g id="a_node6"><a xlink:href="general__manager_8cpp.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="260.5,-0.5 260.5,-19.5 399.5,-19.5 399.5,-0.5 260.5,-0.5"/>
-<text text-anchor="middle" x="330" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">src/general_manager.cpp</text>
+<g id="a_node6"><a xlink:href="main_8cpp.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="290.5,-0.5 290.5,-19.5 369.5,-19.5 369.5,-0.5 290.5,-0.5"/>
+<text text-anchor="middle" x="330" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">src/main.cpp</text>
 </a>
 </g>
 </g>
@@ -251,9 +251,9 @@ var sectionId = 'dynsection-1';
 <!-- Node7 -->
 <g id="node7" class="node">
 <title>Node7</title>
-<g id="a_node7"><a xlink:href="main_8cpp.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="417.5,-0.5 417.5,-19.5 496.5,-19.5 496.5,-0.5 417.5,-0.5"/>
-<text text-anchor="middle" x="457" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">src/main.cpp</text>
+<g id="a_node7"><a xlink:href="general__manager_8cpp.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="387.5,-0.5 387.5,-19.5 526.5,-19.5 526.5,-0.5 387.5,-0.5"/>
+<text text-anchor="middle" x="457" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">src/general_manager.cpp</text>
 </a>
 </g>
 </g>
