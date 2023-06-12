@@ -20,6 +20,10 @@ permissions:
 concurrency:
   group: "pages"
   cancel-in-progress: false
+  
+
+env:
+  BUILD_TYPE: Release
 
 jobs:
   # Build job
