@@ -9,6 +9,8 @@
 #include <fstream>
 #include <gtest/gtest.h>
 
+/// Checks if the K shortest path finder works correctly
+
 namespace
 {
   using namespace network_butcher;
@@ -37,7 +39,7 @@ namespace
   auto
   get_test_names() -> std::vector<std::string>;
 
-
+  /// Test KFinder_Eppstein with the graphs generated with https://github.com/yosupo06/library-checker-problems
   TEST(KFinderTest, CompleteParallelEdgesEppstein)
   {
     auto &factory = KFinder_Factory<Graph_type_Parallel, true, Weighted_Graph_Parallel_type<false>>::Instance();
@@ -79,6 +81,7 @@ namespace
   }
 
 
+  /// Test KFinder_Lazy_Eppstein with the graphs generated with https://github.com/yosupo06/library-checker-problems
   TEST(KFinderTest, CompleteParallelEdgesLazyEppstein)
   {
     auto &factory = KFinder_Factory<Graph_type_Parallel, true, Weighted_Graph_Parallel_type<false>>::Instance();

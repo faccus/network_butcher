@@ -3,6 +3,8 @@
 
 #include "traits.h"
 
+/// Simple sample class
+/// \tparam T The content type
 template <class T>
 class Test_Class
 {

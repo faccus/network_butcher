@@ -3,6 +3,8 @@
 
 #include <gtest/gtest.h>
 
+/// Check if the weight importers work as expected
+
 namespace
 {
   using namespace network_butcher;
@@ -15,7 +17,7 @@ namespace
   auto
   simple_graph_generator() -> Block_Graph_Type;
 
-
+  /// Check if Csv_Weight_Importer work as expected
   TEST(WeightImporterTest, DirectImportWeightsFromCsv)
   {
     std::string weight_path = Utilities::combine_path(base_path, "weights/aMLLibrary_prediction_tegra.csv");
@@ -30,6 +32,7 @@ namespace
     ASSERT_DOUBLE_EQ(graph.get_weight(0, {72, 73}), 0.018818040739131837);
   }
 
+  /// Check if Csv_Weight_Importer work as expected
   TEST(WeightImporterTest, MultipleImportWeightsFromCsv)
   {
     std::string weight_path = Utilities::combine_path(base_path, "weights/official_operation_time.csv");
@@ -51,6 +54,7 @@ namespace
     ASSERT_DOUBLE_EQ(graph.get_weight(1, {1, 2}), 0.000249);
   }
 
+  /// Check if Csv_Weight_Importer work as expected
   TEST(WeightImporterTest, SingleBlockImportWeightsFromCsv)
   {
     std::string weight_path = Utilities::combine_path(base_path, "weights/sample_weights.csv");
@@ -75,6 +79,7 @@ namespace
     EXPECT_DOUBLE_EQ(graph.get_weight({0, 2}), 1234.2);
   }
 
+  /// Check if Csv_Weight_Importer work as expected
   TEST(WeightImporterTest, MultipleBlockImportWeightsFromCsv)
   {
     std::string weight_path = Utilities::combine_path(base_path, "weights/sample_weights.csv");

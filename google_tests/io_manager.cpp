@@ -1,6 +1,8 @@
 #include "io_manager.h"
 #include <gtest/gtest.h>
 
+/// Checks if the various IO functions work properly.
+
 namespace
 {
   using namespace network_butcher;

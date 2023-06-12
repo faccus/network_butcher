@@ -6,6 +6,9 @@
 
 namespace network_butcher::kfinder
 {
+  /// Specialization of the weighted graph for WGraph with simple Node
+  /// \tparam Parallel_Edges Whether the graph has parallel edges or not
+  /// \tparam Reversed Whether the graph is reversed or not
   template <bool Parallel_Edges, bool Reversed>
   class Weighted_Graph<
     network_butcher::types::WGraph<Parallel_Edges, network_butcher::types::Node, unsigned long long int>,

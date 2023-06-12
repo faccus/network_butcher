@@ -7,6 +7,8 @@
 #include "constrained_block_graph_builder.h"
 #include "graph_traits.h"
 
+// Here we test if Constrained_Block_Graph_Builder works
+
 namespace
 {
   using namespace network_butcher;
@@ -35,6 +37,7 @@ namespace
   partial_connection_parameters() -> parameters::Parameters;
 
 
+  /// Check if each node of the block graph has the correct device
   TEST(BlockGraphBuilderTest, Devices)
   {
     auto graph  = basic_graph();
@@ -52,7 +55,7 @@ namespace
       }
   }
 
-
+  /// Check if the block graph is properly constructed (classic mode)
   TEST(BlockGraphBuilderTest, ConstructionModeClassic)
   {
     auto graph  = basic_graph();
@@ -78,6 +81,7 @@ namespace
     ASSERT_EQ(*block_graph[9].content.second, std::set<std::size_t>{7});
   }
 
+  /// Check if the block graph is properly constructed (classic mode)
   TEST(BlockGraphBuilderTest, ConstructionModeClassic2)
   {
     auto graph  = basic_graph2();
@@ -94,7 +98,7 @@ namespace
       }
   }
 
-
+  /// Check if the block graph is properly constructed (input mode)
   TEST(BlockGraphBuilderTest, ConstructionModeInput)
   {
     auto graph                                            = basic_graph();
@@ -120,6 +124,7 @@ namespace
     ASSERT_EQ(*block_graph[7].content.second, std::set<std::size_t>{7});
   }
 
+  /// Check if the block graph is properly constructed (input mode)
   TEST(BlockGraphBuilderTest, ConstructionModeInput2)
   {
     auto graph                                            = basic_graph2();
@@ -142,7 +147,7 @@ namespace
     ASSERT_EQ(*block_graph[5].content.second, std::set<std::size_t>{4});
   }
 
-
+  /// Check if the block graph is properly constructed (output mode)
   TEST(BlockGraphBuilderTest, ConstructionModeOutput)
   {
     auto graph                                            = basic_graph();
@@ -168,6 +173,7 @@ namespace
     ASSERT_EQ(*block_graph[7].content.second, std::set<std::size_t>{7});
   }
 
+  /// Check if the block graph is properly constructed (output mode)
   TEST(BlockGraphBuilderTest, ConstructionModeOutput2)
   {
     auto graph                                            = basic_graph2();
@@ -191,7 +197,7 @@ namespace
     ASSERT_EQ(*block_graph[5].content.second, std::set<std::size_t>{4});
   }
 
-
+  /// Check if the block graph has the correct edges
   TEST(BlockGraphBuilderTest, CheckNeighbours)
   {
     auto graph  = basic_graph();
@@ -246,6 +252,7 @@ namespace
     ASSERT_EQ(block_graph.get_input_nodes(9), tmp);
   }
 
+  /// Check if the block graph has the correct edges (partial connection)
   TEST(BlockGraphBuilderTest, CheckNeighbours2)
   {
     auto graph  = basic_graph(4);
@@ -324,6 +331,7 @@ namespace
       }
   }
 
+  /// Check if the block graph has the correct edges (partial connection)
   TEST(BlockGraphBuilderTest, CheckNeighbours3)
   {
     auto graph  = basic_graph(4);
@@ -406,7 +414,7 @@ namespace
       }
   }
 
-
+  /// Check if the transmission weights are correctly set
   TEST(BlockGraphBuilderTest, TransmissionWeights)
   {
     auto graph                                            = basic_graph();
@@ -439,7 +447,7 @@ namespace
     ASSERT_FLOAT_EQ(block_graph.get_weight(std::pair{4, 6}), 1.);
   }
 
-
+  /// Check if the operation weights are correctly set (block single)
   TEST(BlockGraphBuilderTest, WeightsBlockSingle)
   {
     auto graph                                            = basic_graph();
@@ -472,6 +480,7 @@ namespace
     ASSERT_FLOAT_EQ(block_graph.get_weight(std::pair{4, 6}), 6.2);
   }
 
+  /// Check if the operation weights are correctly set (block multiple)
   TEST(BlockGraphBuilderTest, WeightsBlockMultiple)
   {
     auto graph                                            = basic_graph();

@@ -1,10 +1,12 @@
 #include "graph_traits.h"
-#include "keppstein.h"
-#include "keppstein_lazy.h"
+
+#include "shortest_path_finder.h"
 
 #include "test_class.h"
 #include "test_graph.h"
 #include <gtest/gtest.h>
+
+/// Checks if the shortest path finder works correctly
 
 namespace
 {
@@ -32,7 +34,7 @@ namespace
   auto
   test_graph() -> Test_Graph<basic_type>;
 
-
+  /// Checks if Dijkstra works correctly
   TEST(ShortestPathFinderTest, DijkstraSourceSink)
   {
     auto const graph = basic_graph();
@@ -44,6 +46,7 @@ namespace
     ASSERT_EQ(res.first, theoretical_res);
   }
 
+  /// Checks if Dijkstra works correctly
   TEST(ShortestPathFinderTest, DijkstraSinkSource)
   {
     auto const graph = basic_graph();

@@ -1,6 +1,8 @@
 #include "utilities.h"
 #include <gtest/gtest.h>
 
+/// Check if the utilities work properly.
+
 namespace
 {
   using namespace network_butcher;

@@ -6,6 +6,8 @@
 #include "test_graph.h"
 #include <gtest/gtest.h>
 
+/// Checks if the K shortest path finder works correctly
+
 namespace
 {
   using namespace network_butcher;
@@ -29,7 +31,7 @@ namespace
   auto
   test_graph() -> Test_Graph<basic_type>;
 
-
+  /// Checks if KFinder_Eppstein works correctly with the graph from Eppstein's paper
   TEST(KFinderTest, EppsteinOriginalNetwork)
   {
     auto const       graph = eppstein_graph();
@@ -61,6 +63,7 @@ namespace
       }
   }
 
+  /// Checks if KFinder_Lazy_Eppstein works correctly with the graph from Eppstein's paper
   TEST(KFinderTest, LazyEppsteinOriginalNetwork)
   {
     auto const            graph = eppstein_graph();
@@ -98,6 +101,7 @@ namespace
       }
   }
 
+  /// Checks if KFinder_Lazy_Eppstein works correctly with the graph from Eppstein's paper
   TEST(KFinderTest, LazyEppsteinOriginalTestGraph)
   {
     auto const            graph = test_graph();

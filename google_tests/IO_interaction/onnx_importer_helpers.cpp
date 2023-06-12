@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+/// Checks if the helper functions used during the model importing process work as expected
+
 namespace
 {
   using namespace network_butcher;
@@ -10,7 +12,7 @@ namespace
   auto
   import_simple_model() -> onnx::ModelProto;
 
-
+  /// Check if the ValueInfos are loaded properly
   TEST(OnnxImporterHelpersTests, ReadIOsValueInfoProto)
   {
     auto const  model = import_simple_model();
@@ -32,6 +34,7 @@ namespace
     EXPECT_TRUE(in_map.find(name)->second->is_initialized());
   }
 
+  /// Check if the tensors are loaded properly
   TEST(OnnxImporterHelpersTests, ReadIOsTensorProto)
   {
     auto const  model = import_simple_model();
@@ -54,6 +57,7 @@ namespace
     EXPECT_TRUE(in_map.find(name)->second->is_initialized());
   }
 
+  /// Check if process_node_ios works properly
   TEST(OnnxImporterHelpersTests, ProcessNodeIOs)
   {
     auto const  model = import_simple_model();

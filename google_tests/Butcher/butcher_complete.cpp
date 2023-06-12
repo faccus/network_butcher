@@ -7,6 +7,8 @@
 #include "io_manager.h"
 #include "test_class.h"
 
+// Here we test if Butcher works on a "real" Onnx model
+
 namespace
 {
   using namespace network_butcher;
@@ -71,7 +73,7 @@ namespace
         }
   }
 
-
+  /// Checks if Butcher works with a "real" model
   TEST(ButcherTest, compute_k_shortest_paths_test_network_basic_weights)
   {
     std::string path        = "test_data/models/resnet18-v2-7-inferred";

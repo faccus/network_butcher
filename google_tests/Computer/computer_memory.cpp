@@ -5,6 +5,7 @@
 
 #include "computer_memory.h"
 
+/// Check if the memory usage functions work
 
 namespace
 {
@@ -21,7 +22,8 @@ namespace
   auto
   basic_graph() -> Graph_type;
 
-  TEST(ComputerTests, ComputeMemoryUsageTypeInfo)
+  /// Check memory usage of simple Dense Tensor
+  TEST(ComputerTests, ComputeMemoryUsageDenseTensor)
   {
     Dense_tensor d(onnx::TensorProto_DataType_INT64, {1, 1, 2, 2}); // total memory 2*2*64=256 bits
     auto         res = Computer_memory::compute_memory_usage(d);
@@ -42,6 +44,7 @@ namespace
     }
   }
 
+  /// Check memory usage of sample class
   TEST(ComputerTests, ComputeMemoryUsageCustomClass)
   {
     Test_Class<basic_type> ex(10);
@@ -49,6 +52,7 @@ namespace
     ASSERT_EQ(Computer_memory::compute_memory_usage(ex), 10 * sizeof(basic_type));
   }
 
+  /// Check memory usage of sample graph
   TEST(ComputerTests, ComputeMemoryUsageGraphCustomClass)
   {
     auto graph_cons = basic_graph();

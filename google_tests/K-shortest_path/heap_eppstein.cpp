@@ -1,16 +1,13 @@
-//
-// Created by faccus on 05/06/23.
-//
-
 #include "heap_eppstein.h"
 #include <gtest/gtest.h>
 
+/// Check if the implementation of the heap is correct
 
 namespace
 {
   using namespace network_butcher::kfinder;
 
-
+  /// Check if Heap_Node performs as a priority queue
   TEST(HeapEppsteinTest, PriorityQueue)
   {
     std::vector<int>                       vect{4, 7, 2, 3, 6, 8, 1, 9, 0};
@@ -47,6 +44,7 @@ namespace
     ASSERT_EQ(content_vect, content_heap);
   }
 
+  /// Check if H_out_Type performs as an H_out. Verify that pointers are correct
   TEST(HeapEppsteinTest, H_out)
   {
     std::vector<int> vect{4, 7, 2, 3, 6, 8, 1, 9, 0}, content_vect, content_vect_2 = vect;
@@ -136,6 +134,7 @@ namespace
     ASSERT_EQ(content_vect_2, content_heap_2);
   }
 
+  /// Check if H_g_Type performs as an H_g.
   TEST(HeapEppsteinTest, H_g)
   {
     using H_out_container_type = std::vector<H_out_Type<int, std::less<>>>;

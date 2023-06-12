@@ -3,10 +3,13 @@
 
 #include "weighted_graph.h"
 
+/// Simple sample graph
+/// \tparam T The content type of each node
 template <class T>
 class Test_Graph
 {
 public:
+  /// Simple node class
   struct TestNode
   {
     std::size_t id;
@@ -28,6 +31,9 @@ public:
   std::map<std::pair<std::size_t, std::size_t>, double> map_weight;
 };
 
+/// Specialization of the weighted graph for the Test_Graph
+/// \tparam T The content type of each node
+/// \tparam t_Reversed Whether the graph is reversed or not
 template <typename T, bool t_Reversed>
 class network_butcher::kfinder::Weighted_Graph<Test_Graph<T>,
                                                t_Reversed,

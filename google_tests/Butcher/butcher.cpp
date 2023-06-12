@@ -6,6 +6,8 @@
 #include "chrono.h"
 #include "test_class.h"
 
+// Here we will test the proper functioning of Butcher
+
 namespace
 {
   using namespace network_butcher;
@@ -44,7 +46,7 @@ namespace
     operator()(Weighted_Real_Path const &rhs, Weighted_Real_Path const &lhs) const;
   };
 
-
+  /// Apply Butcher to the Eppstein graph (the one contained in the paper). Eppstein runs
   TEST(ButcherTest, compute_k_shortest_paths_eppstein_linear)
   {
     std::size_t num_devices = 3;
@@ -60,6 +62,7 @@ namespace
     ASSERT_EQ(res.size(), 81);
   }
 
+  /// Apply Butcher to the Eppstein graph (the one contained in the paper). Lazy Eppstein runs
   TEST(ButcherTest, compute_k_shortest_paths_lazy_eppstein_linear)
   {
     std::size_t num_devices = 3;
@@ -77,6 +80,7 @@ namespace
     ASSERT_EQ(res.size(), 81);
   }
 
+  /// Apply Butcher to the Eppstein graph (the one contained in the paper). Comparison between Eppstein and Lazy Eppstein
   TEST(ButcherTest, compute_k_shortest_paths_eppstein_vs_lazy_linear)
   {
     std::size_t num_devices = 3;

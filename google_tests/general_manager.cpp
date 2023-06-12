@@ -3,6 +3,7 @@
 
 #include "general_manager.h"
 
+/// Checks if the boot tests run properly. The results must be checked manually.
 
 namespace
 {
