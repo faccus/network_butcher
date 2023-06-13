@@ -72,10 +72,18 @@ namespace network_butcher::kfinder
           Internal_Weight_Collection_Type const &sidetrack_distances) const -> Output_Type override;
 
   public:
-    explicit KFinder_Lazy_Eppstein(GraphType const &g, std::size_t root, std::size_t sink)
+    /// Constructor for the KFinder associated to the Lazy Eppstein algorithm
+    /// \param g The graph
+    /// \param root The root node id
+    /// \param sink The sink node id
+    explicit KFinder_Lazy_Eppstein(GraphType const &g, Node_Id_Type root, Node_Id_Type sink)
       : Parent_Type(g, root, sink){};
 
-    explicit KFinder_Lazy_Eppstein(Weighted_Graph<GraphType> const &g, std::size_t root, std::size_t sink)
+    /// Constructor for the KFinder associated to the Lazy Eppstein algorithm
+    /// \param g The graph
+    /// \param root The root node id
+    /// \param sink The sink node id
+    explicit KFinder_Lazy_Eppstein(t_Weighted_Graph_Complete_Type const &g, Node_Id_Type root, Node_Id_Type sink)
       : Parent_Type(g, root, sink){};
 
     ~KFinder_Lazy_Eppstein() override = default;

@@ -144,10 +144,13 @@ namespace network_butcher::io::Onnx_importer_helpers
 
   /// It will produce a map that associates to the tensor name of either an input, an output or a value_info (a
   /// non-input and non-output tensor) to a shared_ptr to Dense_tensor. Moreover, it will produce the value infos and
-  /// two set<string> with the names of the input and output tensors respectively \param onnx_input The inputs of a
-  /// onnx::GraphProto \param onnx_output The outputs of a onnx::GraphProto \param onnx_value_info The value_infos of a
-  /// onnx::GraphProto \param onnx_initializer The collection of already "known" parameters \return The map of value
-  /// infos (containing inputs, outputs and value_infos), the set of input names and the set of output names
+  /// two set<string> with the names of the input and output tensors respectively
+  /// \param onnx_input The inputs of a onnx::GraphProto
+  /// \param onnx_output The outputs of a onnx::GraphProto
+  /// \param onnx_value_info The value_infos of a onnx::GraphProto
+  /// \param onnx_initializer The collection of already "known" parameters
+  /// \return The map of value infos (containing inputs, outputs and value_infos), the set of input names and the set of
+  /// output names
   auto
   compute_value_infos(RepeatablePtr_field<::onnx::ValueInfoProto> const &onnx_input,
                       RepeatablePtr_field<::onnx::ValueInfoProto> const &onnx_output,

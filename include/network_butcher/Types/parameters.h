@@ -149,7 +149,7 @@ namespace network_butcher::parameters
       /// Do we have to use the bandwidth to manage connections, i.e. determine if two devices can communicate?
       bool use_bandwidth_to_manage_connections;
 
-      /// Do we have to check for memory constraints?
+      /// Do we have to check for memory constraints? For more details on its usage, refer to the Memory_Constraint class
       bool memory_constraint;
     };
 

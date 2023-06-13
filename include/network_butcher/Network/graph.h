@@ -115,7 +115,7 @@ namespace network_butcher::types
     /// \param id The id of the node
     /// \return The node
     auto
-    operator[](std::size_t const &id) const -> Node_Type const &
+    operator[](Node_Id_Type const &id) const -> Node_Type const &
     {
       return nodes[id];
     }
@@ -321,7 +321,7 @@ namespace network_butcher::types
     /// \param id The id of the node
     /// \return The node
     auto
-    operator[](std::size_t const &id) const -> Node_Type const &
+    operator[](Node_Id_Type const &id) const -> Node_Type const &
     {
       return nodes[id];
     }

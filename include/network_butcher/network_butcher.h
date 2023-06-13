@@ -31,7 +31,7 @@ namespace network_butcher
 namespace network_butcher::kfinder
 {}
 
-/// \namespace types is the namespace that contains ALL the methods and classes that interact with the IO. In
+/// \namespace io is the namespace that contains ALL the methods and classes that interact with the IO. In
 /// particular, IO_Manager contains all the function that an user should use, while the remaining namespace contains
 /// all helper functions available.
 namespace network_butcher::io
@@ -41,14 +41,22 @@ namespace network_butcher::io
 namespace network_butcher::computer
 {}
 
+/// \namespace types is the namespace that contains the main data structures of the library
+namespace network_butcher::types {}
+
 /// \namespace Computer_memory is the namespace containing the functions required to compute the memory usage of
 /// various types
 namespace network_butcher::computer::Computer_memory {}
 
-/// \namespace Utilities contains some utility functions called thought all the code.
+/// \namespace Utilities contains some utility functions called throughout all the library.
 namespace network_butcher::Utilities {}
 
+/// \namespace parameters is the namespace that will contain all the parameter related types
+namespace network_butcher::parameters {}
 
+/// \namespace constraints is the namespace containing all the constraints that can be applied during the block graph
+/// construction. It also contains Graph_Constraint, the base (pure virtual) class used to represent a constraint.
+namespace network_butcher::constraints {}
 
 
 #endif // NETWORK_BUTCHER_NETWORK_BUTCHER_H

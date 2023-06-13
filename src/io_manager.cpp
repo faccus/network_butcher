@@ -20,11 +20,14 @@ namespace network_butcher::io::IO_Manager
     auto const preprocessed_node_ios = Onnx_model_reconstructor_helpers::process_node_ios_nodes(model.graph());
     auto const process_partitioning =
       [&params, &paths, &model, &link_id_nodeproto, &preprocessed_node_ios](auto const &j) {
+        // Prepare export path
         auto const dir_path =
           Utilities::combine_path(params.model_params.export_directory, Utilities::custom_to_string(j));
         network_butcher::Utilities::create_directory(dir_path);
 
         auto const output_path = Utilities::combine_path(dir_path, params.model_params.model_name);
+
+        // Construct the onnx::ModelProto of the partitioning and export it
         utilities::reconstruct_model_and_export(paths[j], model, link_id_nodeproto, preprocessed_node_ios, output_path);
       };
 
@@ -161,6 +164,7 @@ namespace network_butcher::io::IO_Manager
 
     for (auto const &onnx_node : onnx_nodes)
       {
+        // Node and the two collections containing the input and output tensors in common with the graph input and output
         auto [node, ins, outs] = Onnx_importer_helpers::process_node(onnx_node, basic_data);
 
         if (add_input_padding)
@@ -178,6 +182,7 @@ namespace network_butcher::io::IO_Manager
       {
         Io_Collection_Type<Type_Info_Pointer> tt;
 
+        // Link with the graph input. It will be the output of the padding node
         for (auto const &in : graph_inputs)
           tt.emplace(in->get_name(), in);
 
@@ -197,6 +202,7 @@ namespace network_butcher::io::IO_Manager
       {
         Io_Collection_Type<Type_Info_Pointer> tt;
 
+        // Link with the graph output. It will be the input of the padding node
         for (auto const &out : graph_outputs)
           tt.emplace(out->get_name(), out);
 

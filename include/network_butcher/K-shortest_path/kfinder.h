@@ -35,12 +35,20 @@ namespace network_butcher::kfinder
     compute(std::size_t K) const -> Output_Type = 0;
 
 
+    /// Constructor for a K shortest path class
+    /// \param g The graph
+    /// \param root The root node id
+    /// \param sink The sink node id
     explicit KFinder(GraphType const &g, Node_Id_Type root, Node_Id_Type sink)
       : graph(g)
       , root(root)
       , sink(sink){};
 
 
+    /// Constructor for a K shortest path class
+    /// \param g The graph
+    /// \param root The root node id
+    /// \param sink The sink node id
     explicit KFinder(Weighted_Graph_Complete_Type const &g, Node_Id_Type root, Node_Id_Type sink)
       : graph(g)
       , root(root)

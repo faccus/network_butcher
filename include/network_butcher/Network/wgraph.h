@@ -23,9 +23,7 @@ namespace network_butcher::types
     /// (under the hood, it will just call this method with the num_device=0)
     using Parent_Type::check_weight;
 
-    /// In theory, the method could be used, but we would be asked the num_device, that is not available in this case.
-    /// Thus, the method is made private and a new method with the same name (but the proper signature) is created
-    /// (under the hood, it will just call this method with the num_device=0)
+    /// Hidden because it is not applicable
     using Parent_Type::get_num_devices;
 
     /// In theory, the method could be used, but we would be asked the num_device, that is not available in this case.
@@ -33,9 +31,7 @@ namespace network_butcher::types
     /// (under the hood, it will just call this method with the num_device=0)
     using Parent_Type::get_weight;
 
-    /// In theory, the method could be used, but we would be asked the num_device, that is not available in this case.
-    /// Thus, the method is made private and a new method with the same name (but the proper signature) is created
-    /// (under the hood, it will just call this method with the num_device=0)
+    /// Hidden because it is not applicable
     using Parent_Type::print_graph;
 
     /// In theory, the method could be used, but we would be asked the num_device, that is not available in this case.
@@ -167,9 +163,7 @@ namespace network_butcher::types
     /// (under the hood, it will just call this method with the num_device=0)
     using Parent_Type::check_weight;
 
-    /// In theory, the method could be used, but we would be asked the num_device, that is not available in this case.
-    /// Thus, the method is made private and a new method with the same name (but the proper signature) is created
-    /// (under the hood, it will just call this method with the num_device=0)
+    /// Hidden because it is not applicable
     using Parent_Type::get_num_devices;
 
     /// In theory, the method could be used, but we would be asked the num_device, that is not available in this case.
@@ -177,9 +171,7 @@ namespace network_butcher::types
     /// (under the hood, it will just call this method with the num_device=0)
     using Parent_Type::get_weight;
 
-    /// In theory, the method could be used, but we would be asked the num_device, that is not available in this case.
-    /// Thus, the method is made private and a new method with the same name (but the proper signature) is created
-    /// (under the hood, it will just call this method with the num_device=0)
+    /// Hidden because it is not applicable
     using Parent_Type::print_graph;
 
     /// In theory, the method could be used, but we would be asked the num_device, that is not available in this case.

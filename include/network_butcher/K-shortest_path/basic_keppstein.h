@@ -270,10 +270,19 @@ namespace network_butcher::kfinder
     [[nodiscard]] auto
     compute(std::size_t K) const -> Output_Type override;
 
-    explicit Basic_KEppstein(Weighted_Graph<GraphType> const &g, std::size_t root, std::size_t sink)
+    /// Base class for Eppstein and Lazy Eppstein
+    /// \param g The graph
+    /// \param root The root node id
+    /// \param sink The sink node id
+    explicit Basic_KEppstein(t_Weighted_Graph_Complete_Type const &g, Node_Id_Type root, Node_Id_Type sink)
       : Parent_Type(g, root, sink){};
 
-    explicit Basic_KEppstein(GraphType const &g, std::size_t root, std::size_t sink)
+
+    /// Base class for Eppstein and Lazy Eppstein
+    /// \param g The graph
+    /// \param root The root node id
+    /// \param sink The sink node id
+    explicit Basic_KEppstein(GraphType const &g, Node_Id_Type root, Node_Id_Type sink)
       : Parent_Type(g, root, sink){};
 
     virtual ~Basic_KEppstein() = default;

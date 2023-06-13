@@ -173,13 +173,17 @@ namespace network_butcher::types
     /// Default constructor
     Content_Builder() = default;
 
-    /// Copy constructor and copy assignment are deleted
+    /// Copy constructor is deleted
     Content_Builder(const Content_Builder &) = delete;
+
+    /// Copy assignment is deleted
     Content_Builder &
     operator=(const Content_Builder &) = delete;
 
-    /// Move constructor and move assignment are deleted
+    /// Move constructor is deleted
     Content_Builder(Content_Builder &&) = delete;
+
+    /// Move assignment is deleted
     Content_Builder &
     operator=(Content_Builder &&) = delete;
 
@@ -187,6 +191,7 @@ namespace network_butcher::types
     ~Content_Builder() = default;
 
   private:
+    /// The internal content that is being built
     Content_Type res;
   };
 } // namespace network_butcher::types

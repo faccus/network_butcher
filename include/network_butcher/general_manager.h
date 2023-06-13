@@ -6,9 +6,11 @@
 
 namespace network_butcher::io
 {
-  /// General_Manager is the main namespace of the program. Indeed, here the starting methods of the program are
-  /// contained. The boot method reads the parameter file and performs the butchering (import of the network,
-  /// butchering and model reconstruction)
+  /// \namespace General_Manager is the 'main' namespace of the program. Indeed, here are stored the functions that
+  /// execute the 'butchering' workflow as well as the function that can interact with the inputs of a program (if it
+  /// is built). The boot method reads the parameter file and performs the butchering (import of the network,
+  /// butchering and model reconstruction) while read_command_line, using GetPot, will read the arguments from the
+  /// command line
   namespace General_Manager
   {
     namespace Helper_Functions
