@@ -1,6 +1,6 @@
 # Project exclude paths
 /cmake-build-*/
-/build/
+*/build/*
 /ML_inputs/
 /.idea/
 /in
