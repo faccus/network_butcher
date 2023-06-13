@@ -1,5 +1,5 @@
 # Network Butcher
-The objective of this project is to develop a C++ library (currently, only static) that can find, given a Deep Neural 
+The objective of this project is to develop a C++20 library (currently, only static) that can find, given a Deep Neural 
 Network in Onnx format, the K optimal ways of partitioning it in order to minimize the overall execution time of the 
 model itself on multiple devices.
 
@@ -18,7 +18,8 @@ The project is structured into four main directories:
   A [README](src/README.md) file describing its contents is also available.
 - google_tests: It contains all the source files of the tests
 - mains: It contains both a collection of main files to test the performances of the program and the basic main file
-  that allows to perform the partitioning directly from command-line
+  that allows to perform the partitioning directly from command-line.
+  A [README](mains/README.md) file describing its contents is also available.
 
 The other directories are:
 

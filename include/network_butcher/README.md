@@ -1,10 +1,10 @@
-## include Directory Contents
+## include/network_butcher Directory Contents
 
 This directory contains the source files of the program. The main directories are:
 
 - APSC: This directory contains the header files of libraries taken from the APSC repository.
   For more details of its contents, referer to its [README](APSC/README.md) file
-- Butcher: It contains the classes related to the butchering of a given NN (Butcher and block graph building).
+- Butcher: It contains the classes related to the butchering of a given DNN (Butcher and block graph building).
   For more details of its contents, referer to its [README](Butcher/README.md) file
 - Computer: It contains the header file required to compute the memory usage (input and output tensors, as well as 
   parameters) of the layers of a given DNN. 
@@ -26,4 +26,6 @@ The directory also contains:
 the import, butchering and export of an .onnx model
 - io_manager.h: The header file for IO_Manager, the namespace containing all the functions required by the program 
 to interact with the IO
+- network_butcher.h: By including this header file, a user can include ALL the required header files to perform any 
+  operation with the library
 - utilities.h: The header file for Utilities, the namespace containing all the extra helper functions

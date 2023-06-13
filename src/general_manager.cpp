@@ -69,10 +69,7 @@ namespace network_butcher::io
   General_Manager::Helper_Functions::print_help()
   {
     std::cout << std::endl << "Command usage: " << std::endl;
-    std::cout << "#1: ./network_butcher config_file=config.conf" << std::endl;
-    std::cout << "#2: ./network_butcher annotations=annotations.yaml "
-                 "candidate_deployments=candidate_deployments.yaml candidate_resources=candidate_resources.yaml"
-              << std::endl;
+    std::cout << "./main config_file=config.conf" << std::endl;
   }
 
 

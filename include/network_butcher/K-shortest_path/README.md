@@ -8,11 +8,11 @@ We will divide this file in three sections:
 The files that provide data structures used in the other parts of this directory are:
 - weighted_graph.h . It contains the template proxy/interface class Weighted_Graph, that MUST be specialized by all
   graph types that will apply the algorithms presented later on
-- path_info.h contains Templated_Path_Info, a structure that should store a path (explicitly) and its length
+- path_info.h contains Templated_Path_Info, a structure that stores an (explicit) path of the graph and its length
 - crtp_greater.h contains Crtp_Greater, a simple structure that, using the CRTP pattern, will implement the greater 
   operator using the < operator.
-- heap_eppstein.h contains.
-    - Heap_Node represents a min heap with up to Max_Children children per node.
+- heap_eppstein.h contains:
+    - Heap_Node represents a node in a min heap with up to Max_Children children per node.
     - H_out_Type represents an H_out, a 2-heap with the extra restriction that its root node has a single child
     - H_g_Type represents an H_g. Due to the specifics of the Eppstein and Lazy Eppstein algorithm, it will manually
       construct the underlying heap and will implement the "persistent" merge with other H_g_Type
