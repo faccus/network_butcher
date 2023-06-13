@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['kfinder_609',['kfinder',['../namespacekfinder.html',1,'']]]
+  ['kfinder_612',['kfinder',['../namespacekfinder.html',1,'']]]
 ];
