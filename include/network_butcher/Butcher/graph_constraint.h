@@ -130,7 +130,7 @@ namespace network_butcher::constraints
   {
     if (auto const [applicable, reason] = check_if_applicable(); !applicable)
       {
-        std::cout << reason << ". I will ignore the constraint." << std::endl;
+        std::cout << reason << " I will ignore the constraint." << std::endl;
         return;
       }
 

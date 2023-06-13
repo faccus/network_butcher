@@ -68,7 +68,7 @@ namespace network_butcher::kfinder::Shortest_path_finder
   [[nodiscard]] auto
   dijkstra(v_Weighted_Graph const &graph,
            Node_Id_Type            root)
-    -> Templated_Dijkstra_Result_Type<typename v_Weighted_Graph::Weight_Type> // time: ((N+E)log(N))
+    -> Templated_Dijkstra_Result_Type<typename v_Weighted_Graph::Weight_Type> // time: ((N+M)log(N))
   {
     using Weight_Type            = typename v_Weighted_Graph::Weight_Type;
     using dijkstra_result_type   = Templated_Dijkstra_Result_Type<Weight_Type>;
