@@ -73,10 +73,10 @@ $(function() {
 Basic Data structures</h2>
 <p>The files that provide data structures used in the other parts of this directory are:</p><ul>
 <li><a class="el" href="weighted__graph_8h.html">weighted_graph.h</a> . It contains the template proxy/interface class Weighted_Graph, that MUST be specialized by all graph types that will apply the algorithms presented later on</li>
-<li><a class="el" href="path__info_8h.html">path_info.h</a> contains Templated_Path_Info, a structure that should store a path (explicitly) and its length</li>
+<li><a class="el" href="path__info_8h.html">path_info.h</a> contains Templated_Path_Info, a structure that stores an (explicit) path of the graph and its length</li>
 <li><a class="el" href="crtp__greater_8h.html">crtp_greater.h</a> contains Crtp_Greater, a simple structure that, using the CRTP pattern, will implement the greater operator using the &lt; operator.</li>
-<li><a class="el" href="heap__eppstein_8h.html">heap_eppstein.h</a> contains.<ul>
-<li>Heap_Node represents a min heap with up to Max_Children children per node.</li>
+<li><a class="el" href="heap__eppstein_8h.html">heap_eppstein.h</a> contains:<ul>
+<li>Heap_Node represents a node in a min heap with up to Max_Children children per node.</li>
 <li>H_out_Type represents an H_out, a 2-heap with the extra restriction that its root node has a single child</li>
 <li>H_g_Type represents an H_g. Due to the specifics of the Eppstein and Lazy Eppstein algorithm, it will manually construct the underlying heap and will implement the "persistent" merge with other H_g_Type</li>
 <li>Templated_Edge_Info represents a sidetrack edge, a structure containing an edge and its sidetrack weight</li>
