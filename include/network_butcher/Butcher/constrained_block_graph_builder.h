@@ -3,9 +3,9 @@
 
 #include <list>
 
-#include <network_butcher/Network/graph_traits.h>
-#include <network_butcher/IO_Interaction/weight_importers.h>
 #include <network_butcher/Butcher/graph_constraint.h>
+#include <network_butcher/IO_Interaction/weight_importers.h>
+#include <network_butcher/Network/graph_traits.h>
 
 namespace network_butcher
 {
@@ -147,7 +147,8 @@ namespace network_butcher
 
 
     /// Call this function if the builder should apply the transmission weights and the weights from the original graph
-    /// during the block graph construction \param in_transmission_weights The transmission weights
+    /// during the block graph construction
+    /// \param in_transmission_weights The transmission weights
     void
     construct_weights(transmission_func_type const &in_transmission_weights);
 
@@ -274,6 +275,32 @@ namespace network_butcher
   auto
   Constrained_Block_Graph_Builder<GraphType>::build_block_graph() const -> Block_Graph_Type
   {
+    if (original_graph.size() == 1)
+      {
+        std::vector<Block_Graph_Type::Node_Type> res;
+        res.emplace_back(Block_Graph_Type::Node_Type::Content_Type{0, nullptr});
+        res.back().content.second = std::make_shared<Node_Id_Collection_Type>(Node_Id_Collection_Type{0});
+
+        return Block_Graph_Type(std::move(res), Block_Graph_Type::Neighbours_Type(1));
+      }
+    else if (original_graph.size() == 2)
+      {
+        std::vector<Block_Graph_Type::Node_Type> res;
+
+        res.emplace_back(Block_Graph_Type::Node_Type::Content_Type{0, nullptr});
+        res.back().content.second = std::make_shared<Node_Id_Collection_Type>(Node_Id_Collection_Type{0});
+
+        res.emplace_back(Block_Graph_Type::Node_Type::Content_Type{0, nullptr});
+        res.back().content.second = std::make_shared<Node_Id_Collection_Type>(Node_Id_Collection_Type{1});
+
+        Block_Graph_Type::Neighbours_Type deps(2);
+        deps.front().second.insert(1);
+        deps.back().first.insert(0);
+
+        return Block_Graph_Type(std::move(res), std::move(deps));
+      }
+
+
     // It will construct the linearized version of the original graph
     auto const linearize_graph = [](GraphType const                                                &old_graph,
                                     network_butcher::parameters::Block_Graph_Generation_Mode const &mode) {
@@ -285,12 +312,14 @@ namespace network_butcher
 
       std::list<Block_Graph_Type::Node_Type> starting_nodes;
 
-
-      starting_nodes.emplace_back(Block_Graph_Type::Node_Type::Content_Type{0, nullptr});
-      starting_nodes.back().content.second = std::make_shared<Node_Id_Collection_Type>(Node_Id_Collection_Type{0});
+      if (counter > 0)
+        {
+          starting_nodes.emplace_back(Block_Graph_Type::Node_Type::Content_Type{0, nullptr});
+          starting_nodes.back().content.second = std::make_shared<Node_Id_Collection_Type>(Node_Id_Collection_Type{});
+        }
 
       // Cycle through all the nodes of the graph
-      for (auto it = ++old_nodes.begin(); it != old_nodes.end(); ++it)
+      for (auto it = ++old_nodes.cbegin(); it != (++old_nodes.crbegin()).base(); ++it)
         {
           // Node of the old graph
           auto const &node        = *it;
@@ -359,13 +388,23 @@ namespace network_butcher
             }
         }
 
+      // Add front node
+      starting_nodes.emplace_front(Block_Graph_Type::Node_Type::Content_Type{0, nullptr});
+      starting_nodes.front().content.second = std::make_shared<Node_Id_Collection_Type>(Node_Id_Collection_Type{0});
+
+      // Add back node
+      starting_nodes.emplace_back(Block_Graph_Type::Node_Type::Content_Type{0, nullptr});
+      starting_nodes.back().content.second =
+        std::make_shared<Node_Id_Collection_Type>(Node_Id_Collection_Type{old_nodes.crbegin()->get_id()});
+
+
       // If the block graph mode is not set to classic, then we need to merge either the input or the output nodes of
       // the block nodes
-      if (starting_nodes.size() > 1 && mode != network_butcher::parameters::Block_Graph_Generation_Mode::classic)
+      if (starting_nodes.size() > 2 && mode != network_butcher::parameters::Block_Graph_Generation_Mode::classic)
         {
           // Simple lambda to be used to merge the nodes contained in the two specified collections. It will also change
-          // the two original iterators. Returns false if the new iterator is the end
-          auto const merge_nodes = [&starting_nodes](auto &it_succ, auto &it_prec) {
+          // the two original iterators. Returns false if the new iterator is the container_end
+          auto const merge_nodes = [&starting_nodes](auto &it_succ, auto &it_prec, auto container_end) {
             auto &it_nodes_edit = it_succ->content.second;
 
             it_prec->content.second->insert(std::make_move_iterator(it_nodes_edit->begin()),
@@ -375,7 +414,7 @@ namespace network_butcher
             it_succ = it_prec;
             ++it_succ;
 
-            if (it_succ == starting_nodes.cend())
+            if (it_succ == container_end)
               return true;
 
             return false;
@@ -384,7 +423,7 @@ namespace network_butcher
           if (mode == network_butcher::parameters::Block_Graph_Generation_Mode::input)
             {
               // Loops through the starting nodes looking for a block node
-              for (auto it_succ = ++starting_nodes.begin(), it_prec = starting_nodes.begin();
+              for (auto it_succ = ++(++starting_nodes.begin()), it_prec = ++starting_nodes.begin();
                    it_succ != starting_nodes.end();
                    ++it_succ, ++it_prec)
                 {
@@ -395,7 +434,7 @@ namespace network_butcher
                       old_graph.get_output_nodes(*it_prec_nodes_const->cbegin()).size() > 1)
                     {
                       // It will merge them
-                      if (merge_nodes(it_succ, it_prec))
+                      if (merge_nodes(it_succ, it_prec, starting_nodes.end()))
                         break;
                     }
                 }
@@ -404,7 +443,7 @@ namespace network_butcher
             {
               // Loops through the starting nodes looking for a block node
               for (auto it_succ = ++starting_nodes.begin(), it_prec = starting_nodes.begin();
-                   it_succ != starting_nodes.end();
+                   it_succ != (++starting_nodes.crbegin()).base();
                    ++it_succ, ++it_prec)
                 {
                   auto const &it_nodes_const = it_succ->content.second;
@@ -413,7 +452,7 @@ namespace network_butcher
                   if (it_nodes_const->size() == 1 && old_graph.get_input_nodes(*it_nodes_const->cbegin()).size() > 1)
                     {
                       // It will merge them
-                      if (merge_nodes(it_succ, it_prec))
+                      if (merge_nodes(it_succ, it_prec, (++starting_nodes.crbegin()).base()))
                         break;
                     }
                 }
@@ -468,12 +507,12 @@ namespace network_butcher
       }
 
       // Inputs: previous layer nodes, Outputs: following layer nodes
-      if (supp_size > 2)
+      if (supp_size > 1)
         {
-          new_dependencies.resize(new_dependencies.size() + (supp_size - 2) * num_devices);
+          new_dependencies.resize(new_dependencies.size() + (supp_size - 1) * num_devices);
 
           auto const func = [&new_dependencies, &num_devices](auto const &i) {
-            auto const id = num_devices * (i - 1) + 1;
+            auto const id = num_devices * i + 1;
 
             auto &[in, out] = new_dependencies[id];
 
@@ -500,15 +539,15 @@ namespace network_butcher
 
           // In C++26, in theory, we will be able to use std::views and std::ranges::for_each with parallel policies
           // to speed up the process
-          std::vector<std::size_t> v(supp_size - 2);
-          std::generate(v.begin(), v.end(), [n = 2]() mutable { return n++; });
+          std::vector<std::size_t> v(supp_size - 1);
+          std::generate(v.begin(), v.end(), [n = 1]() mutable { return n++; });
 
           std::for_each(std::execution::par, v.cbegin(), v.cend(), func);
 #else
 #  pragma omp parallel default(none) shared(supp_size, func)
           {
 #  pragma omp for
-            for (std::size_t i = 2; i < supp_size; ++i)
+            for (std::size_t i = 1; i < supp_size; ++i)
               {
                 func(i);
               }
@@ -516,22 +555,14 @@ namespace network_butcher
 #endif
         }
 
-      // Inputs: previous layer nodes, Outputs: last node
       {
-        auto const id = new_dependencies.size();
+        // Inputs: previous layer nodes, Outputs: last node
+        auto const id = new_dependencies.size() - num_devices;
 
-        new_dependencies.emplace_back(
-          std::make_pair<Node_Id_Collection_Type, Node_Id_Collection_Type>({}, {id + num_devices}));
-
-        auto &in = new_dependencies.back().first;
         for (std::size_t k = 0; k < num_devices; ++k)
           {
-            in.insert(in.end(), id - num_devices + k);
-          }
-
-        for (std::size_t k = 1; k < num_devices; ++k)
-          {
-            new_dependencies.emplace_back(new_dependencies.back());
+            new_dependencies[id + k].second.clear();
+            new_dependencies[id + k].second.insert(id + num_devices);
           }
       }
 
@@ -602,17 +633,15 @@ namespace network_butcher
         }
 
         // Nodes up to final_size - 1 - num_devices, Inputs: previous layer nodes, Outputs: following layer nodes
-        if (supp_size > 2)
+        if (supp_size > 1)
           {
-            new_dependencies.resize(new_dependencies.size() + (supp_size - 2) * num_devices);
+            new_dependencies.resize(new_dependencies.size() + (supp_size - 1) * num_devices);
 
             auto const func = [&num_devices, &bandwidth, &new_dependencies](auto const &i) {
-              auto const base_id = num_devices * (i - 1) + 1;
+              auto const base_id = num_devices * i + 1;
               for (Device_Id_Type k = 0; k < num_devices; ++k)
                 {
-                  auto const id = base_id + k;
-
-                  auto &[in, out] = new_dependencies[id];
+                  auto &[in, out] = new_dependencies[base_id + k];
 
                   for (auto const &neighbour : bandwidth->get_input_nodes(k))
                     {
@@ -627,15 +656,15 @@ namespace network_butcher
             };
 
 #if NETWORK_BUTCHER_PARALLEL_TBB
-            std::vector<Node_Id_Type> v(supp_size - 2);
-            std::generate(v.begin(), v.end(), [n = 2]() mutable { return n++; });
+            std::vector<Node_Id_Type> v(supp_size - 1);
+            std::generate(v.begin(), v.end(), [n = 1]() mutable { return n++; });
 
             std::for_each(std::execution::par, v.cbegin(), v.cend(), func);
 #else
-            #pragma omp parallel default(none) shared(supp_size, func)
+#  pragma omp parallel default(none) shared(supp_size, func)
             {
-              #pragma omp for
-              for (Node_Id_Type i = 2; i < supp_size; ++i)
+#  pragma omp for
+              for (Node_Id_Type i = 1; i < supp_size; ++i)
                 {
                   func(i);
                 }
@@ -645,20 +674,13 @@ namespace network_butcher
 
         // Nodes final_size - 1 - num_devices, ..., final_size - 1 - 1, Inputs: previous layer nodes, Outputs: last node
         {
-          auto const  base_id            = new_dependencies.size();
+          auto const  base_id            = new_dependencies.size() - num_devices;
           auto const &device_inputs_sink = bandwidth->get_input_nodes(block_graph_generation_params.ending_device_id);
 
           for (Device_Id_Type k = 0; k < num_devices; ++k)
             {
-              new_dependencies.emplace_back();
-
-              auto &in  = new_dependencies.back().first;
-              auto &out = new_dependencies.back().second;
-
-              for (auto const &neighbour : bandwidth->get_input_nodes(k))
-                {
-                  in.insert(in.end(), base_id - num_devices + neighbour);
-                }
+              auto &out = new_dependencies[base_id + k].second;
+              out.clear();
 
               if (device_inputs_sink.contains(k) ||
                   weights_params.out_bandwidth.find(std::pair(k, block_graph_generation_params.ending_device_id)) !=
@@ -691,34 +713,44 @@ namespace network_butcher
         return new_dependencies;
       };
 
-    // Get the linearized graph
-    auto starting_nodes = linearize_graph(this->original_graph, block_graph_generation_params.block_graph_mode);
-
-    auto const supp_size = starting_nodes.size() - 2;
-    // Add the required nodes to the collection of nodes
-    add_extra_nodes_per_device(starting_nodes, this->original_graph.get_num_devices());
-
     // Prepare the collection of nodes
     Block_Graph_Type::Node_Collection_Type new_nodes;
-    new_nodes.reserve(starting_nodes.size());
+    std::size_t supp_size = 0;
 
-    new_nodes.insert(new_nodes.end(),
-                     std::make_move_iterator(starting_nodes.begin()),
-                     std::make_move_iterator(starting_nodes.end()));
+    {
+      // Get the linearized graph
+      auto starting_nodes = linearize_graph(this->original_graph, block_graph_generation_params.block_graph_mode);
+      supp_size = starting_nodes.size() - 2;
+
+      // Add the required nodes to the collection of nodes
+      add_extra_nodes_per_device(starting_nodes, this->original_graph.get_num_devices());
+
+      new_nodes.reserve(starting_nodes.size());
+
+      new_nodes.insert(new_nodes.end(),
+                       std::make_move_iterator(starting_nodes.begin()),
+                       std::make_move_iterator(starting_nodes.end()));
+    }
 
     // Fix the input/output device ids
     new_nodes.front().content.first = block_graph_generation_params.starting_device_id;
     new_nodes.back().content.first  = block_graph_generation_params.ending_device_id;
 
+    auto const node_size = new_nodes.size();
+
     if (block_graph_generation_params.use_bandwidth_to_manage_connections)
       {
-        return Block_Graph_Type(
-          new_nodes, process_partial_dependencies(new_nodes.size(), supp_size, this->original_graph.get_num_devices()));
+        return Block_Graph_Type(std::move(new_nodes),
+                                process_partial_dependencies(node_size,
+                                                             supp_size,
+                                                             this->original_graph.get_num_devices()));
       }
     else
       {
-        return Block_Graph_Type(
-          new_nodes, process_full_dependencies(new_nodes.size(), supp_size, this->original_graph.get_num_devices()));
+        return Block_Graph_Type(std::move(new_nodes),
+                                process_full_dependencies(node_size,
+                                                          supp_size,
+                                                          this->original_graph.get_num_devices()));
       }
   }
 

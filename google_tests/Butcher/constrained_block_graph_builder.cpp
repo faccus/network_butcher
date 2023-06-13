@@ -29,6 +29,9 @@ namespace
   auto
   basic_graph2(std::size_t num_devices = 2) -> GraphType;
 
+  auto
+  trivial_graph(std::size_t num_devices = 2) -> GraphType;
+
 
   auto
   full_connection_parameters() -> parameters::Parameters;
@@ -54,6 +57,104 @@ namespace
         ASSERT_EQ(node.content.first, (i + 1) % 2);
       }
   }
+
+
+  /// Check if the block node excludes both the first and the last node
+  TEST(BlockGraphBuilderTest, CheckBlockNodesClassic)
+  {
+    auto graph  = trivial_graph();
+    auto params = full_connection_parameters();
+
+    Constrained_Block_Graph_Builder builder(graph, params);
+    auto const                      block_graph = builder.construct_block_graph();
+
+    auto const &nodes = block_graph.get_nodes();
+
+    ASSERT_EQ(*nodes.front().content.second, std::set<Node_Id_Type>{0});
+    ASSERT_EQ(*nodes.back().content.second, std::set<Node_Id_Type>{3});
+  }
+
+  /// Check if the block node excludes both the first and the last node
+  TEST(BlockGraphBuilderTest, CheckBlockNodesClassic2)
+  {
+    auto graph  = trivial_graph();
+    auto params = partial_connection_parameters();
+
+    Constrained_Block_Graph_Builder builder(graph, params);
+    auto const                      block_graph = builder.construct_block_graph();
+
+    auto const &nodes = block_graph.get_nodes();
+
+    ASSERT_EQ(*nodes.front().content.second, std::set<Node_Id_Type>{0});
+    ASSERT_EQ(*nodes.back().content.second, std::set<Node_Id_Type>{3});
+  }
+
+
+  /// Check if the block node excludes both the first and the last node
+  TEST(BlockGraphBuilderTest, CheckBlockNodesInput)
+  {
+    auto graph                                            = trivial_graph();
+    auto params                                           = full_connection_parameters();
+    params.block_graph_generation_params.block_graph_mode = parameters::Block_Graph_Generation_Mode::input;
+
+    Constrained_Block_Graph_Builder builder(graph, params);
+    auto const                      block_graph = builder.construct_block_graph();
+
+    auto const &nodes = block_graph.get_nodes();
+
+    ASSERT_EQ(*nodes.front().content.second, std::set<Node_Id_Type>{0});
+    ASSERT_EQ(*nodes.back().content.second, std::set<Node_Id_Type>{3});
+  }
+
+  /// Check if the block node excludes both the first and the last node
+  TEST(BlockGraphBuilderTest, CheckBlockNodesInput2)
+  {
+    auto graph                                            = trivial_graph();
+    auto params                                           = partial_connection_parameters();
+    params.block_graph_generation_params.block_graph_mode = parameters::Block_Graph_Generation_Mode::input;
+
+    Constrained_Block_Graph_Builder builder(graph, params);
+    auto const                      block_graph = builder.construct_block_graph();
+
+    auto const &nodes = block_graph.get_nodes();
+
+    ASSERT_EQ(*nodes.front().content.second, std::set<Node_Id_Type>{0});
+    ASSERT_EQ(*nodes.back().content.second, std::set<Node_Id_Type>{3});
+  }
+
+
+  /// Check if the block node excludes both the first and the last node
+  TEST(BlockGraphBuilderTest, CheckBlockNodesOutput)
+  {
+    auto graph                                            = trivial_graph();
+    auto params                                           = full_connection_parameters();
+    params.block_graph_generation_params.block_graph_mode = parameters::Block_Graph_Generation_Mode::output;
+
+    Constrained_Block_Graph_Builder builder(graph, params);
+    auto const                      block_graph = builder.construct_block_graph();
+
+    auto const &nodes = block_graph.get_nodes();
+
+    ASSERT_EQ(*nodes.front().content.second, std::set<Node_Id_Type>{0});
+    ASSERT_EQ(*nodes.back().content.second, std::set<Node_Id_Type>{3});
+  }
+
+  /// Check if the block node excludes both the first and the last node
+  TEST(BlockGraphBuilderTest, CheckBlockNodesOutput2)
+  {
+    auto graph                                            = trivial_graph();
+    auto params                                           = partial_connection_parameters();
+    params.block_graph_generation_params.block_graph_mode = parameters::Block_Graph_Generation_Mode::output;
+
+    Constrained_Block_Graph_Builder builder(graph, params);
+    auto const                      block_graph = builder.construct_block_graph();
+
+    auto const &nodes = block_graph.get_nodes();
+
+    ASSERT_EQ(*nodes.front().content.second, std::set<Node_Id_Type>{0});
+    ASSERT_EQ(*nodes.back().content.second, std::set<Node_Id_Type>{3});
+  }
+
 
   /// Check if the block graph is properly constructed (classic mode)
   TEST(BlockGraphBuilderTest, ConstructionModeClassic)
@@ -97,6 +198,7 @@ namespace
         ASSERT_EQ(*block_graph[2 + 2 * i].content.second, std::set<std::size_t>{i + 1});
       }
   }
+
 
   /// Check if the block graph is properly constructed (input mode)
   TEST(BlockGraphBuilderTest, ConstructionModeInput)
@@ -147,6 +249,7 @@ namespace
     ASSERT_EQ(*block_graph[5].content.second, std::set<std::size_t>{4});
   }
 
+
   /// Check if the block graph is properly constructed (output mode)
   TEST(BlockGraphBuilderTest, ConstructionModeOutput)
   {
@@ -196,6 +299,7 @@ namespace
     ASSERT_EQ(*block_graph[3].content.second, cont);
     ASSERT_EQ(*block_graph[5].content.second, std::set<std::size_t>{4});
   }
+
 
   /// Check if the block graph has the correct edges
   TEST(BlockGraphBuilderTest, CheckNeighbours)
@@ -414,6 +518,7 @@ namespace
       }
   }
 
+
   /// Check if the transmission weights are correctly set
   TEST(BlockGraphBuilderTest, TransmissionWeights)
   {
@@ -546,6 +651,20 @@ namespace
     nodes.emplace_back(
       std::move(Content_Builder<Input>().set_input({{"X1", 1}, {"X2", 2}}).set_output({{"X3", 3}})).build());
     nodes.emplace_back(std::move(Content_Builder<Input>().set_input({{"X3", 3}}).set_output({{"X4", 4}})).build());
+
+    return GraphType(num_devices, std::move(nodes));
+  }
+
+  auto
+  trivial_graph(std::size_t num_devices) -> GraphType
+  {
+    std::vector<Node_type> nodes;
+
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_output({{"X0", 0}})).build());
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_input({{"X0", 0}}).set_output({{"X1", 1}})).build());
+    nodes.emplace_back(std::move(Content_Builder<Input>().set_input({{"X0", 1}}).set_output({{"X2", 2}})).build());
+    nodes.emplace_back(
+      std::move(Content_Builder<Input>().set_input({{"X1", 1}, {"X2", 2}}).set_output({{"X4", 4}})).build());
 
     return GraphType(num_devices, std::move(nodes));
   }

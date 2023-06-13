@@ -23,7 +23,10 @@ namespace network_butcher
   class Butcher
   {
   public:
+    /// Type alias for the input graph type
     using network     = GraphType;
+
+    /// Type alias for the block graph
     using new_network = Block_Graph_Type;
 
   private:
@@ -32,20 +35,28 @@ namespace network_butcher
   public:
     Butcher() = default;
 
+    /// Constructor
+    /// \param g The input graph. It will be moved (if possible)
     explicit Butcher(network &&g)
       : graph(std::move(g)){};
 
+    /// Constructor
+    /// \param g The input graph
     explicit Butcher(network const &g)
       : graph(g){};
 
-    // Delete copy constructors and assignment operators (graphs may be big!)
+    /// Deleted copy  assignment operators (graphs may be big!)
     Butcher
     operator=(Butcher const &) = delete;
+
+    /// Deleted copy constructor (graphs may be big!)
     Butcher(Butcher const &)   = delete;
 
-    // Default move constructors and assignment operators
+    /// Default move assignment operators
     Butcher &
     operator=(Butcher &&d) noexcept = default;
+
+    /// Default move constructors
     Butcher(Butcher &&d) noexcept   = default;
 
 
