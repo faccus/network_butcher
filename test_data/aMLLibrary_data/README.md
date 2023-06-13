@@ -1,23 +1,28 @@
 ## Quick Tutorial on aMLLibrary
 As we already stated, aMLLibrary can be used by network_butcher to generate and import the weights in the block graph.
-This package can be used to both perform the training for machine learning models (for regression) and to perform the
-inference.
+This package can be used to both perform the training of machine learning models and to perform inference.
 
-The general idea (that is detailed by [[1]](#1) in his thesis) is to estimate the execution time
-of each layer in a Deep Neural Network on two devices (an edge device and a cloud device) by:
-1) Constructing the linear graph of the network (the linearized graph produced by Contrained_Block_Graph_Builder with mode 
+## Why is aMLLibrary used?
+
+aMLLibrary is used by the weight importer class block_aMLLibrary_Weight_Importer to generate and import the weights
+produced by the models of [[1]](#1) in the block graph.
+
+In particular, the general idea of block_aMLLibrary_Weight_Importer (that is detailed by [[1]](#1) in his thesis) is to 
+estimate the execution time of each layer in a Deep Neural Network on two devices (an edge device and a cloud device) by 
+constructing a collection of regression models that should, a priori, estimate the layer execution time.
+The training data for these models is obtained by running a profiler application on several networks.
+The profiler will:
+1) Construct the linear graph of the network (the linearized graph produced by Contrained_Block_Graph_Builder with mode 
 'output')
-2) Profiling the average time required to execute each 'node' of the linearized graph in the edge and cloud devices. 
-General data about the executed layers is also saved (the output tensor length, the MACs of the layers, the number of 
-parameters and the number of executed layers as well as the time required to send to a second 'cloud' device the output data)
-3) The obtained data is used to construct a regression machine learning model that should the execution time of each 
-group of layers in a given network (not necessarily the same network used to generate the data).
+2) Measure the average time required to execute each 'node' of the linearized graph in the edge and cloud devices. 
+General informations about the executed layers is also saved (the output tensor length, the MACs of the layers, the number of 
+parameters and the number of executed layers as well as the time required to send the output tensor from the edge device to the 
+cloud device)
 
-Once a profiler application has computed the overall time required to perform each layer of a "starting" deep neural network
-(as an example, consider the CSV file in the input), the regression model for the chosen device can be computed in two steps:
+Once a profiler application has produced the final result, the regression model for the chosen device can be computed in two steps:
 1) Prepare a configuration file with the parameters for the training (see the example in the config/test1 and 
 config/test2 folders).
-Here, a user can specify the machine learning techniques to test, the parameters related to the training procedure,
+Here, a user can specify the allowed machine learning techniques to use, the parameters related to the training procedure,
 as well as the information related to the input CSV file (the columns containing the features and the variable to predict).
 2) Run the training procedure by executing the following command in the aMLLibrary directory:
 ```
@@ -41,9 +46,9 @@ Network Butcher will only execute the prediction part by generating, given the p
 the correct predict configuration files and by calling the 'predict' method of the 'Predictor' class.
 The output CSV files will then be read using a Csv_Weight_Importer.
 
-Since the model training is a time-consuming process, we provide a set of pre-trained models (available in the,
+Since the model training is a time-consuming process, we provide a set of pre-trained models (available in the
 models folder) that can be used to perform the inference. The models were trained using the CSV file in the 'inputs' folder
-and the configuration files in the 'config' folder.
+(provided by [[1]](#1)) and the configuration files in the 'config' folder.
 
 ## References
 <a id="1">[1]</a>
