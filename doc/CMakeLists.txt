@@ -30,5 +30,9 @@ doxygen_add_docs(
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_SOURCE_DIR}/README.md
+
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_data/README.md
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_data/aMLLibrary_data/README.md
+        ${CMAKE_CURRENT_SOURCE_DIR}/mains/README.md
         COMMENT "Generate doc pages"
 )

@@ -1,11 +1,14 @@
 #include <network_butcher/Types/dense_tensor.h>
 #include <gtest/gtest.h>
 
+// Check around dense_tensor
+
 namespace
 {
   using namespace network_butcher;
   using namespace network_butcher::types;
 
+  // Verify that it was successfully constructed (and check of memory usage)
   TEST(DenseTensorTest, ConstuctorAndMemoryUsage)
   {
     Dense_tensor d(onnx::TensorProto_DataType_INT64, {1, 1, 2, 2}); // total memory 2*2*64=256 bits
@@ -15,6 +18,7 @@ namespace
     ASSERT_EQ(res, 4 * sizeof(int64_t));
   }
 
+  // Verify that the memory usage computation is OK and that the object is built without any errors.
   TEST(DenseTensorTest, ConstuctorValueInfoProto)
   {
     Memory_Type lhs = 0;

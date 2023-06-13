@@ -16,7 +16,9 @@ The project is structured into four main directories:
   Moreover, in the CMakeList file, all the external libraries used by the library are imported (except GoogleTest and
   Doxygen). 
   A [README](src/README.md) file describing its contents is also available.
-- google_tests: It contains all the source files of the tests
+- google_tests: It contains all the source files of the tests.
+  Each source file contains a brief description of the purposes of the associated test suit, while, before each test,
+  a small comment on its purposes is present.
 - mains: It contains both a collection of main files to test the performances of the program and the basic main file
   that allows to perform the partitioning directly from command-line.
   A [README](mains/README.md) file describing its contents is also available.

@@ -4,12 +4,14 @@
 #include <network_butcher/Network/node.h>
 #include <network_butcher/Network/node_traits.h>
 
+// Simple tests to verify basic constructors
 
 namespace
 {
   using namespace network_butcher;
   using namespace network_butcher::types;
 
+  // Verify that it can be built successfully
   TEST(NodeTests, Conctructor)
   {
     Node node;
@@ -17,11 +19,13 @@ namespace
     CNode<int> node_2(1);
   }
 
+  // Verify that the node can be moved
   TEST(NodeTests, MoveConstructible)
   {
     ASSERT_TRUE(std::is_move_constructible_v<Onnx_Converted_Node_Type>);
   }
 
+  // Verify that the node can be moved
   TEST(NodeTests, MoveAssignable)
   {
     ASSERT_TRUE(std::is_move_assignable_v<Onnx_Converted_Node_Type>);

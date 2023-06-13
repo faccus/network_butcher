@@ -2,6 +2,8 @@
 #include "../test_class.h"
 #include <gtest/gtest.h>
 
+// Quick tests to verify that no crash happens due to the graph construction (if everything works properly)
+
 namespace
 {
   using namespace network_butcher;
@@ -14,12 +16,14 @@ namespace
   using IO_collection = Io_Collection_Type<Input>;
   using Node_type     = Graph_type::Node_Type;
 
+  // Checks if graph can be built
   TEST(GraphTests, DefaultConstructors)
   {
     Graph<CNode<Input>>     graph_empty;
     Graph<Onnx_Converted_Node_Type> graph_empty2;
   }
 
+  // Checks that no crash happens during compute_dependencies
   TEST(GraphTests, ConstructorFromCustomClass)
   {
     int number_of_nodes = 10;
