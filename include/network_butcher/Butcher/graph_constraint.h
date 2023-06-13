@@ -30,7 +30,8 @@ namespace network_butcher::constraints
   };
 
 
-  /// Simple class used to represent a memory constraint
+  /// Simple class used to represent a memory constraint. It will work properly if connections from device i to device j
+  /// are allowed only if i <= j
   /// \tparam GraphType The original graph type
   template <typename GraphType>
   class Memory_Constraint : public Graph_Constraint
@@ -56,6 +57,12 @@ namespace network_butcher::constraints
                                   const std::vector<Memory_Type>                         &output_memory,
                                   const std::vector<Memory_Type>                         &params_memory) const
       -> std::tuple<Memory_Type, Memory_Type>;
+
+    /// It will check if the constraint is applicable to the current graph
+    /// \return A pair containing a bool (true if the constraint is applicable) and a string (the reason why it is not
+    /// applicable)
+    [[nodiscard]] auto
+    check_if_applicable() const -> std::pair<bool, std::string>;
 
   public:
     /// Constructor
@@ -88,9 +95,45 @@ namespace network_butcher::constraints
   }
 
   template <typename GraphType>
+  auto
+  Memory_Constraint<GraphType>::check_if_applicable() const -> std::pair<bool, std::string>
+  {
+    if (!params.block_graph_generation_params.use_bandwidth_to_manage_connections)
+      {
+        return {false,
+                "Memory_Constraint: The bandwidth is not used to manage the connections. To apply the constraint, "
+                "connections from device id i to device  id j must be allowed only if i <= j."};
+      }
+
+    // Check if a connection from device j to device i is allowed
+    for (std::size_t i = 0; i < params.devices.size(); ++i)
+      {
+        for (std::size_t j = i + 1; j < params.devices.size(); ++j)
+          {
+            if (params.weights_params.bandwidth->get_output_nodes(j).contains(i))
+              {
+                return {false,
+                        "Memory_Constraint: A connection from device " + std::to_string(j) + " to device " +
+                          std::to_string(i) +
+                          " is allowed. To apply the constraint, connections from device id i to device id j must be "
+                          "allowed only if i <= j."};
+              }
+          }
+      }
+
+    return {true, ""};
+  }
+
+  template <typename GraphType>
   void
   Memory_Constraint<GraphType>::apply_constraint(Block_Graph_Type &new_graph) const
   {
+    if (auto const [applicable, reason] = check_if_applicable(); !applicable)
+      {
+        std::cout << reason << ". I will ignore the constraint." << std::endl;
+        return;
+      }
+
     auto const &devices     = params.devices;
     auto const  num_devices = devices.size();
 
@@ -101,17 +144,14 @@ namespace network_butcher::constraints
     std::vector<bool> available(num_devices, true);
     Memory_Type       memory_graph = 0;
 
-    // Eliminate dependencies of the specified node
+    // Eliminate the in-dependencies of the specified node
     auto const dependencies_clear = [&](Node_Id_Type const &node_id) {
       auto &[input_neighbours, output_neighbours] = new_graph.get_neighbors_ref()[node_id];
 
       for (auto const &in : input_neighbours)
         new_graph.get_neighbors_ref()[in].second.erase(node_id);
-      for (auto const &out : output_neighbours)
-        new_graph.get_neighbors_ref()[out].first.erase(node_id);
 
       input_neighbours.clear();
-      output_neighbours.clear();
     };
 
     // Helper function used to update the memory usage and, if necessary, deactivate a device

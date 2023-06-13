@@ -58,7 +58,9 @@ This, however, adds some extra requirements:
   project). 
   A local version of the package is already available (as a submodule) in the dep directory. 
   Since the package is still work in progress, we chose a specific commit.
-  To install all of its package dependencies, simply call in the repository directory:
+  For an explanation on why it is employed and a quick tutorial on its usage, please refer to the 
+  [README](test_data/aMLLibrary_data/README.md) file.
+  To install all of its package dependencies, simply call in our repository root directory:
 ```bash
 python3 -m pip install -r dep/aMLLibrary/requirements.txt
 ```
@@ -74,13 +76,15 @@ Parallelism can be enabled by checking the proper option in the CMakeLists.txt f
 Parallelism may be used with either:
 
 - [OpenMP v4.5](https://www.openmp.org/). 
-  Since we do not fix the number of threads directly in the code (by using the 
-  appropriate C++ command), we advise setting the environment variable OMP_NUM_THREADS to the desired number of threads.
+  Since we do not fix the number of parallel threads that the library can use directly in the code, we advise setting 
+  the environment variable OMP_NUM_THREADS to the desired number of threads.
 - [Intel TBB v2021.5.0](https://www.intel.com/content/www/us/en/developer/tools/oneapi/onetbb.html). Notice that both
   TBB and oneTBB are compatible. However, the former is easier to install through a package manager (for instance, in
   Ubuntu, the package is available as libtbb-dev), while the latter must be compiled from source. Since this library is
   meant to be used by the C++ standard library to employ parallelism and, thus, no newer functionality is employed, we
   advise to use TBB.
+
+We advise, if undecided on which library to use, to employ OpenMP, since it is easier to install and use.
 
 ### Requirements Quick Install (Linux only)
 We here report a small collection of simple bash commands to install the required libraries on a Linux system:
