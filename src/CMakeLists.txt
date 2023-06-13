@@ -1,19 +1,23 @@
-include(../CommonInfo.cmake)
-
 include(FetchContent)
 
 if (BUILD_PROTOBUF_SOURCE)
-    set(Protobuf_USE_STATIC_LIBS ON)
+    find_package(Protobuf 3.21.12 EXACT)
 
-    FetchContent_Declare(
-            protobuf
-            GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
-            GIT_TAG v3.21.12
-    )
-    option(protobuf_BUILD_TESTS OFF)
-    FetchContent_MakeAvailable(protobuf)
+    if ( Protobuf_FOUND )
+        message("We found a compatible version of Protobuf! Thus, we will use it instead of downloading it from Github")
+    else ()
+        set(Protobuf_USE_STATIC_LIBS ON)
+
+        FetchContent_Declare(
+                protobuf
+                GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
+                GIT_TAG v3.21.12
+        )
+        option(protobuf_BUILD_TESTS OFF)
+        FetchContent_MakeAvailable(protobuf)
+    endif ()
 else ()
-    find_package(Protobuf REQUIRED)
+    find_package(Protobuf 3.21.12 REQUIRED EXACT)
 endif ()
 
 list(APPEND RUN_LIBRARIES_LOCATION protobuf::libprotobuf)
@@ -67,6 +71,8 @@ if (ENABLE_NETWORK_BUTCHER_PARALLEL)
     endif ()
 endif ()
 
+
+
 set(BASE_SOURCE
         APSC/chrono.cpp
         IO_Interaction/onnx_importer_helpers.cpp
@@ -79,6 +85,24 @@ set(BASE_SOURCE
         general_manager.cpp
         io_manager.cpp
         utilities.cpp)
+
+set(APPEND
+        INCLUDES
+        ${PROJECT_SOURCE_DIR}/include/network_butcher
+        ${PROJECT_SOURCE_DIR}/include/network_butcher/APSC
+        ${PROJECT_SOURCE_DIR}/include/network_butcher/Computer
+        ${PROJECT_SOURCE_DIR}/include/network_butcher/Butcher
+        ${PROJECT_SOURCE_DIR}/include/network_butcher/IO_Interaction
+        ${PROJECT_SOURCE_DIR}/include/network_butcher/IO_Interaction/Weight_Importer_Helpers
+        ${PROJECT_SOURCE_DIR}/include/network_butcher/K-shortest_path
+        ${PROJECT_SOURCE_DIR}/include/network_butcher/Network
+        ${PROJECT_SOURCE_DIR}/include/network_butcher/Traits
+        ${PROJECT_SOURCE_DIR}/include/network_butcher/onnx_proto
+        ${PROJECT_SOURCE_DIR}/include/network_butcher/Types
+        ${EXTRA_INCLUDE_DIR}
+)
+
+
 
 # Make an automatic library - will be static or dynamic based on user setting
 add_library(network_butcher ${BASE_SOURCE} ${INCLUDES} ${HEADERS_LIBRARIES_LOCATION})

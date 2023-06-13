@@ -22,25 +22,23 @@ option(USE_OPENMP "Use OpenMP (if OFF, it will use TBB)" ON)
 
 option(USE_PYBIND "Use pybind11 (downloaded automatically from github)" ON)
 
-option(BUILD_DOC "Build documentation" ON)
+option(BUILD_DOC "Allow documentation build" ON)
 
 ########################################################################################################################
 ########################################################################################################################
 ########################################################################################################################
 
-message(STATUS "Use GoogleTest: ${USE_GOOLETEST}")
-message(STATUS "Let CTest discover the tests: ${BUILD_TESTS}")
-message(STATUS "Let CTest discover the complete tests: ${BUILD_COMPLETE_TESTS}")
+message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
+
+message(STATUS "Use GoogleTest: ${USE_GOOGLETEST}")
+message(STATUS "Let CTest discover the tests: ${DISCOVER_TESTS}")
+message(STATUS "Let CTest discover the complete tests: ${DISCOVER_COMPLETE_TESTS}")
 
 message(STATUS "Enable parallel execution: ${ENABLE_NETWORK_BUTCHER_PARALLEL}")
 message(STATUS "Use OpenMP (if OFF, it will use TBB): ${USE_OPENMP}")
 
-
-message(STATUS "Download and compile protobuf from git: " ${BUILD_PROTOBUF_SOURCE})
-
 message(STATUS "Use pybind11 (downloaded automatically from github): " ${USE_PYBIND})
-
-message(STATUS "Build documentation: ${BUILD_DOC}")
+message(STATUS "Allow documentation build: ${BUILD_DOC}")
 
 
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.24.0")
@@ -69,5 +67,7 @@ endif ()
 
 # Tests
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND USE_GOOGLETEST)
+    enable_testing()
+
     add_subdirectory(google_tests)
 endif()

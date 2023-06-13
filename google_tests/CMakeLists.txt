@@ -34,8 +34,6 @@ include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
 set(TEST_LIBRARIES_LOCATION gtest gtest_main)
 
-enable_testing()
-
 add_executable(test_run ${TESTS_SOURCE})
 target_link_libraries(test_run PRIVATE network_butcher ${TEST_LIBRARIES_LOCATION})
 target_compile_features(test_run PRIVATE cxx_std_20)
