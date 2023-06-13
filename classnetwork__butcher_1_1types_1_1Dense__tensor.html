@@ -184,7 +184,7 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Construct the tensor from the type id and the shape </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">in_type_id</td><td>onnx::TensorProto_DataType id </td></tr>
+    <tr><td class="paramname">in_type_id</td><td>onnx::TensorProto_DataType id. We use int since the same enumerator is used multiple times, but with different type names </td></tr>
     <tr><td class="paramname">in_shape</td><td>Shape of the tensor </td></tr>
     <tr><td class="paramname">given</td><td>Is it already initialized? </td></tr>
     <tr><td class="paramname">constant</td><td>Is it constant? </td></tr>

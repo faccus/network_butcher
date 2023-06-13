@@ -1,4 +1,4 @@
 <map id="network_butcher::constraints::Graph_Constraint" name="network_butcher::constraints::Graph_Constraint">
 <area shape="rect" id="node1" title="A simple class representing a constraint to be applied during the block graph construction." alt="" coords="29,5,239,141"/>
-<area shape="rect" id="node2" href="$classnetwork__butcher_1_1constraints_1_1Memory__Constraint.html" title=" " alt="" coords="5,189,263,369"/>
+<area shape="rect" id="node2" href="$classnetwork__butcher_1_1constraints_1_1Memory__Constraint.html" title=" " alt="" coords="5,189,263,384"/>
 </map>

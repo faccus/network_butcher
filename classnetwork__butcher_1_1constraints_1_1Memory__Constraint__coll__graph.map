@@ -1,5 +1,5 @@
 <map id="network_butcher::constraints::Memory_Constraint&lt; GraphType &gt;" name="network_butcher::constraints::Memory_Constraint&lt; GraphType &gt;">
-<area shape="rect" id="node1" title=" " alt="" coords="245,476,503,641"/>
+<area shape="rect" id="node1" title=" " alt="" coords="245,476,503,656"/>
 <area shape="rect" id="node2" href="$classnetwork__butcher_1_1constraints_1_1Graph__Constraint.html" title="A simple class representing a constraint to be applied during the block graph construction." alt="" coords="247,277,458,413"/>
 <area shape="rect" id="node3" href="$structnetwork__butcher_1_1parameters_1_1Parameters.html" title="The collection of parameters." alt="" coords="483,299,697,391"/>
 <area shape="rect" id="node4" href="$structnetwork__butcher_1_1parameters_1_1Parameters_1_1Block__Graph__Generation.html" title="Structure used to contain all the parameters related to the Block Graph Generation." alt="" coords="5,13,220,193"/>

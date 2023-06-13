@@ -81,7 +81,7 @@ $(function() {
 <div class="dynheader">
 Inheritance diagram for network_butcher::constraints::Memory_Constraint&lt; GraphType &gt;:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="classnetwork__butcher_1_1constraints_1_1Memory__Constraint__inherit__graph.svg" width="268" height="375"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+<div class="center"><iframe scrolling="no" frameborder="0" src="classnetwork__butcher_1_1constraints_1_1Memory__Constraint__inherit__graph.svg" width="268" height="390"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
 </div>
 </div>
 <div class="dynheader">
@@ -111,6 +111,8 @@ Public Member Functions</h2></td></tr>
 Private Member Functions</h2></td></tr>
 <tr class="memitem:a88a505fd5e6b97cdf9d66a0fada10156"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnetwork__butcher_1_1constraints_1_1Memory__Constraint.html#a88a505fd5e6b97cdf9d66a0fada10156">estimate_maximum_memory_usage</a> (const std::vector&lt; <a class="el" href="structnetwork__butcher_1_1parameters_1_1Device.html">network_butcher::parameters::Device</a> &gt; &amp;devices, const std::set&lt; <a class="el" href="namespacenetwork__butcher.html#a5c3a70884579b2e0d026e3790b705bb3">Node_Id_Type</a> &gt; &amp;ids, const std::vector&lt; <a class="el" href="namespacenetwork__butcher.html#a1628cda4ba627ca6f4c4646ba1619840">Memory_Type</a> &gt; &amp;input_memory, const std::vector&lt; <a class="el" href="namespacenetwork__butcher.html#a1628cda4ba627ca6f4c4646ba1619840">Memory_Type</a> &gt; &amp;output_memory, const std::vector&lt; <a class="el" href="namespacenetwork__butcher.html#a1628cda4ba627ca6f4c4646ba1619840">Memory_Type</a> &gt; &amp;params_memory) const -&gt; std::tuple&lt; <a class="el" href="namespacenetwork__butcher.html#a1628cda4ba627ca6f4c4646ba1619840">Memory_Type</a>, <a class="el" href="namespacenetwork__butcher.html#a1628cda4ba627ca6f4c4646ba1619840">Memory_Type</a> &gt;</td></tr>
 <tr class="separator:a88a505fd5e6b97cdf9d66a0fada10156"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46ec593d6cd72c98463053b96d403fe7"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnetwork__butcher_1_1constraints_1_1Memory__Constraint.html#a46ec593d6cd72c98463053b96d403fe7">check_if_applicable</a> () const -&gt; std::pair&lt; bool, std::string &gt;</td></tr>
+<tr class="separator:a46ec593d6cd72c98463053b96d403fe7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -125,7 +127,7 @@ Private Attributes</h2></td></tr>
 <div class="textblock"><h3>template&lt;typename GraphType&gt;<br />
 class network_butcher::constraints::Memory_Constraint&lt; GraphType &gt;</h3>
 
-<p>Simple class used to represent a memory constraint </p><dl class="tparams"><dt>Template Parameters</dt><dd>
+<p>Simple class used to represent a memory constraint. It will work properly if connections from device i to device j are allowed only if i &lt;= j </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">GraphType</td><td>The original graph type </td></tr>
   </table>
@@ -238,6 +240,31 @@ template&lt;typename GraphType &gt; </div>
 </dl>
 
 <p>Implements <a class="el" href="classnetwork__butcher_1_1constraints_1_1Graph__Constraint.html#abf67f4f42faaff2ee3182597f7f7a7a6">network_butcher::constraints::Graph_Constraint</a>.</p>
+
+</div>
+</div>
+<a id="a46ec593d6cd72c98463053b96d403fe7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a46ec593d6cd72c98463053b96d403fe7">&#9670;&nbsp;</a></span>check_if_applicable()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename GraphType &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto <a class="el" href="classnetwork__butcher_1_1constraints_1_1Memory__Constraint.html">network_butcher::constraints::Memory_Constraint</a>&lt; GraphType &gt;::check_if_applicable</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>It will check if the constraint is applicable to the current graph </p><dl class="section return"><dt>Returns</dt><dd>A pair containing a bool (true if the constraint is applicable) and a string (the reason why it is not applicable) </dd></dl>
 
 </div>
 </div>

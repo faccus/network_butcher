@@ -85,7 +85,7 @@ Project structure</h2>
 <li>scripts: It contains some extra scripts to modify an .onnx file to add shapes to all the tensors (it must be executed for a new .onnx model, unless shapes were already inferred). Moreover, the notebooks used to create the plots of the measured performances are also present (as well as the actual results)</li>
 <li>test_data: It contains the files used during testing (models, sample configuration files and sample weight files). A README file describing its contents is also available.</li>
 </ul>
-<p>To easily start reading the project, we think it's best to start from the General_Manager files.</p>
+<p>To easily start reading the project, we think it's best to start from the <a class="el" href="namespaceGeneral__Manager.html">General_Manager</a> files.</p>
 <h2><a class="anchor" id="autotoc_md11"></a>
 Requirements:</h2>
 <ul>
@@ -101,7 +101,7 @@ Requirements:</h2>
 <p>The weight generation may be automatically performed if a compatible model is provided. This, however, adds some extra requirements:</p>
 <ul>
 <li><a href="https://github.com/pybind/pybind11/releases/tag/v2.10.3">PyBind v2.10.3</a>. The library will be automatically downloaded and compiled by CMake. However, it requires Python3 and pip3 to be installed.</li>
-<li><a href="https://github.com/brunoguindani/aMLLibrary/tree/933be8b094ca468d4813fe0c837fc6d46cc608d2">aMLLibrary</a> (Python github project). A local version of the package is already available (as a submodule) in the dep directory. Since the package is still work in progress, we chose a specific commit. To install all of its package dependencies, simply call in the repository directory: <div class="fragment"><div class="line">python3 -m pip install -r dep/aMLLibrary/requirements.txt</div>
+<li><a href="https://github.com/brunoguindani/aMLLibrary/tree/933be8b094ca468d4813fe0c837fc6d46cc608d2">aMLLibrary</a> (Python github project). A local version of the package is already available (as a submodule) in the dep directory. Since the package is still work in progress, we chose a specific commit. For an explanation on why it is employed and a quick tutorial on its usage, please refer to the README file. To install all of its package dependencies, simply call in our repository root directory: <div class="fragment"><div class="line">python3 -m pip install -r dep/aMLLibrary/requirements.txt</div>
 </div><!-- fragment --></li>
 <li><a href="https://github.com/ThanatosShinji/onnx-tool">Onnx-Tool v0.6.1</a> (Python Package). To install it, simply call: <div class="fragment"><div class="line">python3 -m pip install onnx-tool==0.6.1</div>
 </div><!-- fragment --></li>
@@ -109,9 +109,10 @@ Requirements:</h2>
 <p>The CMakeLists.txt file exposes some options that may be changed to avoid the usage of some of the previously cited libraries.</p>
 <p>Parallelism can be enabled by checking the proper option in the CMakeLists.txt file. Parallelism may be used with either:</p>
 <ul>
-<li><a href="https://www.openmp.org/">OpenMP v4.5</a>. Since we do not fix the number of threads directly in the code (by using the appropriate C++ command), we advise setting the environment variable OMP_NUM_THREADS to the desired number of threads.</li>
+<li><a href="https://www.openmp.org/">OpenMP v4.5</a>. Since we do not fix the number of parallel threads that the library can use directly in the code, we advise setting the environment variable OMP_NUM_THREADS to the desired number of threads.</li>
 <li><a href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/onetbb.html">Intel TBB v2021.5.0</a>. Notice that both TBB and oneTBB are compatible. However, the former is easier to install through a package manager (for instance, in Ubuntu, the package is available as libtbb-dev), while the latter must be compiled from source. Since this library is meant to be used by the C++ standard library to employ parallelism and, thus, no newer functionality is employed, we advise to use TBB.</li>
 </ul>
+<p>We advise, if undecided on which library to use, to employ OpenMP, since it is easier to install and use.</p>
 <h2><a class="anchor" id="autotoc_md12"></a>
 Requirements Quick Install (Linux only)</h2>
 <p>We here report a small collection of simple bash commands to install the required libraries on a Linux system:</p><ul>

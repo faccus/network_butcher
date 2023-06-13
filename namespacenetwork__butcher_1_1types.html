@@ -109,12 +109,16 @@ Classes</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
 <tr class="memitem:a5e193f2e47093fd69b9926841860ddef"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacenetwork__butcher_1_1types.html#a5e193f2e47093fd69b9926841860ddef">Slice_Type</a> = std::set&lt; <a class="el" href="namespacenetwork__butcher.html#a5c3a70884579b2e0d026e3790b705bb3">Node_Id_Type</a> &gt;</td></tr>
+<tr class="memdesc:a5e193f2e47093fd69b9926841860ddef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Partition nodes.  <a href="namespacenetwork__butcher_1_1types.html#a5e193f2e47093fd69b9926841860ddef">More...</a><br /></td></tr>
 <tr class="separator:a5e193f2e47093fd69b9926841860ddef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab40226607fd365f9924c6945b42a88d7"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacenetwork__butcher_1_1types.html#ab40226607fd365f9924c6945b42a88d7">Real_Partition</a> = std::pair&lt; std::size_t, <a class="el" href="namespacenetwork__butcher_1_1types.html#a5e193f2e47093fd69b9926841860ddef">Slice_Type</a> &gt;</td></tr>
+<tr class="memdesc:ab40226607fd365f9924c6945b42a88d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">An actual partition made by a collection of nodes and a device id.  <a href="namespacenetwork__butcher_1_1types.html#ab40226607fd365f9924c6945b42a88d7">More...</a><br /></td></tr>
 <tr class="separator:ab40226607fd365f9924c6945b42a88d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a64a57d4310fcf69c4ebf453d08b4c41a"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacenetwork__butcher_1_1types.html#a64a57d4310fcf69c4ebf453d08b4c41a">Real_Path</a> = std::vector&lt; <a class="el" href="namespacenetwork__butcher_1_1types.html#ab40226607fd365f9924c6945b42a88d7">Real_Partition</a> &gt;</td></tr>
+<tr class="memdesc:a64a57d4310fcf69c4ebf453d08b4c41a"><td class="mdescLeft">&#160;</td><td class="mdescRight">An actual partitioning.  <a href="namespacenetwork__butcher_1_1types.html#a64a57d4310fcf69c4ebf453d08b4c41a">More...</a><br /></td></tr>
 <tr class="separator:a64a57d4310fcf69c4ebf453d08b4c41a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3df06e66873bdac7e0190521d8dd0f16"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacenetwork__butcher_1_1types.html#a3df06e66873bdac7e0190521d8dd0f16">Weighted_Real_Path</a> = std::pair&lt; <a class="el" href="namespacenetwork__butcher.html#ac1d0c1a87cec11e59ded461f0e4fae31">Time_Type</a>, <a class="el" href="namespacenetwork__butcher_1_1types.html#a64a57d4310fcf69c4ebf453d08b4c41a">Real_Path</a> &gt;</td></tr>
+<tr class="memdesc:a3df06e66873bdac7e0190521d8dd0f16"><td class="mdescLeft">&#160;</td><td class="mdescRight">A partitioning with the time cost.  <a href="namespacenetwork__butcher_1_1types.html#a3df06e66873bdac7e0190521d8dd0f16">More...</a><br /></td></tr>
 <tr class="separator:a3df06e66873bdac7e0190521d8dd0f16"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7d3df191ff06503cad579ef1e3571fee"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacenetwork__butcher_1_1types.html#a7d3df191ff06503cad579ef1e3571fee">Variant_Attribute</a> = std::variant&lt; std::vector&lt; long int &gt;, std::vector&lt; float &gt;, std::vector&lt; std::string &gt; &gt;</td></tr>
 <tr class="memdesc:a7d3df191ff06503cad579ef1e3571fee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Variant_Attribute is a variant type that can hold a vector of long int, float or string.  <a href="namespacenetwork__butcher_1_1types.html#a7d3df191ff06503cad579ef1e3571fee">More...</a><br /></td></tr>
@@ -138,6 +142,8 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>An actual partition made by a collection of nodes and a device id. </p>
+
 </div>
 </div>
 <a id="a64a57d4310fcf69c4ebf453d08b4c41a"></a>
@@ -152,6 +158,8 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>An actual partitioning. </p>
+
 </div>
 </div>
 <a id="a5e193f2e47093fd69b9926841860ddef"></a>
@@ -165,6 +173,8 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Partition nodes. </p>
 
 </div>
 </div>
@@ -195,6 +205,8 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>A partitioning with the time cost. </p>
 
 </div>
 </div>
