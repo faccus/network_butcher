@@ -1,10 +1,10 @@
 <map id="include/network_butcher/Types/content.h" name="include/network_butcher/Types/content.h">
-<area shape="rect" id="node1" title=" " alt="" coords="653,5,835,47"/>
+<area shape="rect" id="node1" title=" " alt="" coords="731,5,914,47"/>
 <area shape="rect" id="node2" href="$graph__traits_8h.html" title=" " alt="" coords="731,452,914,493"/>
-<area shape="rect" id="node23" href="$graph_8h.html" title=" " alt="" coords="627,184,810,225"/>
-<area shape="rect" id="node27" href="$node__traits_8h.html" title=" " alt="" coords="653,95,835,136"/>
+<area shape="rect" id="node23" href="$node__traits_8h.html" title=" " alt="" coords="602,95,785,136"/>
+<area shape="rect" id="node24" href="$graph_8h.html" title=" " alt="" coords="627,184,810,225"/>
 <area shape="rect" id="node3" href="$butcher_8h.html" title=" " alt="" coords="658,1209,841,1251"/>
-<area shape="rect" id="node4" href="$onnx__importer__helpers_8h.html" title=" " alt="" coords="896,1299,1112,1355"/>
+<area shape="rect" id="node4" href="$onnx__importer__helpers_8h.html" title=" " alt="" coords="883,1299,1099,1355"/>
 <area shape="rect" id="node7" href="$network__butcher_8h.html" title=" " alt="" coords="509,1596,691,1637"/>
 <area shape="rect" id="node11" href="$onnx__model__reconstructor__helpers_8h.html" title=" " alt="" coords="293,1299,494,1355"/>
 <area shape="rect" id="node13" href="$graph__constraint_8h.html" title=" " alt="" coords="787,883,989,924"/>
@@ -13,7 +13,7 @@
 <area shape="rect" id="node16" href="$weight__importer_8h.html" title=" " alt="" coords="502,631,693,701"/>
 <area shape="rect" id="node22" href="$parameters_8h.html" title=" " alt="" coords="667,541,850,583"/>
 <area shape="rect" id="node5" href="$io__manager_8h.html" title=" " alt="" coords="478,1410,661,1451"/>
-<area shape="rect" id="node10" href="$onnx__importer__helpers_8cpp.html" title=" " alt="" coords="903,1410,1105,1451"/>
+<area shape="rect" id="node10" href="$onnx__importer__helpers_8cpp.html" title=" " alt="" coords="889,1410,1092,1451"/>
 <area shape="rect" id="node6" href="$general__manager_8h.html" title=" " alt="" coords="341,1507,523,1548"/>
 <area shape="rect" id="node9" href="$io__manager_8cpp.html" title=" " alt="" coords="599,1514,747,1541"/>
 <area shape="rect" id="node8" href="$general__manager_8cpp.html" title=" " alt="" coords="299,1603,485,1630"/>
@@ -23,7 +23,7 @@
 <area shape="rect" id="node18" href="$weight__importers_8h.html" title=" " alt="" coords="478,994,661,1050"/>
 <area shape="rect" id="node19" href="$block__aMLLibrary__weight__importer_8cpp.html" title=" " alt="" coords="237,987,427,1057"/>
 <area shape="rect" id="node21" href="$csv__weight__importer_8cpp.html" title=" " alt="" coords="521,875,711,931"/>
-<area shape="rect" id="node24" href="$mwgraph_8h.html" title=" " alt="" coords="602,273,785,315"/>
-<area shape="rect" id="node25" href="$wgraph_8h.html" title=" " alt="" coords="551,363,734,404"/>
-<area shape="rect" id="node26" href="$computer__memory_8h.html" title=" " alt="" coords="43,764,271,805"/>
+<area shape="rect" id="node25" href="$mwgraph_8h.html" title=" " alt="" coords="602,273,785,315"/>
+<area shape="rect" id="node26" href="$wgraph_8h.html" title=" " alt="" coords="551,363,734,404"/>
+<area shape="rect" id="node27" href="$computer__memory_8h.html" title=" " alt="" coords="43,764,271,805"/>
 </map>
