@@ -159,6 +159,7 @@ cd build
 cmake -DCMAKE_BUILD_TYPE=Release -S .. -B . -DBUILD_PROTOBUF_SOURCE=ON -DUSE_GOOGLETEST=ON -DDISCOVER_COMPLETE_TESTS=ON -DENABLE_NETWORK_BUTCHER_PARALLEL=OFF -DUSE_OPENMP=ON -DUSE_PYBIND=OFF -DBUILD_DOC=OFF
 ```
 You can customize the command by changing to ON/OFF the various options.
+If ENABLE_NETWORK_BUTCHER_PARALLEL=ON and USE_OPENMP=OFF, TBB will be used.
 If you prefer to edit manually the file, you can edit the options in the CMakeLists.txt file in the root directory of 
 the repository and, then, call, in the build directory:
 ```bash
