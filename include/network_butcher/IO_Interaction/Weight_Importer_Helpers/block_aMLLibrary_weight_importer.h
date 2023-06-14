@@ -2,12 +2,12 @@
 #define NETWORK_BUTCHER_BLOCK_AMLLIBRARY_WEIGHT_IMPORTER_H
 
 #if NETWORK_BUTCHER_PYBIND_ACTIVE
-#  include <network_butcher/Extra/CMake_directives.h>
+#  include "CMake_directives.h"
 #  include <pybind11/embed.h>
 #  include <pybind11/pybind11.h>
 
 #  if PLATFORM_SPECIFIC_CONFIG
-#    include <network_butcher/Extra/platform_specific_config.h>
+#    include "platform_specific_config.h"
 #  endif
 #endif
 

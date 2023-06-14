@@ -32,19 +32,18 @@ if (USE_PYBIND)
     )
     FetchContent_MakeAvailable(pybind11)
 
-    if(EXISTS "${CMAKE_SOURCE_DIR}/include/network_butcher/Extra/CMake_directives.h")
-        file(REMOVE ${CMAKE_SOURCE_DIR}/include/network_butcher/Extra/CMake_directives.h)
-    endif ()
-
     configure_file(${CMAKE_SOURCE_DIR}/include/network_butcher/Extra/CMake_directives.h.in
-                   ${CMAKE_SOURCE_DIR}/include/network_butcher/Extra/CMake_directives.h)
+                   ${CMAKE_CURRENT_BINARY_DIR}/CMake_directives.h)
+
+    list(APPEND HEADERS_LIBRARIES_LOCATION ${CMAKE_CURRENT_BINARY_DIR})
 
     if (EXISTS "${CMAKE_SOURCE_DIR}/include/network_butcher/Extra/platform_specific_config.h.in")
-        file(REMOVE ${CMAKE_SOURCE_DIR}/include/network_butcher/Extra/platform_specific_config.h)
 
         configure_file(${CMAKE_SOURCE_DIR}/include/network_butcher/Extra/platform_specific_config.h.in
-                       ${CMAKE_SOURCE_DIR}/include/network_butcher/Extra/platform_specific_config.h)
+                ${CMAKE_CURRENT_BINARY_DIR}/platform_specific_config.h)
+
         add_compile_definitions(PLATFORM_SPECIFIC_CONFIG)
+
     endif ()
 
     list(APPEND EXTRA_INCLUDE_DIR ${CMAKE_BINARY_DIR})
@@ -133,7 +132,6 @@ if( ENABLE_NETWORK_BUTCHER_PARALLEL )
 endif ()
 
 
-# IDEs should put the headers in a nice place
 source_group(
         TREE "${PROJECT_SOURCE_DIR}/include"
         PREFIX "Header Files"
