@@ -7,6 +7,7 @@
 
 namespace network_butcher::io::Onnx_importer_helpers
 {
+  /// Simple type alias for an unordered_map of shared_ptr to Type_info, indexed by their (unique) name
   using Map_IO = std::unordered_map<std::string, Type_Info_Pointer>;
 
   /// Collection of helper structs (used instead of tuples to improve readability)
@@ -37,10 +38,10 @@ namespace network_butcher::io::Onnx_importer_helpers
       /// The output tensor of the converted graph. Padding node
       std::shared_ptr<network_butcher::types::Dense_tensor> pointer_output;
 
-      /// The actual inputs tensors of the Onnx graph
+      /// The actual input tensor names of the Onnx graph
       std::set<std::string> onnx_inputs_ids;
 
-      /// The actual outputs tensors of the Onnx graph
+      /// The actual output tensor names of the Onnx graph
       std::set<std::string> onnx_outputs_ids;
     };
 
@@ -121,9 +122,9 @@ namespace network_butcher::io::Onnx_importer_helpers
   /// It will return an io_collection with the different elements of io_names that are contained into value_infos
   /// and that are not initialized.
   /// \param io_names The collection of names of IO identifiers
-  /// \param parameters_collection The collection of Type_info associated to the parameters elements for the given
+  /// \param parameters_collection The collection of Type_info pointers associated to the parameters elements for the given
   /// node
-  /// \param value_infos The collection of IO and parameters elements
+  /// \param value_infos The collection of IO and parameters elements of the graph
   /// \return The collection of Type_info associated to the IO elements for the given node
   auto
   process_node_ios(RepeatablePtr_field<std::basic_string<char>> const &io_names,

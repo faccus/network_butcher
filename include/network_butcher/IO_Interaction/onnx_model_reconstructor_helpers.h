@@ -258,6 +258,7 @@ namespace network_butcher::io::Onnx_model_reconstructor_helpers
                     auto new_entry = get_new_entry();
                     new_entry->set_name(el);
 
+                    // new_entry will take into possession of the newly created TypeProto (and manage its construction)
                     new_entry->set_allocated_type(new onnx::TypeProto(tmp_res.value()->type()));
                   }
               }
