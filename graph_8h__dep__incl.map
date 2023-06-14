@@ -6,8 +6,8 @@
 <area shape="rect" id="node4" href="$onnx__importer__helpers_8h.html" title=" " alt="" coords="1081,1120,1297,1176"/>
 <area shape="rect" id="node7" href="$network__butcher_8h.html" title=" " alt="" coords="663,1417,846,1459"/>
 <area shape="rect" id="node11" href="$onnx__model__reconstructor__helpers_8h.html" title=" " alt="" coords="1322,1120,1523,1176"/>
-<area shape="rect" id="node13" href="$constrained__block__graph__builder_8h.html" title=" " alt="" coords="533,927,731,983"/>
-<area shape="rect" id="node14" href="$graph__constraint_8h.html" title=" " alt="" coords="347,704,549,745"/>
+<area shape="rect" id="node13" href="$graph__constraint_8h.html" title=" " alt="" coords="347,704,549,745"/>
+<area shape="rect" id="node14" href="$constrained__block__graph__builder_8h.html" title=" " alt="" coords="533,927,731,983"/>
 <area shape="rect" id="node15" href="$path__converter_8h.html" title=" " alt="" coords="133,467,323,508"/>
 <area shape="rect" id="node16" href="$weight__importer_8h.html" title=" " alt="" coords="591,452,782,523"/>
 <area shape="rect" id="node22" href="$parameters_8h.html" title=" " alt="" coords="595,363,778,404"/>
