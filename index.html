@@ -147,20 +147,20 @@ Project setup:</h2>
 <div class="line">cd build</div>
 </div><!-- fragment --><ol type="1">
 <li>Prepare the directory for the build: <div class="fragment"><div class="line">cmake -DCMAKE_BUILD_TYPE=Release -S .. -B . -DBUILD_PROTOBUF_SOURCE=ON -DUSE_GOOGLETEST=ON -DDISCOVER_COMPLETE_TESTS=ON -DENABLE_NETWORK_BUTCHER_PARALLEL=OFF -DUSE_OPENMP=ON -DUSE_PYBIND=OFF -DBUILD_DOC=OFF</div>
-</div><!-- fragment --> You can customize the command by changing to ON/OFF the various options. If you prefer to edit manually the file, you can edit the options in the CMakeLists.txt file in the root directory of the repository and, then, call, in the build directory: <div class="fragment"><div class="line">cmake -DCMAKE_BUILD_TYPE=Release -S .. -B . </div>
+</div><!-- fragment --> You can customize the command by changing to ON/OFF the various options. If ENABLE_NETWORK_BUTCHER_PARALLEL=ON and USE_OPENMP=OFF, TBB will be used. If you prefer to edit manually the file, you can edit the options in the CMakeLists.txt file in the root directory of the repository and, then, call, in the build directory: <div class="fragment"><div class="line">cmake -DCMAKE_BUILD_TYPE=Release -S .. -B . </div>
 </div><!-- fragment --> Notice that, during this phase, if USE_PYBIND=ON, CMake will create a header file in the src directory (of the build), in order to have the path to the aMLLibrary package.</li>
 </ol>
-<h3><a class="anchor" id="autotoc_md15"></a>
+<h3><a class="anchor" id="autotoc_md16"></a>
 Build Options</h3>
 <p>Once the directory is prepared for the build, you can request CMake to compile several possible targets, detailed in the next subsections. The general procedure to compile any target is simple, since you just need to call: </p><div class="fragment"><div class="line">cmake --build . --target TARGET_TO_COMPILE</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md16"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md17"></a>
 network_butcher</h3>
 <p>If <a class="el" href="namespacenetwork__butcher.html">network_butcher</a> is chosen as the target, CMake will compile and output in the src directory of the build the (static) library</p>
-<h3><a class="anchor" id="autotoc_md17"></a>
+<h3><a class="anchor" id="autotoc_md18"></a>
 main</h3>
 <p>If main is chosen as the target, CMake will compile <a class="el" href="namespacenetwork__butcher.html">network_butcher</a> and, using the main.cpp file contained in mains, it will generate a simple executable, called main: it will read from the command line the path to a configuration file (sample configuration files are reported in test_data/configs) and perform the partitioning of the provided model. A help message will be printed if the command is not recognized.</p>
 <div class="fragment"><div class="line">./main config_file=path/to/config</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md18"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md19"></a>
 Profiling mains</h3>
 <p>To properly verify the performances of the associated library, we decided to make available a collection of main files to properly measure the time required to perform each phase of the "butchering". They can be easily compiled by calling in the configured build directory:</p>
 <div class="fragment"><div class="line">cmake --build . --target main_Constrained_Builder</div>
@@ -169,10 +169,10 @@ Profiling mains</h3>
 <div class="line">cmake --build . --target main_path_reconstruction</div>
 <div class="line">cmake --build . --target main_synthetic_graph</div>
 </div><!-- fragment --><p>For more details on what do they do, check the following <a class="el" href="md_mains_README.html">README</a> file.</p>
-<h3><a class="anchor" id="autotoc_md19"></a>
+<h3><a class="anchor" id="autotoc_md20"></a>
 Doxygen</h3>
 <p>To run doxygen and generate the documentation, you can just call from the build directory: </p><div class="fragment"><div class="line">cmake --build . --target doxygen</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md20"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md21"></a>
 Tests</h3>
 <p>Optionally, if the appropriate option was chosen during the initial configuration, the tests can be built by using the following command: </p><div class="fragment"><div class="line">cmake --build . --target test_run</div>
 </div><!-- fragment --><p>and executed by:</p>
