@@ -84,19 +84,19 @@ namespace network_butcher::kfinder
       H_out_collection ::mapped_type ::Node_Type const *h_out_node;
 
     public:
-      /// Constructs a Sidetrack from an H_g
+      /// Constructs a D_G_Node from an H_g
       /// \param h_g_it The iterator to the h_g_it collection
       explicit D_G_Node(H_g_collection::const_iterator const &h_g_it)
         : h_g_node{h_g_it->second.get_head_node()}
         , h_out_node{nullptr} {};
 
-      /// Constructs a Sidetrack from a node of H_g
+      /// Constructs a D_G_Node from a node of H_g
       /// \param node The node of H_g
       explicit D_G_Node(H_g_collection::mapped_type ::Node_Type const *node)
         : h_g_node{node}
         , h_out_node{nullptr} {};
 
-      /// Constructs a Sidetrack from a node of H_out
+      /// Constructs a D_G_Node from a node of H_out
       /// \param node The node of H_out
       explicit D_G_Node(H_out_collection::mapped_type ::Node_Type const *node)
         : h_g_node{nullptr}
@@ -146,7 +146,7 @@ namespace network_butcher::kfinder
         return h_g_node || h_out_node;
       }
 
-      /// Returns the sidetrack edge associated with the current Sidetrack node
+      /// Returns the sidetrack edge associated with the current D_G_Node node
       /// \return The sidetrack edge
       auto
       get_head_content() const -> Edge_Info const &
@@ -161,7 +161,7 @@ namespace network_butcher::kfinder
           }
         else
           {
-            throw std::runtime_error("Sidetrack: No valid pointer was provided");
+            throw std::runtime_error("D_G_Node: No valid pointer was provided");
           }
       }
     };
