@@ -1,5 +1,5 @@
-#include <network_butcher/Network/graph_traits.h>
 #include <network_butcher/K-shortest_path/kfinder_factory.h>
+#include <network_butcher/Network/graph_traits.h>
 
 #include "../test_class.h"
 
@@ -130,8 +130,8 @@ namespace
     std::ifstream in_file(file_path);
     in_file >> N >> M >> s >> t >> k;
 
-    std::vector<network_butcher::types::Node>    nodes(N);
-    Converted_Onnx_Graph_Type::Neighbours_Type   deps(N);
+    std::vector<network_butcher::types::Node>  nodes(N);
+    Converted_Onnx_Graph_Type::Neighbours_Type deps(N);
     std::vector<
       std::pair<std::pair<network_butcher::Node_Id_Type, network_butcher::Node_Id_Type>, network_butcher::Time_Type>>
       edges;

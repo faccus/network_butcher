@@ -147,6 +147,14 @@ namespace network_butcher::kfinder
       return content;
     };
 
+    /// Get the content of the current node
+    /// \return The content
+    [[nodiscard]] auto
+    get_content() -> T const &
+    {
+      return content;
+    };
+
     /// Pushes in the heap the new node and performs the required swaps to keep the heap property
     /// \param new_heap The new node to push
     void
@@ -370,6 +378,19 @@ namespace network_butcher::kfinder
     /// \return A reference to the content of the first node in the heap
     [[nodiscard]] auto
     get_head_content() const -> T const &
+    {
+      if (internal_children->empty())
+        {
+          throw std::runtime_error("H_out_test: Empty heap");
+        }
+
+      return get_head_node()->get_content();
+    }
+
+    /// It will return the content of the first node in the heap
+    /// \return A reference to the content of the first node in the heap
+    [[nodiscard]] auto
+    get_head_content() -> T const &
     {
       if (internal_children->empty())
         {

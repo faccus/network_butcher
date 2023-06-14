@@ -73,8 +73,8 @@ namespace network_butcher::kfinder
                                                             Node_Id_Type,
                                                             t_Weighted_Graph_Complete_Type const &)>;
 
-    /// A struct that contains the information about a sidetrack
-    class Sidetrack
+    /// A struct that contains the information about a node in the D(G) graph
+    class D_G_Node
     {
     private:
       /// Node of H_g
@@ -84,40 +84,62 @@ namespace network_butcher::kfinder
       H_out_collection ::mapped_type ::Node_Type const *h_out_node;
 
     public:
+      /// Constructs a Sidetrack from an H_g
+      /// \param h_g_it The iterator to the h_g_it collection
+      explicit D_G_Node(H_g_collection::const_iterator const &h_g_it)
+        : h_g_node{h_g_it->second.get_head_node()}
+        , h_out_node{nullptr} {};
+
       /// Constructs a Sidetrack from a node of H_g
       /// \param node The node of H_g
-      explicit Sidetrack(H_g_collection::mapped_type ::Node_Type const *node)
+      explicit D_G_Node(H_g_collection::mapped_type ::Node_Type const *node)
         : h_g_node{node}
         , h_out_node{nullptr} {};
 
       /// Constructs a Sidetrack from a node of H_out
       /// \param node The node of H_out
-      explicit Sidetrack(H_out_collection::mapped_type ::Node_Type const *node)
+      explicit D_G_Node(H_out_collection::mapped_type ::Node_Type const *node)
         : h_g_node{nullptr}
         , h_out_node{node} {};
 
-      /// Returns the node of H_g or H_out
-      /// \return Variant to the node of H_g or H_out (pointers)
+
+      /// It will produce the children of the given node in the D(G) graph
+      /// \return
       [[nodiscard]] auto
-      get_node() const -> std::variant<typename H_g_collection::mapped_type ::Node_Type const *,
-                                       typename H_out_collection ::mapped_type ::Node_Type const *>
+      get_children() const -> std::vector<D_G_Node>
       {
-        if (h_g_node)
+        std::vector<D_G_Node> res;
+        if (!valid())
+          return res;
+
+        if (h_out_node)
           {
-            return h_g_node;
-          }
-        else if (h_out_node)
-          {
-            return h_out_node;
+            auto const &node = h_out_node;
+
+            // Add all the H_out related children
+            for (auto const &child : node->get_children())
+              res.emplace_back(child);
           }
         else
           {
-            throw std::runtime_error("Sidetrack: No valid pointer was provided");
+            auto const &node = h_g_node;
+
+            // It should be a single child of the head of H_out
+            auto const &children = node->get_content()->get_head_node()->get_children();
+
+            if (!children.empty())
+              res.emplace_back(children.front());
+
+            // Add all the H_g related children
+            for (auto const &child : node->get_children())
+              res.emplace_back(child);
           }
+
+        return res;
       }
 
       /// Checks if either the node of H_g or H_out is not nullptr
-      /// \return True either nodes are not nullptr
+      /// \return True if either of the two nodes is not nullptr
       [[nodiscard]] auto
       valid() const -> bool
       {
@@ -148,7 +170,7 @@ namespace network_butcher::kfinder
     struct Implicit_Path_Info : Crtp_Greater<Implicit_Path_Info>
     {
       /// The current sidetrack
-      std::optional<Sidetrack> current_sidetrack;
+      std::optional<D_G_Node> current_sidetrack;
 
       /// Pointer to a previous path. The overall path is made by the concatenation of the previous path with
       /// current_sidetrack
@@ -204,25 +226,11 @@ namespace network_butcher::kfinder
       }
     };
 
-
-    /// It extracts the first sidetrack associated to the given node
-    /// \param h_g_it The h_g map iterator
-    /// \return The corresponding sidetrack edge
-    [[nodiscard]] auto
-    extract_first_sidetrack_edge(typename H_g_collection::const_iterator const &h_g_it) const -> Sidetrack;
-
     /// Computes the sidetrack distances for all the different sidetrack edges
     /// \param dij_res The result of the Dijkstra algorithm
     /// \return The collection of sidetrack distances for the different edges
     [[nodiscard]] auto
     sidetrack_distances(Dijkstra_Result_Type const &dij_res) const -> Internal_Weight_Collection_Type;
-
-
-    /// Given the input sidetrack, it will return the vector of next alternative sidetracks O(1)
-    /// \param current_sidetrack The current sidetrack
-    /// \return The vector of next alternative sidetracks
-    [[nodiscard]] auto
-    get_alternatives(Sidetrack const &current_sidetrack) const -> std::vector<Sidetrack>;
 
 
     /// Helper function for the Eppstein algorithm. It converts a vector of implicit paths to a vector of explicit
@@ -333,7 +341,7 @@ namespace network_butcher::kfinder
 
     // Start with the shortest path
     std::vector<Implicit_Path_Info> res;
-    res.push_back(Implicit_Path_Info{.current_sidetrack   = std::optional<Sidetrack>(),
+    res.push_back(Implicit_Path_Info{.current_sidetrack   = std::optional<D_G_Node>(),
                                      .previous_sidetracks = nullptr,
                                      .length              = shortest_distance[root]});
 
@@ -362,7 +370,7 @@ namespace network_butcher::kfinder
 
 
     // First deviatory path
-    auto const &first_side_track = extract_first_sidetrack_edge(h_g_it);
+    D_G_Node first_side_track(h_g_it);
     Q.push(Implicit_Path_Info{.current_sidetrack   = first_side_track,
                               .previous_sidetracks = nullptr,
                               .length = first_side_track.get_head_content().delta_weight + shortest_distance[root]});
@@ -393,15 +401,14 @@ namespace network_butcher::kfinder
         if (!h_g_it->second.empty())
           {
             // Extract the first sidetrack edge if it exists
-            auto const &f = extract_first_sidetrack_edge(h_g_it);
+            D_G_Node f(h_g_it);
             Q.push(Implicit_Path_Info{.current_sidetrack   = f,
                                       .previous_sidetracks = &res.back(),
                                       .length = SK.length + f.get_head_content().delta_weight}); // O(log(K)
           }
-        auto const &sidetrack_edges = get_alternatives(current_sidetrack);
 
         // O(1), there are up tp 3 elements in this collection
-        for (auto const &sidetrack_edge : sidetrack_edges)
+        for (auto const &sidetrack_edge : current_sidetrack.get_children())
           {
             Q.push(Implicit_Path_Info{.current_sidetrack   = sidetrack_edge,
                                       .previous_sidetracks = SK.previous_sidetracks,
@@ -424,47 +431,6 @@ namespace network_butcher::kfinder
       {
         return helper_eppstein(dij_res, res);
       }
-  }
-
-
-  template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  auto
-  Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::get_alternatives(
-    Sidetrack const &current_sidetrack) const -> std::vector<Sidetrack>
-  {
-    using H_out_ptr = typename H_out_collection::mapped_type::Node_Type const *;
-    using H_g_ptr   = typename H_g_collection::mapped_type::Node_Type const *;
-
-    std::vector<Sidetrack> res;
-    if (!current_sidetrack.valid())
-      return res;
-
-    auto const &variant_node = current_sidetrack.get_node();
-    if (std::holds_alternative<H_out_ptr>(variant_node))
-      {
-        auto const &node = std::get<H_out_ptr>(variant_node);
-
-        // Add all the H_out related children
-        for (auto const &child : node->get_children())
-          res.emplace_back(child);
-      }
-    else
-      {
-        auto const &node = std::get<H_g_ptr>(variant_node);
-
-
-        // It should be a single child of the head of H_out
-        auto const &children = node->get_content()->get_head_node()->get_children();
-
-        if (!children.empty())
-          res.emplace_back(children.front());
-
-        // Add all the H_g related children
-        for (auto const &child : node->get_children())
-          res.emplace_back(child);
-      }
-
-    return res;
   }
 
 
@@ -623,15 +589,6 @@ namespace network_butcher::kfinder
       }
 
     return res;
-  }
-
-
-  template <typename Graph_type, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type>
-  auto
-  Basic_KEppstein<Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type>::extract_first_sidetrack_edge(
-    H_g_collection::const_iterator const &h_g_it) const -> Sidetrack
-  {
-    return Sidetrack(h_g_it->second.get_head_node());
   }
 } // namespace network_butcher::kfinder
 
