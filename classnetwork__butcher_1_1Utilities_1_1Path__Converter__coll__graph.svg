@@ -46,7 +46,7 @@ if (edges && edges.length) {
         </defs>
 
 <script type="text/javascript">
-var viewWidth = 336;
+var viewWidth = 338;
 var viewHeight = 1396;
 var sectionId = 'dynsection-0';
 </script>
@@ -54,7 +54,7 @@ var sectionId = 'dynsection-0';
 <svg id="graph" class="graph">
 <g id="viewport">
 <title>network_butcher::Utilities::Path_Converter&lt; Weight_Type &gt;</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-1392 332,-1392 332,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-1392 334,-1392 334,4 -4,4"/>
 <!-- Node1 -->
 <g id="node1" class="node">
 <title>Node1</title>
@@ -176,13 +176,13 @@ var sectionId = 'dynsection-0';
 <g id="node6" class="node">
 <title>Node6</title>
 <g id="a_node6"><a xlink:href="classnetwork__butcher_1_1types_1_1MWGraph.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="119,-624.5 119,-780.5 328,-780.5 328,-624.5 119,-624.5"/>
+<polygon fill="white" stroke="black" points="119,-624.5 119,-780.5 330,-780.5 330,-624.5 119,-624.5"/>
 <text text-anchor="start" x="127" y="-768.5" font-family="Helvetica,sans-Serif" font-size="10.00">network_butcher::types</text>
 <text text-anchor="start" x="127" y="-757.5" font-family="Helvetica,sans-Serif" font-size="10.00">::MWGraph&lt; Parallel_Edges,</text>
-<text text-anchor="middle" x="223.5" y="-746.5" font-family="Helvetica,sans-Serif" font-size="10.00"> Template_Node_Type, t_weight_type &gt;</text>
-<polyline fill="none" stroke="black" points="119,-739.5 328,-739.5 "/>
+<text text-anchor="middle" x="224.5" y="-746.5" font-family="Helvetica,sans-Serif" font-size="10.00"> Template_Node_Type, t_Weight_Type &gt;</text>
+<polyline fill="none" stroke="black" points="119,-739.5 330,-739.5 "/>
 <text text-anchor="start" x="127" y="-727.5" font-family="Helvetica,sans-Serif" font-size="10.00"># weigth_map</text>
-<polyline fill="none" stroke="black" points="119,-720.5 328,-720.5 "/>
+<polyline fill="none" stroke="black" points="119,-720.5 330,-720.5 "/>
 <text text-anchor="start" x="127" y="-708.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ MWGraph()</text>
 <text text-anchor="start" x="127" y="-697.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ check_weight()</text>
 <text text-anchor="start" x="127" y="-686.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ get_weight()</text>
@@ -197,8 +197,8 @@ var sectionId = 'dynsection-0';
 <!-- Node4&#45;&gt;Node6 -->
 <g id="edge6" class="edge">
 <title>Node4&#45;&gt;Node6</title>
-<path fill="none" stroke="midnightblue" d="M170.49,-809.29C175.36,-799.58 180.16,-790.01 184.76,-780.82"/>
-<polygon fill="none" stroke="midnightblue" points="167.36,-807.73 166.01,-818.24 173.62,-810.87 167.36,-807.73"/>
+<path fill="none" stroke="midnightblue" d="M171.06,-809.29C175.96,-799.58 180.8,-790.01 185.44,-780.82"/>
+<polygon fill="none" stroke="midnightblue" points="167.92,-807.73 166.54,-818.24 174.17,-810.89 167.92,-807.73"/>
 </g>
 <!-- Node5 -->
 <g id="node5" class="node">
@@ -242,8 +242,8 @@ var sectionId = 'dynsection-0';
 <!-- Node6&#45;&gt;Node3 -->
 <g id="edge5" class="edge">
 <title>Node6&#45;&gt;Node3</title>
-<path fill="none" stroke="orange" d="M176.14,-615.28C167.15,-598.91 157.79,-581.87 148.96,-565.79"/>
-<polygon fill="orange" stroke="orange" points="173.21,-617.22 181.09,-624.3 179.35,-613.85 173.21,-617.22"/>
+<path fill="none" stroke="orange" d="M176.74,-615.28C167.67,-598.91 158.23,-581.87 149.32,-565.79"/>
+<polygon fill="orange" stroke="orange" points="173.82,-617.25 181.73,-624.3 179.95,-613.86 173.82,-617.25"/>
 <text text-anchor="start" x="168.5" y="-598" font-family="Helvetica,sans-Serif" font-size="10.00"> &lt; Parallel_Edges, Node,</text>
 <text text-anchor="middle" x="228.5" y="-587" font-family="Helvetica,sans-Serif" font-size="10.00"> Time_Type &gt;</text>
 </g>

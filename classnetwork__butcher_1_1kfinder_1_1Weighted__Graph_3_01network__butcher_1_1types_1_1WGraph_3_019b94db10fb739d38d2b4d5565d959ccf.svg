@@ -46,7 +46,7 @@ if (edges && edges.length) {
         </defs>
 
 <script type="text/javascript">
-var viewWidth = 520;
+var viewWidth = 522;
 var viewHeight = 1561;
 var sectionId = 'dynsection-1';
 </script>
@@ -54,7 +54,7 @@ var sectionId = 'dynsection-1';
 <svg id="graph" class="graph">
 <g id="viewport">
 <title>network_butcher::kfinder::Weighted_Graph&lt; network_butcher::types::WGraph&lt; Parallel_Edges, t_Node_Type &gt;, t_Reversed, typename network_butcher::types::WGraph&lt; Parallel_Edges, t_Node_Type &gt;::Node_Type, typename network_butcher::types::WGraph&lt; Parallel_Edges, t_Node_Type &gt;::Node_Collection_Type, Time_Type &gt;</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-1557 516,-1557 516,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-1557 518,-1557 518,4 -4,4"/>
 <!-- Node1 -->
 <g id="node1" class="node">
 <title>Node1</title>
@@ -212,13 +212,13 @@ var sectionId = 'dynsection-1';
 <g id="node7" class="node">
 <title>Node7</title>
 <g id="a_node7"><a xlink:href="classnetwork__butcher_1_1types_1_1MWGraph.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="303,-789.5 303,-945.5 512,-945.5 512,-789.5 303,-789.5"/>
+<polygon fill="white" stroke="black" points="303,-789.5 303,-945.5 514,-945.5 514,-789.5 303,-789.5"/>
 <text text-anchor="start" x="311" y="-933.5" font-family="Helvetica,sans-Serif" font-size="10.00">network_butcher::types</text>
 <text text-anchor="start" x="311" y="-922.5" font-family="Helvetica,sans-Serif" font-size="10.00">::MWGraph&lt; Parallel_Edges,</text>
-<text text-anchor="middle" x="407.5" y="-911.5" font-family="Helvetica,sans-Serif" font-size="10.00"> Template_Node_Type, t_weight_type &gt;</text>
-<polyline fill="none" stroke="black" points="303,-904.5 512,-904.5 "/>
+<text text-anchor="middle" x="408.5" y="-911.5" font-family="Helvetica,sans-Serif" font-size="10.00"> Template_Node_Type, t_Weight_Type &gt;</text>
+<polyline fill="none" stroke="black" points="303,-904.5 514,-904.5 "/>
 <text text-anchor="start" x="311" y="-892.5" font-family="Helvetica,sans-Serif" font-size="10.00"># weigth_map</text>
-<polyline fill="none" stroke="black" points="303,-885.5 512,-885.5 "/>
+<polyline fill="none" stroke="black" points="303,-885.5 514,-885.5 "/>
 <text text-anchor="start" x="311" y="-873.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ MWGraph()</text>
 <text text-anchor="start" x="311" y="-862.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ check_weight()</text>
 <text text-anchor="start" x="311" y="-851.5" font-family="Helvetica,sans-Serif" font-size="10.00">+ get_weight()</text>
@@ -233,8 +233,8 @@ var sectionId = 'dynsection-1';
 <!-- Node5&#45;&gt;Node7 -->
 <g id="edge7" class="edge">
 <title>Node5&#45;&gt;Node7</title>
-<path fill="none" stroke="midnightblue" d="M354.49,-974.29C359.36,-964.58 364.16,-955.01 368.76,-945.82"/>
-<polygon fill="none" stroke="midnightblue" points="351.36,-972.73 350.01,-983.24 357.62,-975.87 351.36,-972.73"/>
+<path fill="none" stroke="midnightblue" d="M355.06,-974.29C359.96,-964.58 364.8,-955.01 369.44,-945.82"/>
+<polygon fill="none" stroke="midnightblue" points="351.92,-972.73 350.54,-983.24 358.17,-975.89 351.92,-972.73"/>
 </g>
 <!-- Node6 -->
 <g id="node6" class="node">
@@ -278,8 +278,8 @@ var sectionId = 'dynsection-1';
 <!-- Node7&#45;&gt;Node4 -->
 <g id="edge6" class="edge">
 <title>Node7&#45;&gt;Node4</title>
-<path fill="none" stroke="orange" d="M360.14,-780.28C351.15,-763.91 341.79,-746.87 332.96,-730.79"/>
-<polygon fill="orange" stroke="orange" points="357.21,-782.22 365.09,-789.3 363.35,-778.85 357.21,-782.22"/>
+<path fill="none" stroke="orange" d="M360.74,-780.28C351.67,-763.91 342.23,-746.87 333.32,-730.79"/>
+<polygon fill="orange" stroke="orange" points="357.82,-782.25 365.73,-789.3 363.95,-778.86 357.82,-782.25"/>
 <text text-anchor="start" x="352.5" y="-763" font-family="Helvetica,sans-Serif" font-size="10.00"> &lt; Parallel_Edges, Node,</text>
 <text text-anchor="middle" x="412.5" y="-752" font-family="Helvetica,sans-Serif" font-size="10.00"> Time_Type &gt;</text>
 </g>

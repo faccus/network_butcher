@@ -193,7 +193,7 @@ Additional Inherited Members</h2></td></tr>
 <div class="textblock"><h3>template&lt;typename GraphType, bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type = Weighted_Graph&lt;GraphType&gt;&gt;<br />
 class network_butcher::kfinder::Basic_KEppstein&lt; GraphType, Only_Distance, t_Weighted_Graph_Complete_Type &gt;</h3>
 
-<p>A (pure virtual) class that provides the common methods that are used by the different Eppstein algorithms </p><dl class="tparams"><dt>Template Parameters</dt><dd>
+<p>A (pure virtual) class that provides the common methods that are used by the different Eppstein algorithms. Complexity computations are referred to WGraph. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">GraphType</td><td>The type of the graph </td></tr>
     <tr><td class="paramname">Only_Distance</td><td>A boolean that indicates if the algorithm should return only the distance or the full paths </td></tr>
@@ -820,7 +820,7 @@ template&lt;typename GraphType , bool Only_Distance, Valid_Weighted_Graph t_Weig
   </tr>
 </table>
 </div><div class="memdoc">
-<p>This function must be specialized by the different algorithms. It should prepare the required H_outs and H_gs and call the general_algo_eppstein function </p><dl class="params"><dt>Parameters</dt><dd>
+<p>This function must be specialized by the different algorithms. It should prepare the required H_outs, H_gs and, if needed, prepare the callback function and, finally, call the general_algo_eppstein function </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">K</td><td>The number of shortest paths to compute </td></tr>
     <tr><td class="paramname">dij_res</td><td>The result of the Dijkstra algorithm </td></tr>

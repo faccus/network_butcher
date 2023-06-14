@@ -1,12 +1,12 @@
 <map id="network_butcher::io::block_aMLLibrary_Weight_Importer" name="network_butcher::io::block_aMLLibrary_Weight_Importer">
-<area shape="rect" id="node1" title="This class will be used to generate and import weights with aMLLibrary into the block graph." alt="" coords="712,1115,931,1471"/>
+<area shape="rect" id="node1" title="This class will be used to generate and import weights with aMLLibrary into the block graph." alt="" coords="715,1115,933,1471"/>
 <area shape="rect" id="node2" href="$classnetwork__butcher_1_1io_1_1Weight__Importer.html" title=" " alt="" coords="29,865,219,1001"/>
 <area shape="rect" id="node3" href="$classnetwork__butcher_1_1io_1_1Weight__Importer.html" title=" " alt="" coords="5,534,243,655"/>
 <area shape="rect" id="node4" href="$structnetwork__butcher_1_1parameters_1_1Parameters_1_1Block__Graph__Generation.html" title="Structure used to contain all the parameters related to the Block Graph Generation." alt="" coords="243,843,458,1023"/>
-<area shape="rect" id="node5" href="$classnetwork__butcher_1_1types_1_1MWGraph.html" title=" " alt="" coords="482,828,761,1037"/>
-<area shape="rect" id="node6" href="$classnetwork__butcher_1_1types_1_1Graph.html" title=" " alt="" coords="534,424,709,765"/>
-<area shape="rect" id="node7" href="$classnetwork__butcher_1_1types_1_1Graph.html" title=" " alt="" coords="529,5,714,361"/>
-<area shape="rect" id="node8" href="$structnetwork__butcher_1_1parameters_1_1Parameters_1_1Model.html" title="Structure used to contain all the model related parameters." alt="" coords="785,865,999,1001"/>
-<area shape="rect" id="node9" href="$structnetwork__butcher_1_1parameters_1_1Parameters_1_1aMLLibrary.html" title="Structure used to contain all the aMLLibrary related parameters." alt="" coords="1023,857,1238,1008"/>
-<area shape="rect" id="node10" href="$structnetwork__butcher_1_1parameters_1_1Parameters_1_1Weights.html" title="Structure used to contain all the weights related parameters." alt="" coords="1262,835,1477,1030"/>
+<area shape="rect" id="node5" href="$classnetwork__butcher_1_1types_1_1MWGraph.html" title=" " alt="" coords="482,828,763,1037"/>
+<area shape="rect" id="node6" href="$classnetwork__butcher_1_1types_1_1Graph.html" title=" " alt="" coords="535,424,710,765"/>
+<area shape="rect" id="node7" href="$classnetwork__butcher_1_1types_1_1Graph.html" title=" " alt="" coords="530,5,715,361"/>
+<area shape="rect" id="node8" href="$structnetwork__butcher_1_1parameters_1_1Parameters_1_1Model.html" title="Structure used to contain all the model related parameters." alt="" coords="787,865,1002,1001"/>
+<area shape="rect" id="node9" href="$structnetwork__butcher_1_1parameters_1_1Parameters_1_1aMLLibrary.html" title="Structure used to contain all the aMLLibrary related parameters." alt="" coords="1026,857,1241,1008"/>
+<area shape="rect" id="node10" href="$structnetwork__butcher_1_1parameters_1_1Parameters_1_1Weights.html" title="Structure used to contain all the weights related parameters." alt="" coords="1265,835,1479,1030"/>
 </map>
