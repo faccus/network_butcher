@@ -11,6 +11,7 @@ namespace network_butcher::constraints
   class Graph_Constraint
   {
   public:
+    /// Default constructor
     Graph_Constraint() = default;
 
     /// Apply the specified constraint to the graph
@@ -44,18 +45,16 @@ namespace network_butcher::constraints
     GraphType const &graph;
 
     /// Helper function used to estimate the memory usage of a group of nodes
-    /// \param devices The devices
     /// \param ids The set of nodes to "analyze"
     /// \param input_memory The memory usage of all input nodes
     /// \param output_memory The memory usage of all output nodes
     /// \param params_memory The memory usage of all parameters nodes
     /// \return The pair of maximum memory of ios and of memory of parameters
     [[nodiscard]] auto
-    estimate_maximum_memory_usage(const std::vector<network_butcher::parameters::Device> &devices,
-                                  const std::set<Node_Id_Type>                           &ids,
-                                  const std::vector<Memory_Type>                         &input_memory,
-                                  const std::vector<Memory_Type>                         &output_memory,
-                                  const std::vector<Memory_Type>                         &params_memory) const
+    estimate_maximum_memory_usage(const std::set<Node_Id_Type>   &ids,
+                                  const std::vector<Memory_Type> &input_memory,
+                                  const std::vector<Memory_Type> &output_memory,
+                                  const std::vector<Memory_Type> &params_memory) const
       -> std::tuple<Memory_Type, Memory_Type>;
 
     /// It will check if the constraint is applicable to the current graph
@@ -185,7 +184,7 @@ namespace network_butcher::constraints
           {
             // Get the IO memory usage and the parameters memory usage
             auto const &[io_mem, param_mem] =
-              estimate_maximum_memory_usage(devices, new_node_content, input_memory, output_memory, params_memory);
+              estimate_maximum_memory_usage(new_node_content, input_memory, output_memory, params_memory);
 
             response_fun_preload_parameters(i, param_mem, io_mem);
           }
@@ -194,12 +193,11 @@ namespace network_butcher::constraints
 
   template <typename GraphType>
   auto
-  Memory_Constraint<GraphType>::estimate_maximum_memory_usage(
-    const std::vector<network_butcher::parameters::Device> &devices,
-    const std::set<Node_Id_Type>                           &ids,
-    const std::vector<Memory_Type>                         &input_memory,
-    const std::vector<Memory_Type>                         &output_memory,
-    const std::vector<Memory_Type>                         &params_memory) const -> std::tuple<Memory_Type, Memory_Type>
+  Memory_Constraint<GraphType>::estimate_maximum_memory_usage(const std::set<Node_Id_Type>   &ids,
+                                                              const std::vector<Memory_Type> &input_memory,
+                                                              const std::vector<Memory_Type> &output_memory,
+                                                              const std::vector<Memory_Type> &params_memory) const
+    -> std::tuple<Memory_Type, Memory_Type>
   {
     Memory_Type result_memory = 0, fixed_memory = 0;
 

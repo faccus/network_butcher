@@ -27,8 +27,8 @@ namespace network_butcher::Utilities
     /// \param paths The collection of paths
     /// \return The different partitioning
     [[nodiscard]] auto
-    convert_to_weighted_real_path(std::vector<network_butcher::kfinder::Templated_Path_Info<Weight_Type>> const &paths) const
-      -> std::vector<network_butcher::types::Weighted_Real_Path>;
+    convert_to_weighted_real_path(std::vector<network_butcher::kfinder::Templated_Path_Info<Weight_Type>> const &paths)
+      const -> std::vector<network_butcher::types::Weighted_Real_Path>;
 
     /// It will convert a path of the block graph to a partitioning
     /// \param path The path
@@ -40,8 +40,8 @@ namespace network_butcher::Utilities
 
   template <typename Weight_Type>
   auto
-  Path_Converter<Weight_Type>::convert_to_weighted_real_path(const kfinder::Templated_Path_Info<Weight_Type> &path) const
-    -> network_butcher::types::Weighted_Real_Path
+  Path_Converter<Weight_Type>::convert_to_weighted_real_path(
+    const kfinder::Templated_Path_Info<Weight_Type> &path) const -> network_butcher::types::Weighted_Real_Path
   {
     return convert_to_weighted_real_path({path});
   }
@@ -59,64 +59,69 @@ namespace network_butcher::Utilities
     std::transform(
       std::execution::par, paths.cbegin(), paths.cend(), final_res.begin(), [&graph = graph](auto const &path) {
         network_butcher::types::Real_Path res;
-        std::size_t                       current_model_device = 0;
+        auto const                       &path_nodes = path.path;
 
-        res.emplace_back(current_model_device, std::set<Node_Id_Type>());
-
-        auto const &path_nodes = path.path;
-
-        // Loop through the nodes of the path
-        for (auto const &node_id_new_graph : path_nodes)
+        if (!path_nodes.empty())
           {
-            auto const &node = graph[node_id_new_graph];
+            std::size_t current_model_device = graph[path_nodes.front()].content.first;
 
-            // Check if a new device is requested
-            if (node.content.first != current_model_device)
+            res.emplace_back(current_model_device, std::set<Node_Id_Type>());
+
+            // Loop through the nodes of the path
+            for (auto const &node_id_new_graph : path_nodes)
               {
-                // Add a new partition
-                current_model_device = node.content.first;
-                res.emplace_back(current_model_device, std::set<Node_Id_Type>());
-              }
+                auto const &node = graph[node_id_new_graph];
 
-            // Add the current node to the last partition
-            res.back().second.insert(node.content.second->begin(), node.content.second->end());
+                // Check if a new device is requested
+                if (node.content.first != current_model_device)
+                  {
+                    // Add a new partition
+                    current_model_device = node.content.first;
+                    res.emplace_back(current_model_device, std::set<Node_Id_Type>());
+                  }
+
+                // Add the current node to the last partition
+                res.back().second.insert(node.content.second->begin(), node.content.second->end());
+              }
           }
 
         return network_butcher::types::Weighted_Real_Path{path.length, std::move(res)};
       });
 #else
-    #pragma omp parallel default(none) shared(final_res, paths)
+#  pragma omp parallel default(none) shared(final_res, paths)
     {
-      #pragma omp for
+#  pragma omp for
       for (std::size_t i = 0; i < paths.size(); ++i)
         {
           auto const &path     = paths[i];
           auto       &res      = final_res[i];
           auto       &path_res = res.second;
 
-          res.first = path.length;
-
-          std::size_t current_model_device = 0;
-
-          path_res.emplace_back(current_model_device, std::set<Node_Id_Type>());
-
+          res.first              = path.length;
           auto const &path_nodes = path.path;
 
-          // Loop through the nodes of the path
-          for (auto const &node_id_new_graph : path_nodes)
+          if (!path_nodes.empty())
             {
-              auto const &node = graph[node_id_new_graph];
+              // The first device id
+              std::size_t current_model_device = graph[path_nodes.front()].content.first;
+              path_res.emplace_back(current_model_device, std::set<Node_Id_Type>());
 
-              // Check if a new device is requested
-              if (node.content.first != current_model_device)
+              // Loop through the nodes of the path
+              for (auto const &node_id_new_graph : path_nodes)
                 {
-                  // Add a new partition
-                  current_model_device = node.content.first;
-                  path_res.emplace_back(current_model_device, std::set<Node_Id_Type>());
-                }
+                  auto const &node = graph[node_id_new_graph];
 
-              // Add the current node to the last partition
-              path_res.back().second.insert(node.content.second->begin(), node.content.second->end());
+                  // Check if a new device is requested
+                  if (node.content.first != current_model_device)
+                    {
+                      // Add a new partition
+                      current_model_device = node.content.first;
+                      path_res.emplace_back(current_model_device, std::set<Node_Id_Type>());
+                    }
+
+                  // Add the current node to the last partition
+                  path_res.back().second.insert(node.content.second->begin(), node.content.second->end());
+                }
             }
         }
     }
