@@ -69,7 +69,7 @@ namespace network_butcher
     void
     apply_constraints(Block_Graph_Type &new_graph) const;
 
-    /// Import operation weights using an importer
+    /// Try to import operation weights using an importer
     /// \param new_graph The block graph
     /// \return True if the import was successful, false if it was not performed
     auto
@@ -178,6 +178,7 @@ namespace network_butcher
     // Check if we have to generate the weights though aMLLibrary
     if (weights_params.weight_import_mode == Weight_Import_Mode::aMLLibrary_block)
       {
+        // aMLLibrary can only be applied if we are dealing with an Onnx model.
         if constexpr (std::is_same_v<GraphType, Converted_Onnx_Graph_Type>)
           {
             io::block_aMLLibrary_Weight_Importer(this->original_graph,
@@ -275,6 +276,7 @@ namespace network_butcher
   auto
   Constrained_Block_Graph_Builder<GraphType>::build_block_graph() const -> Block_Graph_Type
   {
+    // If the original graph has one node, the block graph will have a single node
     if (original_graph.size() == 1)
       {
         std::vector<Block_Graph_Type::Node_Type> res;
@@ -283,6 +285,7 @@ namespace network_butcher
 
         return Block_Graph_Type(std::move(res), Block_Graph_Type::Neighbours_Type(1));
       }
+    // If the original graph has two nodes, the block graph wil be made by two nodes
     else if (original_graph.size() == 2)
       {
         std::vector<Block_Graph_Type::Node_Type> res;
@@ -312,10 +315,12 @@ namespace network_butcher
 
       std::list<Block_Graph_Type::Node_Type> starting_nodes;
 
+      // If counter is immediately greater than one, the model input is used by two or more layers. Thus, we will
+      // immediately insert a block node. The input padding node will insert later
       if (counter > 0)
         {
           starting_nodes.emplace_back(Block_Graph_Type::Node_Type::Content_Type{0, nullptr});
-          starting_nodes.back().content.second = std::make_shared<Node_Id_Collection_Type>(Node_Id_Collection_Type{});
+          starting_nodes.back().content.second = std::make_shared<Node_Id_Collection_Type>();
         }
 
       // Cycle through all the nodes of the graph
@@ -400,11 +405,11 @@ namespace network_butcher
 
       // If the block graph mode is not set to classic, then we need to merge either the input or the output nodes of
       // the block nodes
-      if (starting_nodes.size() > 2 && mode != network_butcher::parameters::Block_Graph_Generation_Mode::classic)
+      if (starting_nodes.size() > 3 && mode != network_butcher::parameters::Block_Graph_Generation_Mode::classic)
         {
           // Simple lambda to be used to merge the nodes contained in the two specified collections. It will also change
           // the two original iterators. Returns false if the new iterator is the container_end
-          auto const merge_nodes = [&starting_nodes](auto &it_succ, auto &it_prec, auto container_end) {
+          auto const merge_nodes = [&starting_nodes](auto &it_succ, auto &it_prec, auto const &container_end) {
             auto &it_nodes_edit = it_succ->content.second;
 
             it_prec->content.second->insert(std::make_move_iterator(it_nodes_edit->begin()),
@@ -700,7 +705,7 @@ namespace network_butcher
           auto &in = new_dependencies.back().first;
           for (Device_Id_Type k = 0; k < num_devices; ++k)
             {
-              // Check if it is in the neighbour or if it's allowed by an output bandwidth
+              // Check if it is in the neighbor or if it's allowed by an output bandwidth
               if (device_inputs_sink.contains(k) ||
                   weights_params.out_bandwidth.find(std::pair(k, block_graph_generation_params.ending_device_id)) !=
                     weights_params.out_bandwidth.cend())
@@ -715,12 +720,12 @@ namespace network_butcher
 
     // Prepare the collection of nodes
     Block_Graph_Type::Node_Collection_Type new_nodes;
-    std::size_t supp_size = 0;
+    std::size_t                            supp_size = 0;
 
     {
       // Get the linearized graph
       auto starting_nodes = linearize_graph(this->original_graph, block_graph_generation_params.block_graph_mode);
-      supp_size = starting_nodes.size() - 2;
+      supp_size           = starting_nodes.size() - 2;
 
       // Add the required nodes to the collection of nodes
       add_extra_nodes_per_device(starting_nodes, this->original_graph.get_num_devices());
@@ -759,7 +764,7 @@ namespace network_butcher
   auto
   Constrained_Block_Graph_Builder<GraphType>::construct_block_graph() const -> Block_Graph_Type
   {
-    // Construct the "naked" block graph
+    // Construct the unweighted block graph
     auto new_graph = build_block_graph();
 
     // Apply weights from the original graph
@@ -852,6 +857,7 @@ namespace network_butcher
                 {
                   for (auto &internal_output : graph.get_output_nodes(internal_input))
                     {
+                      // Is the internal_output part of the block node?
                       if (outputs.find(internal_output) != outputs.cend())
                         {
                           weight_cost +=
@@ -866,11 +872,12 @@ namespace network_butcher
           // cost for the outputs
           else
             {
-              // In classic mode, every edge can have at most one 2+ node.
+              // In classic mode, (2+)-(2+) edges are not allowed! There is an error somewhere
               if (mode == Block_Graph_Generation_Mode::classic)
                 {
-                  throw std::logic_error("The edge (" + std::to_string(edge.first) + ", " +
-                                         std::to_string(edge.second) + ") has both multiple inputs and outputs!");
+                  throw std::logic_error("Constrained_Block_Graph_Builder::apply_operation_weights: The edge (" +
+                                         std::to_string(edge.first) + ", " + std::to_string(edge.second) +
+                                         ") has both multiple inputs and outputs!");
                 }
               // In input and output mode, every edge can have up to two 2+ nodes.
               else
@@ -893,10 +900,8 @@ namespace network_butcher
 
                   if (!set)
                     {
-                      std::stringstream stt;
-                      stt << "Missing weight in block graph generation!" << std::endl;
-
-                      throw std::logic_error(stt.str());
+                      throw std::logic_error("Constrained_Block_Graph_Builder::apply_operation_weights: Missing weight "
+                                             "in block graph generation!");
                     }
                 }
             }
@@ -991,15 +996,15 @@ namespace network_butcher
               // In classic mode, every edge can have at most one 2+ node.
               if (mode == Block_Graph_Generation_Mode::classic)
                 {
-                  throw std::logic_error("The edge (" + std::to_string(edge.first) + ", " +
-                                         std::to_string(edge.second) + ") has both multiple inputs and outputs!");
+                  throw std::logic_error("Constrained_Block_Graph_Builder::apply_transmission_weights: The edge (" +
+                                         std::to_string(edge.first) + ", " + std::to_string(edge.second) +
+                                         ") has both multiple inputs and outputs!");
                 }
               // In input and output mode, every edge can have up to two 2+ nodes.
               else
                 {
                   // This is the collection of the input nodes of every node contained in outputs
                   std::set<Node_Id_Type> output_node_inputs;
-
                   for (auto const &node_id : outputs)
                     {
                       auto const &tmp_nodes = graph.get_input_nodes(node_id);
