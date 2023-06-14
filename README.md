@@ -53,7 +53,7 @@ This, however, adds some extra requirements:
 
 - [PyBind v2.10.3](https://github.com/pybind/pybind11/releases/tag/v2.10.3).
   The library will be automatically downloaded and compiled by CMake. 
-  However, it requires Python3 and pip to be installed.
+  However, it requires Python (either 3.9 or 3.10) and pip to be installed.
 - [aMLLibrary](https://github.com/brunoguindani/aMLLibrary/tree/933be8b094ca468d4813fe0c837fc6d46cc608d2) (Python github
   project). 
   A local version of the package is already available (as a submodule) in the dep directory. 
