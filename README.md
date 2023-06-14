@@ -144,8 +144,7 @@ cd build
 
 3. Prepare the directory for the build:
 ```bash
-cmake -DCMAKE_BUILD_TYPE=Release -S .. -B . -DBUILD_PROTOBUF_SOURCE=ON -DUSE_GOOGLETEST=ON -DDISCOVER_COMPLETE_TESTS=ON
--DENABLE_NETWORK_BUTCHER_PARALLEL=OFF -DUSE_OPENMP=ON -DUSE_PYBIND=OFF -DBUILD_DOC=OFF
+cmake -DCMAKE_BUILD_TYPE=Release -S .. -B . -DBUILD_PROTOBUF_SOURCE=ON -DUSE_GOOGLETEST=ON -DDISCOVER_COMPLETE_TESTS=ON -DENABLE_NETWORK_BUTCHER_PARALLEL=OFF -DUSE_OPENMP=ON -DUSE_PYBIND=OFF -DBUILD_DOC=OFF
 ```
 You can customize the command by changing to ON/OFF the various options.
 If you prefer to edit manually the file, you can edit the options in the CMakeLists.txt file in the root directory of 
