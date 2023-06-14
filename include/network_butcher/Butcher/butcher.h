@@ -30,11 +30,10 @@ namespace network_butcher
     using new_network = Block_Graph_Type;
 
   private:
-    network graph; //< The graph to be partitioned
+    /// The graph to be partitioned
+    network graph;
 
   public:
-    Butcher() = default;
-
     /// Constructor
     /// \param g The input graph. It will be moved (if possible)
     explicit Butcher(network &&g)
