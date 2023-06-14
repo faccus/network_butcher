@@ -1,14 +1,14 @@
 <map id="include/network_butcher/IO_Interaction/weight_importers.h" name="include/network_butcher/IO_Interaction/weight_importers.h">
-<area shape="rect" id="node1" title=" " alt="" coords="320,5,503,61"/>
-<area shape="rect" id="node2" href="$butcher_8h.html" title=" " alt="" coords="184,213,367,255"/>
-<area shape="rect" id="node4" href="$io__manager_8h.html" title=" " alt="" coords="491,414,673,455"/>
-<area shape="rect" id="node12" href="$constrained__block__graph__builder_8h.html" title=" " alt="" coords="176,109,375,165"/>
-<area shape="rect" id="node3" href="$onnx__importer__helpers_8h.html" title=" " alt="" coords="298,303,514,359"/>
-<area shape="rect" id="node6" href="$network__butcher_8h.html" title=" " alt="" coords="385,600,568,641"/>
-<area shape="rect" id="node10" href="$onnx__model__reconstructor__helpers_8h.html" title=" " alt="" coords="72,303,273,359"/>
-<area shape="rect" id="node9" href="$onnx__importer__helpers_8cpp.html" title=" " alt="" coords="263,414,466,455"/>
-<area shape="rect" id="node5" href="$general__manager_8h.html" title=" " alt="" coords="555,511,737,552"/>
-<area shape="rect" id="node8" href="$io__manager_8cpp.html" title=" " alt="" coords="331,518,479,545"/>
-<area shape="rect" id="node7" href="$general__manager_8cpp.html" title=" " alt="" coords="592,607,777,634"/>
-<area shape="rect" id="node11" href="$onnx__model__reconstructor__helpers_8cpp.html" title=" " alt="" coords="40,407,239,463"/>
+<area shape="rect" id="node1" title=" " alt="" coords="323,5,506,61"/>
+<area shape="rect" id="node2" href="$butcher_8h.html" title=" " alt="" coords="187,213,370,255"/>
+<area shape="rect" id="node4" href="$io__manager_8h.html" title=" " alt="" coords="490,414,672,455"/>
+<area shape="rect" id="node12" href="$constrained__block__graph__builder_8h.html" title=" " alt="" coords="179,109,378,165"/>
+<area shape="rect" id="node3" href="$onnx__model__reconstructor__helpers_8h.html" title=" " alt="" coords="311,303,512,359"/>
+<area shape="rect" id="node6" href="$network__butcher_8h.html" title=" " alt="" coords="384,600,567,641"/>
+<area shape="rect" id="node10" href="$onnx__importer__helpers_8h.html" title=" " alt="" coords="70,303,286,359"/>
+<area shape="rect" id="node9" href="$onnx__model__reconstructor__helpers_8cpp.html" title=" " alt="" coords="267,407,466,463"/>
+<area shape="rect" id="node5" href="$general__manager_8h.html" title=" " alt="" coords="554,511,736,552"/>
+<area shape="rect" id="node8" href="$io__manager_8cpp.html" title=" " alt="" coords="330,518,478,545"/>
+<area shape="rect" id="node7" href="$general__manager_8cpp.html" title=" " alt="" coords="591,607,776,634"/>
+<area shape="rect" id="node11" href="$onnx__importer__helpers_8cpp.html" title=" " alt="" coords="40,414,242,455"/>
 </map>
