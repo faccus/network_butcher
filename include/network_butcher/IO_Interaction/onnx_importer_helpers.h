@@ -96,10 +96,15 @@ namespace network_butcher::io::Onnx_importer_helpers
   /// \param input_map The input_map
   /// \param collection The collection of IO elements
   /// \param initialized The collection of names of the initialized IO elements
+  /// \param extra_initialized_condition Should an initializer also be a tensor that is not part of the second collection?
+  /// \param extra_non_initialized_condition It contains the name of the tensors that are NOT initialized. If a tensor is
+  /// not in this collection, then it is considered as an initializer (and, thus, as a node parameter)
   void
   read_ios(Map_IO                                          &input_map,
            RepeatablePtr_field<onnx::ValueInfoProto> const &collection,
-           std::set<std::string> const                     &initialized);
+           std::set<std::string> const                     &initialized,
+           bool                                             extra_initialized_condition     = false,
+           std::set<std::string> const                     &extra_non_initialized_condition = {});
 
 
   /// Inserts into the input_map the valid elements (onnx::TensorProto) contained in collection and
@@ -145,17 +150,11 @@ namespace network_butcher::io::Onnx_importer_helpers
   /// It will produce a map that associates to the tensor name of either an input, an output or a value_info (a
   /// non-input and non-output tensor) to a shared_ptr to Dense_tensor. Moreover, it will produce the value infos and
   /// two set<string> with the names of the input and output tensors respectively
-  /// \param onnx_input The inputs of a onnx::GraphProto
-  /// \param onnx_output The outputs of a onnx::GraphProto
-  /// \param onnx_value_info The value_infos of a onnx::GraphProto
-  /// \param onnx_initializer The collection of already "known" parameters
+  /// \param onnx_graph The onnx_graph
   /// \return The map of value infos (containing inputs, outputs and value_infos), the set of input names and the set of
   /// output names
   auto
-  compute_value_infos(RepeatablePtr_field<::onnx::ValueInfoProto> const &onnx_input,
-                      RepeatablePtr_field<::onnx::ValueInfoProto> const &onnx_output,
-                      RepeatablePtr_field<::onnx::ValueInfoProto> const &onnx_value_info,
-                      RepeatablePtr_field<::onnx::TensorProto> const    &onnx_initializer)
+  compute_value_infos(onnx::GraphProto const &onnx_graph)
     -> helpers_structures::Processed_Value_Infos_Type;
 
 

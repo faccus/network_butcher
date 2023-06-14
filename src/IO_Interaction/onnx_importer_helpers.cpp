@@ -48,52 +48,66 @@ namespace network_butcher::io
 
 
   auto
-  Onnx_importer_helpers::compute_value_infos(const RepeatablePtr_field<::onnx::ValueInfoProto> &onnx_input,
-                                             const RepeatablePtr_field<::onnx::ValueInfoProto> &onnx_output,
-                                             const RepeatablePtr_field<::onnx::ValueInfoProto> &onnx_value_info,
-                                             const RepeatablePtr_field<::onnx::TensorProto>    &onnx_initializer)
+  Onnx_importer_helpers::compute_value_infos(onnx::GraphProto const &onnx_graph)
     -> helpers_structures::Processed_Value_Infos_Type
   {
     std::set<std::string> onnx_inputs_ids;
     std::set<std::string> onnx_outputs_ids;
 
+    auto const &graph_output = onnx_graph.output();
+
     // Add to onnx_outputs_ids the names of the onnx_outputs
-    populate_id_collection(onnx_output, onnx_outputs_ids);
+    populate_id_collection(graph_output, onnx_outputs_ids);
 
     Map_IO value_infos;
 
 
     std::set<std::string> tmp_onnx_inputs_ids;
-    populate_id_collection(onnx_input, tmp_onnx_inputs_ids);
+    populate_id_collection(onnx_graph.input(), tmp_onnx_inputs_ids);
 
     // Collection of the tensor names that have already been initialized
     std::set<std::string> initialized;
-    for (auto const &p : onnx_initializer)
+    for (auto const &p : onnx_graph.initializer())
       {
         initialized.insert(p.name());
       }
 
+    {
+      std::vector<std::string> int_res(std::max(tmp_onnx_inputs_ids.size(), initialized.size()));
 
-    std::vector<std::string> int_res(std::max(tmp_onnx_inputs_ids.size(), initialized.size()));
+      // Add to int_res the non-initialized inputs
+      auto it = std::set_difference(tmp_onnx_inputs_ids.cbegin(),
+                                    tmp_onnx_inputs_ids.cend(),
+                                    initialized.cbegin(),
+                                    initialized.cend(),
+                                    int_res.begin());
 
-    // Add to int_res the non-initialized inputs
-    auto it = std::set_difference(tmp_onnx_inputs_ids.cbegin(),
-                                  tmp_onnx_inputs_ids.cend(),
-                                  initialized.cbegin(),
-                                  initialized.cend(),
-                                  int_res.begin());
+      int_res.resize(it - int_res.begin());
 
-    int_res.resize(it - int_res.begin());
-
-    // Graph inputs
-    onnx_inputs_ids.insert(int_res.cbegin(), int_res.cend());
+      // Graph inputs
+      onnx_inputs_ids.insert(int_res.cbegin(), int_res.cend());
+    }
 
     // Process the remaining tensors
-    read_ios(value_infos, onnx_input, initialized);
-    read_ios(value_infos, onnx_output, initialized);
-    read_ios(value_infos, onnx_value_info, initialized);
+    read_ios(value_infos, graph_output, initialized);
+    read_ios(value_infos, onnx_graph.initializer(), initialized);
 
-    read_ios(value_infos, onnx_initializer, initialized);
+    // Insert in the collection the output of each node that do not match the graph output
+    std::set<std::string> node_outputs;
+    node_outputs.insert(onnx_inputs_ids.cbegin(), onnx_inputs_ids.cend());
+    for (auto const &node : onnx_graph.node())
+      {
+        for (auto const &out : node.output())
+          {
+            if (!onnx_outputs_ids.contains(out))
+              {
+                node_outputs.insert(out);
+              }
+          }
+      }
+
+    read_ios(value_infos, onnx_graph.input(), initialized, true, node_outputs);
+    read_ios(value_infos, onnx_graph.value_info(), initialized, true, node_outputs);
 
     return helpers_structures::Processed_Value_Infos_Type{.value_infos      = std::move(value_infos),
                                                           .onnx_inputs_ids  = std::move(onnx_inputs_ids),
@@ -142,7 +156,9 @@ namespace network_butcher::io
   void
   Onnx_importer_helpers::read_ios(Onnx_importer_helpers::Map_IO                   &input_map,
                                   const RepeatablePtr_field<onnx::ValueInfoProto> &collection,
-                                  const std::set<std::string>                     &initialized)
+                                  const std::set<std::string>                     &initialized,
+                                  bool                                             extra_initialized_condition,
+                                  std::set<std::string> const                     &extra_non_initialized_condition)
   {
     for (const auto &value_info : collection)
       {
@@ -150,9 +166,10 @@ namespace network_butcher::io
         if (value_info.IsInitialized() && value_info.type().has_tensor_type() && !input_map.contains(value_info.name()))
           {
             // Add it to the input_map
-            input_map[value_info.name()] =
-              std::make_shared<network_butcher::types::Dense_tensor>(value_info,
-                                                                     initialized.contains(value_info.name()));
+            input_map[value_info.name()] = std::make_shared<network_butcher::types::Dense_tensor>(
+              value_info,
+              initialized.contains(value_info.name()) ||
+                (extra_initialized_condition && !extra_non_initialized_condition.contains(value_info.name())));
           }
       }
   }
@@ -203,8 +220,7 @@ namespace network_butcher::io
   Onnx_importer_helpers::prepare_import_from_onnx(const onnx::GraphProto &onnx_graph)
     -> helpers_structures::Prepared_Import_Onnx_Type
   {
-    auto [value_infos, onnx_inputs_ids, onnx_outputs_ids] =
-      compute_value_infos(onnx_graph.input(), onnx_graph.output(), onnx_graph.value_info(), onnx_graph.initializer());
+    auto [value_infos, onnx_inputs_ids, onnx_outputs_ids] = compute_value_infos(onnx_graph);
 
     return helpers_structures::Prepared_Import_Onnx_Type{
       .value_infos = std::move(value_infos),
