@@ -68,15 +68,17 @@ python3 -m pip install -r dep/aMLLibrary/requirements.txt
 ```bash
 python3 -m pip install onnx-tool==0.6.1
 ```
-pybind11 requires, to properly function, that the installed python packages are under its own internal python PATH (different from the one 
+pybind11 requires, to properly function, that the installed python packages are under the root python PATH (different from the one 
 set by the user). Since this path can only be modified at runtime, if pybind is active and aMLLibrary weight importer is used, 
 you can either: 
-- (Recommended) Use the Docker container (provided below).
+- (Recommended) Use the Docker container (provided below). It will install all the required libraries and python packages (as root),
+avoiding all the permission related problems.
 - Set, if a configuration file is used to perform the partitioning, the path of the directory containing the packages 
 (option extra_packages_location) in the configuration file. If required, multiple paths can be specified.
+- (Not Recommended) Install the previous packages as root.
 - (Not Recommended) Before performing the configuration of the build directory, you can edit the template_platform_specific_config.h.in
-file by specyfying the path of the directory containing the packages in place of NON_STANDARD_PACKAGE_PATH (limitied to one path). 
-Then, rename the file to platform_specific_config.h.in . 
+file by specyfying the path of the directory containing the packages in place of NON_STANDARD_PACKAGE_PATH (limited to one path). 
+Then, rename the file to platform_specific_config.h.in. 
 This procedure is currently being use on Github to run all the tests without any errors.
 
 The CMakeLists.txt file exposes some options that may be changed to avoid the usage of some of the previously cited
