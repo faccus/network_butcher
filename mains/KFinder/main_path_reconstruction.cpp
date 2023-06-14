@@ -123,7 +123,7 @@ main(int argc, char **argv)
   auto &factory = KFinder_Factory<Graph_type_Parallel, false, Weighted_Graph_Parallel_type<false>>::Instance();
   for (auto const &file_name : get_test_names())
     {
-      std::string input = "test_data/kfinder/in/" + file_name + ".in";
+      std::string input = "../google_tests/test_data/kfinder/in/" + file_name + ".in";
 
       std::cout << "Processing file: " << input << std::endl;
 
