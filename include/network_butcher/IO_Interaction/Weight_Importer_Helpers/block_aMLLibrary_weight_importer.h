@@ -22,30 +22,29 @@
 namespace network_butcher::io
 {
   /// This class will be used to generate and import weights with aMLLibrary into the block graph
-  class block_aMLLibrary_Weight_Importer : public Weight_Importer
+  class block_aMLLibrary_Weight_Importer : public Weight_Importer<Block_Graph_Type>
   {
   protected:
     /// The collection of block graph related parameters
     network_butcher::parameters::Parameters::Block_Graph_Generation const &block_graph_generation_params;
 
     /// The collection of aMLLibrary related parameters
-    network_butcher::parameters::Parameters::aMLLibrary const             &aMLLibrary_params;
+    network_butcher::parameters::Parameters::aMLLibrary const &aMLLibrary_params;
 
     /// The collection of weights related parameters
-    parameters::Parameters::Weights const                                 &weights_params;
+    parameters::Parameters::Weights const &weights_params;
 
     /// The collection of model related parameters
-    network_butcher::parameters::Parameters::Model const                  &model_params;
+    network_butcher::parameters::Parameters::Model const &model_params;
 
     /// The collection of devices
-    parameters::Parameters::Devices const                                 &devices;
+    parameters::Parameters::Devices const &devices;
 
     /// The original graph
-    Converted_Onnx_Graph_Type const &graph;
+    Converted_Onnx_Graph_Type const &original_graph;
 
     /// The block graph
-    Block_Graph_Type                &new_graph;
-
+    using Weight_Importer<Block_Graph_Type>::graph;
 
 
     /// It will check if the aMLLibrary is available
@@ -65,7 +64,7 @@ namespace network_butcher::io
     static void
     prepare_predict_file(std::string const &inference_variable,
                          std::string const &input_path,
-                         std::string        output_path = "") ;
+                         std::string        output_path = "");
 
 
     /// It will execute the weight generator
@@ -138,16 +137,15 @@ namespace network_butcher::io
 
   public:
     block_aMLLibrary_Weight_Importer(
-      Converted_Onnx_Graph_Type const                                       &graph,
-      Block_Graph_Type                                                      &new_graph,
+      Converted_Onnx_Graph_Type const                                       &original_graph,
+      Block_Graph_Type                                                      &graph,
       network_butcher::parameters::Parameters::Block_Graph_Generation const &block_graph_generation_params,
       network_butcher::parameters::Parameters::aMLLibrary const             &aMLLibrary_params,
       parameters::Parameters::Weights const                                 &weights_params,
       network_butcher::parameters::Parameters::Model const                  &model_params,
       parameters::Parameters::Devices const                                 &devices)
-      : Weight_Importer()
-      , graph{graph}
-      , new_graph{new_graph}
+      : Weight_Importer(graph)
+      , original_graph{original_graph}
       , block_graph_generation_params{block_graph_generation_params}
       , aMLLibrary_params{aMLLibrary_params}
       , weights_params{weights_params}
@@ -157,11 +155,11 @@ namespace network_butcher::io
       check_aMLLibrary();
     };
 
-    block_aMLLibrary_Weight_Importer(Converted_Onnx_Graph_Type const               &graph,
-                                     Block_Graph_Type                              &new_graph,
+    block_aMLLibrary_Weight_Importer(Converted_Onnx_Graph_Type const               &original_graph,
+                                     Block_Graph_Type                              &graph,
                                      network_butcher::parameters::Parameters const &params)
-      : block_aMLLibrary_Weight_Importer(graph,
-                                         new_graph,
+      : block_aMLLibrary_Weight_Importer(original_graph,
+                                         graph,
                                          params.block_graph_generation_params,
                                          params.aMLLibrary_params,
                                          params.weights_params,
@@ -172,12 +170,6 @@ namespace network_butcher::io
     /// It will import the weights into the block graph
     void
     import_weights() override;
-
-    /// It will import the weights into the block graph
-    /// \param extra_condition A function that will be used to filter the nodes to import (it will skip the nodes that
-    /// do not satisfy the condition)
-    void
-    import_weights(std::function<bool(Block_Graph_Type::Node_Type const &)> const &extra_condition);
 
     ~block_aMLLibrary_Weight_Importer() override = default;
   };

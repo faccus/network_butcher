@@ -84,7 +84,7 @@ namespace network_butcher::io
                       << (single_call ? paths.front() : paths[i])
                       << " file do not coincide with the number of "
                          "nodes in the block graph ("
-                      << (graph.size() - 2) / devices.size() << "). I will still proceed with the import" << std::endl;
+                      << (graph.size() - 2) / devices.size() << "). I will still proceed with the import." << std::endl;
           }
 
         for (auto const &weight : weights)

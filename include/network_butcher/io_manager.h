@@ -18,7 +18,7 @@ namespace network_butcher::io::IO_Manager::utilities
   /// \return The Weight_Importer
   auto
   generate_weight_importer(Converted_Onnx_Graph_Type &graph, network_butcher::parameters::Parameters const &params)
-    -> std::unique_ptr<Weight_Importer>;
+    -> std::unique_ptr<Weight_Importer<Converted_Onnx_Graph_Type>>;
 
   /// Based on the original graph and the partitions device/nodes, it will produce the "butchered" models and
   /// export them to the specified path (directory / name)

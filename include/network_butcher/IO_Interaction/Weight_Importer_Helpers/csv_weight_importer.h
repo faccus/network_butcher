@@ -6,14 +6,16 @@
 
 namespace network_butcher::io
 {
-  /// This class will be used to import weights from a .csv file into a graph
+  /// This class will be used to import weights from a .csv file into the edges of the graph. The number of weights (for
+  /// each device) must match both the number of nodes as well as their ordering (e.g. the ith weight in the chosen
+  /// column of the CSV file correspond to the ith node. The weight will be assigned to the edges whose head node is the ith).
   /// \tparam GraphType The graph type
   template <typename GraphType>
-  class Csv_Weight_Importer : public Weight_Importer
+  class Csv_Weight_Importer : public Weight_Importer<GraphType>
   {
   protected:
     /// A reference to the graph
-    GraphType &graph;
+    using Weight_Importer<GraphType>::graph;
 
     /// The path(s) to the .csv file(s)
     std::vector<std::string> paths;
@@ -63,8 +65,7 @@ namespace network_butcher::io
                         std::vector<std::size_t> const &devices,
                         char                            separator         = ',',
                         bool                            only_non_negative = false)
-      : Weight_Importer()
-      , graph{graph}
+      : Weight_Importer<GraphType>(graph)
       , paths{paths}
       , devices{devices}
       , relevant_entries{relevant_entries}
@@ -85,8 +86,7 @@ namespace network_butcher::io
                         std::vector<network_butcher::parameters::Device> const &devices,
                         char                                                    separator         = ',',
                         bool                                                    only_non_negative = false)
-      : Weight_Importer()
-      , graph{graph}
+      : Weight_Importer<GraphType>(graph)
       , paths{paths}
       , devices{}
       , relevant_entries{relevant_entries}
@@ -109,8 +109,7 @@ namespace network_butcher::io
                         std::vector<network_butcher::parameters::Device> const &devices,
                         char                                                    separator         = ',',
                         bool                                                    only_non_negative = false)
-      : Weight_Importer()
-      , graph{graph}
+      : Weight_Importer<GraphType>(graph)
       , separator{separator}
       , only_non_negative{only_non_negative}
     {

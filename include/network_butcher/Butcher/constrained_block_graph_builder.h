@@ -209,15 +209,7 @@ namespace network_butcher
     // Check if we have to import the block graph weights directly from multiple .csv files
     else if (weights_params.weight_import_mode == Weight_Import_Mode::block_multiple_direct_read)
       {
-        std::vector<std::string> paths, entries;
-        for (auto const &device : devices)
-          {
-            paths.push_back(device.weights_path);
-            entries.push_back(device.relevant_entry);
-          }
-
-        io::Csv_Weight_Importer<Block_Graph_Type>(new_graph, paths, entries, devices, weights_params.separator)
-          .import_weights();
+        io::Csv_Weight_Importer<Block_Graph_Type>(new_graph, devices, weights_params.separator).import_weights();
       }
     else
       return false;

@@ -520,7 +520,7 @@ namespace network_butcher::io::IO_Manager
   auto
   utilities::generate_weight_importer(Converted_Onnx_Graph_Type                     &graph,
                                       network_butcher::parameters::Parameters const &params)
-    -> std::unique_ptr<Weight_Importer>
+    -> std::unique_ptr<Weight_Importer<Converted_Onnx_Graph_Type>>
   {
     switch (params.weights_params.weight_import_mode)
       {
