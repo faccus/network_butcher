@@ -65,17 +65,17 @@ namespace network_butcher::io
     static void
     prepare_predict_file(std::string const &inference_variable,
                          std::string const &input_path,
-                         std::string        output_path = "");
+                         std::string        output_path = "") ;
 
 
     /// It will execute the weight generator
-    /// \param regressor_file The regressor file
+    /// \param regressor_file The regressor model path
     /// \param config_file The configuration file
     /// \param output_path The output path
-    static void
+    void
     execute_weight_generator(const std::string &regressor_file,
                              const std::string &config_file,
-                             const std::string &output_path);
+                             const std::string &output_path) const;
 
 
     /// It will execute onnx_tool in order to obtain the network information
