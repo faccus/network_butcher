@@ -1,3 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$structnetwork__butcher_1_1io_1_1Weight__importer__helpers_1_1Onnx__Tool__Output__Type.html" title="It summarizes an entry produced by onnx_tool." alt="" coords="5,5,199,61"/>
+<area shape="rect" id="node1" href="$classnetwork__butcher_1_1io_1_1Weight__Importer.html" title=" " alt="" coords="5,13,243,54"/>
+<area shape="rect" id="node2" href="$classnetwork__butcher_1_1io_1_1Csv__Weight__Importer.html" title=" " alt="" coords="291,5,460,61"/>
 </map>

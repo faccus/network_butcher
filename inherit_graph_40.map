@@ -1,3 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classnetwork__butcher_1_1Utilities_1_1Path__Converter.html" title=" " alt="" coords="5,5,247,47"/>
+<area shape="rect" id="node1" href="$classnetwork__butcher_1_1types_1_1Type__Info.html" title="Generic type contained in a onnx model (only type information, no values are actually stored)" alt="" coords="5,5,180,47"/>
+<area shape="rect" id="node2" href="$classnetwork__butcher_1_1types_1_1Dense__tensor.html" title="(Dense) Tensor type of an onnx model" alt="" coords="228,5,403,47"/>
 </map>

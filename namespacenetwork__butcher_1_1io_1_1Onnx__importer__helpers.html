@@ -87,6 +87,7 @@ Namespaces</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
 <tr class="memitem:aab4b5900dad354afb872ce3bc3494667"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacenetwork__butcher_1_1io_1_1Onnx__importer__helpers.html#aab4b5900dad354afb872ce3bc3494667">Map_IO</a> = std::unordered_map&lt; std::string, <a class="el" href="namespacenetwork__butcher.html#a32c074f0890f25f680914a7e0fa682b8">Type_Info_Pointer</a> &gt;</td></tr>
+<tr class="memdesc:aab4b5900dad354afb872ce3bc3494667"><td class="mdescLeft">&#160;</td><td class="mdescRight">Simple type alias for an unordered_map of shared_ptr to Type_info, indexed by their (unique) name.  <a href="namespacenetwork__butcher_1_1io_1_1Onnx__importer__helpers.html#aab4b5900dad354afb872ce3bc3494667">More...</a><br /></td></tr>
 <tr class="separator:aab4b5900dad354afb872ce3bc3494667"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
@@ -122,6 +123,8 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Simple type alias for an unordered_map of shared_ptr to Type_info, indexed by their (unique) name. </p>
 
 </div>
 </div>
@@ -342,8 +345,8 @@ Functions</h2></td></tr>
 <p>It will return an io_collection with the different elements of io_names that are contained into value_infos and that are not initialized. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">io_names</td><td>The collection of names of IO identifiers </td></tr>
-    <tr><td class="paramname">parameters_collection</td><td>The collection of Type_info associated to the parameters elements for the given node </td></tr>
-    <tr><td class="paramname">value_infos</td><td>The collection of IO and parameters elements </td></tr>
+    <tr><td class="paramname">parameters_collection</td><td>The collection of Type_info pointers associated to the parameters elements for the given node </td></tr>
+    <tr><td class="paramname">value_infos</td><td>The collection of IO and parameters elements of the graph </td></tr>
   </table>
   </dd>
 </dl>

@@ -1,4 +1,5 @@
 <map id="network_butcher::io::block_aMLLibrary_Weight_Importer" name="network_butcher::io::block_aMLLibrary_Weight_Importer">
-<area shape="rect" id="node1" title="This class will be used to generate and import weights with aMLLibrary into the block graph." alt="" coords="5,175,224,648"/>
-<area shape="rect" id="node2" href="$classnetwork__butcher_1_1io_1_1Weight__Importer.html" title="This (pure virtual) class will be used to import weights into a graph." alt="" coords="31,5,198,127"/>
+<area shape="rect" id="node1" title="This class will be used to generate and import weights with aMLLibrary into the block graph." alt="" coords="15,375,233,819"/>
+<area shape="rect" id="node2" href="$classnetwork__butcher_1_1io_1_1Weight__Importer.html" title=" " alt="" coords="29,189,219,325"/>
+<area shape="rect" id="node3" href="$classnetwork__butcher_1_1io_1_1Weight__Importer.html" title=" " alt="" coords="5,5,243,127"/>
 </map>

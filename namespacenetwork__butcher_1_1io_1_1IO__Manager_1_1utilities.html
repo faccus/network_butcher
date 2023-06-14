@@ -76,14 +76,14 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a3588a19035339d1691fb51144b46dc15"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacenetwork__butcher_1_1io_1_1IO__Manager_1_1utilities.html#a3588a19035339d1691fb51144b46dc15">generate_weight_importer</a> (<a class="el" href="namespacenetwork__butcher.html#a6d72d470d6cfefe857a3a41d40ff20e9">Converted_Onnx_Graph_Type</a> &amp;graph, <a class="el" href="structnetwork__butcher_1_1parameters_1_1Parameters.html">network_butcher::parameters::Parameters</a> const &amp;params) -&gt; std::unique_ptr&lt; <a class="el" href="classnetwork__butcher_1_1io_1_1Weight__Importer.html">Weight_Importer</a> &gt;</td></tr>
-<tr class="separator:a3588a19035339d1691fb51144b46dc15"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adec5947d0ef393b1b4fd1f3262af79d2"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacenetwork__butcher_1_1io_1_1IO__Manager_1_1utilities.html#adec5947d0ef393b1b4fd1f3262af79d2">generate_weight_importer</a> (<a class="el" href="namespacenetwork__butcher.html#a6d72d470d6cfefe857a3a41d40ff20e9">Converted_Onnx_Graph_Type</a> &amp;graph, <a class="el" href="structnetwork__butcher_1_1parameters_1_1Parameters.html">network_butcher::parameters::Parameters</a> const &amp;params) -&gt; std::unique_ptr&lt; <a class="el" href="classnetwork__butcher_1_1io_1_1Weight__Importer.html">Weight_Importer</a>&lt; <a class="el" href="namespacenetwork__butcher.html#a6d72d470d6cfefe857a3a41d40ff20e9">Converted_Onnx_Graph_Type</a> &gt;&gt;</td></tr>
+<tr class="separator:adec5947d0ef393b1b4fd1f3262af79d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a08e2b4c5dcf50073b3d966feb15098ca"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacenetwork__butcher_1_1io_1_1IO__Manager_1_1utilities.html#a08e2b4c5dcf50073b3d966feb15098ca">reconstruct_model_and_export</a> (<a class="el" href="namespacenetwork__butcher_1_1types.html#a3df06e66873bdac7e0190521d8dd0f16">network_butcher::types::Weighted_Real_Path</a> const &amp;weighted_path, onnx::ModelProto const &amp;original_model, std::map&lt; <a class="el" href="namespacenetwork__butcher.html#a5c3a70884579b2e0d026e3790b705bb3">Node_Id_Type</a>, <a class="el" href="namespacenetwork__butcher.html#a5c3a70884579b2e0d026e3790b705bb3">Node_Id_Type</a> &gt; const &amp;link_id_nodeproto, <a class="el" href="namespacenetwork__butcher_1_1io_1_1Onnx__model__reconstructor__helpers_1_1helper__structures.html#acf0d5b0f83ef169293109b0c61015191">Onnx_model_reconstructor_helpers::helper_structures::Preprocessed_Ios_Type</a> const &amp;preprocessed_ios_nodes, const std::string &amp;export_base_path)</td></tr>
 <tr class="separator:a08e2b4c5dcf50073b3d966feb15098ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="a3588a19035339d1691fb51144b46dc15"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3588a19035339d1691fb51144b46dc15">&#9670;&nbsp;</a></span>generate_weight_importer()</h2>
+<a id="adec5947d0ef393b1b4fd1f3262af79d2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adec5947d0ef393b1b4fd1f3262af79d2">&#9670;&nbsp;</a></span>generate_weight_importer()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -103,18 +103,18 @@ Functions</h2></td></tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td> -&gt; std::unique_ptr&lt;<a class="el" href="classnetwork__butcher_1_1io_1_1Weight__Importer.html">Weight_Importer</a>&gt;</td>
+          <td></td><td> -&gt; std::unique_ptr&lt;<a class="el" href="classnetwork__butcher_1_1io_1_1Weight__Importer.html">Weight_Importer</a>&lt;<a class="el" href="namespacenetwork__butcher.html#a6d72d470d6cfefe857a3a41d40ff20e9">Converted_Onnx_Graph_Type</a>&gt;&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>It will generate the <a class="el" href="classnetwork__butcher_1_1io_1_1Weight__Importer.html" title="This (pure virtual) class will be used to import weights into a graph.">Weight_Importer</a> for the given non-block graph </p><dl class="params"><dt>Parameters</dt><dd>
+<p>It will generate the <a class="el" href="classnetwork__butcher_1_1io_1_1Weight__Importer.html">Weight_Importer</a> for the given non-block graph </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">graph</td><td>The graph </td></tr>
     <tr><td class="paramname">params</td><td>The parameters </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>The <a class="el" href="classnetwork__butcher_1_1io_1_1Weight__Importer.html" title="This (pure virtual) class will be used to import weights into a graph.">Weight_Importer</a> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The <a class="el" href="classnetwork__butcher_1_1io_1_1Weight__Importer.html">Weight_Importer</a> </dd></dl>
 
 </div>
 </div>

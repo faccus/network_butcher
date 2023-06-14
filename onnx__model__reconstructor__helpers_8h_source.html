@@ -258,15 +258,16 @@ $(function() {
 <div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;                    <span class="keyword">auto</span> new_entry = get_new_entry();</div>
 <div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;                    new_entry-&gt;set_name(el);</div>
 <div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160; </div>
-<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;                    new_entry-&gt;set_allocated_type(<span class="keyword">new</span> onnx::TypeProto(tmp_res.value()-&gt;type()));</div>
-<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;                  }</div>
-<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;              }</div>
-<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;          }</div>
-<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;      }</div>
-<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;  }</div>
-<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;} <span class="comment">// namespace network_butcher::io::Onnx_model_reconstructor_helpers</span></div>
-<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160; </div>
-<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;<span class="preprocessor">#endif </span><span class="comment">// NETWORK_BUTCHER_ONNX_MODEL_RECONSTRUCTOR_HELPERS_H</span></div>
+<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;                    <span class="comment">// new_entry will take into possession of the newly created TypeProto (and manage its construction)</span></div>
+<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;                    new_entry-&gt;set_allocated_type(<span class="keyword">new</span> onnx::TypeProto(tmp_res.value()-&gt;type()));</div>
+<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;                  }</div>
+<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;              }</div>
+<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;          }</div>
+<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;      }</div>
+<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;  }</div>
+<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;} <span class="comment">// namespace network_butcher::io::Onnx_model_reconstructor_helpers</span></div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160; </div>
+<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;<span class="preprocessor">#endif </span><span class="comment">// NETWORK_BUTCHER_ONNX_MODEL_RECONSTRUCTOR_HELPERS_H</span></div>
 <div class="ttc" id="abutcher_8h_html"><div class="ttname"><a href="butcher_8h.html">butcher.h</a></div></div>
 <div class="ttc" id="agraph__traits_8h_html"><div class="ttname"><a href="graph__traits_8h.html">graph_traits.h</a></div></div>
 <div class="ttc" id="anamespacenetwork__butcher_1_1io_1_1Onnx__model__reconstructor__helpers_1_1helper__structures_html_acf0d5b0f83ef169293109b0c61015191"><div class="ttname"><a href="namespacenetwork__butcher_1_1io_1_1Onnx__model__reconstructor__helpers_1_1helper__structures.html#acf0d5b0f83ef169293109b0c61015191">network_butcher::io::Onnx_model_reconstructor_helpers::helper_structures::Preprocessed_Ios_Type</a></div><div class="ttdeci">std::unordered_map&lt; std::string, IO_Tensors_Iterators_Type &gt; Preprocessed_Ios_Type</div><div class="ttdef"><b>Definition:</b> onnx_model_reconstructor_helpers.h:54</div></div>
