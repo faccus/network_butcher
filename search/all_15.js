@@ -1,10 +1,10 @@
 var searchData=
 [
-  ['valid_479',['valid',['../classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein_1_1D__G__Node.html#af979833ee6ac08aa92a38c5cf33e0a3e',1,'network_butcher::kfinder::Basic_KEppstein::D_G_Node']]],
-  ['valid_5fweighted_5fgraph_480',['Valid_Weighted_Graph',['../namespacenetwork__butcher_1_1kfinder.html#abb4536160f3ea03c3f08c21646c146a2',1,'network_butcher::kfinder']]],
-  ['value_5finfo_481',['value_info',['../structnetwork__butcher_1_1io_1_1Onnx__model__reconstructor__helpers_1_1helper__structures_1_1IO__Tensors__Iterators__Type.html#ab7890656ea7c91aa79d15c487392cf09',1,'network_butcher::io::Onnx_model_reconstructor_helpers::helper_structures::IO_Tensors_Iterators_Type']]],
-  ['value_5finfos_482',['value_infos',['../structnetwork__butcher_1_1io_1_1Onnx__importer__helpers_1_1helpers__structures_1_1Prepared__Import__Onnx__Type.html#a15733aaffed6eff9977fd281314ec425',1,'network_butcher::io::Onnx_importer_helpers::helpers_structures::Prepared_Import_Onnx_Type::value_infos()'],['../structnetwork__butcher_1_1io_1_1Onnx__importer__helpers_1_1helpers__structures_1_1Processed__Value__Infos__Type.html#a0e46534d9bf6b4dd0f9d0670474b18f9',1,'network_butcher::io::Onnx_importer_helpers::helpers_structures::Processed_Value_Infos_Type::value_infos()']]],
-  ['valueinfo_483',['ValueInfo',['../namespacenetwork__butcher_1_1io_1_1Onnx__model__reconstructor__helpers.html#a0e6ed020140e5614a5aaa0fee95065c4ae5cb64f72001d8f7fa2bc8d66d45989b',1,'network_butcher::io::Onnx_model_reconstructor_helpers']]],
-  ['variant_5fattribute_484',['Variant_Attribute',['../namespacenetwork__butcher_1_1types.html#a7d3df191ff06503cad579ef1e3571fee',1,'network_butcher::types']]],
-  ['variant_5fattribute_2eh_485',['variant_attribute.h',['../variant__attribute_8h.html',1,'']]]
+  ['valid_478',['valid',['../classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein_1_1D__G__Node.html#af979833ee6ac08aa92a38c5cf33e0a3e',1,'network_butcher::kfinder::Basic_KEppstein::D_G_Node']]],
+  ['valid_5fweighted_5fgraph_479',['Valid_Weighted_Graph',['../namespacenetwork__butcher_1_1kfinder.html#abb4536160f3ea03c3f08c21646c146a2',1,'network_butcher::kfinder']]],
+  ['value_5finfo_480',['value_info',['../structnetwork__butcher_1_1io_1_1Onnx__model__reconstructor__helpers_1_1helper__structures_1_1IO__Tensors__Iterators__Type.html#ab7890656ea7c91aa79d15c487392cf09',1,'network_butcher::io::Onnx_model_reconstructor_helpers::helper_structures::IO_Tensors_Iterators_Type']]],
+  ['value_5finfos_481',['value_infos',['../structnetwork__butcher_1_1io_1_1Onnx__importer__helpers_1_1helpers__structures_1_1Prepared__Import__Onnx__Type.html#a15733aaffed6eff9977fd281314ec425',1,'network_butcher::io::Onnx_importer_helpers::helpers_structures::Prepared_Import_Onnx_Type::value_infos()'],['../structnetwork__butcher_1_1io_1_1Onnx__importer__helpers_1_1helpers__structures_1_1Processed__Value__Infos__Type.html#a0e46534d9bf6b4dd0f9d0670474b18f9',1,'network_butcher::io::Onnx_importer_helpers::helpers_structures::Processed_Value_Infos_Type::value_infos()']]],
+  ['valueinfo_482',['ValueInfo',['../namespacenetwork__butcher_1_1io_1_1Onnx__model__reconstructor__helpers.html#a0e6ed020140e5614a5aaa0fee95065c4ae5cb64f72001d8f7fa2bc8d66d45989b',1,'network_butcher::io::Onnx_model_reconstructor_helpers']]],
+  ['variant_5fattribute_483',['Variant_Attribute',['../namespacenetwork__butcher_1_1types.html#a7d3df191ff06503cad579ef1e3571fee',1,'network_butcher::types']]],
+  ['variant_5fattribute_2eh_484',['variant_attribute.h',['../variant__attribute_8h.html',1,'']]]
 ];

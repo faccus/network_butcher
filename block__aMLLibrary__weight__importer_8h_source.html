@@ -75,12 +75,12 @@ $(function() {
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#define NETWORK_BUTCHER_BLOCK_AMLLIBRARY_WEIGHT_IMPORTER_H</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160; </div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#if NETWORK_BUTCHER_PYBIND_ACTIVE</span></div>
-<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#  include &lt;<a class="code" href="CMake__directives_8h.html">network_butcher/Extra/CMake_directives.h</a>&gt;</span></div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#  include &quot;CMake_directives.h&quot;</span></div>
 <div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#  include &lt;pybind11/embed.h&gt;</span></div>
 <div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#  include &lt;pybind11/pybind11.h&gt;</span></div>
 <div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160; </div>
 <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">#  if PLATFORM_SPECIFIC_CONFIG</span></div>
-<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="preprocessor">#    include &lt;network_butcher/Extra/platform_specific_config.h&gt;</span></div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="preprocessor">#    include &quot;platform_specific_config.h&quot;</span></div>
 <div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#  endif</span></div>
 <div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160; </div>
@@ -207,7 +207,6 @@ $(function() {
 <div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;} <span class="comment">// namespace network_butcher::io</span></div>
 <div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160; </div>
 <div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;<span class="preprocessor">#endif </span><span class="comment">// NETWORK_BUTCHER_BLOCK_AMLLIBRARY_WEIGHT_IMPORTER_H</span></div>
-<div class="ttc" id="aCMake__directives_8h_html"><div class="ttname"><a href="CMake__directives_8h.html">CMake_directives.h</a></div></div>
 <div class="ttc" id="aclassnetwork__butcher_1_1io_1_1Weight__Importer_html"><div class="ttname"><a href="classnetwork__butcher_1_1io_1_1Weight__Importer.html">network_butcher::io::Weight_Importer</a></div><div class="ttdef"><b>Definition:</b> weight_importer.h:14</div></div>
 <div class="ttc" id="aclassnetwork__butcher_1_1io_1_1Weight__Importer_html_a80fedad58365fdeab8b48b1f0a51c000"><div class="ttname"><a href="classnetwork__butcher_1_1io_1_1Weight__Importer.html#a80fedad58365fdeab8b48b1f0a51c000">network_butcher::io::Weight_Importer&lt; Block_Graph_Type &gt;::graph</a></div><div class="ttdeci">Block_Graph_Type &amp; graph</div><div class="ttdoc">The graph (stored as a reference)</div><div class="ttdef"><b>Definition:</b> weight_importer.h:17</div></div>
 <div class="ttc" id="aclassnetwork__butcher_1_1io_1_1block__aMLLibrary__Weight__Importer_html"><div class="ttname"><a href="classnetwork__butcher_1_1io_1_1block__aMLLibrary__Weight__Importer.html">network_butcher::io::block_aMLLibrary_Weight_Importer</a></div><div class="ttdoc">This class will be used to generate and import weights with aMLLibrary into the block graph.</div><div class="ttdef"><b>Definition:</b> block_aMLLibrary_weight_importer.h:26</div></div>
