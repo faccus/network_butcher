@@ -15,7 +15,8 @@
 
 namespace network_butcher::kfinder
 {
-  /// A (pure virtual) class that provides the common methods that are used by the different Eppstein algorithms
+  /// A (pure virtual) class that provides the common methods that are used by the different Eppstein algorithms.
+  /// Complexity computations are referred to WGraph.
   /// \tparam GraphType The type of the graph
   /// \tparam Only_Distance A boolean that indicates if the algorithm should return only the distance or the full paths
   /// \tparam t_Weighted_Graph_Complete_Type The type of the weighted graph
@@ -84,7 +85,8 @@ namespace network_butcher::kfinder
       H_out_collection ::mapped_type ::Node_Type const *h_out_node;
 
     public:
-      /// Constructs a D_G_Node from an H_g
+      /// Constructs a D_G_Node from an H_g. No test is performed on h_g_it (D_G_Node assumes that it contains a valid
+      /// heap). Perform the appropriate checks before calling the constructor
       /// \param h_g_it The iterator to the h_g_it collection
       explicit D_G_Node(H_g_collection::const_iterator const &h_g_it)
         : h_g_node{h_g_it->second.get_head_node()}
@@ -243,8 +245,8 @@ namespace network_butcher::kfinder
       -> std::vector<Path_Info>;
 
 
-    /// This function must be specialized by the different algorithms. It should prepare the required H_outs and H_gs
-    /// and call the general_algo_eppstein function
+    /// This function must be specialized by the different algorithms. It should prepare the required H_outs, H_gs
+    /// and, if needed, prepare the callback function and, finally, call the general_algo_eppstein function
     /// \param K The number of shortest paths to compute
     /// \param dij_res The result of the Dijkstra algorithm
     /// \param sidetrack_distances The sidetrack distances of every sidetrack edge

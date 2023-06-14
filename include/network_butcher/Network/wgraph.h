@@ -84,7 +84,8 @@ namespace network_butcher::types
     }
 
 
-    /// Sets the weight for the given edge
+    /// Sets the weight for the given edge. If parallel edges are allowed, it will add it to the
+    /// collection of weights for the associated edge
     /// \param edge The edge
     /// \param weight The weight
     void
@@ -94,7 +95,7 @@ namespace network_butcher::types
     }
 
 
-    /// Sets the weight for the given edge
+    /// Adds to the chosen edge the collection of weights. They will be considered as the cost of the extra edges
     /// \param edge The edge
     /// \param weights The weights
     void
@@ -147,7 +148,8 @@ namespace network_butcher::types
   };
 
 
-  /// A graph with weights
+  /// Just another weighted graph class... Specialized for Template_Node_Type=CNode<Content<T>> and
+  /// T_Weight_Type=Time_Type
   /// \tparam Parallel_Edges If true, the graph will support parallel edges
   /// \tparam T The type of the content of the nodes
   template <bool Parallel_Edges, typename T>
@@ -238,7 +240,8 @@ namespace network_butcher::types
     }
 
 
-    /// Sets the weight for the given edge
+    /// Sets the weight for the given edge. If parallel edges are allowed, it will add it to the
+    /// collection of weights for the associated edge
     /// \param edge The edge
     /// \param weight The weight
     void
@@ -248,7 +251,7 @@ namespace network_butcher::types
     }
 
 
-    /// Sets the weight for the given edge
+    /// Adds to the chosen edge the collection of weights. They will be considered as the cost of the extra edges
     /// \param edge The edge
     /// \param weights The weight
     void

@@ -9,8 +9,8 @@ produced by the models of [[1]](#1) in the block graph.
 
 In particular, the general idea of block_aMLLibrary_Weight_Importer (that is detailed by [[1]](#1) in his thesis) is to 
 estimate the execution time of each layer in a Deep Neural Network on two devices (an edge device and a cloud device) by 
-constructing a collection of regression models that should, a priori, estimate the layer execution time.
-The training data for these models is obtained by running a profiler application on several networks.
+constructing a collection of regression models that should, a priori, estimate the layer execution time on each device.
+The training data for these models is obtained by running a profiler application on several Onnx models.
 The profiler will:
 1) Construct the linear graph of the network (the linearized graph produced by Contrained_Block_Graph_Builder with mode 
 'output')

@@ -6,8 +6,8 @@ This directory contains the source files of the program. The main directories ar
   For more details of its contents, referer to its [README](APSC/README.md) file
 - Butcher: It contains the classes related to the butchering of a given DNN (Butcher and block graph building).
   For more details of its contents, referer to its [README](Butcher/README.md) file
-- Computer: It contains the header file required to compute the memory usage (input and output tensors, as well as 
-  parameters) of the layers of a given DNN. 
+- Computer: It contains the header file containing the functions required to compute the memory usage (input and output 
+  tensors, as well as parameters) of the layers of a given DNN. 
   All the functions are template functions.
 - Extra: This directory contains some extra header files, that may be generated based on the CMake configuration
 - IO_Interaction: It contains the header files used to interact with the storage (import and export of .onnx files and 

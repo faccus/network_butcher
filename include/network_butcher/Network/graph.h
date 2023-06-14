@@ -28,7 +28,7 @@ namespace network_butcher::types
     /// Alias for the internal collection of nodes
     using Node_Collection_Type = std::vector<Node_Type>;
 
-    /// Default constructor
+    /// Default constructor. Empty graph!
     Graph() = default;
 
     /// Construct a new Graph object
@@ -186,7 +186,7 @@ namespace network_butcher::types
   };
 
 
-  /// Just another graph class...
+  /// Just another graph class... Specialized in the case the Node_Type is CNode<Content<T>>
   /// \tparam T Type of the content of the nodes
   template <typename T>
   class Graph<CNode<Content<T>>>
@@ -201,7 +201,7 @@ namespace network_butcher::types
     /// Alias for the internal collection of nodes
     using Node_Collection_Type = std::vector<Node_Type>;
 
-    /// Default constructor
+    /// Default constructor. Empty graph.
     Graph() = default;
 
     /// Construct a new Graph object

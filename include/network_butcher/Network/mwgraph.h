@@ -10,8 +10,8 @@ namespace network_butcher::types
   /// as a collection of graphs with the same structure, but different weight collections.
   /// \tparam Parallel_Edges If true, the graph will allow parallel edges
   /// \tparam Template_Node_Type The type of the node
-  /// \tparam t_weight_type The type of the weight
-  template <bool Parallel_Edges, typename Template_Node_Type = Node, typename t_weight_type = Time_Type>
+  /// \tparam t_Weight_Type The type of the weight
+  template <bool Parallel_Edges, typename Template_Node_Type = Node, typename t_Weight_Type = Time_Type>
   class MWGraph : public Graph<Template_Node_Type>
   {
   protected:
@@ -29,7 +29,7 @@ namespace network_butcher::types
     using Node_Collection_Type = Parent_Type::Node_Collection_Type;
 
     /// Weight type
-    using Weight_Type = t_weight_type;
+    using Weight_Type = t_Weight_Type;
 
   private:
     /// Helper alias for the weight collection: a vector containing for each node a map to the edge weights, indexed by
@@ -132,12 +132,13 @@ namespace network_butcher::types
     }
 
 
-    /// Sets the weight for the given edge on the given device
+    /// Sets the weight for the given edge on the given device. If parallel edges are allowed, it will add it to the
+    /// collection of weights for the associated edge
     /// \param device The device id
     /// \param edge The edge
     /// \param weight The weight
     void
-    set_weight(std::size_t device, Edge_Type const &edge, t_weight_type const &weight)
+    set_weight(std::size_t device, Edge_Type const &edge, t_Weight_Type const &weight)
     {
       if (!Parent_Type::check_edge(edge))
         {
@@ -155,7 +156,7 @@ namespace network_butcher::types
         }
     }
 
-    /// Sets the weights for the given edge on the given device
+    /// Adds to the chosen edge the collection of weights. They will be considered as the cost of the extra edges
     /// \param device The device id
     /// \param edge The edge
     /// \param weights The weights
@@ -249,7 +250,8 @@ namespace network_butcher::types
   };
 
   /// A custom graph class. It contains a single graph and multiple weight collections. Technically, it can be viewed
-  /// as a collection of graphs with the same structure, but different weight collections.
+  /// as a collection of graphs with the same structure, but different weight collections. Specialized in the case of
+  /// Template_Node_Type = CNode<Content<T>> and t_Weight_Type=Time_Type
   /// \tparam Parallel_Edges If true, the graph will allow parallel edges
   /// \tparam T The content type of each CNode
   template <bool Parallel_Edges, typename T>
@@ -393,7 +395,8 @@ namespace network_butcher::types
     }
 
 
-    /// Sets the weight for the given edge on the given device
+    /// Sets the weight for the given edge on the given device. If parallel edges are allowed, it will add it to the
+    /// collection of weights for the associated edge
     /// \param device The device id
     /// \param edge The edge
     /// \param weight The weight
@@ -417,7 +420,7 @@ namespace network_butcher::types
     }
 
 
-    /// Sets the weight for the given edge on the given device
+    /// Adds to the chosen edge the collection of weights. They will be considered as the cost of the extra edges
     /// \param device The device id
     /// \param edge The edge
     /// \param weights The weights

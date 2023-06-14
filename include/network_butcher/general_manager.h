@@ -6,17 +6,16 @@
 
 namespace network_butcher::io
 {
-  /// \namespace General_Manager is the 'main' namespace of the program. Indeed, here are stored the functions that
-  /// execute the 'butchering' workflow as well as the function that can interact with the inputs of a program (if it
-  /// is built). The boot method reads the parameter file and performs the butchering (import of the network,
+  /// \namespace General_Manager General_Manager is the 'main' namespace of the program. Indeed, here are stored the
+  /// functions that execute the 'butchering' workflow as well as the function that can interact with the inputs of a
+  /// program (if it is built). The boot method reads the parameter file and performs the butchering (import of the network,
   /// butchering and model reconstruction) while read_command_line, using GetPot, will read the arguments from the
   /// command line
   namespace General_Manager
   {
     namespace Helper_Functions
     {
-      /// Based on the information related to the bandwidth between devices, it will produce a "transmission"
-      /// function for the given case
+      /// Based on the information related to the bandwidth between devices, it will produce the transmission function
       /// \param weights_params The collection of weight parameters
       /// \param graph The graph
       /// \return  The transmission function

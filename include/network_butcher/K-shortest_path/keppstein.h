@@ -10,6 +10,7 @@
 namespace network_butcher::kfinder
 {
   /// This class implements the Eppstein K-shortest path algorithm
+  /// Complexity computations are referred to WGraph.
   /// \tparam GraphType The graph type
   template <typename GraphType,
             bool                 Only_Distance                  = false,

@@ -38,8 +38,8 @@ namespace network_butcher::io::IO_Manager::utilities
 } // namespace network_butcher::io::IO_Manager::utilities
 
 
-/// \namespace IO_Manager is the namespace that contains all the main functions to call to interact with the IO. The
-/// other contained namespaces just contain helper functions
+/// \namespace IO_Manager IO_Manager is the namespace that contains all the main functions to call to interact with the
+/// IO. The other contained namespaces just contain helper functions
 namespace network_butcher::io::IO_Manager
 {
   /// It will return the parameters read from the given file
@@ -49,7 +49,7 @@ namespace network_butcher::io::IO_Manager
   read_parameters(std::string const &path) -> network_butcher::parameters::Parameters;
 
 
-  /// It will import a DNN as a graph from a given .onnx file
+  /// It will import an Onnx model as a graph from a given .onnx file
   /// \param path The file path of the .onnx file
   /// \param add_input_padding  If true, a padding node will be added at the beginning of the network, so that
   /// the resulting graph has a single input

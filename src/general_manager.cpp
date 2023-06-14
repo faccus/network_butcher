@@ -76,8 +76,7 @@ namespace network_butcher::io
   void
   General_Manager::boot(std::string const &path, bool performance)
   {
-    network_butcher::parameters::Parameters params = IO_Manager::read_parameters(path);
-    boot(params, performance);
+    boot(IO_Manager::read_parameters(path), performance);
   }
 
 
