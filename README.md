@@ -96,7 +96,7 @@ sudo apt-get update && sudo apt-get install build-essential cmake doxygen graphv
 sudo apt-get install python3-dev python3-pip --no-install-recommends -y
 ```
 ```bash
-python3 -m pip install -r requirements.txt
+python3 -m pip install -r dep/aMLLibrary/requirements.txt
 ```
 ```bash
 python3 -m pip install onnx-tool==0.6.1
