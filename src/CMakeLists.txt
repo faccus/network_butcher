@@ -103,13 +103,13 @@ set(APPEND
 
 
 
-# Make an automatic library - will be static or dynamic based on user setting
+# Make an automatic library
 add_library(network_butcher ${BASE_SOURCE} ${INCLUDES} ${HEADERS_LIBRARIES_LOCATION})
 
 # We need this directory, and users of our library will need it too
 target_include_directories(network_butcher PUBLIC ../include ${HEADERS_LIBRARIES_LOCATION})
 
-# This depends on (header only) boost
+#Library link
 target_link_libraries(network_butcher PUBLIC ${RUN_LIBRARIES_LOCATION})
 
 # All users of this library will need at least C++20
