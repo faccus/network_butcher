@@ -89,28 +89,21 @@ We advise, if undecided on which library to use, to employ OpenMP, since it is e
 We here report a small collection of simple bash commands to install the required libraries on a Linux system:
 - Compiler, CMake and Doxygen (with its extra packages):
 ```bash
-echo 'Initial package refresh:'
-sudo apt-get update
-echo 'Installing the compiler and CMake:'
-sudo apt-get install build-essential cmake -y
-echo 'Installing Doxygen (and Graphviz, dia and mscgen):'
-sudo apt-get install doxygen graphviz dia mscgen -y
+sudo apt-get update && sudo apt-get install build-essential cmake doxygen graphviz dia mscgen -y
 ```
 - Python, pip, aMLLibrary requirements and onnx-tool:
 ```bash
-echo 'Installing python and pip:'
 sudo apt-get install python3-dev python3-pip --no-install-recommends -y
-echo 'Installing aMLLibrary requirements:'
+```
+```bash
 python3 -m pip install -r requirements.txt
-echo 'Installing onnx-tool:'
+```
+```bash
 python3 -m pip install onnx-tool==0.6.1
 ```
 - OpenMP and TBB:
 ```bash
-echo 'Installing OpenMP:'
-sudo apt-get install libomp-14-dev -y
-echo 'Installing TBB:'
-sudo apt-get install libtbb-dev -y
+sudo apt-get install libomp-14-dev libtbb-dev -y
 ```
 
 ### Docker
