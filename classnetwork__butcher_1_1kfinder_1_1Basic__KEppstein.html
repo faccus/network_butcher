@@ -96,11 +96,11 @@ Collaboration diagram for network_butcher::kfinder::Basic_KEppstein&lt; GraphTyp
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein_1_1D__G__Node.html">D_G_Node</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A struct that contains the information about a node in the D(G) graph.  <a href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein_1_1D__G__Node.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structnetwork__butcher_1_1kfinder_1_1Basic__KEppstein_1_1Implicit__Path__Info.html">Implicit_Path_Info</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Simple struct to represent an implicit path.  <a href="structnetwork__butcher_1_1kfinder_1_1Basic__KEppstein_1_1Implicit__Path__Info.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein_1_1Sidetrack.html">Sidetrack</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A struct that contains the information about a sidetrack.  <a href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein_1_1Sidetrack.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
@@ -164,12 +164,8 @@ Protected Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:a354540a3c1797198484adedf45b11e30"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein.html#a354540a3c1797198484adedf45b11e30">extract_first_sidetrack_edge</a> (typename H_g_collection::const_iterator const &amp;h_g_it) const -&gt; <a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein_1_1Sidetrack.html">Sidetrack</a></td></tr>
-<tr class="separator:a354540a3c1797198484adedf45b11e30"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af8bd110bfa680f5e5c067c9cf74099a3"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein.html#af8bd110bfa680f5e5c067c9cf74099a3">sidetrack_distances</a> (<a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein.html#acd3369ab2cfeae33efd808b9fd917b54">Dijkstra_Result_Type</a> const &amp;dij_res) const -&gt; <a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein.html#a582b659a5582b04fca4d388879b501df">Internal_Weight_Collection_Type</a></td></tr>
 <tr class="separator:af8bd110bfa680f5e5c067c9cf74099a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1d9900dc4a5c5f678b472114e0fa4a20"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein.html#a1d9900dc4a5c5f678b472114e0fa4a20">get_alternatives</a> (<a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein_1_1Sidetrack.html">Sidetrack</a> const &amp;current_sidetrack) const -&gt; std::vector&lt; <a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein_1_1Sidetrack.html">Sidetrack</a> &gt;</td></tr>
-<tr class="separator:a1d9900dc4a5c5f678b472114e0fa4a20"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a439d407b440538a416c4518cabf9b722"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein.html#a439d407b440538a416c4518cabf9b722">helper_eppstein</a> (<a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein.html#acd3369ab2cfeae33efd808b9fd917b54">Dijkstra_Result_Type</a> const &amp;dij_res, std::vector&lt; <a class="el" href="structnetwork__butcher_1_1kfinder_1_1Basic__KEppstein_1_1Implicit__Path__Info.html">Implicit_Path_Info</a> &gt; const &amp;epp_res) const -&gt; std::vector&lt; <a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein.html#ac29d08a5865850fe15790a251b5317be">Path_Info</a> &gt;</td></tr>
 <tr class="separator:a439d407b440538a416c4518cabf9b722"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a910d0f3bb2388aafa9d483c83c0b2e44"><td class="memItemLeft" align="right" valign="top">virtual auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein.html#a910d0f3bb2388aafa9d483c83c0b2e44">start</a> (std::size_t K, <a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein.html#acd3369ab2cfeae33efd808b9fd917b54">Dijkstra_Result_Type</a> const &amp;dij_res, <a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein.html#a582b659a5582b04fca4d388879b501df">Internal_Weight_Collection_Type</a> const &amp;<a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein.html#af8bd110bfa680f5e5c067c9cf74099a3">sidetrack_distances</a>) const -&gt; <a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein.html#a45c72a69b06af991ba833f253bc0e8dc">Output_Type</a>=0</td></tr>
@@ -628,41 +624,6 @@ template&lt;typename Graph_type , bool Only_Distance, Valid_Weighted_Graph t_Wei
 
 </div>
 </div>
-<a id="a354540a3c1797198484adedf45b11e30"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a354540a3c1797198484adedf45b11e30">&#9670;&nbsp;</a></span>extract_first_sidetrack_edge()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename GraphType , bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type = Weighted_Graph&lt;GraphType&gt;&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto <a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein.html">network_butcher::kfinder::Basic_KEppstein</a>&lt; Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type &gt;::extract_first_sidetrack_edge </td>
-          <td>(</td>
-          <td class="paramtype">typename H_g_collection::const_iterator const &amp;&#160;</td>
-          <td class="paramname"><em>h_g_it</em></td><td>)</td>
-          <td> const -&gt; <a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein_1_1Sidetrack.html">Sidetrack</a></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>It extracts the first sidetrack associated to the given node </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">h_g_it</td><td>The h_g map iterator </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>The corresponding sidetrack edge </dd></dl>
-
-</div>
-</div>
 <a id="a706360041162d389e12c50597179b523"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a706360041162d389e12c50597179b523">&#9670;&nbsp;</a></span>general_algo_eppstein()</h2>
 
@@ -734,41 +695,6 @@ template&lt;typename Graph_type , bool Only_Distance, Valid_Weighted_Graph t_Wei
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The (explicit) shortest paths </dd></dl>
-
-</div>
-</div>
-<a id="a1d9900dc4a5c5f678b472114e0fa4a20"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1d9900dc4a5c5f678b472114e0fa4a20">&#9670;&nbsp;</a></span>get_alternatives()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename Graph_type , bool Only_Distance, Valid_Weighted_Graph t_Weighted_Graph_Complete_Type&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto <a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein.html">network_butcher::kfinder::Basic_KEppstein</a>&lt; Graph_type, Only_Distance, t_Weighted_Graph_Complete_Type &gt;::get_alternatives </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein_1_1Sidetrack.html">Sidetrack</a> const &amp;&#160;</td>
-          <td class="paramname"><em>current_sidetrack</em></td><td>)</td>
-          <td> const -&gt; std::vector&lt;<a class="el" href="classnetwork__butcher_1_1kfinder_1_1Basic__KEppstein_1_1Sidetrack.html">Sidetrack</a>&gt;</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Given the input sidetrack, it will return the vector of next alternative sidetracks O(1) </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">current_sidetrack</td><td>The current sidetrack </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>The vector of next alternative sidetracks </dd></dl>
 
 </div>
 </div>
