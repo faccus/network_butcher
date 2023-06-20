@@ -75,6 +75,25 @@ namespace network_butcher::types
     }
 
 
+    /// Copy constructor
+    /// \param other The other graph
+    MWGraph(MWGraph const &other) = default;
+
+    /// Move constructor
+    /// \param other The other graph
+    MWGraph(MWGraph &&other) noexcept = default;
+
+    /// Copy assignment
+    /// \param other The other graph
+    /// \return The current graph
+    auto operator=(MWGraph const &other) -> MWGraph & = default;
+
+    /// Move assignment
+    /// \param other The other graph
+    /// \return The current graph
+    auto operator=(MWGraph &&other) noexcept -> MWGraph & = default;
+
+
     /// Checks if the given edge has a weight on the given device
     /// \param device The device id
     /// \param edge The edge
@@ -336,6 +355,24 @@ namespace network_butcher::types
           map.resize(Parent_Type::size());
         }
     }
+
+    /// Copy constructor
+    /// \param other The other graph
+    MWGraph(MWGraph const &other) = default;
+
+    /// Move constructor
+    /// \param other The other graph
+    MWGraph(MWGraph &&other) noexcept = default;
+
+    /// Copy assignment
+    /// \param other The other graph
+    /// \return The current graph
+    auto operator=(MWGraph const &other) -> MWGraph & = default;
+
+    /// Move assignment
+    /// \param other The other graph
+    /// \return The current graph
+    auto operator=(MWGraph &&other) noexcept -> MWGraph & = default;
 
 
     /// Checks if the given edge has a weight on the given device

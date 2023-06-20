@@ -39,6 +39,24 @@ namespace network_butcher::types
       , name(in_name)
     {}
 
+    /// Copy constructor
+    /// \param other Other type
+    Type_Info(Type_Info const &other) = default;
+
+    /// Move constructor
+    /// \param other Other type
+    Type_Info(Type_Info &&other) noexcept = default;
+
+    /// Copy assignment
+    /// \param other Other type
+    /// \return This type
+    auto operator=(Type_Info const &other) -> Type_Info & = default;
+
+    /// Move assignment
+    /// \param other Other type
+    /// \return This type
+    auto operator=(Type_Info &&other) noexcept -> Type_Info & = default;
+
 
     /// Get the name of the type
     /// \return The name

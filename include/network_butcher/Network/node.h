@@ -25,6 +25,24 @@ namespace network_butcher::types
       : id(std::numeric_limits<Node_Id_Type>::max())
     {}
 
+    /// Copy constructor
+    /// \param other The node to copy
+    Node(Node const &other) = default;
+
+    /// Move constructor
+    /// \param other The node to move
+    Node(Node &&other) noexcept = default;
+
+    /// Copy assignment operator
+    /// \param other The node to copy
+    /// \return The current node
+    auto operator=(Node const &other) -> Node & = default;
+
+    /// Move assignment operator
+    /// \param other The node to move
+    /// \return The current node
+    auto operator=(Node &&other) noexcept -> Node & = default;
+
 
     /// Getter for the node id
     /// \return The node id
@@ -61,7 +79,25 @@ namespace network_butcher::types
     /// Default constructor
     CNode() = default;
 
-    /// Basic move constructor for a node
+    /// Copy constructor
+    /// \param other The node to copy
+    CNode(CNode const &other) = default;
+
+    /// Move constructor
+    /// \param other The node to move
+    CNode(CNode &&other) noexcept = default;
+
+    /// Copy assignment operator
+    /// \param other The node to copy
+    /// \return The current node
+    auto operator=(CNode const &other) -> CNode & = default;
+
+    /// Move assignment operator
+    /// \param other The node to move
+    /// \return The current node
+    auto operator=(CNode &&other) noexcept -> CNode & = default;
+
+    /// Basic constructor for a node, moving a content
     explicit CNode(Content_Type &&starting_content)
       : Node()
       , content(std::move(starting_content))

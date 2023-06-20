@@ -63,6 +63,24 @@ namespace network_butcher::types
       : Parent_Type(1, std::forward<A>(v), std::forward<B>(dep))
     {}
 
+    /// Copy constructor
+    /// \param other The graph to copy
+    WGraph(WGraph const &other) = default;
+
+    /// Move constructor
+    /// \param other The graph to move
+    WGraph(WGraph &&other) noexcept = default;
+
+    /// Copy assignment
+    /// \param other The graph to copy
+    /// \return A reference to this
+    auto operator=(WGraph const &other) -> WGraph & = default;
+
+    /// Move assignment
+    /// \param other The graph to move
+    /// \return A reference to this
+    auto operator=(WGraph &&other) noexcept -> WGraph & = default;
+
 
     /// Checks if the given edge has a weight
     /// \param edge The edge
@@ -218,6 +236,24 @@ namespace network_butcher::types
     explicit WGraph(Node_Collection_Type &&v)
       : Parent_Type(1, std::move(v))
     {}
+
+    /// Copy constructor
+    /// \param other The graph to copy
+    WGraph(WGraph const &other) = default;
+
+    /// Move constructor
+    /// \param other The graph to move
+    WGraph(WGraph &&other) noexcept = default;
+
+    /// Copy assignment
+    /// \param other The graph to copy
+    /// \return A reference to this
+    auto operator=(WGraph const &other) -> WGraph & = default;
+
+    /// Move assignment
+    /// \param other The graph to move
+    /// \return A reference to this
+    auto operator=(WGraph &&other) noexcept -> WGraph & = default;
 
 
     /// Checks if the given edge has a weight

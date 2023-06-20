@@ -31,6 +31,24 @@ namespace network_butcher::types
     /// Default constructor. Empty graph!
     Graph() = default;
 
+    /// Copy constructor
+    /// \param other The other graph
+    Graph(Graph const &other) = default;
+
+    /// Move constructor
+    /// \param other The other graph
+    Graph(Graph &&other) noexcept = default;
+
+    /// Copy assignment
+    /// \param other The other graph
+    /// \return A reference to this
+    auto operator=(Graph const &other) -> Graph & = default;
+
+    /// Move assignment
+    /// \param other The other graph
+    /// \return A reference to this
+    auto operator=(Graph &&other) noexcept -> Graph & = default;
+
     /// Construct a new Graph object
     /// \param v The collection of nodes ordered in an ascending order based on the id. To work with butcher, the
     /// nodes must be sorted in topological order, according to the Onnx IR specifications.
@@ -201,8 +219,26 @@ namespace network_butcher::types
     /// Alias for the internal collection of nodes
     using Node_Collection_Type = std::vector<Node_Type>;
 
-    /// Default constructor. Empty graph.
+    /// Default constructor. Empty graph!
     Graph() = default;
+
+    /// Copy constructor
+    /// \param other The other graph
+    Graph(Graph const &other) = default;
+
+    /// Move constructor
+    /// \param other The other graph
+    Graph(Graph &&other) noexcept = default;
+
+    /// Copy assignment
+    /// \param other The other graph
+    /// \return A reference to this
+    auto operator=(Graph const &other) -> Graph & = default;
+
+    /// Move assignment
+    /// \param other The other graph
+    /// \return A reference to this
+    auto operator=(Graph &&other) noexcept -> Graph & = default;
 
     /// Construct a new Graph object
     /// \param v The collection of nodes ordered in an ascending order based on the id. To work with butcher, the

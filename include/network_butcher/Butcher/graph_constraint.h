@@ -14,6 +14,18 @@ namespace network_butcher::constraints
     /// Default constructor
     Graph_Constraint() = default;
 
+    /// Copy constructor
+    Graph_Constraint(Graph_Constraint const &) = default;
+
+    /// Move constructor
+    Graph_Constraint(Graph_Constraint &&) noexcept = default;
+
+    /// Copy assignment operator
+    Graph_Constraint & operator=(Graph_Constraint const &) = default;
+
+    /// Move assignment operator
+    auto operator=(Graph_Constraint &&) noexcept -> Graph_Constraint & = default;
+
     /// Apply the specified constraint to the graph
     /// \param graph The block graph onto which the constraint should be applied
     virtual void
