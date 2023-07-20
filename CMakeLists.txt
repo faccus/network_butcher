@@ -17,8 +17,8 @@ option(USE_GOOGLETEST "Enable target for tests (download automatically GoogleTes
 option(DISCOVER_TESTS "Let CTest discover the tests" ON)
 option(DISCOVER_COMPLETE_TESTS "Let CTest discover the complete tests" ON)
 
-option(ENABLE_NETWORK_BUTCHER_PARALLEL "Enable parallel execution" OFF)
-option(USE_OPENMP "Use OpenMP (if OFF, it will use TBB)" ON)
+option(ENABLE_NETWORK_BUTCHER_PARALLEL "Enable parallel execution" ON)
+option(USE_OPENMP "Use OpenMP (if OFF, it will use TBB)" OFF)
 
 option(USE_PYBIND "Use pybind11 (downloaded automatically from github)" ON)
 
