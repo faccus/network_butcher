@@ -46,6 +46,24 @@ namespace network_butcher::types
     /// \param constant Is it constant?
     explicit Dense_tensor(const onnx::TensorProto &info, bool given = false, bool constant = false);
 
+    /// Copy constructor
+    /// \param other Other tensor
+    Dense_tensor(Dense_tensor const &other) = default;
+
+    /// Move constructor
+    /// \param other Other tensor
+    Dense_tensor(Dense_tensor &&other) noexcept = default;
+
+    /// Copy assignment
+    /// \param other Other tensor
+    /// \return This tensor
+    auto operator=(Dense_tensor const &other) -> Dense_tensor & = default;
+
+    /// Move assignment
+    /// \param other Other tensor
+    /// \return This tensor
+    auto operator=(Dense_tensor &&other) noexcept -> Dense_tensor & = default;
+
 
     /// Compute the total memory of the type
     /// \return Memory usage of the associated type
@@ -66,6 +84,9 @@ namespace network_butcher::types
     {
       return shape;
     }
+
+    /// Default destructor
+    ~Dense_tensor() override = default;
   };
 } // namespace network_butcher::types
 

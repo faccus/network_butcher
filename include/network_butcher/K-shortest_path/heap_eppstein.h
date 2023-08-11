@@ -80,6 +80,24 @@ namespace network_butcher::kfinder
         el = 0;
     };
 
+    /// Copy constructor
+    /// \param other The node to copy
+    Heap_Node(Heap_Node const &other) = default;
+
+    /// Copy assignment
+    /// \param other The node to copy
+    /// \return The current node
+    auto operator=(Heap_Node const &other) -> Heap_Node & = default;
+
+    /// Move constructor
+    /// \param other The node to move
+    Heap_Node(Heap_Node &&other) noexcept = default;
+
+    /// Move assignment
+    /// \param other The node to move
+    /// \return The current node
+    auto operator=(Heap_Node &&other) noexcept -> Heap_Node & = default;
+
 
     /// Get the children of the current node
     /// \return The children nodes
@@ -445,7 +463,7 @@ namespace network_butcher::kfinder
           iterators.reserve(initial_collection.size()); // O(N)
 
           // Add the the last element of initial_collection to the internal collection. It should be the minimum element
-          internal_children->emplace_back(std::move(initial_collection.back())); // O(1)
+          internal_children->emplace_back(initial_collection.back()); // O(1)
           iterators.push_back(internal_children->begin());                       // O(1)
 
           // Remove the last element of initial_collection
@@ -455,7 +473,7 @@ namespace network_butcher::kfinder
           // initial_collection heap
           for (std::size_t i = 0; i < initial_collection.size(); ++i) // O(N)
             {
-              internal_children->emplace_back(std::move(initial_collection[i]));
+              internal_children->emplace_back(initial_collection[i]);
               iterators.push_back((++internal_children->rbegin()).base());
 
               iterators[(i + 1) / 2]->add_child(&internal_children->back());

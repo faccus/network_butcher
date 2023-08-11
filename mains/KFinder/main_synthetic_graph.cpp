@@ -137,7 +137,7 @@ main(int argc, char **argv)
     out_file.close();
   }
 
-  for (std::size_t power_nodes = 5; power_nodes <= max_power_nodes; ++power_nodes)
+  for (std::size_t power_nodes = 7; power_nodes <= max_power_nodes; power_nodes+=4)
     {
       std::size_t nodes = simple_pow(2, power_nodes);
 
@@ -146,7 +146,7 @@ main(int argc, char **argv)
 
       std::cout << "Nodes: " << graph.size() << std::endl << std::endl;
 
-      for (std::size_t power_k = 6; power_k <= max_power_K; ++power_k)
+      for (std::size_t power_k = 6; power_k <= max_power_K; power_k+=2)
         {
           std::size_t K = simple_pow(2, power_k);
 
